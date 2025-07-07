@@ -1,9 +1,7 @@
 Tasks:
-- get zig working
-    - console log something
 - get vulkan working
     - go over step by step to maybe think about different split of code?
-    - create window and paint triangle
+    - create window and paint sleeping dog
 
 
 Game Vision:
