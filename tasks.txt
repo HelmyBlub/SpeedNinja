@@ -1,0 +1,15 @@
+Tasks:
+- get zig working
+    - console log something
+- get vulkan working
+    - go over step by step to maybe think about different split of code?
+    - create window and paint triangle
+
+
+Game Vision:
+- speed dog ninja 
+    - when players draws blade, time stops
+    - has puzzle/tetris like pieces to move
+    - when killing enemy, move set refreshes
+    - when not hitting enemy in x turns, time runs again
+    - try to use shaders to make it look "better"
