@@ -60,6 +60,7 @@ pub const VkState = struct {
     imageAvailableSemaphore: []vk.VkSemaphore = undefined,
     submitSemaphores: []vk.VkSemaphore = undefined,
     inFlightFence: []vk.VkFence = undefined,
+    currentFrame: u16 = 0,
 
     spriteData: paintVulkanZig.SpriteData = .{},
 
@@ -141,8 +142,6 @@ pub fn destroyPaintVulkan(vkState: *VkState, allocator: std.mem.Allocator) !void
 
     vk.vkDestroyDescriptorPool.?(vkState.logicalDevice, vkState.descriptorPool, null);
     vk.vkDestroyDescriptorSetLayout.?(vkState.logicalDevice, vkState.descriptorSetLayout, null);
-    vk.vkDestroyBuffer.?(vkState.logicalDevice, vkState.spriteData.vertexBuffer, null);
-    vk.vkFreeMemory.?(vkState.logicalDevice, vkState.spriteData.vertexBufferMemory, null);
     vk.vkDestroyCommandPool.?(vkState.logicalDevice, vkState.commandPool, null);
     vk.vkDestroyPipeline.?(vkState.logicalDevice, vkState.graphicsPipeline, null);
     vk.vkDestroyPipelineLayout.?(vkState.logicalDevice, vkState.pipelineLayout, null);
@@ -150,7 +149,6 @@ pub fn destroyPaintVulkan(vkState: *VkState, allocator: std.mem.Allocator) !void
     vk.vkDestroyDevice.?(vkState.logicalDevice, null);
     vk.vkDestroySurfaceKHR.?(vkState.instance, vkState.surface, null);
     vk.vkDestroyInstance.?(vkState.instance, null);
-    allocator.free(vkState.spriteData.vertices);
     allocator.free(vkState.uniformBuffers);
     allocator.free(vkState.uniformBuffersMemory);
     allocator.free(vkState.uniformBuffersMapped);
@@ -1028,6 +1026,36 @@ pub fn createBuffer(size: vk.VkDeviceSize, usage: vk.VkBufferUsageFlags, propert
     };
     if (vk.vkAllocateMemory.?(vkState.logicalDevice, &allocInfo, null, &bufferMemory.*) != vk.VK_SUCCESS) return error.allocateMemory;
     if (vk.vkBindBufferMemory.?(vkState.logicalDevice, buffer.*, bufferMemory.*, 0) != vk.VK_SUCCESS) return error.bindMemory;
+}
+
+pub fn recreateSwapChain(state: *main.GameState, allocator: std.mem.Allocator) !void {
+    _ = vk.vkDeviceWaitIdle.?(state.vkState.logicalDevice);
+
+    cleanupSwapChain(&state.vkState, allocator);
+    _ = try createSwapChainRelatedStuffAndCheckWindowSize(state, allocator);
+}
+
+/// returns true if stuff exists or is created
+pub fn createSwapChainRelatedStuffAndCheckWindowSize(state: *main.GameState, allocator: std.mem.Allocator) !bool {
+    const vkState = &state.vkState;
+    if (vkState.framebuffers == null) {
+        var capabilities: vk.VkSurfaceCapabilitiesKHR = undefined;
+        try vkcheck(vk.vkGetPhysicalDeviceSurfaceCapabilitiesKHR.?(vkState.physicalDevice, vkState.surface, &capabilities), "failed vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
+        if (capabilities.currentExtent.width == 0 or capabilities.currentExtent.height == 0) {
+            return false;
+        }
+
+        if (vk.vkDeviceWaitIdle.?(state.vkState.logicalDevice) != vk.VK_SUCCESS) return false;
+        try createSwapChain(vkState, allocator);
+        try createImageViews(vkState, allocator);
+        try createColorResources(vkState);
+        try createDepthResources(vkState, allocator);
+        try createFramebuffers(vkState, allocator);
+        windowSdlZig.windowData.widthFloat = @floatFromInt(capabilities.currentExtent.width);
+        windowSdlZig.windowData.heightFloat = @floatFromInt(capabilities.currentExtent.height);
+        return true;
+    }
+    return true;
 }
 
 pub fn vkcheck(result: vk.VkResult, comptime err_msg: []const u8) !void {

@@ -59,7 +59,10 @@ pub fn handleEvents(state: *main.GameState) !void {
     while (sdl.SDL_PollEvent(&event)) {
         if (event.type == sdl.SDL_EVENT_MOUSE_BUTTON_UP) {
             //placeholder
-            _ = state;
+        }
+        if (event.type == sdl.SDL_EVENT_QUIT) {
+            std.debug.print("clicked window X \n", .{});
+            state.gameEnded = true;
         }
     }
 }
