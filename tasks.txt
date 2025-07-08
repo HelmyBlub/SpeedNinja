@@ -1,7 +1,11 @@
 Tasks:
-- player/enemies stuck to tiles
-    - input keys to change player position one tile
-    - change moving based on "tetris tiles"
+- change moving based on "tetris tiles"
+    - move pieces,  encode = [<direction>, <steps>]
+    - activate movePiece with 1,2,3 keys
+        - and direction after it
+        - dog moves like pice
+    - movePiece displayed at the Bottom
+
 
 Game Vision:
 - speed dog ninja 

@@ -106,7 +106,7 @@ pub fn initVulkan(state: *main.GameState) !void {
     try createCommandPool(vkState, state.allocator);
     try imageZig.createVulkanTextureSprites(vkState, state.allocator);
     try createTextureSampler(vkState);
-    try paintVulkanZig.createVertexBuffer(vkState, VkState.BUFFER_ADDITIOAL_SIZE, state.allocator);
+    try paintVulkanZig.createVertexBuffer(vkState, state.allocator);
     try createUniformBuffers(vkState, state.allocator);
     try createDescriptorPool(vkState);
     try createDescriptorSets(vkState, state.allocator);

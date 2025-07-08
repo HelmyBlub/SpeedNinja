@@ -51,7 +51,7 @@ const SpriteWithGlobalTransformVertex = struct {
 
 pub const SpriteData = struct {
     vertices: []SpriteWithGlobalTransformVertex = undefined,
-    vertexBufferSize: u64 = 0,
+    verticeUsedCount: usize = 0,
     vertexBuffer: vk.VkBuffer = undefined,
     vertexBufferMemory: vk.VkDeviceMemory = undefined,
 };
@@ -172,7 +172,7 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
         null,
     );
 
-    vk.vkCmdDraw.?(commandBuffer, 1, 1, 0, 0);
+    vk.vkCmdDraw.?(commandBuffer, @intCast(vkState.spriteData.verticeUsedCount), 1, 0, 0);
     vk.vkCmdNextSubpass.?(commandBuffer, vk.VK_SUBPASS_CONTENTS_INLINE);
     vk.vkCmdNextSubpass.?(commandBuffer, vk.VK_SUBPASS_CONTENTS_INLINE);
 
@@ -181,13 +181,42 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
 }
 
 fn setupVerticesForSprites(state: *main.GameState) !void {
-    state.vkState.spriteData.vertices[0] = .{
+    const spriteData = &state.vkState.spriteData;
+    spriteData.verticeUsedCount = 0;
+
+    spriteData.vertices[spriteData.verticeUsedCount] = .{
         .pos = .{ state.player.position.x, state.player.position.y },
-        .imageIndex = 0,
+        .imageIndex = imageZig.IMAGE_DOG,
         .size = 20,
         .rotate = 0,
         .cutY = 0,
     };
+    spriteData.verticeUsedCount += 1;
+
+    if (state.player.choosenMoveOptionIndex) |index| {
+        const stepSize = 20;
+        for (0..4) |direction| {
+            var position: main.Position = state.player.position;
+            for (state.player.moveOptions[index].steps) |moveStep| {
+                const moveDirection = @mod(moveStep.direction + direction, 4);
+                const moveX: f32 = if (moveDirection == 0) stepSize else if (moveDirection == 2) -stepSize else 0;
+                const moveY: f32 = if (moveDirection == 1) stepSize else if (moveDirection == 3) -stepSize else 0;
+                for (0..moveStep.stepCount) |_| {
+                    position.x += moveX;
+                    position.y += moveY;
+                    spriteData.vertices[spriteData.verticeUsedCount] = .{
+                        .pos = .{ position.x, position.y },
+                        .imageIndex = imageZig.IMAGE_WHITE_RECTANGLE,
+                        .size = 20,
+                        .rotate = 0,
+                        .cutY = 0,
+                    };
+                    spriteData.verticeUsedCount += 1;
+                    if (spriteData.verticeUsedCount >= spriteData.vertices.len) return;
+                }
+            }
+        }
+    }
 }
 
 pub fn setupVertexDataForGPU(vkState: *initVulkanZig.VkState) !void {
@@ -366,12 +395,10 @@ pub fn createGraphicsPipelines(vkState: *initVulkanZig.VkState, allocator: std.m
     try initVulkanZig.vkcheck(vk.vkCreateGraphicsPipelines.?(vkState.logicalDevice, null, 1, &pipelineInfo, null, &vkState.graphicsPipeline), "failed vkCreateGraphicsPipelines graphicsPipeline");
 }
 
-pub fn createVertexBuffer(vkState: *initVulkanZig.VkState, entityCount: u64, allocator: std.mem.Allocator) !void {
-    if (vkState.spriteData.vertexBufferSize != 0) allocator.free(vkState.spriteData.vertices);
-    vkState.spriteData.vertexBufferSize = entityCount + initVulkanZig.VkState.BUFFER_ADDITIOAL_SIZE;
-    vkState.spriteData.vertices = try allocator.alloc(SpriteWithGlobalTransformVertex, vkState.spriteData.vertexBufferSize);
+pub fn createVertexBuffer(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
+    vkState.spriteData.vertices = try allocator.alloc(SpriteWithGlobalTransformVertex, 50);
     try initVulkanZig.createBuffer(
-        @sizeOf(SpriteWithGlobalTransformVertex) * vkState.spriteData.vertexBufferSize,
+        @sizeOf(SpriteWithGlobalTransformVertex) * vkState.spriteData.vertices.len,
         vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
         &vkState.spriteData.vertexBuffer,

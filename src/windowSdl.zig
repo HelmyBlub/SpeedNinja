@@ -66,13 +66,39 @@ pub fn handleEvents(state: *main.GameState) !void {
         }
         if (event.type == sdl.SDL_EVENT_KEY_DOWN) {
             if (event.key.scancode == sdl.SDL_SCANCODE_LEFT or event.key.scancode == sdl.SDL_SCANCODE_A) {
-                state.player.position.x -= 20;
+                if (state.player.choosenMoveOptionIndex) |index| {
+                    main.movePlayerByMovePiece(index, 2, state);
+                    state.player.choosenMoveOptionIndex = null;
+                } else {
+                    state.player.position.x -= 20;
+                }
             } else if (event.key.scancode == sdl.SDL_SCANCODE_RIGHT or event.key.scancode == sdl.SDL_SCANCODE_D) {
-                state.player.position.x += 20;
+                if (state.player.choosenMoveOptionIndex) |index| {
+                    main.movePlayerByMovePiece(index, 0, state);
+                    state.player.choosenMoveOptionIndex = null;
+                } else {
+                    state.player.position.x += 20;
+                }
             } else if (event.key.scancode == sdl.SDL_SCANCODE_UP or event.key.scancode == sdl.SDL_SCANCODE_W) {
-                state.player.position.y -= 20;
+                if (state.player.choosenMoveOptionIndex) |index| {
+                    main.movePlayerByMovePiece(index, 3, state);
+                    state.player.choosenMoveOptionIndex = null;
+                } else {
+                    state.player.position.y -= 20;
+                }
             } else if (event.key.scancode == sdl.SDL_SCANCODE_DOWN or event.key.scancode == sdl.SDL_SCANCODE_S) {
-                state.player.position.y += 20;
+                if (state.player.choosenMoveOptionIndex) |index| {
+                    main.movePlayerByMovePiece(index, 1, state);
+                    state.player.choosenMoveOptionIndex = null;
+                } else {
+                    state.player.position.y += 20;
+                }
+            } else if (event.key.scancode == sdl.SDL_SCANCODE_1) {
+                state.player.choosenMoveOptionIndex = 0;
+            } else if (event.key.scancode == sdl.SDL_SCANCODE_2) {
+                state.player.choosenMoveOptionIndex = 1;
+            } else if (event.key.scancode == sdl.SDL_SCANCODE_3) {
+                state.player.choosenMoveOptionIndex = 2;
             }
         }
     }
