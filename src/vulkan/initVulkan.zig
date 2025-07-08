@@ -4,6 +4,9 @@ const windowSdlZig = @import("../windowSdl.zig");
 const sdl = windowSdlZig.sdl;
 const imageZig = @import("../image.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
+const dataVulkanZig = @import("dataVulkan.zig");
+const movePieceUxVulkanZig = @import("movePieceUxVulkan.zig");
+const pipelinesVulkanZig = @import("pipelinesVulkan.zig");
 pub const vk = @cImport({
     @cInclude("Volk/volk.h");
 });
@@ -31,7 +34,7 @@ pub const VkState = struct {
     msaaSamples: vk.VkSampleCountFlagBits = vk.VK_SAMPLE_COUNT_1_BIT,
     descriptorSetLayout: vk.VkDescriptorSetLayout = undefined,
     pipelineLayout: vk.VkPipelineLayout = undefined,
-    graphicsPipeline: vk.VkPipeline = undefined,
+    graphicsPipelines: pipelinesVulkanZig.VkPipelines = undefined,
     depth: struct {
         image: vk.VkImage = undefined,
         imageMemory: vk.VkDeviceMemory = undefined,
@@ -62,7 +65,8 @@ pub const VkState = struct {
     inFlightFence: []vk.VkFence = undefined,
     currentFrame: u16 = 0,
 
-    spriteData: paintVulkanZig.SpriteData = .{},
+    spriteData: dataVulkanZig.SpriteData = .{},
+    movePieceUx: movePieceUxVulkanZig.VkMovePiecesUx = undefined,
 
     pub const MAX_FRAMES_IN_FLIGHT: u16 = 2;
     pub const BUFFER_ADDITIOAL_SIZE: u16 = 50;
@@ -99,7 +103,7 @@ pub fn initVulkan(state: *main.GameState) !void {
     try createImageViews(vkState, state.allocator);
     try createRenderPass(vkState, state.allocator);
     try createDescriptorSetLayout(vkState);
-    try paintVulkanZig.createGraphicsPipelines(vkState, state.allocator);
+    try pipelinesVulkanZig.createGraphicsPipelines(vkState, state.allocator);
     try createColorResources(vkState);
     try createDepthResources(vkState, state.allocator);
     try createFramebuffers(vkState, state.allocator);
@@ -107,6 +111,7 @@ pub fn initVulkan(state: *main.GameState) !void {
     try imageZig.createVulkanTextureSprites(vkState, state.allocator);
     try createTextureSampler(vkState);
     try paintVulkanZig.createVertexBuffer(vkState, state.allocator);
+    try movePieceUxVulkanZig.create(state);
     try createUniformBuffers(vkState, state.allocator);
     try createDescriptorPool(vkState);
     try createDescriptorSets(vkState, state.allocator);
@@ -118,6 +123,7 @@ pub fn initVulkan(state: *main.GameState) !void {
 pub fn destroyPaintVulkan(vkState: *VkState, allocator: std.mem.Allocator) !void {
     if (vk.vkDeviceWaitIdle.?(vkState.logicalDevice) != vk.VK_SUCCESS) return error.vkDeviceWaitIdleDestroyPaintVulkan;
     paintVulkanZig.destroy(vkState, allocator);
+    movePieceUxVulkanZig.destroy(vkState, allocator);
     cleanupSwapChain(vkState, allocator);
 
     for (0..VkState.MAX_FRAMES_IN_FLIGHT) |i| {
@@ -143,7 +149,7 @@ pub fn destroyPaintVulkan(vkState: *VkState, allocator: std.mem.Allocator) !void
     vk.vkDestroyDescriptorPool.?(vkState.logicalDevice, vkState.descriptorPool, null);
     vk.vkDestroyDescriptorSetLayout.?(vkState.logicalDevice, vkState.descriptorSetLayout, null);
     vk.vkDestroyCommandPool.?(vkState.logicalDevice, vkState.commandPool, null);
-    vk.vkDestroyPipeline.?(vkState.logicalDevice, vkState.graphicsPipeline, null);
+    pipelinesVulkanZig.destroy(vkState);
     vk.vkDestroyPipelineLayout.?(vkState.logicalDevice, vkState.pipelineLayout, null);
     vk.vkDestroyRenderPass.?(vkState.logicalDevice, vkState.renderPass, null);
     vk.vkDestroyDevice.?(vkState.logicalDevice, null);
@@ -578,7 +584,7 @@ fn createTextureSampler(vkState: *VkState) !void {
 }
 
 fn createUniformBuffers(vkState: *VkState, allocator: std.mem.Allocator) !void {
-    const bufferSize: vk.VkDeviceSize = @sizeOf(paintVulkanZig.VkCameraData);
+    const bufferSize: vk.VkDeviceSize = @sizeOf(dataVulkanZig.VkCameraData);
 
     vkState.uniformBuffers = try allocator.alloc(vk.VkBuffer, VkState.MAX_FRAMES_IN_FLIGHT);
     vkState.uniformBuffersMemory = try allocator.alloc(vk.VkDeviceMemory, VkState.MAX_FRAMES_IN_FLIGHT);
@@ -633,7 +639,7 @@ fn createDescriptorSets(vkState: *VkState, allocator: std.mem.Allocator) !void {
         const bufferInfo: vk.VkDescriptorBufferInfo = .{
             .buffer = vkState.uniformBuffers[i],
             .offset = 0,
-            .range = @sizeOf(paintVulkanZig.VkCameraData),
+            .range = @sizeOf(dataVulkanZig.VkCameraData),
         };
 
         const imageInfo: []vk.VkDescriptorImageInfo = try allocator.alloc(vk.VkDescriptorImageInfo, imageZig.IMAGE_DATA.len);

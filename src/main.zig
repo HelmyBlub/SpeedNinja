@@ -11,6 +11,11 @@ pub const GameState = struct {
     gameEnded: bool = false,
 };
 
+pub const DIRECTION_RIGHT = 0;
+pub const DIRECTION_DOWN = 1;
+pub const DIRECTION_LEFT = 2;
+pub const DIRECTION_UP = 3;
+
 pub const Player = struct {
     position: Position = .{ .x = 0, .y = 0 },
     choosenMoveOptionIndex: ?usize = null,
@@ -47,19 +52,19 @@ fn startGame(allocator: std.mem.Allocator) !void {
     std.debug.print("game run start\n", .{});
     const movePieces: [3]MovePiece = [3]MovePiece{
         .{ .steps = &[3]MoveStep{
-            .{ .direction = 0, .stepCount = 2 },
-            .{ .direction = 1, .stepCount = 2 },
-            .{ .direction = 0, .stepCount = 2 },
+            .{ .direction = DIRECTION_UP, .stepCount = 2 },
+            .{ .direction = DIRECTION_RIGHT, .stepCount = 2 },
+            .{ .direction = DIRECTION_UP, .stepCount = 2 },
         } },
         .{ .steps = &[3]MoveStep{
-            .{ .direction = 0, .stepCount = 2 },
-            .{ .direction = 3, .stepCount = 2 },
-            .{ .direction = 0, .stepCount = 2 },
+            .{ .direction = DIRECTION_UP, .stepCount = 2 },
+            .{ .direction = DIRECTION_LEFT, .stepCount = 2 },
+            .{ .direction = DIRECTION_UP, .stepCount = 2 },
         } },
         .{ .steps = &[3]MoveStep{
-            .{ .direction = 0, .stepCount = 2 },
-            .{ .direction = 1, .stepCount = 2 },
-            .{ .direction = 2, .stepCount = 2 },
+            .{ .direction = DIRECTION_UP, .stepCount = 2 },
+            .{ .direction = DIRECTION_RIGHT, .stepCount = 2 },
+            .{ .direction = DIRECTION_DOWN, .stepCount = 1 },
         } },
     };
     var state: GameState = .{
@@ -93,16 +98,16 @@ fn destroyGameState(state: *GameState) void {
 pub fn movePlayerByMovePiece(movePieceIndex: usize, directionInput: u8, state: *GameState) void {
     const moveStepSize = 20;
     for (state.player.moveOptions[movePieceIndex].steps) |step| {
-        const direction = @mod(step.direction + directionInput, 4);
+        const direction = @mod(step.direction + directionInput + 1, 4);
         const stepAmount: f32 = @as(f32, @floatFromInt(step.stepCount)) * moveStepSize;
         switch (direction) {
-            0 => {
+            DIRECTION_RIGHT => {
                 state.player.position.x += stepAmount;
             },
-            1 => {
+            DIRECTION_DOWN => {
                 state.player.position.y += stepAmount;
             },
-            2 => {
+            DIRECTION_LEFT => {
                 state.player.position.x -= stepAmount;
             },
             else => {

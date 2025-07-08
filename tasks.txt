@@ -1,11 +1,12 @@
 Tasks:
-- change moving based on "tetris tiles"
-    - move pieces,  encode = [<direction>, <steps>]
-    - activate movePiece with 1,2,3 keys
-        - and direction after it
-        - dog moves like pice
-    - movePiece displayed at the Bottom
-
+- movePiece displayed at the Bottom
+- randomize movePieces
+    - from a set of available ones
+- put in enmies
+    - stationary, do nothing
+- countdown timer
+    - kill all enemies on screen before timer ends
+    - when finished, reset timer, spawn more enmies
 
 Game Vision:
 - speed dog ninja 
