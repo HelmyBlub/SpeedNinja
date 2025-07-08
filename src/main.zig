@@ -7,8 +7,12 @@ pub const GameState = struct {
     vkState: initVulkanZig.VkState = .{},
     allocator: std.mem.Allocator = undefined,
     camera: Camera = .{ .position = .{ .x = 0, .y = 0 }, .zoom = 1 },
-    dummy: u32 = 0,
+    player: Player = .{},
     gameEnded: bool = false,
+};
+
+pub const Player = struct {
+    position: Position = .{ .x = 0, .y = 0 },
 };
 
 pub const Position: type = struct {

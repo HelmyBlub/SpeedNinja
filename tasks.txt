@@ -1,10 +1,7 @@
 Tasks:
-- get vulkan working
-    - continue: draw dog image with vulkan
-        - runtime failed on destory. Maybe because nothing painted?
-    - go over step by step to maybe think about different split of code?
-    - create window and paint sleeping dog
-
+- player/enemies stuck to tiles
+    - input keys to change player position one tile
+    - change moving based on "tetris tiles"
 
 Game Vision:
 - speed dog ninja 

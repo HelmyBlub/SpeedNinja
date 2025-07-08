@@ -182,7 +182,7 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
 
 fn setupVerticesForSprites(state: *main.GameState) !void {
     state.vkState.spriteData.vertices[0] = .{
-        .pos = .{ 0, 0 },
+        .pos = .{ state.player.position.x, state.player.position.y },
         .imageIndex = 0,
         .size = 20,
         .rotate = 0,

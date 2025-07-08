@@ -64,6 +64,17 @@ pub fn handleEvents(state: *main.GameState) !void {
             std.debug.print("clicked window X \n", .{});
             state.gameEnded = true;
         }
+        if (event.type == sdl.SDL_EVENT_KEY_DOWN) {
+            if (event.key.scancode == sdl.SDL_SCANCODE_LEFT or event.key.scancode == sdl.SDL_SCANCODE_A) {
+                state.player.position.x -= 20;
+            } else if (event.key.scancode == sdl.SDL_SCANCODE_RIGHT or event.key.scancode == sdl.SDL_SCANCODE_D) {
+                state.player.position.x += 20;
+            } else if (event.key.scancode == sdl.SDL_SCANCODE_UP or event.key.scancode == sdl.SDL_SCANCODE_W) {
+                state.player.position.y -= 20;
+            } else if (event.key.scancode == sdl.SDL_SCANCODE_DOWN or event.key.scancode == sdl.SDL_SCANCODE_S) {
+                state.player.position.y += 20;
+            }
+        }
     }
 }
 
