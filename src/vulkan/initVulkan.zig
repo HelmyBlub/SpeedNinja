@@ -656,6 +656,12 @@ fn createDescriptorSets(vkState: *VkState, allocator: std.mem.Allocator) !void {
             };
         }
 
+        const imageInfoFont: vk.VkDescriptorImageInfo = .{
+            .imageLayout = vk.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .imageView = vkState.font.textureImageView,
+            .sampler = vkState.textureSampler,
+        };
+
         const descriptorWrites = [_]vk.VkWriteDescriptorSet{
             .{
                 .sType = vk.VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -676,6 +682,15 @@ fn createDescriptorSets(vkState: *VkState, allocator: std.mem.Allocator) !void {
                 .descriptorType = vk.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                 .descriptorCount = @as(u32, @intCast(imageInfo.len)),
                 .pImageInfo = @ptrCast(imageInfo),
+            },
+            .{
+                .sType = vk.VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .dstSet = vkState.descriptorSets[i],
+                .dstBinding = 2,
+                .dstArrayElement = 0,
+                .descriptorType = vk.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                .descriptorCount = 1,
+                .pImageInfo = @ptrCast(&imageInfoFont),
             },
         };
         vk.vkUpdateDescriptorSets.?(vkState.logicalDevice, descriptorWrites.len, &descriptorWrites, 0, null);

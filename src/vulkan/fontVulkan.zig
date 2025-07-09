@@ -74,11 +74,14 @@ pub const FontVertex = struct {
 fn setupVertices(state: *main.GameState) !void {
     state.vkState.font.vkFont.verticeCount = 0;
     const fontSize = 30;
-    const textWidthRound = paintText("Round: ", .{ .x = 0, .y = 0 }, fontSize, &state.vkState.font.vkFont);
-    _ = try paintNumber(state.round, .{ .x = 0 + textWidthRound, .y = 0 }, fontSize, &state.vkState.font.vkFont);
+    const textWidthRound = paintText("Round: ", .{ .x = 0, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
+    _ = try paintNumber(state.round, .{ .x = 0 + textWidthRound, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
 
-    const textWidthTime = paintText("Time: ", .{ .x = 0, .y = -0.6 }, fontSize, &state.vkState.font.vkFont);
-    _ = try paintNumber(10, .{ .x = textWidthTime, .y = -0.6 }, fontSize, &state.vkState.font.vkFont);
+    if (state.roundEndTime) |endTime| {
+        const textWidthTime = paintText("Time: ", .{ .x = 0, .y = -0.8 }, fontSize, &state.vkState.font.vkFont);
+        const remainingTime: i64 = @max(0, endTime - std.time.timestamp());
+        _ = try paintNumber(remainingTime, .{ .x = textWidthTime, .y = -0.8 }, fontSize, &state.vkState.font.vkFont);
+    }
     try setupVertexDataForGPU(&state.vkState);
 }
 
