@@ -144,7 +144,7 @@ fn setupVerticesForSprites(state: *main.GameState) !void {
         const stepSize = 20;
         for (0..4) |direction| {
             var position: main.Position = state.player.position;
-            for (state.player.moveOptions[index].steps) |moveStep| {
+            for (state.player.moveOptions.items[index].steps) |moveStep| {
                 const moveDirection = @mod(moveStep.direction + direction, 4);
                 const moveX: f32 = if (moveDirection == 0) stepSize else if (moveDirection == 2) -stepSize else 0;
                 const moveY: f32 = if (moveDirection == 1) stepSize else if (moveDirection == 3) -stepSize else 0;

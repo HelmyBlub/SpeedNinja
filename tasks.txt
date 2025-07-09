@@ -1,12 +1,14 @@
 Tasks:
-- movePiece displayed at the Bottom
 - randomize movePieces
     - from a set of available ones
 - put in enmies
     - stationary, do nothing
+- draw grid?
 - countdown timer
     - kill all enemies on screen before timer ends
     - when finished, reset timer, spawn more enmies
+- highscores?
+- try around with shaders to make it look "better"
 
 Game Vision:
 - speed dog ninja 

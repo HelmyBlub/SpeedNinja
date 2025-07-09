@@ -71,17 +71,17 @@ pub fn setupVertices(state: *main.GameState) !void {
     const startColor: [3]f32 = .{ 0.0, 0.0, 1 };
     const fillColor: [3]f32 = .{ 0.25, 0.25, 0.25 };
 
-    for (state.player.moveOptions, 0..) |movePiece, index| {
+    for (state.player.moveOptions.items, 0..) |movePiece, index| {
         var x: i8 = 0;
         var y: i8 = 0;
-        setupRectangleVertices(x, y, movePieceUx, index, state.player.moveOptions.len, startColor);
+        setupRectangleVertices(x, y, movePieceUx, index, state.player.moveOptions.items.len, startColor);
         for (movePiece.steps) |step| {
             const stepX: i8 = if (step.direction == 0) 1 else if (step.direction == 2) -1 else 0;
             const stepY: i8 = if (step.direction == 1) 1 else if (step.direction == 3) -1 else 0;
             for (0..step.stepCount) |_| {
                 x += stepX;
                 y += stepY;
-                setupRectangleVertices(x, y, movePieceUx, index, state.player.moveOptions.len, fillColor);
+                setupRectangleVertices(x, y, movePieceUx, index, state.player.moveOptions.items.len, fillColor);
             }
         }
     }

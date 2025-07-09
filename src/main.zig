@@ -7,6 +7,7 @@ pub const GameState = struct {
     vkState: initVulkanZig.VkState = .{},
     allocator: std.mem.Allocator = undefined,
     camera: Camera = .{ .position = .{ .x = 0, .y = 0 }, .zoom = 1 },
+    movePieces: []const MovePiece,
     player: Player,
     gameEnded: bool = false,
 };
@@ -19,7 +20,7 @@ pub const DIRECTION_UP = 3;
 pub const Player = struct {
     position: Position = .{ .x = 0, .y = 0 },
     choosenMoveOptionIndex: ?usize = null,
-    moveOptions: []const MovePiece,
+    moveOptions: std.ArrayList(MovePiece),
 };
 
 pub const MovePiece = struct {
@@ -50,27 +51,7 @@ pub fn main() !void {
 
 fn startGame(allocator: std.mem.Allocator) !void {
     std.debug.print("game run start\n", .{});
-    const movePieces: [3]MovePiece = [3]MovePiece{
-        .{ .steps = &[3]MoveStep{
-            .{ .direction = DIRECTION_UP, .stepCount = 2 },
-            .{ .direction = DIRECTION_RIGHT, .stepCount = 2 },
-            .{ .direction = DIRECTION_UP, .stepCount = 2 },
-        } },
-        .{ .steps = &[3]MoveStep{
-            .{ .direction = DIRECTION_UP, .stepCount = 2 },
-            .{ .direction = DIRECTION_LEFT, .stepCount = 2 },
-            .{ .direction = DIRECTION_UP, .stepCount = 2 },
-        } },
-        .{ .steps = &[3]MoveStep{
-            .{ .direction = DIRECTION_UP, .stepCount = 2 },
-            .{ .direction = DIRECTION_RIGHT, .stepCount = 2 },
-            .{ .direction = DIRECTION_DOWN, .stepCount = 1 },
-        } },
-    };
-    var state: GameState = .{
-        .player = .{ .moveOptions = &movePieces },
-    };
-    try createGameState(allocator, &state);
+    var state: GameState = try createGameState(allocator);
     defer destroyGameState(&state);
     try mainLoop(&state);
 }
@@ -82,10 +63,21 @@ fn mainLoop(state: *GameState) !void {
     }
 }
 
-fn createGameState(allocator: std.mem.Allocator, state: *GameState) !void {
+fn createGameState(allocator: std.mem.Allocator) !GameState {
+    var state: GameState = .{
+        .movePieces = createMovePieces(),
+        .player = .{
+            .moveOptions = std.ArrayList(MovePiece).init(allocator),
+        },
+    };
     state.allocator = allocator;
     try windowSdlZig.initWindowSdl();
-    try initVulkanZig.initVulkan(state);
+    try initVulkanZig.initVulkan(&state);
+    try setRandomMovePiece(0, &state);
+    try setRandomMovePiece(1, &state);
+    try setRandomMovePiece(2, &state);
+
+    return state;
 }
 
 fn destroyGameState(state: *GameState) void {
@@ -93,11 +85,59 @@ fn destroyGameState(state: *GameState) void {
         std.debug.print("failed to destroy window and vulkan\n", .{});
     };
     windowSdlZig.destroyWindowSdl();
+    state.player.moveOptions.deinit();
 }
 
-pub fn movePlayerByMovePiece(movePieceIndex: usize, directionInput: u8, state: *GameState) void {
+pub fn setRandomMovePiece(index: usize, state: *GameState) !void {
+    const rand = std.crypto.random;
+    const randomPiece: usize = @intFromFloat(rand.float(f32) * @as(f32, @floatFromInt(state.movePieces.len)));
+    if (state.player.moveOptions.items.len <= index) {
+        try state.player.moveOptions.append(state.movePieces[randomPiece]);
+    } else {
+        state.player.moveOptions.items[index] = state.movePieces[randomPiece];
+    }
+}
+
+fn createMovePieces() []const MovePiece {
+    const movePieces = [_]MovePiece{
+        .{ .steps = &[_]MoveStep{
+            .{ .direction = DIRECTION_UP, .stepCount = 2 },
+            .{ .direction = DIRECTION_RIGHT, .stepCount = 2 },
+            .{ .direction = DIRECTION_UP, .stepCount = 2 },
+        } },
+        .{ .steps = &[_]MoveStep{
+            .{ .direction = DIRECTION_UP, .stepCount = 2 },
+            .{ .direction = DIRECTION_LEFT, .stepCount = 2 },
+            .{ .direction = DIRECTION_UP, .stepCount = 2 },
+        } },
+        .{ .steps = &[_]MoveStep{
+            .{ .direction = DIRECTION_UP, .stepCount = 2 },
+            .{ .direction = DIRECTION_RIGHT, .stepCount = 2 },
+            .{ .direction = DIRECTION_DOWN, .stepCount = 1 },
+        } },
+        .{ .steps = &[_]MoveStep{
+            .{ .direction = DIRECTION_UP, .stepCount = 1 },
+            .{ .direction = DIRECTION_RIGHT, .stepCount = 1 },
+            .{ .direction = DIRECTION_UP, .stepCount = 1 },
+            .{ .direction = DIRECTION_RIGHT, .stepCount = 1 },
+            .{ .direction = DIRECTION_UP, .stepCount = 1 },
+        } },
+        .{ .steps = &[_]MoveStep{
+            .{ .direction = DIRECTION_UP, .stepCount = 2 },
+        } },
+        .{ .steps = &[_]MoveStep{
+            .{ .direction = DIRECTION_UP, .stepCount = 3 },
+        } },
+        .{ .steps = &[_]MoveStep{
+            .{ .direction = DIRECTION_UP, .stepCount = 4 },
+        } },
+    };
+    return &movePieces;
+}
+
+pub fn movePlayerByMovePiece(movePieceIndex: usize, directionInput: u8, state: *GameState) !void {
     const moveStepSize = 20;
-    for (state.player.moveOptions[movePieceIndex].steps) |step| {
+    for (state.player.moveOptions.items[movePieceIndex].steps) |step| {
         const direction = @mod(step.direction + directionInput + 1, 4);
         const stepAmount: f32 = @as(f32, @floatFromInt(step.stepCount)) * moveStepSize;
         switch (direction) {
@@ -115,4 +155,5 @@ pub fn movePlayerByMovePiece(movePieceIndex: usize, directionInput: u8, state: *
             },
         }
     }
+    try setRandomMovePiece(movePieceIndex, state);
 }
