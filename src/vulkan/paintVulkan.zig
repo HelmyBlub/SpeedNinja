@@ -144,29 +144,6 @@ fn setupVerticesForSprites(state: *main.GameState) !void {
     };
     spriteData.verticeUsedCount += 1;
 
-    if (state.player.choosenMoveOptionIndex) |index| {
-        for (0..4) |direction| {
-            var position: main.Position = state.player.position;
-            for (state.player.moveOptions.items[index].steps) |moveStep| {
-                const moveDirection = @mod(moveStep.direction + direction, 4);
-                const moveX: f32 = if (moveDirection == 0) main.TILESIZE else if (moveDirection == 2) -main.TILESIZE else 0;
-                const moveY: f32 = if (moveDirection == 1) main.TILESIZE else if (moveDirection == 3) -main.TILESIZE else 0;
-                for (0..moveStep.stepCount) |_| {
-                    position.x += moveX;
-                    position.y += moveY;
-                    if (spriteData.verticeUsedCount >= spriteData.vertices.len) return;
-                    spriteData.vertices[spriteData.verticeUsedCount] = .{
-                        .pos = .{ position.x, position.y },
-                        .imageIndex = imageZig.IMAGE_WHITE_RECTANGLE,
-                        .size = main.TILESIZE,
-                        .rotate = 0,
-                        .cutY = 0,
-                    };
-                    spriteData.verticeUsedCount += 1;
-                }
-            }
-        }
-    }
     for (state.enemies.items) |enemy| {
         if (spriteData.verticeUsedCount >= spriteData.vertices.len) return;
         spriteData.vertices[spriteData.verticeUsedCount] = .{
