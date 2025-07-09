@@ -1,5 +1,4 @@
 Tasks:
-- fix: visualize selected move piece better
 - highscores?
 - on timer end -> reset trees to one
 - does it feel fun?

@@ -82,6 +82,14 @@ fn setupVertices(state: *main.GameState) !void {
         const remainingTime: i64 = @max(0, endTime - std.time.timestamp());
         _ = try paintNumber(remainingTime, .{ .x = textWidthTime, .y = -0.8 }, fontSize, &state.vkState.font.vkFont);
     }
+    if (state.highscore > 0) {
+        const textWidthTime = paintText("Highscore: ", .{ .x = 0.5, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
+        _ = try paintNumber(state.highscore, .{ .x = 0.5 + textWidthTime, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
+    }
+    if (state.lastScore > 0) {
+        const textWidthTime = paintText("last score: ", .{ .x = -0.5, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
+        _ = try paintNumber(state.lastScore, .{ .x = -0.5 + textWidthTime, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
+    }
     try setupVertexDataForGPU(&state.vkState);
 }
 

@@ -14,6 +14,8 @@ pub const GameState = struct {
     mapTileRadius: u32 = 16,
     enemies: std.ArrayList(Position),
     player: Player,
+    highscore: u32 = 0,
+    lastScore: u32 = 0,
     gameEnded: bool = false,
 };
 
@@ -70,7 +72,10 @@ fn mainLoop(state: *GameState) !void {
         }
         if (state.roundEndTime != null and state.roundEndTime.? < std.time.timestamp()) {
             state.roundEndTime = null;
+            state.lastScore = state.round;
+            if (state.round > state.highscore) state.highscore = state.round;
             state.round = 1;
+            try setupEnemies(state);
         }
         try windowSdlZig.handleEvents(state);
         try paintVulkanZig.drawFrame(state);
