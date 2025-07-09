@@ -11,6 +11,7 @@ pub const GameState = struct {
     movePieces: []const MovePiece,
     round: u32 = 1,
     roundEndTime: ?i64 = null,
+    mapTileRadius: u32 = 16,
     enemies: std.ArrayList(Position),
     player: Player,
     gameEnded: bool = false,

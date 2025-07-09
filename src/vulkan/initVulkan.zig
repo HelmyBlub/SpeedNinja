@@ -8,6 +8,7 @@ const dataVulkanZig = @import("dataVulkan.zig");
 const movePieceUxVulkanZig = @import("movePieceUxVulkan.zig");
 const pipelinesVulkanZig = @import("pipelinesVulkan.zig");
 const fontVulkanZig = @import("fontVulkan.zig");
+const mapGridVulkanZig = @import("mapGridVulkan.zig");
 pub const vk = @cImport({
     @cInclude("Volk/volk.h");
 });
@@ -67,6 +68,7 @@ pub const VkState = struct {
     currentFrame: u16 = 0,
 
     font: fontVulkanZig.VkFontData = .{},
+    mapGrid: mapGridVulkanZig.VkMapGridUx = .{},
     spriteData: dataVulkanZig.SpriteData = .{},
     movePieceUx: movePieceUxVulkanZig.VkMovePiecesUx = undefined,
 
@@ -115,6 +117,7 @@ pub fn initVulkan(state: *main.GameState) !void {
     try paintVulkanZig.createVertexBuffer(vkState, state.allocator);
     try fontVulkanZig.initFont(state);
     try movePieceUxVulkanZig.create(state);
+    try mapGridVulkanZig.create(state);
     try createUniformBuffers(vkState, state.allocator);
     try createDescriptorPool(vkState);
     try createDescriptorSets(vkState, state.allocator);
@@ -128,6 +131,7 @@ pub fn destroyPaintVulkan(vkState: *VkState, allocator: std.mem.Allocator) !void
     paintVulkanZig.destroy(vkState, allocator);
     fontVulkanZig.destroyFont(vkState, allocator);
     movePieceUxVulkanZig.destroy(vkState, allocator);
+    mapGridVulkanZig.destroy(vkState, allocator);
     cleanupSwapChain(vkState, allocator);
 
     for (0..VkState.MAX_FRAMES_IN_FLIGHT) |i| {

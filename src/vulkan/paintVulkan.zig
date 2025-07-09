@@ -7,6 +7,7 @@ const vk = initVulkanZig.vk;
 const movePieceUxVulkanZig = @import("movePieceUxVulkan.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 const fontVulkanZig = @import("fontVulkan.zig");
+const mapGridVulkanZig = @import("mapGridVulkan.zig");
 
 pub fn drawFrame(state: *main.GameState) !void {
     const vkState = &state.vkState;
@@ -88,9 +89,8 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
             .{ .depthStencil = vk.VkClearDepthStencilValue{ .depth = 1.0, .stencil = 0.0 } },
         },
     };
-
     vk.vkCmdBeginRenderPass.?(commandBuffer, &renderPassInfo, vk.VK_SUBPASS_CONTENTS_INLINE);
-    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.spriteWithGlobalTransform);
+
     var viewport = vk.VkViewport{
         .x = 0.0,
         .y = 0.0,
@@ -105,6 +105,8 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
         .extent = vkState.swapchainInfo.extent,
     };
     vk.vkCmdSetScissor.?(commandBuffer, 0, 1, &scissor);
+    try mapGridVulkanZig.recordCommandBuffer(commandBuffer, state);
+    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.spriteWithGlobalTransform);
     const vertexBuffers: [1]vk.VkBuffer = .{vkState.spriteData.vertexBuffer};
     const offsets: [1]vk.VkDeviceSize = .{0};
     vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
