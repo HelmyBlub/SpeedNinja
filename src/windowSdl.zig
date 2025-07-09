@@ -70,28 +70,28 @@ pub fn handleEvents(state: *main.GameState) !void {
                     try main.movePlayerByMovePiece(index, main.DIRECTION_LEFT, state);
                     state.player.choosenMoveOptionIndex = null;
                 } else {
-                    state.player.position.x -= 20;
+                    // state.player.position.x -= main.TILESIZE;
                 }
             } else if (event.key.scancode == sdl.SDL_SCANCODE_RIGHT or event.key.scancode == sdl.SDL_SCANCODE_D) {
                 if (state.player.choosenMoveOptionIndex) |index| {
                     try main.movePlayerByMovePiece(index, main.DIRECTION_RIGHT, state);
                     state.player.choosenMoveOptionIndex = null;
                 } else {
-                    state.player.position.x += 20;
+                    // state.player.position.x += main.TILESIZE;
                 }
             } else if (event.key.scancode == sdl.SDL_SCANCODE_UP or event.key.scancode == sdl.SDL_SCANCODE_W) {
                 if (state.player.choosenMoveOptionIndex) |index| {
                     try main.movePlayerByMovePiece(index, main.DIRECTION_UP, state);
                     state.player.choosenMoveOptionIndex = null;
                 } else {
-                    state.player.position.y -= 20;
+                    // state.player.position.y -= main.TILESIZE;
                 }
             } else if (event.key.scancode == sdl.SDL_SCANCODE_DOWN or event.key.scancode == sdl.SDL_SCANCODE_S) {
                 if (state.player.choosenMoveOptionIndex) |index| {
                     try main.movePlayerByMovePiece(index, main.DIRECTION_DOWN, state);
                     state.player.choosenMoveOptionIndex = null;
                 } else {
-                    state.player.position.y += 20;
+                    // state.player.position.y += main.TILESIZE;
                 }
             } else if (event.key.scancode == sdl.SDL_SCANCODE_1) {
                 state.player.choosenMoveOptionIndex = 0;

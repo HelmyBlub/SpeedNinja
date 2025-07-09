@@ -1,6 +1,4 @@
 Tasks:
-- randomize movePieces
-    - from a set of available ones
 - put in enmies
     - stationary, do nothing
 - draw grid?

@@ -5,6 +5,7 @@ const vk = initVulkanZig.vk;
 
 pub const IMAGE_DOG = 0;
 pub const IMAGE_WHITE_RECTANGLE = 1;
+pub const IMAGE_TREE = 2;
 
 pub const ImageData = struct {
     path: []const u8,
@@ -13,6 +14,7 @@ pub const ImageData = struct {
 pub const IMAGE_DATA = [_]ImageData{
     .{ .path = "images/dog.png" },
     .{ .path = "images/whiteRectangle.png" },
+    .{ .path = "images/tree.png" },
 };
 
 pub fn createVulkanTextureSprites(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {

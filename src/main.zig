@@ -3,11 +3,15 @@ const windowSdlZig = @import("windowSdl.zig");
 const initVulkanZig = @import("vulkan/initVulkan.zig");
 const paintVulkanZig = @import("vulkan/paintVulkan.zig");
 
+pub const TILESIZE = 20;
 pub const GameState = struct {
     vkState: initVulkanZig.VkState = .{},
     allocator: std.mem.Allocator = undefined,
     camera: Camera = .{ .position = .{ .x = 0, .y = 0 }, .zoom = 1 },
     movePieces: []const MovePiece,
+    round: u32 = 1,
+    roundEndTime: ?i64 = null,
+    enemies: std.ArrayList(Position),
     player: Player,
     gameEnded: bool = false,
 };
@@ -58,8 +62,18 @@ fn startGame(allocator: std.mem.Allocator) !void {
 
 fn mainLoop(state: *GameState) !void {
     while (!state.gameEnded) {
+        if (state.enemies.items.len == 0) {
+            state.roundEndTime = std.time.timestamp() + 30;
+            state.round += 1;
+            try setupEnemies(state);
+        }
+        if (state.roundEndTime != null and state.roundEndTime.? < std.time.timestamp()) {
+            state.roundEndTime = null;
+            state.round = 1;
+        }
         try windowSdlZig.handleEvents(state);
         try paintVulkanZig.drawFrame(state);
+        std.Thread.sleep(5_000_000);
     }
 }
 
@@ -69,6 +83,7 @@ fn createGameState(allocator: std.mem.Allocator) !GameState {
         .player = .{
             .moveOptions = std.ArrayList(MovePiece).init(allocator),
         },
+        .enemies = std.ArrayList(Position).init(allocator),
     };
     state.allocator = allocator;
     try windowSdlZig.initWindowSdl();
@@ -76,6 +91,7 @@ fn createGameState(allocator: std.mem.Allocator) !GameState {
     try setRandomMovePiece(0, &state);
     try setRandomMovePiece(1, &state);
     try setRandomMovePiece(2, &state);
+    try setupEnemies(&state);
 
     return state;
 }
@@ -86,6 +102,7 @@ fn destroyGameState(state: *GameState) void {
     };
     windowSdlZig.destroyWindowSdl();
     state.player.moveOptions.deinit();
+    state.enemies.deinit();
 }
 
 pub fn setRandomMovePiece(index: usize, state: *GameState) !void {
@@ -95,6 +112,20 @@ pub fn setRandomMovePiece(index: usize, state: *GameState) !void {
         try state.player.moveOptions.append(state.movePieces[randomPiece]);
     } else {
         state.player.moveOptions.items[index] = state.movePieces[randomPiece];
+    }
+}
+
+fn setupEnemies(state: *GameState) !void {
+    state.enemies.clearRetainingCapacity();
+    const rand = std.crypto.random;
+    const length = 16;
+    for (0..state.round) |_| {
+        const randomTileX: i16 = @as(i16, @intFromFloat(rand.float(f32) * length)) - length / 2;
+        const randomTileY: i16 = @as(i16, @intFromFloat(rand.float(f32) * length)) - length / 2;
+        try state.enemies.append(.{
+            .x = @floatFromInt(randomTileX * TILESIZE),
+            .y = @floatFromInt(randomTileY * TILESIZE),
+        });
     }
 }
 
@@ -136,10 +167,10 @@ fn createMovePieces() []const MovePiece {
 }
 
 pub fn movePlayerByMovePiece(movePieceIndex: usize, directionInput: u8, state: *GameState) !void {
-    const moveStepSize = 20;
     for (state.player.moveOptions.items[movePieceIndex].steps) |step| {
         const direction = @mod(step.direction + directionInput + 1, 4);
-        const stepAmount: f32 = @as(f32, @floatFromInt(step.stepCount)) * moveStepSize;
+        const stepAmount: f32 = @as(f32, @floatFromInt(step.stepCount)) * TILESIZE;
+        checkEnemyHitOnMoveStep(stepAmount, direction, state);
         switch (direction) {
             DIRECTION_RIGHT => {
                 state.player.position.x += stepAmount;
@@ -156,4 +187,39 @@ pub fn movePlayerByMovePiece(movePieceIndex: usize, directionInput: u8, state: *
         }
     }
     try setRandomMovePiece(movePieceIndex, state);
+}
+
+fn checkEnemyHitOnMoveStep(stepAmount: f32, direction: u8, state: *GameState) void {
+    var position: Position = state.player.position;
+    var enemyIndex: usize = 0;
+    var left: f32 = position.x - TILESIZE / 2;
+    var top: f32 = position.y - TILESIZE / 2;
+    var width: f32 = TILESIZE;
+    var height: f32 = TILESIZE;
+    switch (direction) {
+        DIRECTION_RIGHT => {
+            width += stepAmount;
+        },
+        DIRECTION_DOWN => {
+            height += stepAmount;
+        },
+        DIRECTION_LEFT => {
+            left -= stepAmount;
+            width += stepAmount;
+        },
+        else => {
+            top -= stepAmount;
+            height += stepAmount;
+        },
+    }
+
+    while (enemyIndex < state.enemies.items.len) {
+        const enemy = state.enemies.items[enemyIndex];
+        if (enemy.x > left and enemy.x < left + width and enemy.y > top and enemy.y < top + height) {
+            _ = state.enemies.swapRemove(enemyIndex);
+        } else {
+            enemyIndex += 1;
+        }
+    }
+    position.x += stepAmount;
 }

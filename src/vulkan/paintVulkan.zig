@@ -6,6 +6,7 @@ const dataVulkanZig = @import("dataVulkan.zig");
 const vk = initVulkanZig.vk;
 const movePieceUxVulkanZig = @import("movePieceUxVulkan.zig");
 const windowSdlZig = @import("../windowSdl.zig");
+const fontVulkanZig = @import("fontVulkan.zig");
 
 pub fn drawFrame(state: *main.GameState) !void {
     const vkState = &state.vkState;
@@ -122,6 +123,7 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
     vk.vkCmdNextSubpass.?(commandBuffer, vk.VK_SUBPASS_CONTENTS_INLINE);
     vk.vkCmdNextSubpass.?(commandBuffer, vk.VK_SUBPASS_CONTENTS_INLINE);
     try movePieceUxVulkanZig.recordCommandBuffer(commandBuffer, state);
+    try fontVulkanZig.recordFontCommandBuffer(commandBuffer, state);
 
     vk.vkCmdEndRenderPass.?(commandBuffer);
     try initVulkanZig.vkcheck(vk.vkEndCommandBuffer.?(commandBuffer), "Failed to End Command Buffer.");
@@ -134,35 +136,45 @@ fn setupVerticesForSprites(state: *main.GameState) !void {
     spriteData.vertices[spriteData.verticeUsedCount] = .{
         .pos = .{ state.player.position.x, state.player.position.y },
         .imageIndex = imageZig.IMAGE_DOG,
-        .size = 20,
+        .size = main.TILESIZE,
         .rotate = 0,
         .cutY = 0,
     };
     spriteData.verticeUsedCount += 1;
 
     if (state.player.choosenMoveOptionIndex) |index| {
-        const stepSize = 20;
         for (0..4) |direction| {
             var position: main.Position = state.player.position;
             for (state.player.moveOptions.items[index].steps) |moveStep| {
                 const moveDirection = @mod(moveStep.direction + direction, 4);
-                const moveX: f32 = if (moveDirection == 0) stepSize else if (moveDirection == 2) -stepSize else 0;
-                const moveY: f32 = if (moveDirection == 1) stepSize else if (moveDirection == 3) -stepSize else 0;
+                const moveX: f32 = if (moveDirection == 0) main.TILESIZE else if (moveDirection == 2) -main.TILESIZE else 0;
+                const moveY: f32 = if (moveDirection == 1) main.TILESIZE else if (moveDirection == 3) -main.TILESIZE else 0;
                 for (0..moveStep.stepCount) |_| {
                     position.x += moveX;
                     position.y += moveY;
+                    if (spriteData.verticeUsedCount >= spriteData.vertices.len) return;
                     spriteData.vertices[spriteData.verticeUsedCount] = .{
                         .pos = .{ position.x, position.y },
                         .imageIndex = imageZig.IMAGE_WHITE_RECTANGLE,
-                        .size = 20,
+                        .size = main.TILESIZE,
                         .rotate = 0,
                         .cutY = 0,
                     };
                     spriteData.verticeUsedCount += 1;
-                    if (spriteData.verticeUsedCount >= spriteData.vertices.len) return;
                 }
             }
         }
+    }
+    for (state.enemies.items) |enemy| {
+        if (spriteData.verticeUsedCount >= spriteData.vertices.len) return;
+        spriteData.vertices[spriteData.verticeUsedCount] = .{
+            .pos = .{ enemy.x, enemy.y },
+            .imageIndex = imageZig.IMAGE_TREE,
+            .size = main.TILESIZE,
+            .rotate = 0,
+            .cutY = 0,
+        };
+        spriteData.verticeUsedCount += 1;
     }
     try setupVertexDataForGPU(&state.vkState);
 }

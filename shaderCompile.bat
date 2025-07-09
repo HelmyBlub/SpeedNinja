@@ -8,3 +8,7 @@ C:/Zeugs/VulkanSDK/1.4.313.2/Bin/glslc.exe src/vulkan/shaders/spriteShader.geom 
 
 C:/Zeugs/VulkanSDK/1.4.313.2/Bin/glslc.exe src/vulkan/shaders/colorPositionShader.vert -o shaders/colorPositionVert.spv
 C:/Zeugs/VulkanSDK/1.4.313.2/Bin/glslc.exe src/vulkan/shaders/colorPositionShader.frag -o shaders/colorPositionFrag.spv
+
+C:/Zeugs/VulkanSDK/1.4.313.2/Bin/glslc.exe src/vulkan/shaders/fontShader.vert -o shaders/fontVert.spv
+C:/Zeugs/VulkanSDK/1.4.313.2/Bin/glslc.exe src/vulkan/shaders/fontShader.geom -o shaders/fontGeom.spv
+C:/Zeugs/VulkanSDK/1.4.313.2/Bin/glslc.exe src/vulkan/shaders/fontShader.frag -o shaders/fontFrag.spv

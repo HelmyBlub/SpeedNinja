@@ -93,7 +93,7 @@ fn setupRectangleVertices(leftIndex: i8, topIndex: i8, movePieceUx: *VkMovePiece
     const borderColor: [3]f32 = .{ 0, 0, 0 };
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-    const size = 20;
+    const size = main.TILESIZE;
     const width = size * onePixelXInVulkan;
     const height = size * onePixelYInVulkan;
     const pieceXSpacing = width * 8;
