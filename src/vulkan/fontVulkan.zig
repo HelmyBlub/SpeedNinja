@@ -12,7 +12,6 @@ pub const VkFontData = struct {
     textureImage: vk.VkImage = undefined,
     textureImageMemory: vk.VkDeviceMemory = undefined,
     textureImageView: vk.VkImageView = undefined,
-    displayPerformance: bool = false,
 };
 
 pub const VkFont = struct {

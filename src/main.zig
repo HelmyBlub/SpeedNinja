@@ -16,6 +16,7 @@ pub const GameState = struct {
     roundEndTimeMS: i64 = 30_000,
     mapTileRadius: u32 = BASE_MAP_TILE_RADIUS,
     enemies: std.ArrayList(Position),
+    enemyDeath: std.ArrayList(AfterImage),
     player: Player,
     highscore: u32 = 0,
     lastScore: u32 = 0,
@@ -96,6 +97,7 @@ pub fn restart(state: *GameState) !void {
     state.player.position.x = 0;
     state.player.position.y = 0;
     state.player.afterImages.clearRetainingCapacity();
+    state.enemyDeath.clearRetainingCapacity();
     state.player.executeMovePice = null;
     try movePieceZig.resetPieces(state);
     try setupEnemies(state);
@@ -119,6 +121,7 @@ fn createGameState(allocator: std.mem.Allocator) !GameState {
             .usedMovePieces = std.ArrayList(movePieceZig.MovePiece).init(allocator),
             .afterImages = std.ArrayList(AfterImage).init(allocator),
         },
+        .enemyDeath = std.ArrayList(AfterImage).init(allocator),
         .enemies = std.ArrayList(Position).init(allocator),
     };
     state.allocator = allocator;
@@ -140,6 +143,7 @@ fn destroyGameState(state: *GameState) void {
     state.player.availableMovePieces.deinit();
     state.player.usedMovePieces.deinit();
     state.player.afterImages.deinit();
+    state.enemyDeath.deinit();
     state.enemies.deinit();
 }
 

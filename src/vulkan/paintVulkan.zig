@@ -8,6 +8,7 @@ const movePieceUxVulkanZig = @import("movePieceUxVulkan.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 const fontVulkanZig = @import("fontVulkan.zig");
 const mapGridVulkanZig = @import("mapGridVulkan.zig");
+const cutSpriteVulkan = @import("cutSpriteVulkan.zig");
 
 pub fn drawFrame(state: *main.GameState) !void {
     const vkState = &state.vkState;
@@ -122,6 +123,7 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
     );
 
     vk.vkCmdDraw.?(commandBuffer, @intCast(vkState.spriteData.verticeUsedCount), 1, 0, 0);
+    try cutSpriteVulkan.recordCommandBuffer(commandBuffer, state);
     vk.vkCmdNextSubpass.?(commandBuffer, vk.VK_SUBPASS_CONTENTS_INLINE);
     vk.vkCmdNextSubpass.?(commandBuffer, vk.VK_SUBPASS_CONTENTS_INLINE);
     try movePieceUxVulkanZig.recordCommandBuffer(commandBuffer, state);

@@ -1,12 +1,19 @@
 Tasks:
 - visualization
     - steps:
-        - animate ninja dog
-            - move path should have dog after images to see where he went
-                - move do over few frames instead of instant
-            - once tile choosen: put blade in hands
         - animate enemy death
             - tree should be cut randomly and fall
+            - angle is given, shaders does rest
+            - perCent of animation
+        - animate ninja dog
+            - eye pupils move
+            - bandana swings
+            - dog body moving up down when stationary
+            - after move:
+                - bandana swings more because moved fast
+                - finish blade swing
+                - maybe turn body back to front
+            - once tile choosen: put blade in hands
         - what could i use a shader for?
     - dog ninja with sword
     - enemies ? evil ninjas ?
