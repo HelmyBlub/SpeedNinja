@@ -6,15 +6,18 @@ const dataVulkanZig = @import("dataVulkan.zig");
 const imageZig = @import("../image.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 const movePieceZig = @import("../movePiece.zig");
+const fontVulkanZig = @import("fontVulkan.zig");
 
 pub const VkMovePiecesUx = struct {
     triangles: dataVulkanZig.VkTriangles = undefined,
     lines: dataVulkanZig.VkLines = undefined,
     sprites: dataVulkanZig.VkSprites = undefined,
+    font: fontVulkanZig.VkFont = undefined,
     const UX_RECTANGLES = 100;
     pub const MAX_VERTICES_TRIANGLES = 6 * UX_RECTANGLES;
     pub const MAX_VERTICES_LINES = 8 * UX_RECTANGLES;
     pub const MAX_VERTICES_SPRITES = UX_RECTANGLES;
+    pub const MAX_VERTICES_FONT = 50;
 };
 
 pub fn create(state: *main.GameState) !void {
@@ -26,12 +29,15 @@ pub fn destroy(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) vo
     vk.vkDestroyBuffer.?(vkState.logicalDevice, movePieceUx.triangles.vertexBuffer, null);
     vk.vkDestroyBuffer.?(vkState.logicalDevice, movePieceUx.lines.vertexBuffer, null);
     vk.vkDestroyBuffer.?(vkState.logicalDevice, movePieceUx.sprites.vertexBuffer, null);
+    vk.vkDestroyBuffer.?(vkState.logicalDevice, movePieceUx.font.vertexBuffer, null);
     vk.vkFreeMemory.?(vkState.logicalDevice, movePieceUx.triangles.vertexBufferMemory, null);
     vk.vkFreeMemory.?(vkState.logicalDevice, movePieceUx.lines.vertexBufferMemory, null);
     vk.vkFreeMemory.?(vkState.logicalDevice, movePieceUx.sprites.vertexBufferMemory, null);
+    vk.vkFreeMemory.?(vkState.logicalDevice, movePieceUx.font.vertexBufferMemory, null);
     allocator.free(movePieceUx.triangles.vertices);
     allocator.free(movePieceUx.lines.vertices);
     allocator.free(movePieceUx.sprites.vertices);
+    allocator.free(movePieceUx.font.vertices);
 }
 
 fn createVertexBuffers(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
@@ -62,6 +68,15 @@ fn createVertexBuffers(vkState: *initVulkanZig.VkState, allocator: std.mem.Alloc
         &vkState.movePieceUx.sprites.vertexBufferMemory,
         vkState,
     );
+    vkState.movePieceUx.font.vertices = try allocator.alloc(fontVulkanZig.FontVertex, VkMovePiecesUx.MAX_VERTICES_FONT);
+    try initVulkanZig.createBuffer(
+        @sizeOf(fontVulkanZig.FontVertex) * vkState.movePieceUx.font.vertices.len,
+        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        &vkState.movePieceUx.font.vertexBuffer,
+        &vkState.movePieceUx.font.vertexBufferMemory,
+        vkState,
+    );
 }
 
 pub fn setupVertices(state: *main.GameState) !void {
@@ -69,6 +84,7 @@ pub fn setupVertices(state: *main.GameState) !void {
     movePieceUx.lines.verticeCount = 0;
     movePieceUx.triangles.verticeCount = 0;
     movePieceUx.sprites.verticeCount = 0;
+    movePieceUx.font.verticeCount = 0;
     const startColor: [3]f32 = .{ 0.0, 0.0, 1 };
     const fillColor: [3]f32 = .{ 0.25, 0.25, 0.25 };
 
@@ -171,6 +187,13 @@ pub fn setupVertices(state: *main.GameState) !void {
         }
     }
 
+    const fontSize = 30;
+    const remainingPieces = state.player.availableMovePieces.items.len + state.player.moveOptions.items.len;
+    const totalPieces = remainingPieces + state.player.usedMovePieces.items.len;
+    var textWidthPices = try fontVulkanZig.paintNumber(remainingPieces, .{ .x = 0.5, .y = 0.8 }, fontSize, &movePieceUx.font);
+    textWidthPices += fontVulkanZig.paintText(":", .{ .x = 0.5 + textWidthPices, .y = 0.8 }, fontSize, &movePieceUx.font);
+    _ = try fontVulkanZig.paintNumber(totalPieces, .{ .x = 0.5 + textWidthPices, .y = 0.8 }, fontSize, &movePieceUx.font);
+
     try setupVertexDataForGPU(&state.vkState);
 }
 
@@ -228,6 +251,11 @@ fn setupVertexDataForGPU(vkState: *initVulkanZig.VkState) !void {
     const gpuVerticesSprite: [*]dataVulkanZig.SpriteVertex = @ptrCast(@alignCast(data));
     @memcpy(gpuVerticesSprite, movePieceUx.sprites.vertices[0..]);
     vk.vkUnmapMemory.?(vkState.logicalDevice, movePieceUx.sprites.vertexBufferMemory);
+
+    if (vk.vkMapMemory.?(vkState.logicalDevice, movePieceUx.font.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.SpriteVertex) * movePieceUx.font.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
+    const gpuVerticesFont: [*]fontVulkanZig.FontVertex = @ptrCast(@alignCast(data));
+    @memcpy(gpuVerticesFont, movePieceUx.font.vertices[0..]);
+    vk.vkUnmapMemory.?(vkState.logicalDevice, movePieceUx.font.vertexBufferMemory);
 }
 
 pub fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, state: *main.GameState) !void {
@@ -250,4 +278,10 @@ pub fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, state: *main.GameS
     offsets = .{0};
     vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
     vk.vkCmdDraw.?(commandBuffer, @intCast(movePieceUx.lines.verticeCount), 1, 0, 0);
+
+    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.font.graphicsPipeline);
+    vertexBuffers = .{movePieceUx.font.vertexBuffer};
+    offsets = .{0};
+    vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
+    vk.vkCmdDraw.?(commandBuffer, @intCast(movePieceUx.font.verticeCount), 1, 0, 0);
 }

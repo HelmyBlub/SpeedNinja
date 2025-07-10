@@ -1,6 +1,5 @@
 Tasks:
 - visualization
-    - change: don't spawn tree on player
     - visualize pieces left counter and max piece count
     - steps:
         - animate ninja dog

@@ -74,21 +74,21 @@ pub const FontVertex = struct {
 fn setupVertices(state: *main.GameState) !void {
     state.vkState.font.vkFont.verticeCount = 0;
     const fontSize = 30;
-    const textWidthRound = paintText("Round: ", .{ .x = 0, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
-    _ = try paintNumber(state.round, .{ .x = 0 + textWidthRound, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
+    const textWidthRound = paintText("Round: ", .{ .x = 0, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
+    _ = try paintNumber(state.round, .{ .x = 0 + textWidthRound, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
 
     if (state.roundEndTime) |endTime| {
-        const textWidthTime = paintText("Time: ", .{ .x = 0, .y = -0.8 }, fontSize, &state.vkState.font.vkFont);
+        const textWidthTime = paintText("Time: ", .{ .x = 0, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
         const remainingTime: i64 = @max(0, endTime - std.time.timestamp());
-        _ = try paintNumber(remainingTime, .{ .x = textWidthTime, .y = -0.8 }, fontSize, &state.vkState.font.vkFont);
+        _ = try paintNumber(remainingTime, .{ .x = textWidthTime, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
     }
     if (state.highscore > 0) {
-        const textWidthTime = paintText("Highscore: ", .{ .x = 0.5, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
-        _ = try paintNumber(state.highscore, .{ .x = 0.5 + textWidthTime, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
+        const textWidthTime = paintText("Highscore: ", .{ .x = 0.5, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
+        _ = try paintNumber(state.highscore, .{ .x = 0.5 + textWidthTime, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
     }
     if (state.lastScore > 0) {
-        const textWidthTime = paintText("last score: ", .{ .x = -0.5, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
-        _ = try paintNumber(state.lastScore, .{ .x = -0.5 + textWidthTime, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
+        const textWidthTime = paintText("last score: ", .{ .x = -0.5, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
+        _ = try paintNumber(state.lastScore, .{ .x = -0.5 + textWidthTime, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
     }
     try setupVertexDataForGPU(&state.vkState);
 }
@@ -210,7 +210,7 @@ pub fn recordFontCommandBuffer(commandBuffer: vk.VkCommandBuffer, state: *main.G
 
 pub fn charToTexCoords(char: u8, texX: *f32, texWidth: *f32) void {
     const fontImageWidth = 1600.0;
-    const imageCharSeperatePixels = [_]f32{ 0, 50, 88, 117, 142, 170, 198, 232, 262, 277, 307, 338, 365, 413, 445, 481, 508, 541, 569, 603, 638, 674, 711, 760, 801, 837, 873, 902, 931, 968, 1000, 1037, 1072, 1104, 1142, 1175, 1205, 1238, 1282, 1302, 1322, 1367, 1410 };
+    const imageCharSeperatePixels = [_]f32{ 0, 50, 88, 117, 142, 170, 198, 232, 262, 277, 307, 338, 365, 413, 445, 481, 508, 541, 569, 603, 638, 674, 711, 760, 801, 837, 873, 902, 931, 968, 1003, 1037, 1072, 1104, 1142, 1175, 1205, 1238, 1282, 1302, 1322, 1367, 1410 };
     var index: usize = 0;
     switch (char) {
         'a', 'A' => {
