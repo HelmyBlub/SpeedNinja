@@ -1,10 +1,4 @@
 Tasks:
-- each piece can only be used once
-    - when enemy killed refresh pieces
-        - forces to think more instead of spamming moves
-    
-- does it feel fun?
-    - currently resuls in spaming keys which is more exhausing than feeling decent
 - when seems fun
     - try around with shaders to make it look "better"
 

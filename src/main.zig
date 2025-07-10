@@ -59,7 +59,7 @@ fn mainLoop(state: *GameState) !void {
             state.round += 1;
             try setupEnemies(state);
         }
-        if (state.roundEndTime != null and state.roundEndTime.? < std.time.timestamp()) {
+        if ((state.roundEndTime != null and state.roundEndTime.? < std.time.timestamp()) or state.player.moveOptions.items.len == 0) {
             state.roundEndTime = null;
             state.lastScore = state.round;
             if (state.round > state.highscore) state.highscore = state.round;
