@@ -13,7 +13,7 @@ pub const GameState = struct {
     movePieces: []const movePieceZig.MovePiece,
     gameTime: i64 = 0,
     round: u32 = 1,
-    roundEndTimeMS: u32 = 30_000,
+    roundEndTimeMS: i64 = 30_000,
     mapTileRadius: u32 = BASE_MAP_TILE_RADIUS,
     enemies: std.ArrayList(Position),
     player: Player,
@@ -24,10 +24,16 @@ pub const GameState = struct {
 
 pub const Player = struct {
     position: Position = .{ .x = 0, .y = 0 },
+    afterImages: std.ArrayList(AfterImage),
     choosenMoveOptionIndex: ?usize = null,
     moveOptions: std.ArrayList(movePieceZig.MovePiece),
     usedMovePieces: std.ArrayList(movePieceZig.MovePiece),
     availableMovePieces: std.ArrayList(movePieceZig.MovePiece),
+};
+
+pub const AfterImage = struct {
+    position: Position,
+    deleteTime: i64,
 };
 
 pub const Position: type = struct {
@@ -59,23 +65,14 @@ fn mainLoop(state: *GameState) !void {
     var currentTime = lastTime;
     while (!state.gameEnded) {
         if (state.enemies.items.len == 0) {
-            state.gameTime = 0;
+            state.roundEndTimeMS = state.gameTime + 30_000;
             state.round += 1;
             state.mapTileRadius = BASE_MAP_TILE_RADIUS + @as(u32, @intFromFloat(@sqrt(@as(f32, @floatFromInt(state.round)))));
             adjustZoom(state);
             try setupEnemies(state);
         }
         if ((state.round > 1 and state.roundEndTimeMS < state.gameTime) or state.player.moveOptions.items.len == 0) {
-            state.lastScore = state.round;
-            if (state.round > state.highscore) state.highscore = state.round;
-            state.round = 1;
-            state.mapTileRadius = BASE_MAP_TILE_RADIUS;
-            state.gameTime = 0;
-            adjustZoom(state);
-            state.player.position.x = 0;
-            state.player.position.y = 0;
-            try movePieceZig.resetPieces(state);
-            try setupEnemies(state);
+            try restart(state);
         }
         try windowSdlZig.handleEvents(state);
         try paintVulkanZig.drawFrame(state);
@@ -84,6 +81,20 @@ fn mainLoop(state: *GameState) !void {
         currentTime = std.time.milliTimestamp();
         state.gameTime += currentTime - lastTime;
     }
+}
+
+pub fn restart(state: *GameState) !void {
+    state.lastScore = state.round;
+    if (state.round > state.highscore) state.highscore = state.round;
+    state.round = 1;
+    state.mapTileRadius = BASE_MAP_TILE_RADIUS;
+    state.gameTime = 0;
+    adjustZoom(state);
+    state.player.position.x = 0;
+    state.player.position.y = 0;
+    state.player.afterImages.clearRetainingCapacity();
+    try movePieceZig.resetPieces(state);
+    try setupEnemies(state);
 }
 
 pub fn adjustZoom(state: *GameState) void {
@@ -102,6 +113,7 @@ fn createGameState(allocator: std.mem.Allocator) !GameState {
             .moveOptions = std.ArrayList(movePieceZig.MovePiece).init(allocator),
             .availableMovePieces = std.ArrayList(movePieceZig.MovePiece).init(allocator),
             .usedMovePieces = std.ArrayList(movePieceZig.MovePiece).init(allocator),
+            .afterImages = std.ArrayList(AfterImage).init(allocator),
         },
         .enemies = std.ArrayList(Position).init(allocator),
     };
@@ -123,6 +135,7 @@ fn destroyGameState(state: *GameState) void {
     state.player.moveOptions.deinit();
     state.player.availableMovePieces.deinit();
     state.player.usedMovePieces.deinit();
+    state.player.afterImages.deinit();
     state.enemies.deinit();
 }
 

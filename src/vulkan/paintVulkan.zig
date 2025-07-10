@@ -135,6 +135,25 @@ fn setupVerticesForSprites(state: *main.GameState) !void {
     const spriteData = &state.vkState.spriteData;
     spriteData.verticeUsedCount = 0;
 
+    var currentAfterImageIndex: usize = 0;
+    while (currentAfterImageIndex < state.player.afterImages.items.len) {
+        if (spriteData.verticeUsedCount + 1 >= spriteData.vertices.len) break;
+        const afterImage = state.player.afterImages.items[currentAfterImageIndex];
+        if (afterImage.deleteTime < state.gameTime) {
+            _ = state.player.afterImages.swapRemove(currentAfterImageIndex);
+            continue;
+        }
+        spriteData.vertices[spriteData.verticeUsedCount] = .{
+            .pos = .{ afterImage.position.x, afterImage.position.y },
+            .imageIndex = imageZig.IMAGE_DOG,
+            .size = main.TILESIZE,
+            .rotate = 0,
+            .cutY = 0,
+        };
+        currentAfterImageIndex += 1;
+        spriteData.verticeUsedCount += 1;
+    }
+
     spriteData.vertices[spriteData.verticeUsedCount] = .{
         .pos = .{ state.player.position.x, state.player.position.y },
         .imageIndex = imageZig.IMAGE_DOG,
@@ -145,7 +164,7 @@ fn setupVerticesForSprites(state: *main.GameState) !void {
     spriteData.verticeUsedCount += 1;
 
     for (state.enemies.items) |enemy| {
-        if (spriteData.verticeUsedCount >= spriteData.vertices.len) return;
+        if (spriteData.verticeUsedCount >= spriteData.vertices.len) break;
         spriteData.vertices[spriteData.verticeUsedCount] = .{
             .pos = .{ enemy.x, enemy.y },
             .imageIndex = imageZig.IMAGE_EVIL_TREE,

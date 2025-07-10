@@ -82,6 +82,7 @@ pub fn movePlayerByMovePiece(movePieceIndex: usize, directionInput: u8, state: *
         const direction = @mod(step.direction + directionInput + 1, 4);
         const stepAmount: f32 = @as(f32, @floatFromInt(step.stepCount)) * main.TILESIZE;
         try checkEnemyHitOnMoveStep(stepAmount, direction, state);
+        try state.player.afterImages.append(.{ .deleteTime = state.gameTime + 100, .position = state.player.position });
         switch (direction) {
             DIRECTION_RIGHT => {
                 state.player.position.x += stepAmount;
