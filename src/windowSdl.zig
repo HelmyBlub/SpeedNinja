@@ -69,36 +69,28 @@ pub fn handleEvents(state: *main.GameState) !void {
                 if (state.player.choosenMoveOptionIndex) |index| {
                     try movePieceZig.movePlayerByMovePiece(index, movePieceZig.DIRECTION_LEFT, state);
                     state.player.choosenMoveOptionIndex = null;
-                } else {
-                    // state.player.position.x -= main.TILESIZE;
                 }
             } else if (event.key.scancode == sdl.SDL_SCANCODE_RIGHT or event.key.scancode == sdl.SDL_SCANCODE_D) {
                 if (state.player.choosenMoveOptionIndex) |index| {
                     try movePieceZig.movePlayerByMovePiece(index, movePieceZig.DIRECTION_RIGHT, state);
                     state.player.choosenMoveOptionIndex = null;
-                } else {
-                    // state.player.position.x += main.TILESIZE;
                 }
             } else if (event.key.scancode == sdl.SDL_SCANCODE_UP or event.key.scancode == sdl.SDL_SCANCODE_W) {
                 if (state.player.choosenMoveOptionIndex) |index| {
                     try movePieceZig.movePlayerByMovePiece(index, movePieceZig.DIRECTION_UP, state);
                     state.player.choosenMoveOptionIndex = null;
-                } else {
-                    // state.player.position.y -= main.TILESIZE;
                 }
             } else if (event.key.scancode == sdl.SDL_SCANCODE_DOWN or event.key.scancode == sdl.SDL_SCANCODE_S) {
                 if (state.player.choosenMoveOptionIndex) |index| {
                     try movePieceZig.movePlayerByMovePiece(index, movePieceZig.DIRECTION_DOWN, state);
                     state.player.choosenMoveOptionIndex = null;
-                } else {
-                    // state.player.position.y += main.TILESIZE;
                 }
             } else if (event.key.scancode == sdl.SDL_SCANCODE_1) {
-                state.player.choosenMoveOptionIndex = 0;
+                if (state.player.moveOptions.items.len > 0) state.player.choosenMoveOptionIndex = 0;
             } else if (event.key.scancode == sdl.SDL_SCANCODE_2) {
-                state.player.choosenMoveOptionIndex = 1;
+                if (state.player.moveOptions.items.len > 1) state.player.choosenMoveOptionIndex = 1;
             } else if (event.key.scancode == sdl.SDL_SCANCODE_3) {
-                state.player.choosenMoveOptionIndex = 2;
+                if (state.player.moveOptions.items.len > 2) state.player.choosenMoveOptionIndex = 2;
             }
         }
     }

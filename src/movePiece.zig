@@ -16,13 +16,28 @@ pub const DIRECTION_LEFT = 2;
 pub const DIRECTION_UP = 3;
 
 pub fn setRandomMovePiece(index: usize, state: *main.GameState) !void {
+    const player = &state.player;
     const rand = std.crypto.random;
-    const randomPiece: usize = @intFromFloat(rand.float(f32) * @as(f32, @floatFromInt(state.movePieces.len)));
-    if (state.player.moveOptions.items.len <= index) {
-        try state.player.moveOptions.append(state.movePieces[randomPiece]);
-    } else {
-        state.player.moveOptions.items[index] = state.movePieces[randomPiece];
+    if (player.availableMovePieces.items.len > 0) {
+        const randomPieceIndex: usize = @intFromFloat(rand.float(f32) * @as(f32, @floatFromInt(player.availableMovePieces.items.len)));
+        const randomPiece = player.availableMovePieces.swapRemove(randomPieceIndex);
+        if (player.moveOptions.items.len <= index) {
+            try player.moveOptions.append(randomPiece);
+        } else {
+            try player.usedMovePieces.append(player.moveOptions.items[index]);
+            player.moveOptions.items[index] = randomPiece;
+        }
+    } else if (player.moveOptions.items.len > index) {
+        const removedPiece = player.moveOptions.swapRemove(index);
+        try player.usedMovePieces.append(removedPiece);
     }
+}
+
+pub fn setupMovePieces(state: *main.GameState) !void {
+    try state.player.availableMovePieces.appendSlice(state.movePieces);
+    try setRandomMovePiece(0, state);
+    try setRandomMovePiece(1, state);
+    try setRandomMovePiece(2, state);
 }
 
 pub fn createMovePieces() []const MovePiece {
@@ -66,7 +81,7 @@ pub fn movePlayerByMovePiece(movePieceIndex: usize, directionInput: u8, state: *
     for (state.player.moveOptions.items[movePieceIndex].steps) |step| {
         const direction = @mod(step.direction + directionInput + 1, 4);
         const stepAmount: f32 = @as(f32, @floatFromInt(step.stepCount)) * main.TILESIZE;
-        checkEnemyHitOnMoveStep(stepAmount, direction, state);
+        try checkEnemyHitOnMoveStep(stepAmount, direction, state);
         switch (direction) {
             DIRECTION_RIGHT => {
                 state.player.position.x += stepAmount;
@@ -85,7 +100,16 @@ pub fn movePlayerByMovePiece(movePieceIndex: usize, directionInput: u8, state: *
     try setRandomMovePiece(movePieceIndex, state);
 }
 
-fn checkEnemyHitOnMoveStep(stepAmount: f32, direction: u8, state: *main.GameState) void {
+pub fn resetPieces(state: *main.GameState) !void {
+    const player = &state.player;
+    try player.availableMovePieces.appendSlice(player.usedMovePieces.items);
+    player.usedMovePieces.clearRetainingCapacity();
+    while (player.moveOptions.items.len < 3) {
+        try setRandomMovePiece(3, state);
+    }
+}
+
+fn checkEnemyHitOnMoveStep(stepAmount: f32, direction: u8, state: *main.GameState) !void {
     var position: main.Position = state.player.position;
     var enemyIndex: usize = 0;
     var left: f32 = position.x - main.TILESIZE / 2;
@@ -113,6 +137,7 @@ fn checkEnemyHitOnMoveStep(stepAmount: f32, direction: u8, state: *main.GameStat
         const enemy = state.enemies.items[enemyIndex];
         if (enemy.x > left and enemy.x < left + width and enemy.y > top and enemy.y < top + height) {
             _ = state.enemies.swapRemove(enemyIndex);
+            try resetPieces(state);
         } else {
             enemyIndex += 1;
         }

@@ -24,6 +24,8 @@ pub const Player = struct {
     position: Position = .{ .x = 0, .y = 0 },
     choosenMoveOptionIndex: ?usize = null,
     moveOptions: std.ArrayList(movePieceZig.MovePiece),
+    usedMovePieces: std.ArrayList(movePieceZig.MovePiece),
+    availableMovePieces: std.ArrayList(movePieceZig.MovePiece),
 };
 
 pub const Position: type = struct {
@@ -62,6 +64,7 @@ fn mainLoop(state: *GameState) !void {
             state.lastScore = state.round;
             if (state.round > state.highscore) state.highscore = state.round;
             state.round = 1;
+            try movePieceZig.resetPieces(state);
             try setupEnemies(state);
         }
         try windowSdlZig.handleEvents(state);
@@ -75,15 +78,15 @@ fn createGameState(allocator: std.mem.Allocator) !GameState {
         .movePieces = movePieceZig.createMovePieces(),
         .player = .{
             .moveOptions = std.ArrayList(movePieceZig.MovePiece).init(allocator),
+            .availableMovePieces = std.ArrayList(movePieceZig.MovePiece).init(allocator),
+            .usedMovePieces = std.ArrayList(movePieceZig.MovePiece).init(allocator),
         },
         .enemies = std.ArrayList(Position).init(allocator),
     };
     state.allocator = allocator;
     try windowSdlZig.initWindowSdl();
     try initVulkanZig.initVulkan(&state);
-    try movePieceZig.setRandomMovePiece(0, &state);
-    try movePieceZig.setRandomMovePiece(1, &state);
-    try movePieceZig.setRandomMovePiece(2, &state);
+    try movePieceZig.setupMovePieces(&state);
     try setupEnemies(&state);
 
     return state;
@@ -95,6 +98,8 @@ fn destroyGameState(state: *GameState) void {
     };
     windowSdlZig.destroyWindowSdl();
     state.player.moveOptions.deinit();
+    state.player.availableMovePieces.deinit();
+    state.player.usedMovePieces.deinit();
     state.enemies.deinit();
 }
 
