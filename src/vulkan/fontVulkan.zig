@@ -77,9 +77,9 @@ fn setupVertices(state: *main.GameState) !void {
     const textWidthRound = paintText("Round: ", .{ .x = 0, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
     _ = try paintNumber(state.round, .{ .x = 0 + textWidthRound, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
 
-    if (state.roundEndTime) |endTime| {
+    if (state.round > 1) {
         const textWidthTime = paintText("Time: ", .{ .x = 0, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
-        const remainingTime: i64 = @max(0, endTime - std.time.timestamp());
+        const remainingTime: i64 = @max(0, @divFloor(state.roundEndTimeMS - state.gameTime, 1000));
         _ = try paintNumber(remainingTime, .{ .x = textWidthTime, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
     }
     if (state.highscore > 0) {

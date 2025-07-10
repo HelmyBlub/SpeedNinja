@@ -11,8 +11,9 @@ pub const GameState = struct {
     allocator: std.mem.Allocator = undefined,
     camera: Camera = .{ .position = .{ .x = 0, .y = 0 }, .zoom = 1 },
     movePieces: []const movePieceZig.MovePiece,
+    gameTime: i64 = 0,
     round: u32 = 1,
-    roundEndTime: ?i64 = null,
+    roundEndTimeMS: u32 = 30_000,
     mapTileRadius: u32 = BASE_MAP_TILE_RADIUS,
     enemies: std.ArrayList(Position),
     player: Player,
@@ -54,20 +55,22 @@ fn startGame(allocator: std.mem.Allocator) !void {
 }
 
 fn mainLoop(state: *GameState) !void {
+    var lastTime = std.time.milliTimestamp();
+    var currentTime = lastTime;
     while (!state.gameEnded) {
         if (state.enemies.items.len == 0) {
-            state.roundEndTime = std.time.timestamp() + 30;
+            state.gameTime = 0;
             state.round += 1;
             state.mapTileRadius = BASE_MAP_TILE_RADIUS + @as(u32, @intFromFloat(@sqrt(@as(f32, @floatFromInt(state.round)))));
             adjustZoom(state);
             try setupEnemies(state);
         }
-        if ((state.roundEndTime != null and state.roundEndTime.? < std.time.timestamp()) or state.player.moveOptions.items.len == 0) {
-            state.roundEndTime = null;
+        if ((state.round > 1 and state.roundEndTimeMS < state.gameTime) or state.player.moveOptions.items.len == 0) {
             state.lastScore = state.round;
             if (state.round > state.highscore) state.highscore = state.round;
             state.round = 1;
             state.mapTileRadius = BASE_MAP_TILE_RADIUS;
+            state.gameTime = 0;
             adjustZoom(state);
             state.player.position.x = 0;
             state.player.position.y = 0;
@@ -77,6 +80,9 @@ fn mainLoop(state: *GameState) !void {
         try windowSdlZig.handleEvents(state);
         try paintVulkanZig.drawFrame(state);
         std.Thread.sleep(5_000_000);
+        lastTime = currentTime;
+        currentTime = std.time.milliTimestamp();
+        state.gameTime += currentTime - lastTime;
     }
 }
 
