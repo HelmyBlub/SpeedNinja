@@ -77,27 +77,62 @@ pub fn createMovePieces() []const MovePiece {
     return &movePieces;
 }
 
-pub fn movePlayerByMovePiece(movePieceIndex: usize, directionInput: u8, state: *main.GameState) !void {
-    for (state.player.moveOptions.items[movePieceIndex].steps) |step| {
-        const direction = @mod(step.direction + directionInput + 1, 4);
+pub fn tickPlayerMovePiece(state: *main.GameState) !void {
+    if (state.player.executeMovePice) |executeMovePice| {
+        const step = executeMovePice.steps[0];
+        if (executeMovePice.steps.len > 1) {
+            state.player.executeMovePice = .{ .steps = executeMovePice.steps[1..] };
+        } else {
+            state.player.executeMovePice = null;
+        }
+        const direction = @mod(step.direction + state.player.executeDirection + 1, 4);
         const stepAmount: f32 = @as(f32, @floatFromInt(step.stepCount)) * main.TILESIZE;
         try checkEnemyHitOnMoveStep(stepAmount, direction, state);
-        try state.player.afterImages.append(.{ .deleteTime = state.gameTime + 100, .position = state.player.position });
         switch (direction) {
             DIRECTION_RIGHT => {
+                for (0..step.stepCount) |i| {
+                    try state.player.afterImages.append(.{ .deleteTime = state.gameTime + 50 + @as(i64, @intCast(i)) * 10, .position = .{
+                        .x = state.player.position.x + @as(f32, @floatFromInt(i)) * main.TILESIZE,
+                        .y = state.player.position.y,
+                    } });
+                }
                 state.player.position.x += stepAmount;
             },
             DIRECTION_DOWN => {
+                for (0..step.stepCount) |i| {
+                    try state.player.afterImages.append(.{ .deleteTime = state.gameTime + 50 + @as(i64, @intCast(i)) * 10, .position = .{
+                        .x = state.player.position.x,
+                        .y = state.player.position.y + @as(f32, @floatFromInt(i)) * main.TILESIZE,
+                    } });
+                }
                 state.player.position.y += stepAmount;
             },
             DIRECTION_LEFT => {
+                for (0..step.stepCount) |i| {
+                    try state.player.afterImages.append(.{ .deleteTime = state.gameTime + 50 + @as(i64, @intCast(i)) * 10, .position = .{
+                        .x = state.player.position.x - @as(f32, @floatFromInt(i)) * main.TILESIZE,
+                        .y = state.player.position.y,
+                    } });
+                }
                 state.player.position.x -= stepAmount;
             },
             else => {
+                for (0..step.stepCount) |i| {
+                    try state.player.afterImages.append(.{ .deleteTime = state.gameTime + 50 + @as(i64, @intCast(i)) * 10, .position = .{
+                        .x = state.player.position.x,
+                        .y = state.player.position.y - @as(f32, @floatFromInt(i)) * main.TILESIZE,
+                    } });
+                }
                 state.player.position.y -= stepAmount;
             },
         }
     }
+}
+
+pub fn movePlayerByMovePiece(movePieceIndex: usize, directionInput: u8, state: *main.GameState) !void {
+    if (state.player.executeMovePice != null) return;
+    state.player.executeMovePice = state.player.moveOptions.items[movePieceIndex];
+    state.player.executeDirection = directionInput;
     try setRandomMovePiece(movePieceIndex, state);
 }
 

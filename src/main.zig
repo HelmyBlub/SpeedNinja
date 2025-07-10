@@ -24,6 +24,8 @@ pub const GameState = struct {
 
 pub const Player = struct {
     position: Position = .{ .x = 0, .y = 0 },
+    executeMovePice: ?movePieceZig.MovePiece = null,
+    executeDirection: u8 = 0,
     afterImages: std.ArrayList(AfterImage),
     choosenMoveOptionIndex: ?usize = null,
     moveOptions: std.ArrayList(movePieceZig.MovePiece),
@@ -75,6 +77,7 @@ fn mainLoop(state: *GameState) !void {
             try restart(state);
         }
         try windowSdlZig.handleEvents(state);
+        try movePieceZig.tickPlayerMovePiece(state);
         try paintVulkanZig.drawFrame(state);
         std.Thread.sleep(5_000_000);
         lastTime = currentTime;
@@ -93,6 +96,7 @@ pub fn restart(state: *GameState) !void {
     state.player.position.x = 0;
     state.player.position.y = 0;
     state.player.afterImages.clearRetainingCapacity();
+    state.player.executeMovePice = null;
     try movePieceZig.resetPieces(state);
     try setupEnemies(state);
 }
