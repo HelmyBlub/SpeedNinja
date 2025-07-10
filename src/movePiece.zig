@@ -54,7 +54,7 @@ pub fn createMovePieces() []const MovePiece {
         } },
         .{ .steps = &[_]MoveStep{
             .{ .direction = DIRECTION_UP, .stepCount = 2 },
-            .{ .direction = DIRECTION_RIGHT, .stepCount = 2 },
+            .{ .direction = DIRECTION_LEFT, .stepCount = 2 },
             .{ .direction = DIRECTION_DOWN, .stepCount = 1 },
         } },
         .{ .steps = &[_]MoveStep{

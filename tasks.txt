@@ -1,8 +1,4 @@
 Tasks:
-- enemy should not spawn on each other
-- area grow with round
-    - enemy spawn limited to area
-    - set zoom to fit area on screen
 - visualization
     - dog ninja with sword
     - enemies ? evil ninjas ?
