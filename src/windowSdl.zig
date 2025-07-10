@@ -6,8 +6,8 @@ pub const sdl = @cImport({
     @cInclude("SDL3/SDL_revision.h");
     @cInclude("SDL3/SDL_vulkan.h");
 });
-
 const main = @import("main.zig");
+const movePieceZig = @import("movePiece.zig");
 
 pub const WindowData = struct {
     window: *sdl.SDL_Window = undefined,
@@ -67,28 +67,28 @@ pub fn handleEvents(state: *main.GameState) !void {
         if (event.type == sdl.SDL_EVENT_KEY_DOWN) {
             if (event.key.scancode == sdl.SDL_SCANCODE_LEFT or event.key.scancode == sdl.SDL_SCANCODE_A) {
                 if (state.player.choosenMoveOptionIndex) |index| {
-                    try main.movePlayerByMovePiece(index, main.DIRECTION_LEFT, state);
+                    try movePieceZig.movePlayerByMovePiece(index, movePieceZig.DIRECTION_LEFT, state);
                     state.player.choosenMoveOptionIndex = null;
                 } else {
                     // state.player.position.x -= main.TILESIZE;
                 }
             } else if (event.key.scancode == sdl.SDL_SCANCODE_RIGHT or event.key.scancode == sdl.SDL_SCANCODE_D) {
                 if (state.player.choosenMoveOptionIndex) |index| {
-                    try main.movePlayerByMovePiece(index, main.DIRECTION_RIGHT, state);
+                    try movePieceZig.movePlayerByMovePiece(index, movePieceZig.DIRECTION_RIGHT, state);
                     state.player.choosenMoveOptionIndex = null;
                 } else {
                     // state.player.position.x += main.TILESIZE;
                 }
             } else if (event.key.scancode == sdl.SDL_SCANCODE_UP or event.key.scancode == sdl.SDL_SCANCODE_W) {
                 if (state.player.choosenMoveOptionIndex) |index| {
-                    try main.movePlayerByMovePiece(index, main.DIRECTION_UP, state);
+                    try movePieceZig.movePlayerByMovePiece(index, movePieceZig.DIRECTION_UP, state);
                     state.player.choosenMoveOptionIndex = null;
                 } else {
                     // state.player.position.y -= main.TILESIZE;
                 }
             } else if (event.key.scancode == sdl.SDL_SCANCODE_DOWN or event.key.scancode == sdl.SDL_SCANCODE_S) {
                 if (state.player.choosenMoveOptionIndex) |index| {
-                    try main.movePlayerByMovePiece(index, main.DIRECTION_DOWN, state);
+                    try movePieceZig.movePlayerByMovePiece(index, movePieceZig.DIRECTION_DOWN, state);
                     state.player.choosenMoveOptionIndex = null;
                 } else {
                     // state.player.position.y += main.TILESIZE;
