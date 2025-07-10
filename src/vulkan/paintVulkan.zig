@@ -148,7 +148,7 @@ fn setupVerticesForSprites(state: *main.GameState) !void {
         if (spriteData.verticeUsedCount >= spriteData.vertices.len) return;
         spriteData.vertices[spriteData.verticeUsedCount] = .{
             .pos = .{ enemy.x, enemy.y },
-            .imageIndex = imageZig.IMAGE_TREE,
+            .imageIndex = imageZig.IMAGE_EVIL_TREE,
             .size = main.TILESIZE,
             .rotate = 0,
             .cutY = 0,

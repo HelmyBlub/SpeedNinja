@@ -1,5 +1,9 @@
 Tasks:
 - visualization
+    - steps:
+        - enemy image
+        - animate ninja dog
+        - what could i use a shader for?
     - dog ninja with sword
     - enemies ? evil ninjas ?
 
