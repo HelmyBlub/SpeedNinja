@@ -92,31 +92,33 @@ pub fn setupVertices(state: *main.GameState) !void {
         const selctedColor: [3]f32 = .{ 0.0, 0.0, 0.0 };
         const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
         const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-        const baseWidth = main.TILESIZE * onePixelXInVulkan;
-        const baseHeight = main.TILESIZE * onePixelYInVulkan;
+        const zoomedTileSize = main.TILESIZE * state.camera.zoom;
+        const baseWidth = zoomedTileSize * onePixelXInVulkan;
+        const baseHeight = zoomedTileSize * onePixelYInVulkan;
         for (0..4) |direction| {
             var step: f32 = 0;
-            var position: main.Position = state.player.position;
-            var lastPosition: main.Position = state.player.position;
-            var lastLastPosition: main.Position = state.player.position;
+            var position: main.Position = .{
+                .x = state.player.position.x * state.camera.zoom,
+                .y = state.player.position.y * state.camera.zoom,
+            };
+            var lastPosition: main.Position = position;
             var lastMoveDirection: usize = 0;
             var moveDirection: usize = 0;
             for (state.player.moveOptions.items[index].steps, 0..) |moveStep, moveStepIndex| {
                 lastMoveDirection = moveDirection;
                 moveDirection = @mod(moveStep.direction + direction, 4);
-                const moveX: f32 = if (moveDirection == 0) main.TILESIZE else if (moveDirection == 2) -main.TILESIZE else 0;
-                const moveY: f32 = if (moveDirection == 1) main.TILESIZE else if (moveDirection == 3) -main.TILESIZE else 0;
+                const moveX: f32 = if (moveDirection == 0) zoomedTileSize else if (moveDirection == 2) -zoomedTileSize else 0;
+                const moveY: f32 = if (moveDirection == 1) zoomedTileSize else if (moveDirection == 3) -zoomedTileSize else 0;
                 for (0..moveStep.stepCount) |stepCount| {
                     step += 1;
                     const recFator = 1 / (1 + step / 8);
-                    lastLastPosition = lastPosition;
                     lastPosition = position;
                     position.x += moveX;
                     position.y += moveY;
                     if (moveStepIndex == 0 and stepCount == 0) continue;
                     if (lines.verticeCount + 8 >= lines.vertices.len) break;
-                    const left = (lastPosition.x - main.TILESIZE / 2 * recFator) * onePixelXInVulkan;
-                    const top = (lastPosition.y - main.TILESIZE / 2 * recFator) * onePixelYInVulkan;
+                    const left = (lastPosition.x - zoomedTileSize / 2 * recFator) * onePixelXInVulkan;
+                    const top = (lastPosition.y - zoomedTileSize / 2 * recFator) * onePixelYInVulkan;
                     const width = baseWidth * recFator;
                     const height = baseHeight * recFator;
                     if (moveDirection != movePieceZig.DIRECTION_UP and !(stepCount == 0 and lastMoveDirection == movePieceZig.DIRECTION_DOWN) and !(stepCount > 0 and moveDirection == movePieceZig.DIRECTION_DOWN)) {
@@ -142,8 +144,8 @@ pub fn setupVertices(state: *main.GameState) !void {
                 }
             }
             const recFator = 1 / (1 + step / 8);
-            const left = (position.x - main.TILESIZE / 2 * recFator) * onePixelXInVulkan;
-            const top = (position.y - main.TILESIZE / 2 * recFator) * onePixelYInVulkan;
+            const left = (position.x - zoomedTileSize / 2 * recFator) * onePixelXInVulkan;
+            const top = (position.y - zoomedTileSize / 2 * recFator) * onePixelYInVulkan;
             const width = baseWidth * recFator;
             const height = baseHeight * recFator;
             if (moveDirection != movePieceZig.DIRECTION_DOWN) {

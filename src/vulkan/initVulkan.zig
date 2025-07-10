@@ -1082,6 +1082,7 @@ pub fn createSwapChainRelatedStuffAndCheckWindowSize(state: *main.GameState, all
         try createFramebuffers(vkState, allocator);
         windowSdlZig.windowData.widthFloat = @floatFromInt(capabilities.currentExtent.width);
         windowSdlZig.windowData.heightFloat = @floatFromInt(capabilities.currentExtent.height);
+        main.adjustZoom(state);
         return true;
     }
     return true;

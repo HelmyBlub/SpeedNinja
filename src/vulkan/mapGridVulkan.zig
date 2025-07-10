@@ -42,15 +42,16 @@ pub fn setupVertices(state: *main.GameState) !void {
     const color: [3]f32 = .{ 0.25, 0.25, 0.25 };
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-    const mapRadius: f32 = @as(f32, @floatFromInt(state.mapTileRadius)) * main.TILESIZE;
-    const left: f32 = (-mapRadius - main.TILESIZE / 2) * onePixelXInVulkan;
-    const right: f32 = (mapRadius - main.TILESIZE / 2) * onePixelXInVulkan;
-    const top: f32 = (-mapRadius - main.TILESIZE / 2) * onePixelYInVulkan;
-    const bottom: f32 = (mapRadius - main.TILESIZE / 2) * onePixelYInVulkan;
-    for (0..(state.mapTileRadius * 2 + 1)) |i| {
+    const zoomedTileSize = main.TILESIZE * state.camera.zoom;
+    const mapRadius: f32 = @as(f32, @floatFromInt(state.mapTileRadius)) * zoomedTileSize;
+    const left: f32 = (-mapRadius - zoomedTileSize / 2) * onePixelXInVulkan;
+    const right: f32 = (mapRadius + zoomedTileSize * 0.5) * onePixelXInVulkan;
+    const top: f32 = (-mapRadius - zoomedTileSize / 2) * onePixelYInVulkan;
+    const bottom: f32 = (mapRadius + zoomedTileSize * 0.5) * onePixelYInVulkan;
+    for (0..(state.mapTileRadius * 2 + 2)) |i| {
         const floatIndex = @as(f32, @floatFromInt(i));
-        const vulkanX = left + floatIndex * main.TILESIZE * onePixelXInVulkan;
-        const vulkanY = top + floatIndex * main.TILESIZE * onePixelYInVulkan;
+        const vulkanX = left + floatIndex * zoomedTileSize * onePixelXInVulkan;
+        const vulkanY = top + floatIndex * zoomedTileSize * onePixelYInVulkan;
         if (lines.verticeCount + 4 >= lines.vertices.len) break;
         lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ vulkanX, top }, .color = color };
         lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ vulkanX, bottom }, .color = color };

@@ -5,6 +5,7 @@ const paintVulkanZig = @import("vulkan/paintVulkan.zig");
 const movePieceZig = @import("movePiece.zig");
 
 pub const TILESIZE = 20;
+pub const BASE_MAP_TILE_RADIUS = 3;
 pub const GameState = struct {
     vkState: initVulkanZig.VkState = .{},
     allocator: std.mem.Allocator = undefined,
@@ -12,7 +13,7 @@ pub const GameState = struct {
     movePieces: []const movePieceZig.MovePiece,
     round: u32 = 1,
     roundEndTime: ?i64 = null,
-    mapTileRadius: u32 = 16,
+    mapTileRadius: u32 = BASE_MAP_TILE_RADIUS,
     enemies: std.ArrayList(Position),
     player: Player,
     highscore: u32 = 0,
@@ -57,6 +58,8 @@ fn mainLoop(state: *GameState) !void {
         if (state.enemies.items.len == 0) {
             state.roundEndTime = std.time.timestamp() + 30;
             state.round += 1;
+            state.mapTileRadius = BASE_MAP_TILE_RADIUS + @as(u32, @intFromFloat(@sqrt(@as(f32, @floatFromInt(state.round)))));
+            adjustZoom(state);
             try setupEnemies(state);
         }
         if ((state.roundEndTime != null and state.roundEndTime.? < std.time.timestamp()) or state.player.moveOptions.items.len == 0) {
@@ -64,6 +67,10 @@ fn mainLoop(state: *GameState) !void {
             state.lastScore = state.round;
             if (state.round > state.highscore) state.highscore = state.round;
             state.round = 1;
+            state.mapTileRadius = BASE_MAP_TILE_RADIUS;
+            adjustZoom(state);
+            state.player.position.x = 0;
+            state.player.position.y = 0;
             try movePieceZig.resetPieces(state);
             try setupEnemies(state);
         }
@@ -71,6 +78,15 @@ fn mainLoop(state: *GameState) !void {
         try paintVulkanZig.drawFrame(state);
         std.Thread.sleep(5_000_000);
     }
+}
+
+pub fn adjustZoom(state: *GameState) void {
+    const mapSize: f32 = @floatFromInt((state.mapTileRadius * 2 + 1) * TILESIZE);
+    const targetMapScreenPerCent = 0.75;
+    const widthPerCent = mapSize / windowSdlZig.windowData.widthFloat;
+    const heightPerCent = mapSize / windowSdlZig.windowData.heightFloat;
+    const biggerPerCent = @max(widthPerCent, heightPerCent);
+    state.camera.zoom = targetMapScreenPerCent / biggerPerCent;
 }
 
 fn createGameState(allocator: std.mem.Allocator) !GameState {
@@ -88,6 +104,7 @@ fn createGameState(allocator: std.mem.Allocator) !GameState {
     try initVulkanZig.initVulkan(&state);
     try movePieceZig.setupMovePieces(&state);
     try setupEnemies(&state);
+    adjustZoom(&state);
 
     return state;
 }
@@ -106,13 +123,21 @@ fn destroyGameState(state: *GameState) void {
 fn setupEnemies(state: *GameState) !void {
     state.enemies.clearRetainingCapacity();
     const rand = std.crypto.random;
-    const length = 16;
-    for (0..state.round) |_| {
-        const randomTileX: i16 = @as(i16, @intFromFloat(rand.float(f32) * length)) - length / 2;
-        const randomTileY: i16 = @as(i16, @intFromFloat(rand.float(f32) * length)) - length / 2;
-        try state.enemies.append(.{
+    const length: f32 = @floatFromInt(state.mapTileRadius * 2 + 1);
+    while (state.enemies.items.len < state.round) {
+        const randomTileX: i16 = @as(i16, @intFromFloat(rand.float(f32) * length - length / 2));
+        const randomTileY: i16 = @as(i16, @intFromFloat(rand.float(f32) * length - length / 2));
+        const randomPos: Position = .{
             .x = @floatFromInt(randomTileX * TILESIZE),
             .y = @floatFromInt(randomTileY * TILESIZE),
-        });
+        };
+        if (!isEnemyOnTile(randomPos, state)) try state.enemies.append(randomPos);
     }
+}
+
+fn isEnemyOnTile(position: Position, state: *GameState) bool {
+    for (state.enemies.items) |enemy| {
+        if (@abs(enemy.x - position.x) < TILESIZE / 2 and @abs(enemy.y - position.y) < TILESIZE / 2) return true;
+    }
+    return false;
 }
