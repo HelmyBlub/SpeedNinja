@@ -131,13 +131,14 @@ fn setupEnemies(state: *GameState) !void {
             .x = @floatFromInt(randomTileX * TILESIZE),
             .y = @floatFromInt(randomTileY * TILESIZE),
         };
-        if (!isEnemyOnTile(randomPos, state)) try state.enemies.append(randomPos);
+        if (canSpawnEnemyOnTile(randomPos, state)) try state.enemies.append(randomPos);
     }
 }
 
-fn isEnemyOnTile(position: Position, state: *GameState) bool {
+fn canSpawnEnemyOnTile(position: Position, state: *GameState) bool {
     for (state.enemies.items) |enemy| {
-        if (@abs(enemy.x - position.x) < TILESIZE / 2 and @abs(enemy.y - position.y) < TILESIZE / 2) return true;
+        if (@abs(enemy.x - position.x) < TILESIZE / 2 and @abs(enemy.y - position.y) < TILESIZE / 2) return false;
     }
-    return false;
+    if (@abs(state.player.position.x - position.x) < TILESIZE / 2 and @abs(state.player.position.y - position.y) < TILESIZE / 2) return false;
+    return true;
 }

@@ -1,8 +1,14 @@
 Tasks:
 - visualization
+    - change: don't spawn tree on player
+    - visualize pieces left counter and max piece count
     - steps:
-        - enemy image
         - animate ninja dog
+            - move path should have dog after images to see where he went
+                - move do over few frames instead of instant
+            - once tile choosen: put blade in hands
+        - animate enemy death
+            - tree should be cut randomly and fall
         - what could i use a shader for?
     - dog ninja with sword
     - enemies ? evil ninjas ?
