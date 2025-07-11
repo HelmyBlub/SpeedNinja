@@ -69,14 +69,22 @@ pub const CutSpriteVertex = struct {
 fn setupVertices(state: *main.GameState) !void {
     const cutSprite = &state.vkState.cutSpriteData.vkCutSprite;
     cutSprite.verticeCount = 0;
-    for (state.enemyDeath.items) |enemyDeath| {
+    var enemyDeathIndex: usize = 0;
+    while (enemyDeathIndex < state.enemyDeath.items.len) {
+        if (cutSprite.vertices.len <= cutSprite.verticeCount) break;
+        const enemyDeath = state.enemyDeath.items[enemyDeathIndex];
+        if (enemyDeath.deathTime + 2_000 < state.gameTime) {
+            _ = state.enemyDeath.swapRemove(enemyDeathIndex);
+            continue;
+        }
         cutSprite.vertices[cutSprite.verticeCount] = CutSpriteVertex{
             .pos = .{ enemyDeath.position.x, enemyDeath.position.y },
-            .animationPerCent = 0,
+            .animationPerCent = @as(f32, @floatFromInt(@max(0, (state.gameTime - enemyDeath.deathTime)))) / 10000,
             .cutAngle = 0,
             .imageIndex = imageZig.IMAGE_EVIL_TREE,
             .size = 20,
         };
+        enemyDeathIndex += 1;
         cutSprite.verticeCount += 1;
     }
 
@@ -131,7 +139,7 @@ fn createVertexBuffer(vkState: *initVulkanZig.VkState, allocator: std.mem.Alloca
 fn createGraphicsPipeline(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
     const vertShaderCode = try initVulkanZig.readShaderFile("shaders/cutSpriteVert.spv", allocator);
     defer allocator.free(vertShaderCode);
-    const fragShaderCode = try initVulkanZig.readShaderFile("shaders/imageFrag.spv", allocator);
+    const fragShaderCode = try initVulkanZig.readShaderFile("shaders/imageAlphaFrag.spv", allocator);
     defer allocator.free(fragShaderCode);
     const geomShaderCode = try initVulkanZig.readShaderFile("shaders/cutSpriteGeom.spv", allocator);
     defer allocator.free(geomShaderCode);

@@ -16,7 +16,7 @@ pub const GameState = struct {
     roundEndTimeMS: i64 = 30_000,
     mapTileRadius: u32 = BASE_MAP_TILE_RADIUS,
     enemies: std.ArrayList(Position),
-    enemyDeath: std.ArrayList(AfterImage),
+    enemyDeath: std.ArrayList(EnemyDeathAnimation),
     player: Player,
     highscore: u32 = 0,
     lastScore: u32 = 0,
@@ -37,6 +37,11 @@ pub const Player = struct {
 pub const AfterImage = struct {
     position: Position,
     deleteTime: i64,
+};
+
+pub const EnemyDeathAnimation = struct {
+    position: Position,
+    deathTime: i64,
 };
 
 pub const Position: type = struct {
@@ -121,7 +126,7 @@ fn createGameState(allocator: std.mem.Allocator) !GameState {
             .usedMovePieces = std.ArrayList(movePieceZig.MovePiece).init(allocator),
             .afterImages = std.ArrayList(AfterImage).init(allocator),
         },
-        .enemyDeath = std.ArrayList(AfterImage).init(allocator),
+        .enemyDeath = std.ArrayList(EnemyDeathAnimation).init(allocator),
         .enemies = std.ArrayList(Position).init(allocator),
     };
     state.allocator = allocator;

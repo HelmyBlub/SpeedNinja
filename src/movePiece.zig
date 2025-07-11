@@ -173,7 +173,7 @@ fn checkEnemyHitOnMoveStep(stepAmount: f32, direction: u8, state: *main.GameStat
         const enemy = state.enemies.items[enemyIndex];
         if (enemy.x > left and enemy.x < left + width and enemy.y > top and enemy.y < top + height) {
             const deadEnemy = state.enemies.swapRemove(enemyIndex);
-            try state.enemyDeath.append(.{ .deleteTime = state.gameTime + 1000, .position = deadEnemy });
+            try state.enemyDeath.append(.{ .deathTime = state.gameTime, .position = deadEnemy });
             try resetPieces(state);
         } else {
             enemyIndex += 1;
