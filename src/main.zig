@@ -42,6 +42,7 @@ pub const AfterImage = struct {
 pub const EnemyDeathAnimation = struct {
     position: Position,
     deathTime: i64,
+    cutAngle: f32,
 };
 
 pub const Position: type = struct {

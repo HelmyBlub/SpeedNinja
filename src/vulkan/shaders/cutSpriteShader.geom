@@ -1,7 +1,7 @@
 #version 450
 
 layout(points) in;
-layout(triangle_strip, max_vertices = 8) out;
+layout(triangle_strip, max_vertices = 12) out;
 
 layout(location = 0) in vec2 scale[];
 layout(location = 1) in uint inSpriteIndex[];
@@ -24,75 +24,81 @@ vec2 rotateAroundPoint(vec2 point, vec2 pivot, float angle){
     return rotated + pivot;
 }
 
-void main(void)
-{	
+void emitVertex(vec2 localPos, vec2 spriteCenter, vec2 normalOffset, float halfSize)
+{
+    vec2 finalPos = spriteCenter + scale[0] * localPos + normalOffset;
+    gl_Position = vec4(finalPos, 0.0, 1.0);
+    spriteIndex = inSpriteIndex[0];
+    fragTexCoord = localPos / halfSize / 2 + 0.5;
+    alpha = 1 - inAnimationPerCent[0];
+    EmitVertex();
+}
+
+void main()
+{
     vec4 center = gl_in[0].gl_Position;
     const float zoom = center[3];
     center[0] = center[0] / zoom;
     center[1] = center[1] / zoom;
     center[3] = 1;
-    const vec2 size = scale[0] * inSize[0] / zoom / 2;
-    const vec2 offset = vec2(inAnimationPerCent[0], 0);
-    center -= vec4(offset, 0, 0);
-    const float tempAlpha = 1 - inAnimationPerCent[0];
-    //first
-    // top-left vertex
-    gl_Position = center + vec4(-size, 0, 0);
-    spriteIndex = inSpriteIndex[0];
-    fragTexCoord = vec2(0.0, 0.0);
-    alpha = tempAlpha;
-    EmitVertex();
+    const float halfSize = inSize[0] / zoom / 2;
 
-    // top-right vertex
-    gl_Position = center + vec4(0, -size.y, 0, 0);;
-    spriteIndex = inSpriteIndex[0];
-    fragTexCoord = vec2(0.5, 0.0);
-    alpha = tempAlpha;
-    EmitVertex();
+    vec2 centerXY = center.xy;
+    vec2 normal = vec2(cos(inCutAngle[0]), sin(inCutAngle[0]));
 
-    // bottom-left vertex
-    gl_Position = center + vec4(-size.x, size.y, 0, 0);;
-    spriteIndex = inSpriteIndex[0];
-    fragTexCoord = vec2(0.0, 1);
-    alpha = tempAlpha;
-    EmitVertex();
+    // Local quad corners
+    vec2 corners[4] = vec2[](
+        vec2(-halfSize, -halfSize),
+        vec2(+halfSize, -halfSize),
+        vec2(+halfSize, +halfSize),
+        vec2(-halfSize, +halfSize)
+    );
 
-    // bottom-right vertex
-    gl_Position = center + vec4(0, size.y, 0, 0);;
-    spriteIndex = inSpriteIndex[0];
-    fragTexCoord = vec2(0.5, 1);
-    alpha = tempAlpha;
-    EmitVertex();
+    // Corners' distances to cut line
+    float d[4];
+    for (int i = 0; i < 4; ++i) {
+        d[i] = dot(corners[i], normal);
+    }
 
-    //second
-    center += vec4(offset * 2, 0, 0);    
-    // top-left vertex
-    gl_Position = center + vec4(0, -size.y, 0, 0);
-    spriteIndex = inSpriteIndex[0];
-    fragTexCoord = vec2(0.5, 0.0);
-    alpha = tempAlpha;
-    EmitVertex();
+    // Split lists for each side
+    vec2 posP[6]; int cntP = 0;
+    vec2 posN[6]; int cntN = 0;
 
-    // top-right vertex
-    gl_Position = center + vec4(size.x, -size.y, 0, 0);;
-    spriteIndex = inSpriteIndex[0];
-    fragTexCoord = vec2(1.0, 0.0);
-    alpha = tempAlpha;
-    EmitVertex();
+    // Build polygon outline for each half
+    for (int i = 0; i < 4; ++i) {
+        int j = (i + 1) % 4;
 
-    // bottom-left vertex
-    gl_Position = center + vec4(0, size.y, 0, 0);;
-    spriteIndex = inSpriteIndex[0];
-    fragTexCoord = vec2(0.5, 1.0);
-    alpha = tempAlpha;
-    EmitVertex();
+        vec2 Pi = corners[i];
+        vec2 Pj = corners[j];
+        float di = d[i];
+        float dj = d[j];
 
-    // bottom-right vertex
-    gl_Position = center + vec4(size, 0, 0);;
-    spriteIndex = inSpriteIndex[0];
-    fragTexCoord = vec2(1.0, 1.0);
-    alpha = tempAlpha;
-    EmitVertex();
+        // Add current vertex to its side
+        if (di >= 0.0) posP[cntP++] = Pi;
+        else           posN[cntN++] = Pi;
 
+        // Check edge crossing
+        if (di * dj < 0.0) {
+            float t = di / (di - dj);
+            vec2 Pm = Pi + t * (Pj - Pi);
+            posP[cntP++] = Pm;
+            posN[cntN++] = Pm;
+        }
+    }
+
+    // Emit positive half (shift + normal)
+    const int order[6] = int[](0,1,3,2,5,4);
+    const float offsetX = inAnimationPerCent[0] / 10;
+    vec2 offsetP = vec2(offsetX, 0);
+    for (int i = 0; i < cntP; ++i) {
+        emitVertex(posP[order[i]], centerXY, offsetP, halfSize);
+    }
+    EndPrimitive();
+
+    // Emit negative half (shift - normal)
+    vec2 offsetN = vec2(-offsetX, 0);
+    for (int i = 0; i < cntN; ++i) {
+        emitVertex(posN[order[i]], centerXY, offsetN, halfSize);
+    }
     EndPrimitive();
 }

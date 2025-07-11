@@ -169,11 +169,13 @@ fn checkEnemyHitOnMoveStep(stepAmount: f32, direction: u8, state: *main.GameStat
         },
     }
 
+    const rand = std.crypto.random;
     while (enemyIndex < state.enemies.items.len) {
         const enemy = state.enemies.items[enemyIndex];
         if (enemy.x > left and enemy.x < left + width and enemy.y > top and enemy.y < top + height) {
             const deadEnemy = state.enemies.swapRemove(enemyIndex);
-            try state.enemyDeath.append(.{ .deathTime = state.gameTime, .position = deadEnemy });
+            const randomAngle = rand.float(f32) * std.math.pi;
+            try state.enemyDeath.append(.{ .deathTime = state.gameTime, .position = deadEnemy, .cutAngle = randomAngle });
             try resetPieces(state);
         } else {
             enemyIndex += 1;

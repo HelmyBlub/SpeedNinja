@@ -73,14 +73,15 @@ fn setupVertices(state: *main.GameState) !void {
     while (enemyDeathIndex < state.enemyDeath.items.len) {
         if (cutSprite.vertices.len <= cutSprite.verticeCount) break;
         const enemyDeath = state.enemyDeath.items[enemyDeathIndex];
-        if (enemyDeath.deathTime + 2_000 < state.gameTime) {
+        const deathDuration = 2000;
+        if (enemyDeath.deathTime + deathDuration < state.gameTime) {
             _ = state.enemyDeath.swapRemove(enemyDeathIndex);
             continue;
         }
         cutSprite.vertices[cutSprite.verticeCount] = CutSpriteVertex{
             .pos = .{ enemyDeath.position.x, enemyDeath.position.y },
-            .animationPerCent = @as(f32, @floatFromInt(@max(0, (state.gameTime - enemyDeath.deathTime)))) / 10000,
-            .cutAngle = 0,
+            .animationPerCent = @as(f32, @floatFromInt(@max(0, (state.gameTime - enemyDeath.deathTime)))) / deathDuration,
+            .cutAngle = enemyDeath.cutAngle,
             .imageIndex = imageZig.IMAGE_EVIL_TREE,
             .size = 20,
         };

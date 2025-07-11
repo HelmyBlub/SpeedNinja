@@ -2,7 +2,9 @@ Tasks:
 - visualization
     - steps:
         - animate enemy death
-            - tree should be cut randomly and fall
+            - tree should be cut randomly
+                - continue: does not work yet
+            - "fall down"
             - angle is given, shaders does rest
             - perCent of animation
         - animate ninja dog
