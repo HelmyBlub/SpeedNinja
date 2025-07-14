@@ -283,7 +283,6 @@ fn createLogicalDevice(physicalDevice: vk.VkPhysicalDevice, vkState: *VkState) !
         .samplerAnisotropy = vk.VK_TRUE,
         .geometryShader = vk.VK_TRUE,
         .fillModeNonSolid = vk.VK_TRUE,
-        .shaderFloat64 = vk.VK_TRUE,
     };
     var vk12Features = vk.VkPhysicalDeviceVulkan12Features{
         .sType = vk.VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
@@ -754,8 +753,7 @@ fn isDeviceSuitable(device: vk.VkPhysicalDevice, vkState: *VkState, allocator: s
     vk.vkGetPhysicalDeviceFeatures.?(device, &supportedFeatures);
 
     const suitable = indices.isComplete() and supportedFeatures.samplerAnisotropy != 0 and
-        supportedFeatures.geometryShader != 0 and supportedFeatures.fillModeNonSolid != 0 and
-        supportedFeatures.shaderFloat64 != 0;
+        supportedFeatures.geometryShader != 0 and supportedFeatures.fillModeNonSolid != 0;
     if (!suitable) return 0;
 
     var supportedFeatures2: vk.VkPhysicalDeviceFeatures2 = .{

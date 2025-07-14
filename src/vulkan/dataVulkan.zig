@@ -4,8 +4,8 @@ const initVulkanZig = @import("initVulkan.zig");
 const vk = initVulkanZig.vk;
 
 pub const VkCameraData = struct {
-    translate: [2]f64,
     transform: [4][4]f32,
+    translate: [2]f32,
 };
 
 pub const VkTriangles = struct {
@@ -30,7 +30,7 @@ pub const VkSprites = struct {
 };
 
 pub const SpriteWithGlobalTransformVertex = struct {
-    pos: [2]f64,
+    pos: [2]f32,
     imageIndex: u8,
     size: u8,
     rotate: f32,
@@ -51,7 +51,7 @@ pub const SpriteWithGlobalTransformVertex = struct {
         var attributeDescriptions: [5]vk.VkVertexInputAttributeDescription = .{ undefined, undefined, undefined, undefined, undefined };
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = vk.VK_FORMAT_R64G64_SFLOAT;
+        attributeDescriptions[0].format = vk.VK_FORMAT_R32G32_SFLOAT;
         attributeDescriptions[0].offset = @offsetOf(SpriteWithGlobalTransformVertex, "pos");
         attributeDescriptions[1].binding = 0;
         attributeDescriptions[1].location = 1;
@@ -73,7 +73,7 @@ pub const SpriteWithGlobalTransformVertex = struct {
     }
 };
 pub const SpriteVertex = struct {
-    pos: [2]f64,
+    pos: [2]f32,
     imageIndex: u8,
     width: f32,
     height: f32,
@@ -92,7 +92,7 @@ pub const SpriteVertex = struct {
         var attributeDescriptions: [4]vk.VkVertexInputAttributeDescription = .{ undefined, undefined, undefined, undefined };
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = vk.VK_FORMAT_R64G64_SFLOAT;
+        attributeDescriptions[0].format = vk.VK_FORMAT_R32G32_SFLOAT;
         attributeDescriptions[0].offset = @offsetOf(SpriteVertex, "pos");
         attributeDescriptions[1].binding = 0;
         attributeDescriptions[1].location = 1;
@@ -111,7 +111,7 @@ pub const SpriteVertex = struct {
 };
 
 pub const ColoredVertex = struct {
-    pos: [2]f64,
+    pos: [2]f32,
     color: [3]f32,
 
     pub fn getBindingDescription() vk.VkVertexInputBindingDescription {
@@ -128,7 +128,7 @@ pub const ColoredVertex = struct {
         var attributeDescriptions: [2]vk.VkVertexInputAttributeDescription = .{ undefined, undefined };
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = vk.VK_FORMAT_R64G64_SFLOAT;
+        attributeDescriptions[0].format = vk.VK_FORMAT_R32G32_SFLOAT;
         attributeDescriptions[0].offset = @offsetOf(ColoredVertex, "pos");
         attributeDescriptions[1].binding = 0;
         attributeDescriptions[1].location = 1;

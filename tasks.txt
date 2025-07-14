@@ -1,12 +1,13 @@
 Tasks:
+- remove float64 dependency
+- make one shader for cpu code test usage
 - visualization
     - steps:
         - animate enemy death
-            - tree should be cut randomly
-                - continue: does not work yet
             - "fall down"
-            - angle is given, shaders does rest
-            - perCent of animation
+                - rotate pieces
+                - force value: fly further when cut
+                - fly path
         - animate ninja dog
             - eye pupils move
             - bandana swings

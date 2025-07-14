@@ -19,11 +19,12 @@ pub const VkCutSprite = struct {
 };
 
 pub const CutSpriteVertex = struct {
-    pos: [2]f64,
+    pos: [2]f32,
     imageIndex: u8,
     size: u8,
     cutAngle: f32,
     animationPerCent: f32,
+    force: f32,
 
     pub fn getBindingDescription() vk.VkVertexInputBindingDescription {
         const bindingDescription: vk.VkVertexInputBindingDescription = .{
@@ -35,11 +36,11 @@ pub const CutSpriteVertex = struct {
         return bindingDescription;
     }
 
-    pub fn getAttributeDescriptions() [5]vk.VkVertexInputAttributeDescription {
+    pub fn getAttributeDescriptions() [6]vk.VkVertexInputAttributeDescription {
         const attributeDescriptions = [_]vk.VkVertexInputAttributeDescription{ .{
             .binding = 0,
             .location = 0,
-            .format = vk.VK_FORMAT_R64G64_SFLOAT,
+            .format = vk.VK_FORMAT_R32G32_SFLOAT,
             .offset = @offsetOf(CutSpriteVertex, "pos"),
         }, .{
             .binding = 0,
@@ -61,6 +62,11 @@ pub const CutSpriteVertex = struct {
             .location = 4,
             .format = vk.VK_FORMAT_R32_SFLOAT,
             .offset = @offsetOf(CutSpriteVertex, "animationPerCent"),
+        }, .{
+            .binding = 0,
+            .location = 5,
+            .format = vk.VK_FORMAT_R32_SFLOAT,
+            .offset = @offsetOf(CutSpriteVertex, "force"),
         } };
         return attributeDescriptions;
     }
@@ -73,7 +79,7 @@ fn setupVertices(state: *main.GameState) !void {
     while (enemyDeathIndex < state.enemyDeath.items.len) {
         if (cutSprite.vertices.len <= cutSprite.verticeCount) break;
         const enemyDeath = state.enemyDeath.items[enemyDeathIndex];
-        const deathDuration = 2000;
+        const deathDuration = 4000;
         if (enemyDeath.deathTime + deathDuration < state.gameTime) {
             _ = state.enemyDeath.swapRemove(enemyDeathIndex);
             continue;
@@ -84,6 +90,7 @@ fn setupVertices(state: *main.GameState) !void {
             .cutAngle = enemyDeath.cutAngle,
             .imageIndex = imageZig.IMAGE_EVIL_TREE,
             .size = 20,
+            .force = enemyDeath.force,
         };
         enemyDeathIndex += 1;
         cutSprite.verticeCount += 1;

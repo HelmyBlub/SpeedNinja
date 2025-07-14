@@ -23,7 +23,7 @@ pub const VkFont = struct {
 };
 
 pub const FontVertex = struct {
-    pos: [2]f64,
+    pos: [2]f32,
     texX: f32,
     texWidth: f32,
     size: f32,
@@ -43,7 +43,7 @@ pub const FontVertex = struct {
         const attributeDescriptions = [_]vk.VkVertexInputAttributeDescription{ .{
             .binding = 0,
             .location = 0,
-            .format = vk.VK_FORMAT_R64G64_SFLOAT,
+            .format = vk.VK_FORMAT_R32G32_SFLOAT,
             .offset = @offsetOf(FontVertex, "pos"),
         }, .{
             .binding = 0,

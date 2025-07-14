@@ -43,6 +43,7 @@ pub const EnemyDeathAnimation = struct {
     position: Position,
     deathTime: i64,
     cutAngle: f32,
+    force: f32,
 };
 
 pub const Position: type = struct {
