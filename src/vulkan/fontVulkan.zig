@@ -168,6 +168,7 @@ pub fn initFont(state: *main.GameState) !void {
         &state.vkState.font.mipLevels,
         &state.vkState.font.textureImage,
         &state.vkState.font.textureImageMemory,
+        null,
     );
     state.vkState.font.textureImageView = try initVulkanZig.createImageView(
         state.vkState.font.textureImage,

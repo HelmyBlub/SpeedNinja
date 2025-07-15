@@ -86,13 +86,20 @@ pub fn handleEvents(state: *main.GameState) !void {
                     state.player.choosenMoveOptionIndex = null;
                 }
             } else if (event.key.scancode == sdl.SDL_SCANCODE_1) {
-                if (state.player.moveOptions.items.len > 0) state.player.choosenMoveOptionIndex = 0;
+                setMoveOptionIndex(0, state);
             } else if (event.key.scancode == sdl.SDL_SCANCODE_2) {
-                if (state.player.moveOptions.items.len > 1) state.player.choosenMoveOptionIndex = 1;
+                setMoveOptionIndex(1, state);
             } else if (event.key.scancode == sdl.SDL_SCANCODE_3) {
-                if (state.player.moveOptions.items.len > 2) state.player.choosenMoveOptionIndex = 2;
+                setMoveOptionIndex(2, state);
             }
         }
+    }
+}
+
+pub fn setMoveOptionIndex(index: usize, state: *main.GameState) void {
+    if (state.player.moveOptions.items.len > index) {
+        state.player.choosenMoveOptionIndex = index;
+        state.player.ninjaDogPaintData.bladeDrawn = true;
     }
 }
 

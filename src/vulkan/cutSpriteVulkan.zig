@@ -5,6 +5,7 @@ const vk = initVulkanZig.vk;
 const imageZig = @import("../image.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 const dataVulkanZig = @import("dataVulkan.zig");
+const paintVulkanZig = @import("paintVulkan.zig");
 
 const DEATH_DURATION = 3000;
 
@@ -163,7 +164,7 @@ fn addTriangle(points: [3]main.Position, enemyDeath: main.EnemyDeathAnimation, o
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
 
     for (points) |point| {
-        const rotatedPoint = rotateAroundPoint(point, rotateCenter, rotate);
+        const rotatedPoint = paintVulkanZig.rotateAroundPoint(point, rotateCenter, rotate);
         const vulkan: main.Position = .{
             .x = (rotatedPoint.x - state.camera.position.x + enemyDeath.position.x + offsetX) * state.camera.zoom * onePixelXInVulkan,
             .y = (rotatedPoint.y - state.camera.position.y + enemyDeath.position.y + offsetY) * state.camera.zoom * onePixelYInVulkan,
@@ -180,17 +181,4 @@ fn addTriangle(points: [3]main.Position, enemyDeath: main.EnemyDeathAnimation, o
         };
         cutSprite.verticeCount += 1;
     }
-}
-
-fn rotateAroundPoint(point: main.Position, pivot: main.Position, angle: f32) main.Position {
-    const translatedX = point.x - pivot.x;
-    const translatedY = point.y - pivot.y;
-
-    const s = @sin(angle);
-    const c = @cos(angle);
-
-    const rotatedX = c * translatedX - s * translatedY;
-    const rotatedY = s * translatedX + c * translatedY;
-
-    return main.Position{ .x = rotatedX + pivot.x, .y = rotatedY + pivot.y };
 }

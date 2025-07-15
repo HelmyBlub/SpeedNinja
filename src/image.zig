@@ -6,15 +6,19 @@ const vk = initVulkanZig.vk;
 pub const IMAGE_DOG = 0;
 pub const IMAGE_WHITE_RECTANGLE = 1;
 pub const IMAGE_EVIL_TREE = 2;
+pub const IMAGE_BLADE = 3;
 
 pub const ImageData = struct {
     path: []const u8,
+    width: usize = undefined,
+    height: usize = undefined,
 };
 
-pub const IMAGE_DATA = [_]ImageData{
+pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaDog.png" },
     .{ .path = "images/whiteRectangle.png" },
     .{ .path = "images/evilTree.png" },
+    .{ .path = "images/ninjablade.png" },
 };
 
 pub fn createVulkanTextureSprites(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
@@ -23,7 +27,7 @@ pub fn createVulkanTextureSprites(vkState: *initVulkanZig.VkState, allocator: st
     vkState.spriteImages.mipLevels = try allocator.alloc(u32, IMAGE_DATA.len);
 
     for (0..IMAGE_DATA.len) |i| {
-        try createVulkanTextureImage(vkState, allocator, IMAGE_DATA[i].path, &vkState.spriteImages.mipLevels[i], &vkState.spriteImages.textureImage[i], &vkState.spriteImages.textureImageMemory[i]);
+        try createVulkanTextureImage(vkState, allocator, IMAGE_DATA[i].path, &vkState.spriteImages.mipLevels[i], &vkState.spriteImages.textureImage[i], &vkState.spriteImages.textureImageMemory[i], i);
     }
 
     vkState.spriteImages.textureImageView = try allocator.alloc(vk.VkImageView, IMAGE_DATA.len);
@@ -32,10 +36,14 @@ pub fn createVulkanTextureSprites(vkState: *initVulkanZig.VkState, allocator: st
     }
 }
 
-pub fn createVulkanTextureImage(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator, filePath: []const u8, mipLevels: *u32, textureImage: *vk.VkImage, textureImageMemory: *vk.VkDeviceMemory) !void {
+pub fn createVulkanTextureImage(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator, filePath: []const u8, mipLevels: *u32, textureImage: *vk.VkImage, textureImageMemory: *vk.VkDeviceMemory, optImageIndex: ?usize) !void {
     var image = try zigimg.Image.fromFilePath(allocator, filePath);
     defer image.deinit();
     try image.convert(.rgba32);
+    if (optImageIndex) |imageIndex| {
+        IMAGE_DATA[imageIndex].height = image.height;
+        IMAGE_DATA[imageIndex].width = image.width;
+    }
 
     var stagingBuffer: vk.VkBuffer = undefined;
     defer vk.vkDestroyBuffer.?(vkState.logicalDevice, stagingBuffer, null);

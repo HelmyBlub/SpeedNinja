@@ -90,42 +90,35 @@ pub fn tickPlayerMovePiece(state: *main.GameState) !void {
         try checkEnemyHitOnMoveStep(stepAmount, direction, state);
         switch (direction) {
             DIRECTION_RIGHT => {
-                for (0..step.stepCount) |i| {
-                    try state.player.afterImages.append(.{ .deleteTime = state.gameTime + 50 + @as(i64, @intCast(i)) * 10, .position = .{
-                        .x = state.player.position.x + @as(f32, @floatFromInt(i)) * main.TILESIZE,
-                        .y = state.player.position.y,
-                    } });
-                }
+                try addAfterImages(step.stepCount, .{ .x = 1, .y = 0 }, state.player, state);
                 state.player.position.x += stepAmount;
             },
             DIRECTION_DOWN => {
-                for (0..step.stepCount) |i| {
-                    try state.player.afterImages.append(.{ .deleteTime = state.gameTime + 50 + @as(i64, @intCast(i)) * 10, .position = .{
-                        .x = state.player.position.x,
-                        .y = state.player.position.y + @as(f32, @floatFromInt(i)) * main.TILESIZE,
-                    } });
-                }
+                try addAfterImages(step.stepCount, .{ .x = 0, .y = 1 }, state.player, state);
                 state.player.position.y += stepAmount;
             },
             DIRECTION_LEFT => {
-                for (0..step.stepCount) |i| {
-                    try state.player.afterImages.append(.{ .deleteTime = state.gameTime + 50 + @as(i64, @intCast(i)) * 10, .position = .{
-                        .x = state.player.position.x - @as(f32, @floatFromInt(i)) * main.TILESIZE,
-                        .y = state.player.position.y,
-                    } });
-                }
+                try addAfterImages(step.stepCount, .{ .x = -1, .y = 0 }, state.player, state);
                 state.player.position.x -= stepAmount;
             },
             else => {
-                for (0..step.stepCount) |i| {
-                    try state.player.afterImages.append(.{ .deleteTime = state.gameTime + 50 + @as(i64, @intCast(i)) * 10, .position = .{
-                        .x = state.player.position.x,
-                        .y = state.player.position.y - @as(f32, @floatFromInt(i)) * main.TILESIZE,
-                    } });
-                }
+                try addAfterImages(step.stepCount, .{ .x = 0, .y = -1 }, state.player, state);
                 state.player.position.y -= stepAmount;
             },
         }
+    }
+}
+
+fn addAfterImages(stepCount: usize, stepDirection: main.Position, player: main.Player, state: *main.GameState) !void {
+    for (0..stepCount) |i| {
+        try state.player.afterImages.append(.{
+            .deleteTime = state.gameTime + 50 + @as(i64, @intCast(i)) * 10,
+            .position = .{
+                .x = state.player.position.x + stepDirection.x * @as(f32, @floatFromInt(i)) * main.TILESIZE,
+                .y = state.player.position.y + stepDirection.y * @as(f32, @floatFromInt(i)) * main.TILESIZE,
+            },
+            .paintData = player.ninjaDogPaintData,
+        });
     }
 }
 

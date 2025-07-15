@@ -9,6 +9,7 @@ const windowSdlZig = @import("../windowSdl.zig");
 const fontVulkanZig = @import("fontVulkan.zig");
 const mapGridVulkanZig = @import("mapGridVulkan.zig");
 const cutSpriteVulkan = @import("cutSpriteVulkan.zig");
+const ninjaDogVulkanZig = @import("ninjaDogVulkan.zig");
 
 pub fn drawFrame(state: *main.GameState) !void {
     const vkState = &state.vkState;
@@ -124,6 +125,7 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
 
     vk.vkCmdDraw.?(commandBuffer, @intCast(vkState.spriteData.verticeUsedCount), 1, 0, 0);
     try cutSpriteVulkan.recordCommandBuffer(commandBuffer, state);
+    try ninjaDogVulkanZig.recordCommandBuffer(commandBuffer, state);
     vk.vkCmdNextSubpass.?(commandBuffer, vk.VK_SUBPASS_CONTENTS_INLINE);
     vk.vkCmdNextSubpass.?(commandBuffer, vk.VK_SUBPASS_CONTENTS_INLINE);
     try movePieceUxVulkanZig.recordCommandBuffer(commandBuffer, state);
@@ -136,34 +138,6 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
 fn setupVerticesForSprites(state: *main.GameState) !void {
     const spriteData = &state.vkState.spriteData;
     spriteData.verticeUsedCount = 0;
-
-    var currentAfterImageIndex: usize = 0;
-    while (currentAfterImageIndex < state.player.afterImages.items.len) {
-        if (spriteData.verticeUsedCount + 1 >= spriteData.vertices.len) break;
-        const afterImage = state.player.afterImages.items[currentAfterImageIndex];
-        if (afterImage.deleteTime < state.gameTime) {
-            _ = state.player.afterImages.swapRemove(currentAfterImageIndex);
-            continue;
-        }
-        spriteData.vertices[spriteData.verticeUsedCount] = .{
-            .pos = .{ afterImage.position.x, afterImage.position.y },
-            .imageIndex = imageZig.IMAGE_DOG,
-            .size = main.TILESIZE,
-            .rotate = 0,
-            .cutY = 0,
-        };
-        currentAfterImageIndex += 1;
-        spriteData.verticeUsedCount += 1;
-    }
-
-    spriteData.vertices[spriteData.verticeUsedCount] = .{
-        .pos = .{ state.player.position.x, state.player.position.y },
-        .imageIndex = imageZig.IMAGE_DOG,
-        .size = main.TILESIZE,
-        .rotate = 0,
-        .cutY = 0,
-    };
-    spriteData.verticeUsedCount += 1;
 
     for (state.enemies.items) |enemy| {
         if (spriteData.verticeUsedCount >= spriteData.vertices.len) break;
@@ -221,4 +195,17 @@ pub fn createVertexBuffer(vkState: *initVulkanZig.VkState, allocator: std.mem.Al
         &vkState.spriteData.vertexBufferMemory,
         vkState,
     );
+}
+
+pub fn rotateAroundPoint(point: main.Position, pivot: main.Position, angle: f32) main.Position {
+    const translatedX = point.x - pivot.x;
+    const translatedY = point.y - pivot.y;
+
+    const s = @sin(angle);
+    const c = @cos(angle);
+
+    const rotatedX = c * translatedX - s * translatedY;
+    const rotatedY = s * translatedX + c * translatedY;
+
+    return main.Position{ .x = rotatedX + pivot.x, .y = rotatedY + pivot.y };
 }

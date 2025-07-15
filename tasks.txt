@@ -2,10 +2,8 @@ Tasks:
 - wait on user feedback for mouse positions on other project to implement here too
 - visualization
     - steps:
-        - animate enemy death
-            - "fall down"
-                - continue: fly path
         - animate ninja dog
+            - once move piece taken, put sword into hand
             - eye pupils move
             - bandana swings
             - dog body moving up down when stationary
@@ -15,8 +13,6 @@ Tasks:
                 - maybe turn body back to front
             - once tile choosen: put blade in hands
         - what could i use a shader for?
-    - dog ninja with sword
-    - enemies ? evil ninjas ?
 
 
 Game Vision:

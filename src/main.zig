@@ -3,6 +3,7 @@ const windowSdlZig = @import("windowSdl.zig");
 const initVulkanZig = @import("vulkan/initVulkan.zig");
 const paintVulkanZig = @import("vulkan/paintVulkan.zig");
 const movePieceZig = @import("movePiece.zig");
+const ninjaDogVulkanZig = @import("vulkan/ninjaDogVulkan.zig");
 
 pub const TILESIZE = 20;
 pub const BASE_MAP_TILE_RADIUS = 3;
@@ -32,9 +33,11 @@ pub const Player = struct {
     moveOptions: std.ArrayList(movePieceZig.MovePiece),
     usedMovePieces: std.ArrayList(movePieceZig.MovePiece),
     availableMovePieces: std.ArrayList(movePieceZig.MovePiece),
+    ninjaDogPaintData: ninjaDogVulkanZig.NinjaDogPaintData = .{},
 };
 
 pub const AfterImage = struct {
+    paintData: ninjaDogVulkanZig.NinjaDogPaintData,
     position: Position,
     deleteTime: i64,
 };
