@@ -2,11 +2,20 @@ const std = @import("std");
 const zigimg = @import("zigimg");
 const initVulkanZig = @import("vulkan/initVulkan.zig");
 const vk = initVulkanZig.vk;
+const main = @import("main.zig");
 
 pub const IMAGE_DOG = 0;
 pub const IMAGE_WHITE_RECTANGLE = 1;
 pub const IMAGE_EVIL_TREE = 2;
 pub const IMAGE_BLADE = 3;
+pub const IMAGE_NINJA_DOG_PAW = 4;
+
+pub const IMAGE_DOG__LEFT_ARM_ROTATE_POINT: main.Position = .{ .x = 77, .y = 106 };
+pub const IMAGE_DOG__RIGHT_ARM_ROTATE_POINT: main.Position = .{ .x = 116, .y = 106 };
+pub const IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT: main.Position = .{ .x = 8, .y = 5 };
+pub const IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT: main.Position = .{ .x = 8, .y = 46 };
+pub const IMAGE_BLADE__HAND_HOLD_POINT: main.Position = .{ .x = 13, .y = 12 };
+pub const IMAGE_TO_GAME_SIZE = 10;
 
 pub const ImageData = struct {
     path: []const u8,
@@ -19,6 +28,7 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/whiteRectangle.png" },
     .{ .path = "images/evilTree.png" },
     .{ .path = "images/ninjablade.png" },
+    .{ .path = "images/ninjaDogPaw.png" },
 };
 
 pub fn createVulkanTextureSprites(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {

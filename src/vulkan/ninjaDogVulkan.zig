@@ -47,6 +47,18 @@ pub fn drawNinjaDog(position: main.Position, paintData: NinjaDogPaintData, state
         addTiranglesForSprite(position, imageZig.IMAGE_BLADE, 0, state);
     }
     addTiranglesForSprite(position, imageZig.IMAGE_DOG, 0, state);
+    const imageDataDog = imageZig.IMAGE_DATA[imageZig.IMAGE_DOG];
+    const imageDataDogPaw = imageZig.IMAGE_DATA[imageZig.IMAGE_NINJA_DOG_PAW];
+    const leftArmSpritePosition: main.Position = .{
+        .x = position.x + (imageZig.IMAGE_DOG__LEFT_ARM_ROTATE_POINT.x - @as(f32, @floatFromInt(imageDataDog.width)) / 2 - imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.x + @as(f32, @floatFromInt(imageDataDogPaw.width)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
+        .y = position.y + (imageZig.IMAGE_DOG__LEFT_ARM_ROTATE_POINT.y - @as(f32, @floatFromInt(imageDataDog.height)) / 2 - imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.y + @as(f32, @floatFromInt(imageDataDogPaw.height)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
+    };
+    addTiranglesForSprite(leftArmSpritePosition, imageZig.IMAGE_NINJA_DOG_PAW, 0, state);
+    const rightArmSpritePosition: main.Position = .{
+        .x = position.x + (imageZig.IMAGE_DOG__RIGHT_ARM_ROTATE_POINT.x - @as(f32, @floatFromInt(imageDataDog.width)) / 2 - imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.x + @as(f32, @floatFromInt(imageDataDogPaw.width)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
+        .y = position.y + (imageZig.IMAGE_DOG__RIGHT_ARM_ROTATE_POINT.y - @as(f32, @floatFromInt(imageDataDog.height)) / 2 - imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.y + @as(f32, @floatFromInt(imageDataDogPaw.height)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
+    };
+    addTiranglesForSprite(rightArmSpritePosition, imageZig.IMAGE_NINJA_DOG_PAW, 0, state);
     if (paintData.bladeDrawn) {
         addTiranglesForSprite(position, imageZig.IMAGE_BLADE, @as(f32, @floatFromInt(state.gameTime)) / 128, state);
     }
@@ -57,8 +69,8 @@ fn addTiranglesForSprite(position: main.Position, imageIndex: u8, rotateAngle: f
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const imageData = imageZig.IMAGE_DATA[imageIndex];
-    const halfSizeWidth: f32 = @as(f32, @floatFromInt(imageData.width)) / 20;
-    const halfSizeHeigh: f32 = @as(f32, @floatFromInt(imageData.height)) / 20;
+    const halfSizeWidth: f32 = @as(f32, @floatFromInt(imageData.width)) / imageZig.IMAGE_TO_GAME_SIZE / 2;
+    const halfSizeHeigh: f32 = @as(f32, @floatFromInt(imageData.height)) / imageZig.IMAGE_TO_GAME_SIZE / 2;
     const corners: [4]main.Position = [4]main.Position{
         main.Position{ .x = -halfSizeWidth, .y = -halfSizeHeigh },
         main.Position{ .x = halfSizeWidth, .y = -halfSizeHeigh },

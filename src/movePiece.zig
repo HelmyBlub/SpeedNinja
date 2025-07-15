@@ -43,7 +43,7 @@ pub fn setupMovePieces(state: *main.GameState) !void {
 pub fn createMovePieces() []const MovePiece {
     const movePieces = [_]MovePiece{
         .{ .steps = &[_]MoveStep{
-            .{ .direction = DIRECTION_UP, .stepCount = 2 },
+            .{ .direction = DIRECTION_UP, .stepCount = 1 },
             .{ .direction = DIRECTION_RIGHT, .stepCount = 2 },
             .{ .direction = DIRECTION_UP, .stepCount = 2 },
         } },
