@@ -110,6 +110,44 @@ pub const SpriteVertex = struct {
     }
 };
 
+pub const SpriteComplexVertex = struct {
+    pos: [2]f32,
+    tex: [2]f32,
+    alpha: f32,
+    imageIndex: u8,
+
+    pub fn getBindingDescription() vk.VkVertexInputBindingDescription {
+        const bindingDescription: vk.VkVertexInputBindingDescription = .{
+            .binding = 0,
+            .stride = @sizeOf(SpriteComplexVertex),
+            .inputRate = vk.VK_VERTEX_INPUT_RATE_VERTEX,
+        };
+
+        return bindingDescription;
+    }
+
+    pub fn getAttributeDescriptions() [4]vk.VkVertexInputAttributeDescription {
+        var attributeDescriptions: [4]vk.VkVertexInputAttributeDescription = .{ undefined, undefined, undefined, undefined };
+        attributeDescriptions[0].binding = 0;
+        attributeDescriptions[0].location = 0;
+        attributeDescriptions[0].format = vk.VK_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[0].offset = @offsetOf(SpriteComplexVertex, "pos");
+        attributeDescriptions[1].binding = 0;
+        attributeDescriptions[1].location = 1;
+        attributeDescriptions[1].format = vk.VK_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[1].offset = @offsetOf(SpriteComplexVertex, "tex");
+        attributeDescriptions[2].binding = 0;
+        attributeDescriptions[2].location = 2;
+        attributeDescriptions[2].format = vk.VK_FORMAT_R32_SFLOAT;
+        attributeDescriptions[2].offset = @offsetOf(SpriteComplexVertex, "alpha");
+        attributeDescriptions[3].binding = 0;
+        attributeDescriptions[3].location = 3;
+        attributeDescriptions[3].format = vk.VK_FORMAT_R8_UINT;
+        attributeDescriptions[3].offset = @offsetOf(SpriteComplexVertex, "imageIndex");
+        return attributeDescriptions;
+    }
+};
+
 pub const ColoredVertex = struct {
     pos: [2]f32,
     color: [3]f32,

@@ -1,6 +1,6 @@
 Tasks:
-- remove float64 dependency
 - make one shader for cpu code test usage
+- wait on user feedback for mouse positions on other project to implement here too
 - visualization
     - steps:
         - animate enemy death

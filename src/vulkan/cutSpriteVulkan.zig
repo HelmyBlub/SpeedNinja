@@ -4,78 +4,21 @@ const initVulkanZig = @import("initVulkan.zig");
 const vk = initVulkanZig.vk;
 const imageZig = @import("../image.zig");
 const windowSdlZig = @import("../windowSdl.zig");
+const dataVulkanZig = @import("dataVulkan.zig");
 
 pub const VkCutSpriteData = struct {
-    vkCutSprite: VkCutSprite = .{},
-    graphicsPipeline: vk.VkPipeline = undefined,
-};
-
-pub const VkCutSprite = struct {
     vertexBuffer: vk.VkBuffer = undefined,
     vertexBufferMemory: vk.VkDeviceMemory = undefined,
-    vertices: []CutSpriteVertex = undefined,
+    vertices: []dataVulkanZig.SpriteComplexVertex = undefined,
     verticeCount: usize = 0,
-    pub const MAX_VERTICES = 50;
-};
-
-pub const CutSpriteVertex = struct {
-    pos: [2]f32,
-    imageIndex: u8,
-    size: u8,
-    cutAngle: f32,
-    animationPerCent: f32,
-    force: f32,
-
-    pub fn getBindingDescription() vk.VkVertexInputBindingDescription {
-        const bindingDescription: vk.VkVertexInputBindingDescription = .{
-            .binding = 0,
-            .stride = @sizeOf(CutSpriteVertex),
-            .inputRate = vk.VK_VERTEX_INPUT_RATE_VERTEX,
-        };
-
-        return bindingDescription;
-    }
-
-    pub fn getAttributeDescriptions() [6]vk.VkVertexInputAttributeDescription {
-        const attributeDescriptions = [_]vk.VkVertexInputAttributeDescription{ .{
-            .binding = 0,
-            .location = 0,
-            .format = vk.VK_FORMAT_R32G32_SFLOAT,
-            .offset = @offsetOf(CutSpriteVertex, "pos"),
-        }, .{
-            .binding = 0,
-            .location = 1,
-            .format = vk.VK_FORMAT_R8_UINT,
-            .offset = @offsetOf(CutSpriteVertex, "imageIndex"),
-        }, .{
-            .binding = 0,
-            .location = 2,
-            .format = vk.VK_FORMAT_R8_UINT,
-            .offset = @offsetOf(CutSpriteVertex, "size"),
-        }, .{
-            .binding = 0,
-            .location = 3,
-            .format = vk.VK_FORMAT_R32_SFLOAT,
-            .offset = @offsetOf(CutSpriteVertex, "cutAngle"),
-        }, .{
-            .binding = 0,
-            .location = 4,
-            .format = vk.VK_FORMAT_R32_SFLOAT,
-            .offset = @offsetOf(CutSpriteVertex, "animationPerCent"),
-        }, .{
-            .binding = 0,
-            .location = 5,
-            .format = vk.VK_FORMAT_R32_SFLOAT,
-            .offset = @offsetOf(CutSpriteVertex, "force"),
-        } };
-        return attributeDescriptions;
-    }
+    pub const MAX_VERTICES = 200;
 };
 
 fn setupVertices(state: *main.GameState) !void {
-    const cutSprite = &state.vkState.cutSpriteData.vkCutSprite;
+    const cutSprite = &state.vkState.cutSpriteData;
     cutSprite.verticeCount = 0;
     var enemyDeathIndex: usize = 0;
+
     while (enemyDeathIndex < state.enemyDeath.items.len) {
         if (cutSprite.vertices.len <= cutSprite.verticeCount) break;
         const enemyDeath = state.enemyDeath.items[enemyDeathIndex];
@@ -84,197 +27,155 @@ fn setupVertices(state: *main.GameState) !void {
             _ = state.enemyDeath.swapRemove(enemyDeathIndex);
             continue;
         }
-        cutSprite.vertices[cutSprite.verticeCount] = CutSpriteVertex{
-            .pos = .{ enemyDeath.position.x, enemyDeath.position.y },
-            .animationPerCent = @as(f32, @floatFromInt(@max(0, (state.gameTime - enemyDeath.deathTime)))) / deathDuration,
-            .cutAngle = enemyDeath.cutAngle,
-            .imageIndex = imageZig.IMAGE_EVIL_TREE,
-            .size = 20,
-            .force = enemyDeath.force,
-        };
+        setupVerticesForEnemyDeath(enemyDeath, state);
         enemyDeathIndex += 1;
-        cutSprite.verticeCount += 1;
     }
 
     try setupVertexDataForGPU(&state.vkState);
 }
 
 pub fn create(state: *main.GameState) !void {
-    try createGraphicsPipeline(&state.vkState, state.allocator);
     try createVertexBuffer(&state.vkState, state.allocator);
 }
 
 pub fn destroy(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) void {
     const cutSprite = vkState.cutSpriteData;
-    vk.vkDestroyBuffer.?(vkState.logicalDevice, cutSprite.vkCutSprite.vertexBuffer, null);
-    vk.vkFreeMemory.?(vkState.logicalDevice, cutSprite.vkCutSprite.vertexBufferMemory, null);
-    vk.vkDestroyPipeline.?(vkState.logicalDevice, cutSprite.graphicsPipeline, null);
-    allocator.free(cutSprite.vkCutSprite.vertices);
+    vk.vkDestroyBuffer.?(vkState.logicalDevice, cutSprite.vertexBuffer, null);
+    vk.vkFreeMemory.?(vkState.logicalDevice, cutSprite.vertexBufferMemory, null);
+    allocator.free(cutSprite.vertices);
 }
 
 fn setupVertexDataForGPU(vkState: *initVulkanZig.VkState) !void {
     const cutSprite = vkState.cutSpriteData;
     var data: ?*anyopaque = undefined;
-    if (vk.vkMapMemory.?(vkState.logicalDevice, cutSprite.vkCutSprite.vertexBufferMemory, 0, @sizeOf(CutSpriteVertex) * cutSprite.vkCutSprite.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
-    const gpu_vertices: [*]CutSpriteVertex = @ptrCast(@alignCast(data));
-    @memcpy(gpu_vertices, cutSprite.vkCutSprite.vertices[0..]);
-    vk.vkUnmapMemory.?(vkState.logicalDevice, cutSprite.vkCutSprite.vertexBufferMemory);
+    if (vk.vkMapMemory.?(vkState.logicalDevice, cutSprite.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.SpriteComplexVertex) * cutSprite.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
+    const gpu_vertices: [*]dataVulkanZig.SpriteComplexVertex = @ptrCast(@alignCast(data));
+    @memcpy(gpu_vertices, cutSprite.vertices[0..]);
+    vk.vkUnmapMemory.?(vkState.logicalDevice, cutSprite.vertexBufferMemory);
 }
 
 pub fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, state: *main.GameState) !void {
     try setupVertices(state);
     const vkState = &state.vkState;
 
-    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.cutSpriteData.graphicsPipeline);
-    const vertexBuffers: [1]vk.VkBuffer = .{vkState.cutSpriteData.vkCutSprite.vertexBuffer};
+    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.spriteComplex);
+    const vertexBuffers: [1]vk.VkBuffer = .{vkState.cutSpriteData.vertexBuffer};
     const offsets: [1]vk.VkDeviceSize = .{0};
     vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
-    vk.vkCmdDraw.?(commandBuffer, @intCast(vkState.cutSpriteData.vkCutSprite.verticeCount), 1, 0, 0);
+    vk.vkCmdDraw.?(commandBuffer, @intCast(vkState.cutSpriteData.verticeCount), 1, 0, 0);
 }
 
 fn createVertexBuffer(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
-    vkState.cutSpriteData.vkCutSprite.vertices = try allocator.alloc(CutSpriteVertex, VkCutSprite.MAX_VERTICES);
+    vkState.cutSpriteData.vertices = try allocator.alloc(dataVulkanZig.SpriteComplexVertex, VkCutSpriteData.MAX_VERTICES);
     try initVulkanZig.createBuffer(
-        @sizeOf(CutSpriteVertex) * vkState.cutSpriteData.vkCutSprite.vertices.len,
+        @sizeOf(dataVulkanZig.SpriteComplexVertex) * vkState.cutSpriteData.vertices.len,
         vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &vkState.cutSpriteData.vkCutSprite.vertexBuffer,
-        &vkState.cutSpriteData.vkCutSprite.vertexBufferMemory,
+        &vkState.cutSpriteData.vertexBuffer,
+        &vkState.cutSpriteData.vertexBufferMemory,
         vkState,
     );
 }
 
-fn createGraphicsPipeline(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
-    const vertShaderCode = try initVulkanZig.readShaderFile("shaders/cutSpriteVert.spv", allocator);
-    defer allocator.free(vertShaderCode);
-    const fragShaderCode = try initVulkanZig.readShaderFile("shaders/imageAlphaFrag.spv", allocator);
-    defer allocator.free(fragShaderCode);
-    const geomShaderCode = try initVulkanZig.readShaderFile("shaders/cutSpriteGeom.spv", allocator);
-    defer allocator.free(geomShaderCode);
-    const vertShaderModule = try initVulkanZig.createShaderModule(vertShaderCode, vkState);
-    defer vk.vkDestroyShaderModule.?(vkState.logicalDevice, vertShaderModule, null);
-    const fragShaderModule = try initVulkanZig.createShaderModule(fragShaderCode, vkState);
-    defer vk.vkDestroyShaderModule.?(vkState.logicalDevice, fragShaderModule, null);
-    const geomCitizenComplexShaderModule = try initVulkanZig.createShaderModule(geomShaderCode, vkState);
-    defer vk.vkDestroyShaderModule.?(vkState.logicalDevice, geomCitizenComplexShaderModule, null);
-
-    const vertShaderStageInfo = vk.VkPipelineShaderStageCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        .stage = vk.VK_SHADER_STAGE_VERTEX_BIT,
-        .module = vertShaderModule,
-        .pName = "main",
+fn setupVerticesForEnemyDeath(enemyDeath: main.EnemyDeathAnimation, state: *main.GameState) void {
+    const halfSize = main.TILESIZE / 2;
+    const normal: main.Position = .{ .x = @cos(enemyDeath.cutAngle), .y = @sin(enemyDeath.cutAngle) };
+    const corners: [4]main.Position = [4]main.Position{
+        main.Position{ .x = -halfSize, .y = -halfSize },
+        main.Position{ .x = halfSize, .y = -halfSize },
+        main.Position{ .x = halfSize, .y = halfSize },
+        main.Position{ .x = -halfSize, .y = halfSize },
     };
 
-    const fragShaderStageInfo = vk.VkPipelineShaderStageCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        .stage = vk.VK_SHADER_STAGE_FRAGMENT_BIT,
-        .module = fragShaderModule,
-        .pName = "main",
-    };
+    var distanceToCutLine: [4]f32 = undefined;
+    for (0..4) |i| {
+        distanceToCutLine[i] = corners[i].x * normal.x + corners[i].y * normal.y;
+    }
 
-    const geomShaderStageInfo = vk.VkPipelineShaderStageCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        .stage = vk.VK_SHADER_STAGE_GEOMETRY_BIT,
-        .module = geomCitizenComplexShaderModule,
-        .pName = "main",
-    };
+    // Split lists for each side
+    var positionsPositive: [6]main.Position = undefined;
+    var positionsNegative: [6]main.Position = undefined;
+    var counterP: usize = 0;
+    var counterN: usize = 0;
 
-    const shaderStagesCitizenComplex = [_]vk.VkPipelineShaderStageCreateInfo{ vertShaderStageInfo, fragShaderStageInfo, geomShaderStageInfo };
-    const bindingDescription = CutSpriteVertex.getBindingDescription();
-    const attributeDescriptions = CutSpriteVertex.getAttributeDescriptions();
-    var vertexInputInfo = vk.VkPipelineVertexInputStateCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-        .vertexBindingDescriptionCount = 1,
-        .pVertexBindingDescriptions = &bindingDescription,
-        .vertexAttributeDescriptionCount = attributeDescriptions.len,
-        .pVertexAttributeDescriptions = &attributeDescriptions,
-    };
+    // Build polygon outline for each half
+    for (0..4) |i| {
+        const j = (i + 1) % 4;
 
-    var inputAssembly = vk.VkPipelineInputAssemblyStateCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-        .topology = vk.VK_PRIMITIVE_TOPOLOGY_POINT_LIST,
-        .primitiveRestartEnable = vk.VK_FALSE,
-    };
+        const cornerI = corners[i];
+        const cornerJ = corners[j];
 
-    var viewportState = vk.VkPipelineViewportStateCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-        .viewportCount = 1,
-        .pViewports = null,
-        .scissorCount = 1,
-        .pScissors = null,
-    };
+        const di: f32 = distanceToCutLine[i];
+        const dj: f32 = distanceToCutLine[j];
 
-    var rasterizer = vk.VkPipelineRasterizationStateCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-        .depthClampEnable = vk.VK_FALSE,
-        .rasterizerDiscardEnable = vk.VK_FALSE,
-        .polygonMode = vk.VK_POLYGON_MODE_FILL,
-        .lineWidth = 1.0,
-        .cullMode = vk.VK_CULL_MODE_BACK_BIT,
-        .frontFace = vk.VK_FRONT_FACE_CLOCKWISE,
-        .depthBiasEnable = vk.VK_FALSE,
-        .depthBiasConstantFactor = 0.0,
-        .depthBiasClamp = 0.0,
-        .depthBiasSlopeFactor = 0.0,
-    };
+        // Add current vertex to its side
+        if (di >= 0.0) {
+            positionsPositive[counterP] = cornerI;
+            counterP += 1;
+        } else {
+            positionsNegative[counterN] = cornerI;
+            counterN += 1;
+        }
 
-    var multisampling = vk.VkPipelineMultisampleStateCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-        .sampleShadingEnable = vk.VK_FALSE,
-        .rasterizationSamples = vkState.msaaSamples,
-        .minSampleShading = 1.0,
-        .pSampleMask = null,
-        .alphaToCoverageEnable = vk.VK_FALSE,
-        .alphaToOneEnable = vk.VK_FALSE,
-    };
+        // Check edge crossing
+        if (di * dj < 0.0) {
+            const t = di / (di - dj);
+            const cutPoint: main.Position = .{ .x = cornerI.x + t * (cornerJ.x - cornerI.x), .y = cornerI.y + t * (cornerJ.y - cornerI.y) };
+            positionsPositive[counterP] = cutPoint;
+            positionsNegative[counterN] = cutPoint;
+            counterP += 1;
+            counterN += 1;
+        }
+    }
 
-    var colorBlendAttachment = vk.VkPipelineColorBlendAttachmentState{
-        .colorWriteMask = vk.VK_COLOR_COMPONENT_R_BIT | vk.VK_COLOR_COMPONENT_G_BIT | vk.VK_COLOR_COMPONENT_B_BIT | vk.VK_COLOR_COMPONENT_A_BIT,
-        .blendEnable = vk.VK_TRUE,
-        .srcColorBlendFactor = vk.VK_BLEND_FACTOR_SRC_ALPHA,
-        .dstColorBlendFactor = vk.VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-        .colorBlendOp = vk.VK_BLEND_OP_ADD,
-        .srcAlphaBlendFactor = vk.VK_BLEND_FACTOR_ONE,
-        .dstAlphaBlendFactor = vk.VK_BLEND_FACTOR_ZERO,
-        .alphaBlendOp = vk.VK_BLEND_OP_ADD,
-    };
+    const offsetX: f32 = @as(f32, @floatFromInt(state.gameTime - enemyDeath.deathTime)) / 256;
+    addTriangle(.{ positionsPositive[0], positionsPositive[1], positionsPositive[2] }, enemyDeath, -offsetX, state);
+    addTriangle(.{ positionsPositive[0], positionsPositive[2], positionsPositive[3] }, enemyDeath, -offsetX, state);
+    addTriangle(.{ positionsNegative[0], positionsNegative[1], positionsNegative[2] }, enemyDeath, offsetX, state);
+    addTriangle(.{ positionsNegative[0], positionsNegative[2], positionsNegative[3] }, enemyDeath, offsetX, state);
+    // Emit positive half (shift + normal)
+    // const int order[6] = int[](0,1,3,2,5,4);
+    // const float animationOffsetX = inAnimationPerCent[0] * 500 * force;
+    // const float PI = 3.14159265359;
+    // float animationSinValue = inAnimationPerCent[0] * PI / force;
+    // if(animationSinValue > PI) animationSinValue = 0;
+    // float forceY =  500 * force;
+    // float animationOffsetY = -forceY;
+    // vec2 offsetP = vec2(animationOffsetX, animationOffsetY);
+    // vec2 rotatePointP = centerXY + normal * halfSize / 2;
+    // for (int i = 0; i < cntP; ++i) {
+    //     emitVertex(posP[order[i]], centerXY, offsetP, halfSize, rotatePointP);
+    // }
 
-    var colorBlending = vk.VkPipelineColorBlendStateCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-        .logicOpEnable = vk.VK_FALSE,
-        .logicOp = vk.VK_LOGIC_OP_COPY,
-        .attachmentCount = 1,
-        .pAttachments = &colorBlendAttachment,
-        .blendConstants = [_]f32{ 0.0, 0.0, 0.0, 0.0 },
-    };
+    // // Emit negative half (shift - normal)
+    // vec2 offsetN = vec2(-animationOffsetX, 0);
+    // vec2 rotatePointN = centerXY - normal * halfSize / 2;
+    // for (int i = 0; i < cntN; ++i) {
+    //     emitVertex(posN[order[i]], centerXY, offsetN, halfSize, rotatePointN);
+    // }
 
-    const dynamicStates = [_]vk.VkDynamicState{
-        vk.VK_DYNAMIC_STATE_VIEWPORT,
-        vk.VK_DYNAMIC_STATE_SCISSOR,
-    };
+}
 
-    var dynamicState = vk.VkPipelineDynamicStateCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-        .dynamicStateCount = dynamicStates.len,
-        .pDynamicStates = &dynamicStates,
-    };
-
-    var pipelineInfoCitizenComplex = vk.VkGraphicsPipelineCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-        .stageCount = shaderStagesCitizenComplex.len,
-        .pStages = &shaderStagesCitizenComplex,
-        .pVertexInputState = &vertexInputInfo,
-        .pInputAssemblyState = &inputAssembly,
-        .pViewportState = &viewportState,
-        .pRasterizationState = &rasterizer,
-        .pMultisampleState = &multisampling,
-        .pColorBlendState = &colorBlending,
-        .pDynamicState = &dynamicState,
-        .layout = vkState.pipelineLayout,
-        .renderPass = vkState.renderPass,
-        .subpass = 0,
-        .basePipelineHandle = null,
-        .pNext = null,
-    };
-    if (vk.vkCreateGraphicsPipelines.?(vkState.logicalDevice, null, 1, &pipelineInfoCitizenComplex, null, &vkState.cutSpriteData.graphicsPipeline) != vk.VK_SUCCESS) return error.citizenGraphicsPipeline;
+fn addTriangle(points: [3]main.Position, enemyDeath: main.EnemyDeathAnimation, offsetX: f32, state: *main.GameState) void {
+    const halfSize = main.TILESIZE / 2;
+    const cutSprite = &state.vkState.cutSpriteData;
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    for (points) |point| {
+        const vulkan: main.Position = .{
+            .x = (point.x - state.camera.position.x + enemyDeath.position.x + offsetX) * state.camera.zoom * onePixelXInVulkan,
+            .y = (point.y - state.camera.position.y + enemyDeath.position.y) * state.camera.zoom * onePixelYInVulkan,
+        };
+        const texPos: main.Position = .{
+            .x = (point.x / halfSize + 1) / 2,
+            .y = (point.y / halfSize + 1) / 2,
+        };
+        cutSprite.vertices[cutSprite.verticeCount] = dataVulkanZig.SpriteComplexVertex{
+            .pos = .{ vulkan.x, vulkan.y },
+            .tex = .{ texPos.x, texPos.y },
+            .imageIndex = imageZig.IMAGE_EVIL_TREE,
+            .alpha = 0.4,
+        };
+        cutSprite.verticeCount += 1;
+    }
 }
