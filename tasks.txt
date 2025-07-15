@@ -1,13 +1,10 @@
 Tasks:
-- make one shader for cpu code test usage
 - wait on user feedback for mouse positions on other project to implement here too
 - visualization
     - steps:
         - animate enemy death
             - "fall down"
-                - rotate pieces
-                - force value: fly further when cut
-                - fly path
+                - continue: fly path
         - animate ninja dog
             - eye pupils move
             - bandana swings

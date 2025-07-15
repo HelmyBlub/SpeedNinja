@@ -6,6 +6,8 @@ const imageZig = @import("../image.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 const dataVulkanZig = @import("dataVulkan.zig");
 
+const DEATH_DURATION = 3000;
+
 pub const VkCutSpriteData = struct {
     vertexBuffer: vk.VkBuffer = undefined,
     vertexBufferMemory: vk.VkDeviceMemory = undefined,
@@ -22,8 +24,7 @@ fn setupVertices(state: *main.GameState) !void {
     while (enemyDeathIndex < state.enemyDeath.items.len) {
         if (cutSprite.vertices.len <= cutSprite.verticeCount) break;
         const enemyDeath = state.enemyDeath.items[enemyDeathIndex];
-        const deathDuration = 4000;
-        if (enemyDeath.deathTime + deathDuration < state.gameTime) {
+        if (enemyDeath.deathTime + DEATH_DURATION < state.gameTime) {
             _ = state.enemyDeath.swapRemove(enemyDeathIndex);
             continue;
         }
@@ -128,43 +129,62 @@ fn setupVerticesForEnemyDeath(enemyDeath: main.EnemyDeathAnimation, state: *main
         }
     }
 
-    const offsetX: f32 = @as(f32, @floatFromInt(state.gameTime - enemyDeath.deathTime)) / 256;
-    addTriangle(.{ positionsPositive[0], positionsPositive[1], positionsPositive[2] }, enemyDeath, -offsetX, state);
-    addTriangle(.{ positionsPositive[0], positionsPositive[2], positionsPositive[3] }, enemyDeath, -offsetX, state);
-    addTriangle(.{ positionsNegative[0], positionsNegative[1], positionsNegative[2] }, enemyDeath, offsetX, state);
-    addTriangle(.{ positionsNegative[0], positionsNegative[2], positionsNegative[3] }, enemyDeath, offsetX, state);
-    // Emit positive half (shift + normal)
-    // const int order[6] = int[](0,1,3,2,5,4);
-    // const float animationOffsetX = inAnimationPerCent[0] * 500 * force;
-    // const float PI = 3.14159265359;
-    // float animationSinValue = inAnimationPerCent[0] * PI / force;
-    // if(animationSinValue > PI) animationSinValue = 0;
-    // float forceY =  500 * force;
-    // float animationOffsetY = -forceY;
-    // vec2 offsetP = vec2(animationOffsetX, animationOffsetY);
-    // vec2 rotatePointP = centerXY + normal * halfSize / 2;
-    // for (int i = 0; i < cntP; ++i) {
-    //     emitVertex(posP[order[i]], centerXY, offsetP, halfSize, rotatePointP);
-    // }
-
-    // // Emit negative half (shift - normal)
-    // vec2 offsetN = vec2(-animationOffsetX, 0);
-    // vec2 rotatePointN = centerXY - normal * halfSize / 2;
-    // for (int i = 0; i < cntN; ++i) {
-    //     emitVertex(posN[order[i]], centerXY, offsetN, halfSize, rotatePointN);
-    // }
-
+    const offsetX: f32 = @as(f32, @floatFromInt(state.gameTime - enemyDeath.deathTime)) / 32 * enemyDeath.force;
+    const offsetY: f32 = calculateOffsetY(enemyDeath, state);
+    const centerOfRotatePositive: main.Position = .{
+        .x = (positionsPositive[0].x + positionsPositive[1].x + positionsPositive[2].x + positionsPositive[3].x) / 4,
+        .y = (positionsPositive[0].y + positionsPositive[1].y + positionsPositive[2].y + positionsPositive[3].y) / 4,
+    };
+    const centerOfRotateNegative: main.Position = .{
+        .x = (positionsNegative[0].x + positionsNegative[1].x + positionsNegative[2].x + positionsNegative[3].x) / 4,
+        .y = (positionsNegative[0].y + positionsNegative[1].y + positionsNegative[2].y + positionsNegative[3].y) / 4,
+    };
+    addTriangle(.{ positionsPositive[0], positionsPositive[1], positionsPositive[2] }, enemyDeath, -offsetX, offsetY, centerOfRotatePositive, state);
+    addTriangle(.{ positionsPositive[0], positionsPositive[2], positionsPositive[3] }, enemyDeath, -offsetX, offsetY, centerOfRotatePositive, state);
+    addTriangle(.{ positionsNegative[0], positionsNegative[1], positionsNegative[2] }, enemyDeath, offsetX, offsetY, centerOfRotateNegative, state);
+    addTriangle(.{ positionsNegative[0], positionsNegative[2], positionsNegative[3] }, enemyDeath, offsetX, offsetY, centerOfRotateNegative, state);
 }
 
-fn addTriangle(points: [3]main.Position, enemyDeath: main.EnemyDeathAnimation, offsetX: f32, state: *main.GameState) void {
+fn calculateOffsetY(enemyDeath: main.EnemyDeathAnimation, state: *main.GameState) f32 {
+    const timePassed: u64 = @divFloor(@abs(state.gameTime - enemyDeath.deathTime), 8);
+    var offsetY: f32 = 0;
+    var velocity = -enemyDeath.force;
+    // 0.5 + 0.4 + 0.3 + 0.2 + 0.1 + 0 - 0.1 - 0.2 ....
+
+    for (0..timePassed) |_| {
+        offsetY += velocity;
+        velocity += 0.01;
+    }
+    return offsetY;
+}
+
+fn calculateOffsetY2(enemyDeath: main.EnemyDeathAnimation, state: *main.GameState) f32 {
+    const iterations: f32 = @as(f32, @floatFromInt(@abs(state.gameTime - enemyDeath.deathTime))) / 8;
+    const velocity = enemyDeath.force;
+    const changePerIteration = 0.01;
+    const iterationUntilTop = velocity / changePerIteration;
+    if (iterations <= iterationUntilTop) {
+        const itEndVelocity = enemyDeath.force - changePerIteration * iterations;
+        const avgVelocity = (itEndVelocity + velocity) / 2;
+        return -avgVelocity * iterations / 2;
+    } else {
+        return 0;
+    }
+}
+
+fn addTriangle(points: [3]main.Position, enemyDeath: main.EnemyDeathAnimation, offsetX: f32, offsetY: f32, rotateCenter: main.Position, state: *main.GameState) void {
+    const alpha = 1 - @as(f32, @floatFromInt(state.gameTime - enemyDeath.deathTime)) / DEATH_DURATION;
+    const rotate: f32 = @as(f32, @floatFromInt(state.gameTime - enemyDeath.deathTime)) / 512 * enemyDeath.force;
     const halfSize = main.TILESIZE / 2;
     const cutSprite = &state.vkState.cutSpriteData;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+
     for (points) |point| {
+        const rotatedPoint = rotateAroundPoint(point, rotateCenter, rotate);
         const vulkan: main.Position = .{
-            .x = (point.x - state.camera.position.x + enemyDeath.position.x + offsetX) * state.camera.zoom * onePixelXInVulkan,
-            .y = (point.y - state.camera.position.y + enemyDeath.position.y) * state.camera.zoom * onePixelYInVulkan,
+            .x = (rotatedPoint.x - state.camera.position.x + enemyDeath.position.x + offsetX) * state.camera.zoom * onePixelXInVulkan,
+            .y = (rotatedPoint.y - state.camera.position.y + enemyDeath.position.y + offsetY) * state.camera.zoom * onePixelYInVulkan,
         };
         const texPos: main.Position = .{
             .x = (point.x / halfSize + 1) / 2,
@@ -174,8 +194,21 @@ fn addTriangle(points: [3]main.Position, enemyDeath: main.EnemyDeathAnimation, o
             .pos = .{ vulkan.x, vulkan.y },
             .tex = .{ texPos.x, texPos.y },
             .imageIndex = imageZig.IMAGE_EVIL_TREE,
-            .alpha = 0.4,
+            .alpha = alpha,
         };
         cutSprite.verticeCount += 1;
     }
+}
+
+fn rotateAroundPoint(point: main.Position, pivot: main.Position, angle: f32) main.Position {
+    const translatedX = point.x - pivot.x;
+    const translatedY = point.y - pivot.y;
+
+    const s = @sin(angle);
+    const c = @cos(angle);
+
+    const rotatedX = c * translatedX - s * translatedY;
+    const rotatedY = s * translatedX + c * translatedY;
+
+    return main.Position{ .x = rotatedX + pivot.x, .y = rotatedY + pivot.y };
 }
