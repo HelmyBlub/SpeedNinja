@@ -146,30 +146,12 @@ fn setupVerticesForEnemyDeath(enemyDeath: main.EnemyDeathAnimation, state: *main
 }
 
 fn calculateOffsetY(enemyDeath: main.EnemyDeathAnimation, state: *main.GameState) f32 {
-    const timePassed: u64 = @divFloor(@abs(state.gameTime - enemyDeath.deathTime), 8);
-    var offsetY: f32 = 0;
-    var velocity = -enemyDeath.force;
-    // 0.5 + 0.4 + 0.3 + 0.2 + 0.1 + 0 - 0.1 - 0.2 ....
-
-    for (0..timePassed) |_| {
-        offsetY += velocity;
-        velocity += 0.01;
-    }
-    return offsetY;
-}
-
-fn calculateOffsetY2(enemyDeath: main.EnemyDeathAnimation, state: *main.GameState) f32 {
     const iterations: f32 = @as(f32, @floatFromInt(@abs(state.gameTime - enemyDeath.deathTime))) / 8;
     const velocity = enemyDeath.force;
     const changePerIteration = 0.01;
-    const iterationUntilTop = velocity / changePerIteration;
-    if (iterations <= iterationUntilTop) {
-        const itEndVelocity = enemyDeath.force - changePerIteration * iterations;
-        const avgVelocity = (itEndVelocity + velocity) / 2;
-        return -avgVelocity * iterations / 2;
-    } else {
-        return 0;
-    }
+    const itEndVelocity = enemyDeath.force - changePerIteration * iterations;
+    const avgVelocity = (itEndVelocity + velocity) / 2;
+    return -avgVelocity * iterations / 2;
 }
 
 fn addTriangle(points: [3]main.Position, enemyDeath: main.EnemyDeathAnimation, offsetX: f32, offsetY: f32, rotateCenter: main.Position, state: *main.GameState) void {
