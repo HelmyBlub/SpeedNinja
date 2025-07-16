@@ -1,14 +1,17 @@
 Tasks:
 - wait on user feedback for mouse positions on other project to implement here too
 - visualization
-    - continue:
-        - hand should be moveable to "any" location
-        - sword should be in hand
-        - make hand move to mouse loction to try around?
     - animate ninja dog
-        - sword animation
-            - swing sword
-            - sword in paw
+        - sword swing animation
+            - animate sword draw
+                - need some system to animate transitions
+                - hand to sword
+                - sword rotate and up
+                - sword to front middle
+            - when moving: sword "behind", sword position pointed to where player came from
+            - when moving and hitting enemy: sword in front
+            - animate move sword slowly back to centered position
+            - need to affect after images in different ways
         - eye pupils move
         - bandana swings
         - dog body moving up down when stationary

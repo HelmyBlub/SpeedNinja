@@ -34,6 +34,7 @@ pub const Player = struct {
     usedMovePieces: std.ArrayList(movePieceZig.MovePiece),
     availableMovePieces: std.ArrayList(movePieceZig.MovePiece),
     ninjaDogPaintData: ninjaDogVulkanZig.NinjaDogPaintData = .{},
+    animateData: ?ninjaDogVulkanZig.NinjaDogAnimationStateData = null,
 };
 
 pub const AfterImage = struct {
@@ -89,6 +90,7 @@ fn mainLoop(state: *GameState) !void {
         }
         try windowSdlZig.handleEvents(state);
         try movePieceZig.tickPlayerMovePiece(state);
+        ninjaDogVulkanZig.tickNinjaDogAnimation(state);
         try paintVulkanZig.drawFrame(state);
         std.Thread.sleep(5_000_000);
         lastTime = currentTime;

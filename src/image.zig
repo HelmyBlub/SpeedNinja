@@ -11,6 +11,8 @@ pub const IMAGE_BLADE = 3;
 pub const IMAGE_NINJA_DOG_PAW = 4;
 
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
+pub const IMAGE_DOG__BLADE_BACK: main.Position = .{ .x = 65, .y = 85 };
+pub const IMAGE_DOG__BLADE_CENTER_HOLD: main.Position = .{ .x = 97, .y = 149 };
 pub const IMAGE_DOG__LEFT_ARM_ROTATE_POINT: main.Position = .{ .x = 77, .y = 106 };
 pub const IMAGE_DOG__RIGHT_ARM_ROTATE_POINT: main.Position = .{ .x = 116, .y = 106 };
 pub const IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT: main.Position = .{ .x = 8, .y = 3 };
