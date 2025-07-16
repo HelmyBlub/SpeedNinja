@@ -207,21 +207,22 @@ pub fn swordHandsCentered(state: *main.GameState) void {
 }
 
 pub fn movedAnimate(direction: u8, hitSomething: bool, state: *main.GameState) void {
-    _ = direction;
-    _ = hitSomething;
+    var handDirection = direction;
+    if (!hitSomething) handDirection += 2;
+    const baseAngle: f32 = @as(f32, @floatFromInt(handDirection)) * std.math.pi * 0.5;
     if (state.player.animateData != null) state.player.animateData = null;
     const rand = std.crypto.random;
-    const randomPawAngle = rand.float(f32) * std.math.pi * 2;
+    const randomPawAngle = @mod(rand.float(f32) * std.math.pi / 2.0 - std.math.pi / 4.0 + baseAngle, std.math.pi * 2);
     state.player.ninjaDogPaintData.leftPawOffset = .{
-        .x = @sin(randomPawAngle) * 40 - imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT.x + imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.x,
-        .y = @cos(randomPawAngle) * 40 - imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT.y + imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.y,
+        .x = @cos(randomPawAngle) * 40 - imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT.x + imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.x,
+        .y = @sin(randomPawAngle) * 40 - imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT.y + imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.y,
     };
     state.player.ninjaDogPaintData.rightPawOffset = .{
         .x = state.player.ninjaDogPaintData.leftPawOffset.x + imageZig.IMAGE_DOG__LEFT_ARM_ROTATE_POINT.x - imageZig.IMAGE_DOG__RIGHT_ARM_ROTATE_POINT.x,
         .y = state.player.ninjaDogPaintData.leftPawOffset.y,
     };
     state.player.ninjaDogPaintData.bladeDrawn = true;
-    state.player.ninjaDogPaintData.bladeRotation = rand.float(f32) * std.math.pi * 2;
+    state.player.ninjaDogPaintData.bladeRotation = randomPawAngle;
     state.player.animateData = .{ .bladeToCenter = .{
         .angle = state.player.ninjaDogPaintData.bladeRotation,
         .duration = 1000,
