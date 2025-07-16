@@ -109,6 +109,8 @@ pub fn restart(state: *GameState) !void {
     state.player.position.x = 0;
     state.player.position.y = 0;
     state.player.afterImages.clearRetainingCapacity();
+    state.player.animateData = null;
+    state.player.ninjaDogPaintData = .{};
     state.enemyDeath.clearRetainingCapacity();
     state.player.executeMovePice = null;
     try movePieceZig.resetPieces(state);

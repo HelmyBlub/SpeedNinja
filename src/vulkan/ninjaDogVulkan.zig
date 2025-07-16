@@ -93,7 +93,7 @@ pub fn tickNinjaDogAnimation(state: *main.GameState) void {
                 }
             },
             .bladeToCenter => |data| {
-                const perCent: f32 = @min(1, @as(f32, @floatFromInt(state.gameTime - data.startTime)) / @as(f32, @floatFromInt(data.duration)));
+                const perCent: f32 = @max(@min(1, @as(f32, @floatFromInt(state.gameTime - data.startTime)) / @as(f32, @floatFromInt(data.duration))), 0);
                 const targetAngle = std.math.pi * 1.5;
                 const leftHandTarget: main.Position = .{
                     .x = imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.x - imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT.x - imageZig.IMAGE_DOG__LEFT_ARM_ROTATE_POINT.x + imageZig.IMAGE_DOG__BLADE_CENTER_HOLD.x,
@@ -197,10 +197,37 @@ pub fn drawNinjaDog(position: main.Position, paintData: NinjaDogPaintData, state
 }
 
 pub fn swordHandsCentered(state: *main.GameState) void {
-    state.player.animateData = .{ .drawBlade = .{
-        .duration = 500,
-        .position = state.player.ninjaDogPaintData.leftPawOffset,
-        .startTime = state.gameTime,
+    if (state.player.animateData == null and state.player.ninjaDogPaintData.bladeDrawn == false) {
+        state.player.animateData = .{ .drawBlade = .{
+            .duration = 500,
+            .position = state.player.ninjaDogPaintData.leftPawOffset,
+            .startTime = state.gameTime,
+        } };
+    }
+}
+
+pub fn movedAnimate(direction: u8, hitSomething: bool, state: *main.GameState) void {
+    _ = direction;
+    _ = hitSomething;
+    if (state.player.animateData != null) state.player.animateData = null;
+    const rand = std.crypto.random;
+    const randomPawAngle = rand.float(f32) * std.math.pi * 2;
+    state.player.ninjaDogPaintData.leftPawOffset = .{
+        .x = @sin(randomPawAngle) * 40 - imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT.x + imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.x,
+        .y = @cos(randomPawAngle) * 40 - imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT.y + imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.y,
+    };
+    state.player.ninjaDogPaintData.rightPawOffset = .{
+        .x = state.player.ninjaDogPaintData.leftPawOffset.x + imageZig.IMAGE_DOG__LEFT_ARM_ROTATE_POINT.x - imageZig.IMAGE_DOG__RIGHT_ARM_ROTATE_POINT.x,
+        .y = state.player.ninjaDogPaintData.leftPawOffset.y,
+    };
+    state.player.ninjaDogPaintData.bladeDrawn = true;
+    state.player.ninjaDogPaintData.bladeRotation = rand.float(f32) * std.math.pi * 2;
+    state.player.animateData = .{ .bladeToCenter = .{
+        .angle = state.player.ninjaDogPaintData.bladeRotation,
+        .duration = 1000,
+        .position1 = state.player.ninjaDogPaintData.leftPawOffset,
+        .position2 = state.player.ninjaDogPaintData.rightPawOffset,
+        .startTime = state.gameTime + 500,
     } };
 }
 
@@ -209,9 +236,7 @@ fn calcScalingAndRotation(baseAnker: main.Position, zeroOffset: main.Position, t
     const distance = main.calculateDistance(baseAnker, zeroOffset);
     const distance2 = main.calculateDistance(baseAnker, zeroAndTargetOffset);
     const scale: f32 = distance2 / distance;
-    // calc angle change from zeroOffset to shouldBeOffset
     const angle = angleAtB(zeroOffset, baseAnker, zeroAndTargetOffset);
-
     return .{ .angle = angle, .scale = scale };
 }
 

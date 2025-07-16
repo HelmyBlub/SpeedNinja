@@ -1,5 +1,6 @@
 const std = @import("std");
 const main = @import("main.zig");
+const ninjaDogVulkanZig = @import("vulkan/ninjaDogVulkan.zig");
 
 pub const MovePiece = struct {
     steps: []const MoveStep,
@@ -87,7 +88,7 @@ pub fn tickPlayerMovePiece(state: *main.GameState) !void {
         }
         const direction = @mod(step.direction + state.player.executeDirection + 1, 4);
         const stepAmount: f32 = @as(f32, @floatFromInt(step.stepCount)) * main.TILESIZE;
-        try checkEnemyHitOnMoveStep(stepAmount, direction, state);
+        const hitSomething = try checkEnemyHitOnMoveStep(stepAmount, direction, state);
         switch (direction) {
             DIRECTION_RIGHT => {
                 try addAfterImages(step.stepCount, .{ .x = 1, .y = 0 }, state.player, state);
@@ -106,6 +107,7 @@ pub fn tickPlayerMovePiece(state: *main.GameState) !void {
                 state.player.position.y -= stepAmount;
             },
         }
+        ninjaDogVulkanZig.movedAnimate(direction, hitSomething, state);
     }
 }
 
@@ -138,7 +140,7 @@ pub fn resetPieces(state: *main.GameState) !void {
     }
 }
 
-fn checkEnemyHitOnMoveStep(stepAmount: f32, direction: u8, state: *main.GameState) !void {
+fn checkEnemyHitOnMoveStep(stepAmount: f32, direction: u8, state: *main.GameState) !bool {
     var position: main.Position = state.player.position;
     var enemyIndex: usize = 0;
     var left: f32 = position.x - main.TILESIZE / 2;
@@ -163,6 +165,7 @@ fn checkEnemyHitOnMoveStep(stepAmount: f32, direction: u8, state: *main.GameStat
     }
 
     const rand = std.crypto.random;
+    var hitSomething = false;
     while (enemyIndex < state.enemies.items.len) {
         const enemy = state.enemies.items[enemyIndex];
         if (enemy.x > left and enemy.x < left + width and enemy.y > top and enemy.y < top + height) {
@@ -170,9 +173,11 @@ fn checkEnemyHitOnMoveStep(stepAmount: f32, direction: u8, state: *main.GameStat
             const randomAngle = rand.float(f32) * std.math.pi;
             try state.enemyDeath.append(.{ .deathTime = state.gameTime, .position = deadEnemy, .cutAngle = randomAngle, .force = rand.float(f32) + 0.2 });
             try resetPieces(state);
+            hitSomething = true;
         } else {
             enemyIndex += 1;
         }
     }
     position.x += stepAmount;
+    return hitSomething;
 }
