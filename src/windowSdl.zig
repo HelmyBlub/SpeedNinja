@@ -8,6 +8,7 @@ pub const sdl = @cImport({
 });
 const main = @import("main.zig");
 const movePieceZig = @import("movePiece.zig");
+const ninjaDogVulkanZig = @import("vulkan/ninjaDogVulkan.zig");
 
 pub const WindowData = struct {
     window: *sdl.SDL_Window = undefined,
@@ -57,7 +58,7 @@ pub fn toggleFullscreen() bool {
 pub fn handleEvents(state: *main.GameState) !void {
     var event: sdl.SDL_Event = undefined;
     while (sdl.SDL_PollEvent(&event)) {
-        if (event.type == sdl.SDL_EVENT_MOUSE_BUTTON_UP) {
+        if (event.type == sdl.SDL_EVENT_MOUSE_MOTION) {
             //placeholder
         }
         if (event.type == sdl.SDL_EVENT_QUIT) {
@@ -99,7 +100,7 @@ pub fn handleEvents(state: *main.GameState) !void {
 pub fn setMoveOptionIndex(index: usize, state: *main.GameState) void {
     if (state.player.moveOptions.items.len > index) {
         state.player.choosenMoveOptionIndex = index;
-        state.player.ninjaDogPaintData.bladeDrawn = true;
+        ninjaDogVulkanZig.swordHandsCentered(state);
     }
 }
 

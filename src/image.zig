@@ -10,9 +10,10 @@ pub const IMAGE_EVIL_TREE = 2;
 pub const IMAGE_BLADE = 3;
 pub const IMAGE_NINJA_DOG_PAW = 4;
 
+pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 pub const IMAGE_DOG__LEFT_ARM_ROTATE_POINT: main.Position = .{ .x = 77, .y = 106 };
 pub const IMAGE_DOG__RIGHT_ARM_ROTATE_POINT: main.Position = .{ .x = 116, .y = 106 };
-pub const IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT: main.Position = .{ .x = 8, .y = 5 };
+pub const IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT: main.Position = .{ .x = 8, .y = 3 };
 pub const IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT: main.Position = .{ .x = 8, .y = 46 };
 pub const IMAGE_BLADE__HAND_HOLD_POINT: main.Position = .{ .x = 13, .y = 12 };
 pub const IMAGE_TO_GAME_SIZE = 10;

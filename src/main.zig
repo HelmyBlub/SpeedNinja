@@ -179,3 +179,9 @@ fn canSpawnEnemyOnTile(position: Position, state: *GameState) bool {
     if (@abs(state.player.position.x - position.x) < TILESIZE / 2 and @abs(state.player.position.y - position.y) < TILESIZE / 2) return false;
     return true;
 }
+
+pub fn calculateDistance(pos1: Position, pos2: Position) f32 {
+    const diffX = pos1.x - pos2.x;
+    const diffY = pos1.y - pos2.y;
+    return @floatCast(@sqrt(diffX * diffX + diffY * diffY));
+}
