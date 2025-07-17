@@ -1,18 +1,13 @@
 Tasks:
-- wait on user feedback for mouse positions on other project to implement here too
 - visualization
     - animate ninja dog
-        - sword swing animation
-            - idea: when "after image" on enemy this after image should 180 degree blade angle change
-                - add some slash effect?
+        - sword swing hit slash effect?
         - eye pupils move
         - bandana swings
         - dog body moving up down when stationary
         - after move:
             - bandana swings more because moved fast
-            - finish blade swing
-            - maybe turn body back to front
-        - once tile choosen: put blade in hands
+        - add different body angles side and back?
     - what could i use a shader for?
 
 
