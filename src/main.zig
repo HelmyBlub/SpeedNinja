@@ -35,6 +35,7 @@ pub const Player = struct {
     availableMovePieces: std.ArrayList(movePieceZig.MovePiece),
     ninjaDogPaintData: ninjaDogVulkanZig.NinjaDogPaintData = .{},
     animateData: ?ninjaDogVulkanZig.NinjaDogAnimationStateData = null,
+    slashedLastMoveTile: bool = false,
 };
 
 pub const AfterImage = struct {

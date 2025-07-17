@@ -14,7 +14,7 @@ pub const VkNinjaDogData = struct {
     vertexBufferMemory: vk.VkDeviceMemory = undefined,
     vertices: []dataVulkanZig.SpriteComplexVertex = undefined,
     verticeCount: usize = 0,
-    pub const MAX_VERTICES = 200;
+    pub const MAX_VERTICES = 2000; //TODO not checked limit
 };
 
 pub const NinjaDogPaintData = struct {
@@ -206,23 +206,35 @@ pub fn swordHandsCentered(state: *main.GameState) void {
     }
 }
 
-pub fn movedAnimate(direction: u8, hitSomething: bool, state: *main.GameState) void {
-    var handDirection = direction;
-    if (!hitSomething) handDirection += 2;
+pub fn bladeSlashAnimate(state: *main.GameState) void {
+    if (state.player.animateData != null) state.player.animateData = null;
+    const pawAngle = @mod(state.player.ninjaDogPaintData.bladeRotation + std.math.pi, std.math.pi * 2);
+    setPawAndBladeAngle(pawAngle, state);
+}
+
+pub fn movedAnimate(direction: u8, state: *main.GameState) void {
+    const handDirection = direction + 2;
     const baseAngle: f32 = @as(f32, @floatFromInt(handDirection)) * std.math.pi * 0.5;
     if (state.player.animateData != null) state.player.animateData = null;
     const rand = std.crypto.random;
     const randomPawAngle = @mod(rand.float(f32) * std.math.pi / 2.0 - std.math.pi / 4.0 + baseAngle, std.math.pi * 2);
+    setPawAndBladeAngle(randomPawAngle, state);
+}
+
+fn setPawAndBladeAngle(angle: f32, state: *main.GameState) void {
     state.player.ninjaDogPaintData.leftPawOffset = .{
-        .x = @cos(randomPawAngle) * 40 - imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT.x + imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.x,
-        .y = @sin(randomPawAngle) * 40 - imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT.y + imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.y,
+        .x = @cos(angle) * 40 - imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT.x + imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.x,
+        .y = @sin(angle) * 40 - imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT.y + imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.y,
     };
     state.player.ninjaDogPaintData.rightPawOffset = .{
         .x = state.player.ninjaDogPaintData.leftPawOffset.x + imageZig.IMAGE_DOG__LEFT_ARM_ROTATE_POINT.x - imageZig.IMAGE_DOG__RIGHT_ARM_ROTATE_POINT.x,
         .y = state.player.ninjaDogPaintData.leftPawOffset.y,
     };
     state.player.ninjaDogPaintData.bladeDrawn = true;
-    state.player.ninjaDogPaintData.bladeRotation = randomPawAngle;
+    state.player.ninjaDogPaintData.bladeRotation = angle;
+}
+
+pub fn moveHandToCenter(state: *main.GameState) void {
     state.player.animateData = .{ .bladeToCenter = .{
         .angle = state.player.ninjaDogPaintData.bladeRotation,
         .duration = 1000,
@@ -230,6 +242,19 @@ pub fn movedAnimate(direction: u8, hitSomething: bool, state: *main.GameState) v
         .position2 = state.player.ninjaDogPaintData.rightPawOffset,
         .startTime = state.gameTime + 500,
     } };
+}
+
+pub fn addAfterImages(stepCount: usize, stepDirection: main.Position, player: main.Player, state: *main.GameState) !void {
+    for (0..stepCount) |i| {
+        try state.player.afterImages.append(.{
+            .deleteTime = state.gameTime + 75 + @as(i64, @intCast(i)) * 10,
+            .position = .{
+                .x = state.player.position.x + stepDirection.x * @as(f32, @floatFromInt(i)) * main.TILESIZE,
+                .y = state.player.position.y + stepDirection.y * @as(f32, @floatFromInt(i)) * main.TILESIZE,
+            },
+            .paintData = player.ninjaDogPaintData,
+        });
+    }
 }
 
 fn calcScalingAndRotation(baseAnker: main.Position, zeroOffset: main.Position, targetOffset: main.Position) struct { angle: f32, scale: f32 } {

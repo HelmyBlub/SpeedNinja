@@ -3,10 +3,8 @@ Tasks:
 - visualization
     - animate ninja dog
         - sword swing animation
-            - when moving: sword "behind", sword position pointed to where player came from
-            - when moving and hitting enemy: sword in front
-            - animate move sword slowly back to centered position
-            - need to affect after images in different ways
+            - idea: when "after image" on enemy this after image should 180 degree blade angle change
+                - add some slash effect?
         - eye pupils move
         - bandana swings
         - dog body moving up down when stationary
