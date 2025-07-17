@@ -1,13 +1,15 @@
 Tasks:
 - visualization
     - animate ninja dog
-        - sword swing hit slash effect?
         - eye pupils move
-        - bandana swings
+            - blink
         - dog body moving up down when stationary
+        - bandana swings
         - after move:
             - bandana swings more because moved fast
         - add different body angles side and back?
+        - sword swing hit slash effect?
+            - maybe try some line flash line following the blade?
     - what could i use a shader for?
 
 

@@ -167,7 +167,7 @@ fn checkEnemyHitOnMoveStep(stepAmount: f32, direction: u8, state: *main.GameStat
         const enemy = state.enemies.items[enemyIndex];
         if (enemy.x > left and enemy.x < left + width and enemy.y > top and enemy.y < top + height) {
             const deadEnemy = state.enemies.swapRemove(enemyIndex);
-            const cutAngle = state.player.ninjaDogPaintData.bladeRotation + std.math.pi / 2.0;
+            const cutAngle = state.player.paintData.bladeRotation + std.math.pi / 2.0;
             try state.enemyDeath.append(.{ .deathTime = state.gameTime, .position = deadEnemy, .cutAngle = cutAngle, .force = rand.float(f32) + 0.2 });
             try resetPieces(state);
             hitSomething = true;

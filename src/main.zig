@@ -33,8 +33,8 @@ pub const Player = struct {
     moveOptions: std.ArrayList(movePieceZig.MovePiece),
     usedMovePieces: std.ArrayList(movePieceZig.MovePiece),
     availableMovePieces: std.ArrayList(movePieceZig.MovePiece),
-    ninjaDogPaintData: ninjaDogVulkanZig.NinjaDogPaintData = .{},
-    animateData: ?ninjaDogVulkanZig.NinjaDogAnimationStateData = null,
+    paintData: ninjaDogVulkanZig.NinjaDogPaintData = .{},
+    animateData: ninjaDogVulkanZig.NinjaDogAnimationStateData = .{},
     slashedLastMoveTile: bool = false,
 };
 
@@ -110,8 +110,8 @@ pub fn restart(state: *GameState) !void {
     state.player.position.x = 0;
     state.player.position.y = 0;
     state.player.afterImages.clearRetainingCapacity();
-    state.player.animateData = null;
-    state.player.ninjaDogPaintData = .{};
+    state.player.animateData = .{};
+    state.player.paintData = .{};
     state.enemyDeath.clearRetainingCapacity();
     state.player.executeMovePice = null;
     try movePieceZig.resetPieces(state);

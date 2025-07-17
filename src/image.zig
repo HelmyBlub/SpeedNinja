@@ -9,8 +9,15 @@ pub const IMAGE_WHITE_RECTANGLE = 1;
 pub const IMAGE_EVIL_TREE = 2;
 pub const IMAGE_BLADE = 3;
 pub const IMAGE_NINJA_DOG_PAW = 4;
+pub const IMAGE_EYE_CLOSED = 5;
+pub const IMAGE_EYE_LEFT = 6;
+pub const IMAGE_EYE_RIGHT = 7;
+pub const IMAGE_PUPIL_LEFT = 8;
+pub const IMAGE_PUPIL_RIGHT = 9;
 
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
+pub const IMAGE_DOG__EYE_LEFT: main.Position = .{ .x = 87, .y = 35 };
+pub const IMAGE_DOG__EYE_RIGHT: main.Position = .{ .x = 113, .y = 35 };
 pub const IMAGE_DOG__BLADE_BACK: main.Position = .{ .x = 65, .y = 85 };
 pub const IMAGE_DOG__BLADE_CENTER_HOLD: main.Position = .{ .x = 97, .y = 149 };
 pub const IMAGE_DOG__LEFT_ARM_ROTATE_POINT: main.Position = .{ .x = 77, .y = 106 };
@@ -32,7 +39,20 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/evilTree.png" },
     .{ .path = "images/ninjablade.png" },
     .{ .path = "images/ninjaDogPaw.png" },
+    .{ .path = "images/eyeClosed.png" },
+    .{ .path = "images/eyeLeft.png" },
+    .{ .path = "images/eyeRight.png" },
+    .{ .path = "images/pupilLeft.png" },
+    .{ .path = "images/pupilRight.png" },
 };
+
+pub fn getImageCenter(imageIndex: usize) main.Position {
+    const image = IMAGE_DATA[imageIndex];
+    return main.Position{
+        .x = @as(f32, @floatFromInt(image.width)) / 2.0,
+        .y = @as(f32, @floatFromInt(image.height)) / 2.0,
+    };
+}
 
 pub fn createVulkanTextureSprites(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
     vkState.spriteImages.textureImage = try allocator.alloc(vk.VkImage, IMAGE_DATA.len);
