@@ -14,14 +14,18 @@ pub const IMAGE_EYE_LEFT = 6;
 pub const IMAGE_EYE_RIGHT = 7;
 pub const IMAGE_PUPIL_LEFT = 8;
 pub const IMAGE_PUPIL_RIGHT = 9;
+pub const IMAGE_DOG_EAR = 10;
 
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
+pub const IMAGE_DOG__EAR_LEFT: main.Position = .{ .x = 68, .y = 31 };
+pub const IMAGE_DOG__EAR_RIGHT: main.Position = .{ .x = 132, .y = 31 };
 pub const IMAGE_DOG__EYE_LEFT: main.Position = .{ .x = 87, .y = 35 };
 pub const IMAGE_DOG__EYE_RIGHT: main.Position = .{ .x = 113, .y = 35 };
 pub const IMAGE_DOG__BLADE_BACK: main.Position = .{ .x = 65, .y = 85 };
 pub const IMAGE_DOG__BLADE_CENTER_HOLD: main.Position = .{ .x = 97, .y = 149 };
 pub const IMAGE_DOG__LEFT_ARM_ROTATE_POINT: main.Position = .{ .x = 77, .y = 106 };
 pub const IMAGE_DOG__RIGHT_ARM_ROTATE_POINT: main.Position = .{ .x = 116, .y = 106 };
+pub const IMAGE_DOG_EAR__ANKER: main.Position = .{ .x = 14, .y = 6 };
 pub const IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT: main.Position = .{ .x = 8, .y = 3 };
 pub const IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT: main.Position = .{ .x = 8, .y = 46 };
 pub const IMAGE_BLADE__HAND_HOLD_POINT: main.Position = .{ .x = 13, .y = 12 };
@@ -44,6 +48,7 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/eyeRight.png" },
     .{ .path = "images/pupilLeft.png" },
     .{ .path = "images/pupilRight.png" },
+    .{ .path = "images/dogEar.png" },
 };
 
 pub fn getImageCenter(imageIndex: usize) main.Position {
