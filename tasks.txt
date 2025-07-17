@@ -1,8 +1,7 @@
 Tasks:
 - visualization
     - animate ninja dog
-        - eye pupils move
-            - blink
+        - eye blink
         - dog body moving up down when stationary
         - bandana swings
         - after move:

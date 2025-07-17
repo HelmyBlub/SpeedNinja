@@ -19,6 +19,7 @@ pub const VkNinjaDogData = struct {
 
 pub const NinjaDogPaintData = struct {
     bladeDrawn: bool = false,
+    blinking: bool = false,
     bladeRotation: f32 = std.math.pi * 0.25,
     leftPawOffset: main.Position = .{ .x = 0, .y = 0 },
     rightPawOffset: main.Position = .{ .x = 0, .y = 0 },
@@ -26,21 +27,36 @@ pub const NinjaDogPaintData = struct {
     rightPupilOffset: main.Position = .{ .x = 0, .y = 0 },
 };
 
-const NinjaDogAnimationState = enum {
+const NinjaDogAnimationStatePaw = enum {
     drawBlade,
     bladeToFront,
     bladeToCenter,
 };
 
-pub const NinjaDogAnimationStateData = struct {
-    paw: ?NinjaDogAnimationStatePawData = null,
-    eyes: ?NinjaDogAnimationStateDataType2Position = null,
-};
-
-pub const NinjaDogAnimationStatePawData = union(NinjaDogAnimationState) {
+pub const NinjaDogAnimationStatePawData = union(NinjaDogAnimationStatePaw) {
     drawBlade: NinjaDogAnimationStateDataTypePosition,
     bladeToFront: NinjaDogAnimationStateDataTypeAngle,
     bladeToCenter: NinjaDogAnimationStateDataType2PositionAndAngle,
+};
+
+const NinjaDogAnimationStateEye = enum {
+    moveEyes,
+    blink,
+};
+
+pub const NinjaDogAnimationStateEyeData = union(NinjaDogAnimationStateEye) {
+    moveEyes: NinjaDogAnimationStateDataType2Position,
+    blink: NinjaDogAnimationStateDataTypeBasic,
+};
+
+pub const NinjaDogAnimationStateData = struct {
+    paw: ?NinjaDogAnimationStatePawData = null,
+    eyes: ?NinjaDogAnimationStateEyeData = null,
+};
+
+const NinjaDogAnimationStateDataTypeBasic = struct {
+    startTime: i64,
+    duration: i64,
 };
 
 const NinjaDogAnimationStateDataType2Position = struct {
@@ -76,24 +92,45 @@ pub fn tickNinjaDogAnimation(state: *main.GameState) void {
 }
 
 fn tickNinjaDogEyeAnimation(state: *main.GameState) void {
-    if (state.player.animateData.eyes) |data| {
-        const perCent: f32 = @max(@min(1, @as(f32, @floatFromInt(state.gameTime - data.startTime)) / @as(f32, @floatFromInt(data.duration))), 0);
-        state.player.paintData.leftPupilOffset = .{
-            .x = data.position1.x + (data.position2.x - data.position1.x) * perCent,
-            .y = data.position1.y + (data.position2.y - data.position1.y) * perCent,
-        };
-        state.player.paintData.rightPupilOffset = state.player.paintData.leftPupilOffset;
-        if (perCent >= 1) {
-            state.player.animateData.eyes = null;
+    if (state.player.animateData.eyes) |animateEye| {
+        switch (animateEye) {
+            .blink => |data| {
+                if (state.gameTime >= data.startTime) {
+                    if (state.gameTime <= data.startTime + data.duration) {
+                        state.player.paintData.blinking = true;
+                    } else {
+                        state.player.paintData.blinking = false;
+                        state.player.animateData.eyes = null;
+                    }
+                }
+            },
+            .moveEyes => |data| {
+                const perCent: f32 = @max(@min(1, @as(f32, @floatFromInt(state.gameTime - data.startTime)) / @as(f32, @floatFromInt(data.duration))), 0);
+                state.player.paintData.leftPupilOffset = .{
+                    .x = data.position1.x + (data.position2.x - data.position1.x) * perCent,
+                    .y = data.position1.y + (data.position2.y - data.position1.y) * perCent,
+                };
+                state.player.paintData.rightPupilOffset = state.player.paintData.leftPupilOffset;
+                if (perCent >= 1) {
+                    state.player.animateData.eyes = null;
+                }
+            },
         }
     } else {
         const rand = std.crypto.random;
-        state.player.animateData.eyes = .{
-            .duration = 100,
-            .position1 = state.player.paintData.leftPupilOffset,
-            .position2 = .{ .x = rand.float(f32) * 10 - 5, .y = rand.float(f32) * 6 - 3 },
-            .startTime = state.gameTime + 1000 + @as(i64, @intFromFloat(rand.float(f32) * 2000)),
-        };
+        if (rand.float(f32) < 0.6) {
+            state.player.animateData.eyes = .{ .moveEyes = .{
+                .duration = 100,
+                .position1 = state.player.paintData.leftPupilOffset,
+                .position2 = .{ .x = rand.float(f32) * 10 - 5, .y = rand.float(f32) * 6 - 3 },
+                .startTime = state.gameTime + 1000 + @as(i64, @intFromFloat(rand.float(f32) * 2000)),
+            } };
+        } else {
+            state.player.animateData.eyes = .{ .blink = .{
+                .duration = 300,
+                .startTime = state.gameTime + 100 + @as(i64, @intFromFloat(rand.float(f32) * 1000)),
+            } };
+        }
     }
 }
 
@@ -248,18 +285,23 @@ fn drawEyes(position: main.Position, paintData: NinjaDogPaintData, state: *main.
         .x = position.x + (imageZig.IMAGE_DOG__EYE_RIGHT.x - @as(f32, @floatFromInt(imageDataDog.width)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
         .y = position.y + (imageZig.IMAGE_DOG__EYE_RIGHT.y - @as(f32, @floatFromInt(imageDataDog.height)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
     };
-    const leftPupilSpritePosition: main.Position = .{
-        .x = leftEyeSpritePosition.x + paintData.leftPupilOffset.x / imageZig.IMAGE_TO_GAME_SIZE,
-        .y = leftEyeSpritePosition.y + paintData.leftPupilOffset.y / imageZig.IMAGE_TO_GAME_SIZE,
-    };
-    const rightPupilSpritePosition: main.Position = .{
-        .x = rightEyeSpritePosition.x + paintData.rightPupilOffset.x / imageZig.IMAGE_TO_GAME_SIZE,
-        .y = rightEyeSpritePosition.y + paintData.rightPupilOffset.y / imageZig.IMAGE_TO_GAME_SIZE,
-    };
-    addTiranglesForSprite(leftPupilSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_PUPIL_LEFT), imageZig.IMAGE_PUPIL_LEFT, 0, null, null, state);
-    addTiranglesForSprite(rightPupilSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_PUPIL_RIGHT), imageZig.IMAGE_PUPIL_RIGHT, 0, null, null, state);
-    addTiranglesForSprite(leftEyeSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_EYE_LEFT), imageZig.IMAGE_EYE_LEFT, 0, null, null, state);
-    addTiranglesForSprite(rightEyeSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_EYE_RIGHT), imageZig.IMAGE_EYE_RIGHT, 0, null, null, state);
+    if (!paintData.blinking) {
+        const leftPupilSpritePosition: main.Position = .{
+            .x = leftEyeSpritePosition.x + paintData.leftPupilOffset.x / imageZig.IMAGE_TO_GAME_SIZE,
+            .y = leftEyeSpritePosition.y + paintData.leftPupilOffset.y / imageZig.IMAGE_TO_GAME_SIZE,
+        };
+        const rightPupilSpritePosition: main.Position = .{
+            .x = rightEyeSpritePosition.x + paintData.rightPupilOffset.x / imageZig.IMAGE_TO_GAME_SIZE,
+            .y = rightEyeSpritePosition.y + paintData.rightPupilOffset.y / imageZig.IMAGE_TO_GAME_SIZE,
+        };
+        addTiranglesForSprite(leftPupilSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_PUPIL_LEFT), imageZig.IMAGE_PUPIL_LEFT, 0, null, null, state);
+        addTiranglesForSprite(rightPupilSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_PUPIL_RIGHT), imageZig.IMAGE_PUPIL_RIGHT, 0, null, null, state);
+        addTiranglesForSprite(leftEyeSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_EYE_LEFT), imageZig.IMAGE_EYE_LEFT, 0, null, null, state);
+        addTiranglesForSprite(rightEyeSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_EYE_RIGHT), imageZig.IMAGE_EYE_RIGHT, 0, null, null, state);
+    } else {
+        addTiranglesForSprite(leftEyeSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_EYE_CLOSED), imageZig.IMAGE_EYE_CLOSED, 0, null, null, state);
+        addTiranglesForSprite(rightEyeSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_EYE_CLOSED), imageZig.IMAGE_EYE_CLOSED, 0, null, null, state);
+    }
 }
 
 pub fn swordHandsCentered(state: *main.GameState) void {
@@ -308,6 +350,7 @@ fn setEyeLookDirection(direction: u8, state: *main.GameState) void {
         .y = @sin(floatDirection) * 3,
     };
     state.player.paintData.rightPupilOffset = state.player.paintData.leftPupilOffset;
+    state.player.paintData.blinking = false;
     state.player.animateData.eyes = null;
 }
 
