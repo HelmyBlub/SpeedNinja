@@ -32,6 +32,8 @@ pub const NinjaDogPaintData = struct {
     bandana1WaveOffset: f32 = 1,
     bandana2Rotation: f32 = 0,
     bandana2WaveOffset: f32 = 0,
+    tailRotation: f32 = 0,
+    tailBend: f32 = 0,
 };
 
 const NinjaDogAnimationStatePaw = enum {
@@ -105,6 +107,16 @@ pub fn tickNinjaDogAnimation(timePassed: i64, state: *main.GameState) void {
     tickNinjaDogEyeAnimation(state);
     tickNinjaDogEarAnimation(state);
     tickNinjaDogBandanaAnimation(timePassed, state);
+    tickNinjaDogTailAnimation(timePassed, state);
+}
+
+fn tickNinjaDogTailAnimation(timePassed: i64, state: *main.GameState) void {
+    // const rand = std.crypto.random;
+    _ = timePassed;
+    const paintData = &state.player.paintData;
+
+    // const timePassedFloatFactor = @as(f32, @floatFromInt(timePassed)) * 0.01;
+    paintData.tailBend = @sin(@as(f32, @floatFromInt(state.gameTime)) / 400) * 0.5;
 }
 
 fn tickNinjaDogEarAnimation(state: *main.GameState) void {
@@ -280,6 +292,7 @@ fn setupVertices(state: *main.GameState) !void {
 
 pub fn drawNinjaDog(position: main.Position, paintData: NinjaDogPaintData, state: *main.GameState) void {
     const imageDataDog = imageZig.IMAGE_DATA[imageZig.IMAGE_DOG];
+    drawDogTail(position, paintData, state);
     if (!paintData.bladeDrawn) {
         const bladeBackPosition: main.Position = .{
             .x = position.x + (imageZig.IMAGE_DOG__BLADE_BACK.x - @as(f32, @floatFromInt(imageDataDog.width)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
@@ -336,6 +349,24 @@ pub fn drawNinjaDog(position: main.Position, paintData: NinjaDogPaintData, state
             state,
         );
     }
+}
+
+fn drawDogTail(position: main.Position, paintData: NinjaDogPaintData, state: *main.GameState) void {
+    const imageDataDog = imageZig.IMAGE_DATA[imageZig.IMAGE_DOG];
+    const dogTailSpritePosition: main.Position = .{
+        .x = position.x + (imageZig.IMAGE_DOG__TAIL.x - @as(f32, @floatFromInt(imageDataDog.width)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
+        .y = position.y + (imageZig.IMAGE_DOG__TAIL.y - @as(f32, @floatFromInt(imageDataDog.height)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
+    };
+    addTiranglesForSpriteWithBend(
+        dogTailSpritePosition,
+        imageZig.IMAGE_DOG_TAIL__ANKER,
+        imageZig.IMAGE_DOG_TAIL,
+        paintData.tailRotation,
+        null,
+        null,
+        paintData.tailBend,
+        state,
+    );
 }
 
 fn drawBandana(position: main.Position, paintData: NinjaDogPaintData, state: *main.GameState) void {
@@ -439,6 +470,7 @@ pub fn movedAnimate(direction: u8, state: *main.GameState) void {
     setEyeLookDirection(direction, state);
     setEarDirection(direction, state);
     setBandanaDirection(direction, state);
+    setDogTailDirection(direction, state);
 }
 
 fn setPawAndBladeAngle(angle: f32, state: *main.GameState) void {
@@ -461,6 +493,11 @@ fn setEarDirection(direction: u8, state: *main.GameState) void {
     const earVelocity: f32 = if (floatRotation > 0) 0.01 else -0.01;
     state.player.animateData.ears.leftVelocity = earVelocity;
     state.player.animateData.ears.rightVelocity = earVelocity;
+}
+
+fn setDogTailDirection(direction: u8, state: *main.GameState) void {
+    const floatRotation = @mod((@as(f32, @floatFromInt(direction))) * std.math.pi / 2.0, std.math.pi * 2) - std.math.pi;
+    state.player.paintData.tailRotation = floatRotation;
 }
 
 fn setBandanaDirection(direction: u8, state: *main.GameState) void {
@@ -610,6 +647,58 @@ fn addTiranglesForSpriteWithWaveAnimation(paintPosition: main.Position, imageAnk
                 .y = cornerPosOffset.y + @sin(cornerPosOffset.x + waveOffset) * 2 * texPos[0],
             };
             const rotatedOffset = paintVulkanZig.rotateAroundPoint(waveOffsetPos, rotatePivot, rotateAngle);
+            const vulkan: main.Position = .{
+                .x = (rotatedOffset.x - state.camera.position.x + paintPosition.x) * state.camera.zoom * onePixelXInVulkan,
+                .y = (rotatedOffset.y - state.camera.position.y + paintPosition.y) * state.camera.zoom * onePixelYInVulkan,
+            };
+            ninjaDogData.vertices[ninjaDogData.verticeCount] = dataVulkanZig.SpriteComplexVertex{
+                .pos = .{ vulkan.x, vulkan.y },
+                .imageIndex = imageIndex,
+                .alpha = 1,
+                .tex = texPos,
+            };
+            ninjaDogData.verticeCount += 1;
+        }
+    }
+}
+
+fn addTiranglesForSpriteWithBend(paintPosition: main.Position, imageAnkerPosition: main.Position, imageIndex: u8, rotateAngle: f32, rotatePoint: ?main.Position, optScale: ?main.Position, bend: f32, state: *main.GameState) void {
+    const scale: main.Position = if (optScale) |s| s else .{ .x = 1, .y = 1 };
+    const ninjaDogData = &state.vkState.ninjaDogData;
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const imageData = imageZig.IMAGE_DATA[imageIndex];
+    const halfSizeWidth: f32 = @as(f32, @floatFromInt(imageData.width)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scale.x;
+    const halfSizeHeigh: f32 = @as(f32, @floatFromInt(imageData.height)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scale.y;
+    const imageAnkerXHalf = (@as(f32, @floatFromInt(imageData.width)) / 2 - imageAnkerPosition.x) / imageZig.IMAGE_TO_GAME_SIZE * scale.x;
+    const imageAnkerYHalf = (@as(f32, @floatFromInt(imageData.height)) / 2 - imageAnkerPosition.y) / imageZig.IMAGE_TO_GAME_SIZE * scale.y;
+    const quarterStep = halfSizeWidth / 2;
+    const points = [_]main.Position{
+        main.Position{ .x = -halfSizeWidth + imageAnkerXHalf, .y = halfSizeHeigh + imageAnkerYHalf },
+        main.Position{ .x = -halfSizeWidth + imageAnkerXHalf, .y = -halfSizeHeigh + imageAnkerYHalf },
+        main.Position{ .x = -halfSizeWidth + quarterStep + imageAnkerXHalf, .y = halfSizeHeigh + imageAnkerYHalf },
+        main.Position{ .x = -halfSizeWidth + quarterStep + imageAnkerXHalf, .y = -halfSizeHeigh + imageAnkerYHalf },
+        main.Position{ .x = imageAnkerXHalf, .y = halfSizeHeigh + imageAnkerYHalf },
+        main.Position{ .x = imageAnkerXHalf, .y = -halfSizeHeigh + imageAnkerYHalf },
+        main.Position{ .x = halfSizeWidth - quarterStep + imageAnkerXHalf, .y = halfSizeHeigh + imageAnkerYHalf },
+        main.Position{ .x = halfSizeWidth - quarterStep + imageAnkerXHalf, .y = -halfSizeHeigh + imageAnkerYHalf },
+        main.Position{ .x = halfSizeWidth + imageAnkerXHalf, .y = halfSizeHeigh + imageAnkerYHalf },
+        main.Position{ .x = halfSizeWidth + imageAnkerXHalf, .y = -halfSizeHeigh + imageAnkerYHalf },
+    };
+    for (0..points.len - 2) |i| {
+        const pointsIndexes = [_]usize{ i, i + 1 + @mod(i, 2), i + 2 - @mod(i, 2) };
+        for (pointsIndexes) |verticeIndex| {
+            const cornerPosOffset = points[verticeIndex];
+            const texPos: [2]f32 = .{
+                ((cornerPosOffset.x - imageAnkerXHalf) / halfSizeWidth + 1) / 2,
+                ((cornerPosOffset.y - imageAnkerYHalf) / halfSizeHeigh + 1) / 2,
+            };
+            const rotatePivot: main.Position = if (rotatePoint) |p| .{
+                .x = (p.x - @as(f32, @floatFromInt(imageData.width)) / 2) / imageZig.IMAGE_TO_GAME_SIZE * scale.x + imageAnkerXHalf,
+                .y = (p.y - @as(f32, @floatFromInt(imageData.height)) / 2) / imageZig.IMAGE_TO_GAME_SIZE * scale.y + imageAnkerYHalf,
+            } else .{ .x = 0, .y = 0 };
+            const bendAngle: f32 = rotateAngle + bend * texPos[0];
+            const rotatedOffset = paintVulkanZig.rotateAroundPoint(cornerPosOffset, rotatePivot, bendAngle);
             const vulkan: main.Position = .{
                 .x = (rotatedOffset.x - state.camera.position.x + paintPosition.x) * state.camera.zoom * onePixelXInVulkan,
                 .y = (rotatedOffset.y - state.camera.position.y + paintPosition.y) * state.camera.zoom * onePixelYInVulkan,

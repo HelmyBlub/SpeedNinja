@@ -16,6 +16,7 @@ pub const IMAGE_PUPIL_LEFT = 8;
 pub const IMAGE_PUPIL_RIGHT = 9;
 pub const IMAGE_DOG_EAR = 10;
 pub const IMAGE_BANDANA_TAIL = 11;
+pub const IMAGE_DOG_TAIL = 12;
 
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 
@@ -28,6 +29,9 @@ pub const IMAGE_DOG__EYE_RIGHT: main.Position = .{ .x = 113, .y = 35 };
 
 pub const IMAGE_DOG__BANDANA_TAIL: main.Position = .{ .x = 131, .y = 25 };
 pub const IMAGE_BANDANA__ANKER: main.Position = .{ .x = 1, .y = 3 };
+
+pub const IMAGE_DOG__TAIL: main.Position = .{ .x = 97, .y = 152 };
+pub const IMAGE_DOG_TAIL__ANKER: main.Position = .{ .x = 2, .y = 4 };
 
 pub const IMAGE_DOG__LEFT_ARM_ROTATE_POINT: main.Position = .{ .x = 77, .y = 106 };
 pub const IMAGE_DOG__RIGHT_ARM_ROTATE_POINT: main.Position = .{ .x = 116, .y = 106 };
@@ -58,6 +62,7 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/pupilRight.png" },
     .{ .path = "images/dogEar.png" },
     .{ .path = "images/bandanaTail.png" },
+    .{ .path = "images/dogTail.png" },
 };
 
 pub fn getImageCenter(imageIndex: usize) main.Position {

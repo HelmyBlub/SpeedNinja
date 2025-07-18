@@ -1,9 +1,6 @@
 Tasks:
 - visualization
     - animate ninja dog
-        - bandana swings
-            - after move:
-                - bandana swings more because moved fast
         - tail?
         - idle body movement?
         - add different body angles side and back?
