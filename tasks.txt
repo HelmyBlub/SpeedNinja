@@ -1,6 +1,5 @@
 Tasks:
 - visualization
-    - color move visualizations
     - animate ninja dog
         - add different body angles side and back?
         - sword swing hit slash effect?

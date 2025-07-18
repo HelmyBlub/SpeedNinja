@@ -26,7 +26,7 @@ pub const GameState = struct {
 
 pub const Player = struct {
     position: Position = .{ .x = 0, .y = 0 },
-    executeMovePice: ?movePieceZig.MovePiece = null,
+    executeMovePiece: ?movePieceZig.MovePiece = null,
     executeDirection: u8 = 0,
     afterImages: std.ArrayList(AfterImage),
     choosenMoveOptionIndex: ?usize = null,
@@ -115,7 +115,7 @@ pub fn restart(state: *GameState) !void {
     state.player.animateData = .{};
     state.player.paintData = .{};
     state.enemyDeath.clearRetainingCapacity();
-    state.player.executeMovePice = null;
+    state.player.executeMovePiece = null;
     try movePieceZig.resetPieces(state);
     try setupEnemies(state);
 }

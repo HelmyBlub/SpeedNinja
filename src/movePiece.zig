@@ -79,12 +79,12 @@ pub fn createMovePieces() []const MovePiece {
 }
 
 pub fn tickPlayerMovePiece(state: *main.GameState) !void {
-    if (state.player.executeMovePice) |executeMovePice| {
-        const step = executeMovePice.steps[0];
-        if (executeMovePice.steps.len > 1) {
-            state.player.executeMovePice = .{ .steps = executeMovePice.steps[1..] };
+    if (state.player.executeMovePiece) |executeMovePiece| {
+        const step = executeMovePiece.steps[0];
+        if (executeMovePiece.steps.len > 1) {
+            state.player.executeMovePiece = .{ .steps = executeMovePiece.steps[1..] };
         } else {
-            state.player.executeMovePice = null;
+            state.player.executeMovePiece = null;
         }
         const direction = @mod(step.direction + state.player.executeDirection + 1, 4);
         if (!state.player.slashedLastMoveTile) ninjaDogVulkanZig.movedAnimate(direction, state);
@@ -102,7 +102,7 @@ pub fn tickPlayerMovePiece(state: *main.GameState) !void {
                 try stepAndCheckEnemyHit(step.stepCount, direction, .{ .x = 0, .y = -1 }, state);
             },
         }
-        if (state.player.executeMovePice == null) {
+        if (state.player.executeMovePiece == null) {
             ninjaDogVulkanZig.moveHandToCenter(state);
         }
     }
@@ -122,8 +122,8 @@ pub fn stepAndCheckEnemyHit(stepCount: u8, direction: u8, stepDirection: main.Po
 }
 
 pub fn movePlayerByMovePiece(movePieceIndex: usize, directionInput: u8, state: *main.GameState) !void {
-    if (state.player.executeMovePice != null) return;
-    state.player.executeMovePice = state.player.moveOptions.items[movePieceIndex];
+    if (state.player.executeMovePiece != null) return;
+    state.player.executeMovePiece = state.player.moveOptions.items[movePieceIndex];
     state.player.executeDirection = directionInput;
     try setRandomMovePiece(movePieceIndex, state);
 }

@@ -198,9 +198,9 @@ pub fn setupVertices(state: *main.GameState) !void {
     const fontSize = 30;
     const remainingPieces = state.player.availableMovePieces.items.len + state.player.moveOptions.items.len;
     const totalPieces = remainingPieces + state.player.usedMovePieces.items.len;
-    var textWidthPices = try fontVulkanZig.paintNumber(remainingPieces, .{ .x = 0.5, .y = 0.8 }, fontSize, &movePieceUx.font);
-    textWidthPices += fontVulkanZig.paintText(":", .{ .x = 0.5 + textWidthPices, .y = 0.8 }, fontSize, &movePieceUx.font);
-    _ = try fontVulkanZig.paintNumber(totalPieces, .{ .x = 0.5 + textWidthPices, .y = 0.8 }, fontSize, &movePieceUx.font);
+    var textWidthPieces = try fontVulkanZig.paintNumber(remainingPieces, .{ .x = 0.5, .y = 0.8 }, fontSize, &movePieceUx.font);
+    textWidthPieces += fontVulkanZig.paintText(":", .{ .x = 0.5 + textWidthPieces, .y = 0.8 }, fontSize, &movePieceUx.font);
+    _ = try fontVulkanZig.paintNumber(totalPieces, .{ .x = 0.5 + textWidthPieces, .y = 0.8 }, fontSize, &movePieceUx.font);
 
     try setupVertexDataForGPU(&state.vkState);
 }
