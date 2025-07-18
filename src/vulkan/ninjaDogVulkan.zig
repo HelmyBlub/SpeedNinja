@@ -21,12 +21,17 @@ pub const NinjaDogPaintData = struct {
     bladeDrawn: bool = false,
     blinking: bool = false,
     bladeRotation: f32 = std.math.pi * 0.25,
+    pawWaveOffset: f32 = 0,
     leftPawOffset: main.Position = .{ .x = 0, .y = 0 },
     rightPawOffset: main.Position = .{ .x = 0, .y = 0 },
     leftPupilOffset: main.Position = .{ .x = 0, .y = 0 },
     rightPupilOffset: main.Position = .{ .x = 0, .y = 0 },
     leftEarRotation: f32 = 0,
     rightEarRotation: f32 = 0,
+    bandana1Rotation: f32 = 0,
+    bandana1WaveOffset: f32 = 1,
+    bandana2Rotation: f32 = 0,
+    bandana2WaveOffset: f32 = 0,
 };
 
 const NinjaDogAnimationStatePaw = enum {
@@ -95,10 +100,11 @@ const NinjaDogAnimationStateDataTypeAngle = struct {
     duration: i64,
 };
 
-pub fn tickNinjaDogAnimation(state: *main.GameState) void {
-    tickNinjaDogPawAnimation(state);
+pub fn tickNinjaDogAnimation(timePassed: i64, state: *main.GameState) void {
+    tickNinjaDogPawAnimation(timePassed, state);
     tickNinjaDogEyeAnimation(state);
     tickNinjaDogEarAnimation(state);
+    tickNinjaDogBandanaAnimation(timePassed, state);
 }
 
 fn tickNinjaDogEarAnimation(state: *main.GameState) void {
@@ -128,6 +134,19 @@ fn tickNinjaDogEarAnimation(state: *main.GameState) void {
     } else {
         state.player.animateData.ears.rightVelocity += timeDiffToVelocity;
     }
+}
+
+fn tickNinjaDogBandanaAnimation(timePassed: i64, state: *main.GameState) void {
+    const rand = std.crypto.random;
+    const paintData = &state.player.paintData;
+
+    const timePassedFloatFactor = @as(f32, @floatFromInt(timePassed)) * 0.01;
+    if (@abs(paintData.bandana1Rotation) > 0.2) {
+        paintData.bandana1Rotation *= 1 - timePassedFloatFactor * 0.05;
+        paintData.bandana2Rotation *= 1 - timePassedFloatFactor * 0.05;
+    }
+    paintData.bandana1WaveOffset = @mod(state.player.paintData.bandana1WaveOffset + (rand.float(f32) + 1) * timePassedFloatFactor * 0.5, std.math.pi * 2);
+    paintData.bandana2WaveOffset = @mod(state.player.paintData.bandana2WaveOffset + (rand.float(f32) + 1) * timePassedFloatFactor * 0.5, std.math.pi * 2);
 }
 
 fn tickNinjaDogEyeAnimation(state: *main.GameState) void {
@@ -173,7 +192,8 @@ fn tickNinjaDogEyeAnimation(state: *main.GameState) void {
     }
 }
 
-fn tickNinjaDogPawAnimation(state: *main.GameState) void {
+fn tickNinjaDogPawAnimation(timePassed: i64, state: *main.GameState) void {
+    state.player.paintData.pawWaveOffset = @mod(state.player.paintData.pawWaveOffset + @as(f32, @floatFromInt(timePassed)) / 300, std.math.pi * 2);
     if (state.player.animateData.paws) |animationData| {
         switch (animationData) {
             .drawBlade => |data| {
@@ -267,6 +287,7 @@ pub fn drawNinjaDog(position: main.Position, paintData: NinjaDogPaintData, state
         };
         addTiranglesForSprite(bladeBackPosition, imageZig.IMAGE_BLADE__HAND_HOLD_POINT, imageZig.IMAGE_BLADE, paintData.bladeRotation, null, null, state);
     }
+    drawBandana(position, paintData, state);
     drawEars(position, paintData, state);
     addTiranglesForSprite(position, imageZig.IMAGE_DOG__CENTER, imageZig.IMAGE_DOG, 0, null, null, state);
     drawEyes(position, paintData, state);
@@ -274,7 +295,8 @@ pub fn drawNinjaDog(position: main.Position, paintData: NinjaDogPaintData, state
         .x = position.x + (imageZig.IMAGE_DOG__LEFT_ARM_ROTATE_POINT.x - @as(f32, @floatFromInt(imageDataDog.width)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
         .y = position.y + (imageZig.IMAGE_DOG__LEFT_ARM_ROTATE_POINT.y - @as(f32, @floatFromInt(imageDataDog.height)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
     };
-    const leftArmValues = calcScalingAndRotation(imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT, imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT, paintData.leftPawOffset);
+    const leftPawWithWaveOffset: main.Position = .{ .x = paintData.leftPawOffset.x, .y = paintData.leftPawOffset.y + @sin(paintData.pawWaveOffset) * 2 };
+    const leftArmValues = calcScalingAndRotation(imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT, imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT, leftPawWithWaveOffset);
     addTiranglesForSprite(
         leftArmSpritePosition,
         imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT,
@@ -288,7 +310,8 @@ pub fn drawNinjaDog(position: main.Position, paintData: NinjaDogPaintData, state
         .x = position.x + (imageZig.IMAGE_DOG__RIGHT_ARM_ROTATE_POINT.x - @as(f32, @floatFromInt(imageDataDog.width)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
         .y = position.y + (imageZig.IMAGE_DOG__RIGHT_ARM_ROTATE_POINT.y - @as(f32, @floatFromInt(imageDataDog.height)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
     };
-    const rightArmValues = calcScalingAndRotation(imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT, imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT, paintData.rightPawOffset);
+    const rightPawWithWaveOffset: main.Position = .{ .x = paintData.rightPawOffset.x, .y = paintData.rightPawOffset.y + @sin(paintData.pawWaveOffset) * 2 };
+    const rightArmValues = calcScalingAndRotation(imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT, imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT, rightPawWithWaveOffset);
     addTiranglesForSprite(
         rightArmSpritePosition,
         imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT,
@@ -300,8 +323,8 @@ pub fn drawNinjaDog(position: main.Position, paintData: NinjaDogPaintData, state
     );
     if (paintData.bladeDrawn) {
         const leftHandBladePosition: main.Position = .{
-            .x = leftArmSpritePosition.x + (imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT.x - imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.x + paintData.leftPawOffset.x) / imageZig.IMAGE_TO_GAME_SIZE,
-            .y = leftArmSpritePosition.y + (imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT.y - imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.y + paintData.leftPawOffset.y) / imageZig.IMAGE_TO_GAME_SIZE,
+            .x = leftArmSpritePosition.x + (imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT.x - imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.x + leftPawWithWaveOffset.x) / imageZig.IMAGE_TO_GAME_SIZE,
+            .y = leftArmSpritePosition.y + (imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT.y - imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.y + leftPawWithWaveOffset.y) / imageZig.IMAGE_TO_GAME_SIZE,
         };
         addTiranglesForSprite(
             leftHandBladePosition,
@@ -313,6 +336,38 @@ pub fn drawNinjaDog(position: main.Position, paintData: NinjaDogPaintData, state
             state,
         );
     }
+}
+
+fn drawBandana(position: main.Position, paintData: NinjaDogPaintData, state: *main.GameState) void {
+    const imageDataDog = imageZig.IMAGE_DATA[imageZig.IMAGE_DOG];
+    const bandanaSpritePosition: main.Position = .{
+        .x = position.x + (imageZig.IMAGE_DOG__BANDANA_TAIL.x - @as(f32, @floatFromInt(imageDataDog.width)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
+        .y = position.y + (imageZig.IMAGE_DOG__BANDANA_TAIL.y - @as(f32, @floatFromInt(imageDataDog.height)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
+    };
+    const bandana2SpritePosition: main.Position = .{
+        .x = bandanaSpritePosition.x,
+        .y = bandanaSpritePosition.y + 0.5,
+    };
+    addTiranglesForSpriteWithWaveAnimation(
+        bandanaSpritePosition,
+        imageZig.IMAGE_BANDANA__ANKER,
+        imageZig.IMAGE_BANDANA_TAIL,
+        paintData.bandana1Rotation,
+        null,
+        null,
+        paintData.bandana1WaveOffset,
+        state,
+    );
+    addTiranglesForSpriteWithWaveAnimation(
+        bandana2SpritePosition,
+        imageZig.IMAGE_BANDANA__ANKER,
+        imageZig.IMAGE_BANDANA_TAIL,
+        paintData.bandana2Rotation,
+        null,
+        null,
+        paintData.bandana2WaveOffset,
+        state,
+    );
 }
 
 fn drawEars(position: main.Position, paintData: NinjaDogPaintData, state: *main.GameState) void {
@@ -383,6 +438,7 @@ pub fn movedAnimate(direction: u8, state: *main.GameState) void {
     setPawAndBladeAngle(randomPawAngle, state);
     setEyeLookDirection(direction, state);
     setEarDirection(direction, state);
+    setBandanaDirection(direction, state);
 }
 
 fn setPawAndBladeAngle(angle: f32, state: *main.GameState) void {
@@ -399,12 +455,18 @@ fn setPawAndBladeAngle(angle: f32, state: *main.GameState) void {
 }
 
 fn setEarDirection(direction: u8, state: *main.GameState) void {
-    const floatDirection = @mod((@as(f32, @floatFromInt(direction)) - 1) * std.math.pi / 2.0, std.math.pi * 2) - std.math.pi;
-    state.player.paintData.leftEarRotation = floatDirection;
-    state.player.paintData.rightEarRotation = floatDirection;
-    const earVelocity: f32 = if (floatDirection > 0) 0.01 else -0.01;
+    const floatRotation = @mod((@as(f32, @floatFromInt(direction)) - 1) * std.math.pi / 2.0, std.math.pi * 2) - std.math.pi;
+    state.player.paintData.leftEarRotation = floatRotation;
+    state.player.paintData.rightEarRotation = floatRotation;
+    const earVelocity: f32 = if (floatRotation > 0) 0.01 else -0.01;
     state.player.animateData.ears.leftVelocity = earVelocity;
     state.player.animateData.ears.rightVelocity = earVelocity;
+}
+
+fn setBandanaDirection(direction: u8, state: *main.GameState) void {
+    const floatRotation = @mod((@as(f32, @floatFromInt(direction))) * std.math.pi / 2.0, std.math.pi * 2) - std.math.pi;
+    state.player.paintData.bandana1Rotation = floatRotation;
+    state.player.paintData.bandana2Rotation = floatRotation;
 }
 
 fn setEyeLookDirection(direction: u8, state: *main.GameState) void {
@@ -505,6 +567,61 @@ fn addTiranglesForSprite(paintPosition: main.Position, imageAnkerPosition: main.
             .tex = texPos,
         };
         ninjaDogData.verticeCount += 1;
+    }
+}
+
+fn addTiranglesForSpriteWithWaveAnimation(paintPosition: main.Position, imageAnkerPosition: main.Position, imageIndex: u8, rotateAngle: f32, rotatePoint: ?main.Position, optScale: ?main.Position, waveOffset: f32, state: *main.GameState) void {
+    const scale: main.Position = if (optScale) |s| s else .{ .x = 1, .y = 1 };
+    const ninjaDogData = &state.vkState.ninjaDogData;
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const imageData = imageZig.IMAGE_DATA[imageIndex];
+    const halfSizeWidth: f32 = @as(f32, @floatFromInt(imageData.width)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scale.x;
+    const halfSizeHeigh: f32 = @as(f32, @floatFromInt(imageData.height)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scale.y;
+    const imageAnkerXHalf = (@as(f32, @floatFromInt(imageData.width)) / 2 - imageAnkerPosition.x) / imageZig.IMAGE_TO_GAME_SIZE * scale.x;
+    const imageAnkerYHalf = (@as(f32, @floatFromInt(imageData.height)) / 2 - imageAnkerPosition.y) / imageZig.IMAGE_TO_GAME_SIZE * scale.y;
+    const quarterStep = halfSizeWidth / 2;
+    const points = [_]main.Position{
+        main.Position{ .x = -halfSizeWidth + imageAnkerXHalf, .y = halfSizeHeigh + imageAnkerYHalf },
+        main.Position{ .x = -halfSizeWidth + imageAnkerXHalf, .y = -halfSizeHeigh + imageAnkerYHalf },
+        main.Position{ .x = -halfSizeWidth + quarterStep + imageAnkerXHalf, .y = halfSizeHeigh + imageAnkerYHalf },
+        main.Position{ .x = -halfSizeWidth + quarterStep + imageAnkerXHalf, .y = -halfSizeHeigh + imageAnkerYHalf },
+        main.Position{ .x = imageAnkerXHalf, .y = halfSizeHeigh + imageAnkerYHalf },
+        main.Position{ .x = imageAnkerXHalf, .y = -halfSizeHeigh + imageAnkerYHalf },
+        main.Position{ .x = halfSizeWidth - quarterStep + imageAnkerXHalf, .y = halfSizeHeigh + imageAnkerYHalf },
+        main.Position{ .x = halfSizeWidth - quarterStep + imageAnkerXHalf, .y = -halfSizeHeigh + imageAnkerYHalf },
+        main.Position{ .x = halfSizeWidth + imageAnkerXHalf, .y = halfSizeHeigh + imageAnkerYHalf },
+        main.Position{ .x = halfSizeWidth + imageAnkerXHalf, .y = -halfSizeHeigh + imageAnkerYHalf },
+    };
+    for (0..points.len - 2) |i| {
+        const pointsIndexes = [_]usize{ i, i + 1 + @mod(i, 2), i + 2 - @mod(i, 2) };
+        for (pointsIndexes) |verticeIndex| {
+            const cornerPosOffset = points[verticeIndex];
+            const texPos: [2]f32 = .{
+                ((cornerPosOffset.x - imageAnkerXHalf) / halfSizeWidth + 1) / 2,
+                ((cornerPosOffset.y - imageAnkerYHalf) / halfSizeHeigh + 1) / 2,
+            };
+            const rotatePivot: main.Position = if (rotatePoint) |p| .{
+                .x = (p.x - @as(f32, @floatFromInt(imageData.width)) / 2) / imageZig.IMAGE_TO_GAME_SIZE * scale.x + imageAnkerXHalf,
+                .y = (p.y - @as(f32, @floatFromInt(imageData.height)) / 2) / imageZig.IMAGE_TO_GAME_SIZE * scale.y + imageAnkerYHalf,
+            } else .{ .x = 0, .y = 0 };
+            const waveOffsetPos: main.Position = .{
+                .x = cornerPosOffset.x,
+                .y = cornerPosOffset.y + @sin(cornerPosOffset.x + waveOffset) * 2 * texPos[0],
+            };
+            const rotatedOffset = paintVulkanZig.rotateAroundPoint(waveOffsetPos, rotatePivot, rotateAngle);
+            const vulkan: main.Position = .{
+                .x = (rotatedOffset.x - state.camera.position.x + paintPosition.x) * state.camera.zoom * onePixelXInVulkan,
+                .y = (rotatedOffset.y - state.camera.position.y + paintPosition.y) * state.camera.zoom * onePixelYInVulkan,
+            };
+            ninjaDogData.vertices[ninjaDogData.verticeCount] = dataVulkanZig.SpriteComplexVertex{
+                .pos = .{ vulkan.x, vulkan.y },
+                .imageIndex = imageIndex,
+                .alpha = 1,
+                .tex = texPos,
+            };
+            ninjaDogData.verticeCount += 1;
+        }
     }
 }
 

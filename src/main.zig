@@ -78,6 +78,7 @@ fn startGame(allocator: std.mem.Allocator) !void {
 fn mainLoop(state: *GameState) !void {
     var lastTime = std.time.milliTimestamp();
     var currentTime = lastTime;
+    var passedTime: i64 = 0;
     while (!state.gameEnded) {
         if (state.enemies.items.len == 0) {
             state.roundEndTimeMS = state.gameTime + 30_000;
@@ -91,12 +92,13 @@ fn mainLoop(state: *GameState) !void {
         }
         try windowSdlZig.handleEvents(state);
         try movePieceZig.tickPlayerMovePiece(state);
-        ninjaDogVulkanZig.tickNinjaDogAnimation(state);
+        ninjaDogVulkanZig.tickNinjaDogAnimation(passedTime, state);
         try paintVulkanZig.drawFrame(state);
         std.Thread.sleep(5_000_000);
         lastTime = currentTime;
         currentTime = std.time.milliTimestamp();
-        state.gameTime += currentTime - lastTime;
+        passedTime = currentTime - lastTime;
+        state.gameTime += passedTime;
     }
 }
 
