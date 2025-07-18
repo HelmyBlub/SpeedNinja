@@ -1,8 +1,7 @@
 Tasks:
 - visualization
+    - color move visualizations
     - animate ninja dog
-        - tail?
-        - idle body movement?
         - add different body angles side and back?
         - sword swing hit slash effect?
             - maybe try some line flash line following the blade?
