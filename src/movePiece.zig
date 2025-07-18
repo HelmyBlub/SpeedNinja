@@ -1,6 +1,7 @@
 const std = @import("std");
 const main = @import("main.zig");
 const ninjaDogVulkanZig = @import("vulkan/ninjaDogVulkan.zig");
+const soundMixerZig = @import("soundMixer.zig");
 
 pub const MovePiece = struct {
     steps: []const MoveStep,

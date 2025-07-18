@@ -4,6 +4,7 @@ const initVulkanZig = @import("vulkan/initVulkan.zig");
 const paintVulkanZig = @import("vulkan/paintVulkan.zig");
 const movePieceZig = @import("movePiece.zig");
 const ninjaDogVulkanZig = @import("vulkan/ninjaDogVulkan.zig");
+const soundMixerZig = @import("soundMixer.zig");
 
 pub const TILESIZE = 20;
 pub const BASE_MAP_TILE_RADIUS = 3;
@@ -21,6 +22,7 @@ pub const GameState = struct {
     player: Player,
     highscore: u32 = 0,
     lastScore: u32 = 0,
+    soundMixer: ?soundMixerZig.SoundMixer = null,
     gameEnded: bool = false,
 };
 
@@ -70,7 +72,8 @@ pub fn main() !void {
 
 fn startGame(allocator: std.mem.Allocator) !void {
     std.debug.print("game run start\n", .{});
-    var state: GameState = try createGameState(allocator);
+    var state: GameState = undefined;
+    try createGameState(&state, allocator);
     defer destroyGameState(&state);
     try mainLoop(&state);
 }
@@ -129,8 +132,8 @@ pub fn adjustZoom(state: *GameState) void {
     state.camera.zoom = targetMapScreenPerCent / biggerPerCent;
 }
 
-fn createGameState(allocator: std.mem.Allocator) !GameState {
-    var state: GameState = .{
+fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
+    state.* = .{
         .movePieces = movePieceZig.createMovePieces(),
         .player = .{
             .moveOptions = std.ArrayList(movePieceZig.MovePiece).init(allocator),
@@ -143,18 +146,18 @@ fn createGameState(allocator: std.mem.Allocator) !GameState {
     };
     state.allocator = allocator;
     try windowSdlZig.initWindowSdl();
-    try initVulkanZig.initVulkan(&state);
-    try movePieceZig.setupMovePieces(&state);
-    try setupEnemies(&state);
-    adjustZoom(&state);
-
-    return state;
+    try initVulkanZig.initVulkan(state);
+    try movePieceZig.setupMovePieces(state);
+    try setupEnemies(state);
+    try soundMixerZig.createSoundMixer(state, state.allocator);
+    adjustZoom(state);
 }
 
 fn destroyGameState(state: *GameState) void {
     initVulkanZig.destroyPaintVulkan(&state.vkState, state.allocator) catch {
         std.debug.print("failed to destroy window and vulkan\n", .{});
     };
+    soundMixerZig.destroySoundMixer(state);
     windowSdlZig.destroyWindowSdl();
     state.player.moveOptions.deinit();
     state.player.availableMovePieces.deinit();

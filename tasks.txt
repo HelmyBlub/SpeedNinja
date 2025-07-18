@@ -1,16 +1,8 @@
 Tasks:
-- visualization
-    - animate ninja dog
-        - add different body angles side and back?
-        - sword swing hit slash effect?
-            - maybe try some line flash line following the blade?
-    - what could i use a shader for?
+- sound
+    - sword cut sound
+    - sword draw sound
+    - move sound
+- multiplayer based on "remote play together"
+    - one computer multiple input devices
 
-
-Game Vision:
-- speed dog ninja 
-    - when players draws blade, time stops
-    - has puzzle/tetris like pieces to move
-    - when killing enemy, move set refreshes
-    - when not hitting enemy in x turns, time runs again
-    - try to use shaders to make it look "better"
