@@ -103,27 +103,28 @@ pub fn tickNinjaDogAnimation(state: *main.GameState) void {
 
 fn tickNinjaDogEarAnimation(state: *main.GameState) void {
     const rand = std.crypto.random;
-    if (@abs(state.player.animateData.ears.leftVelocity) < 0.005 and @abs(state.player.paintData.leftEarRotation) < 0.01) {
-        state.player.animateData.ears.leftVelocity = (rand.float(f32) * 0.01 + 0.015);
+    if (@abs(state.player.animateData.ears.leftVelocity) < 0.005 and @abs(state.player.paintData.leftEarRotation) < 0.05) {
+        state.player.animateData.ears.leftVelocity = std.math.sign(state.player.animateData.ears.leftVelocity) * (rand.float(f32) * 0.005 + 0.010);
     }
     if (@abs(state.player.animateData.ears.rightVelocity) < 0.005 and @abs(state.player.paintData.rightEarRotation) < 0.01) {
-        state.player.animateData.ears.rightVelocity = (rand.float(f32) * 0.01 + 0.015);
+        state.player.animateData.ears.rightVelocity = std.math.sign(state.player.animateData.ears.rightVelocity) * (rand.float(f32) * 0.005 + 0.010);
     }
     state.player.paintData.leftEarRotation += state.player.animateData.ears.leftVelocity;
     state.player.paintData.rightEarRotation += state.player.animateData.ears.rightVelocity;
-    const timeDiffToVelocity = @as(f32, @floatFromInt(state.gameTime - state.player.animateData.ears.lastUpdateTime)) / 8000;
+    const timeDiffToVelocity = @as(f32, @floatFromInt(state.gameTime - state.player.animateData.ears.lastUpdateTime)) / 16000;
     state.player.animateData.ears.lastUpdateTime = state.gameTime;
+    const dampenFactor = 1.4;
     if (state.player.animateData.ears.leftVelocity > 0 and state.player.paintData.leftEarRotation > 0) {
-        state.player.animateData.ears.leftVelocity -= timeDiffToVelocity * 1.2;
+        state.player.animateData.ears.leftVelocity -= timeDiffToVelocity * dampenFactor;
     } else if (state.player.animateData.ears.leftVelocity <= 0 and state.player.paintData.leftEarRotation > 0) {
-        state.player.animateData.ears.leftVelocity -= timeDiffToVelocity * 0.80;
+        state.player.animateData.ears.leftVelocity -= timeDiffToVelocity / dampenFactor;
     } else {
         state.player.animateData.ears.leftVelocity += timeDiffToVelocity;
     }
     if (state.player.animateData.ears.rightVelocity > 0 and state.player.paintData.rightEarRotation > 0) {
-        state.player.animateData.ears.rightVelocity -= timeDiffToVelocity * 1.2;
+        state.player.animateData.ears.rightVelocity -= timeDiffToVelocity * dampenFactor;
     } else if (state.player.animateData.ears.rightVelocity <= 0 and state.player.paintData.rightEarRotation > 0) {
-        state.player.animateData.ears.rightVelocity -= timeDiffToVelocity * 0.80;
+        state.player.animateData.ears.rightVelocity -= timeDiffToVelocity / dampenFactor;
     } else {
         state.player.animateData.ears.rightVelocity += timeDiffToVelocity;
     }

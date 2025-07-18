@@ -1,13 +1,11 @@
 Tasks:
 - visualization
     - animate ninja dog
-        - dog ears moving:
-            - stationary, slighly swing
-            - moving fly behind
-                - stop moving swing back 
         - bandana swings
-        - after move:
-            - bandana swings more because moved fast
+            - after move:
+                - bandana swings more because moved fast
+        - tail?
+        - idle body movement?
         - add different body angles side and back?
         - sword swing hit slash effect?
             - maybe try some line flash line following the blade?
