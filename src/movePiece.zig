@@ -17,8 +17,7 @@ pub const DIRECTION_DOWN = 1;
 pub const DIRECTION_LEFT = 2;
 pub const DIRECTION_UP = 3;
 
-pub fn setRandomMovePiece(index: usize, state: *main.GameState) !void {
-    const player = &state.player;
+pub fn setRandomMovePiece(player: *main.Player, index: usize) !void {
     const rand = std.crypto.random;
     if (player.availableMovePieces.items.len > 0) {
         const randomPieceIndex: usize = @intFromFloat(rand.float(f32) * @as(f32, @floatFromInt(player.availableMovePieces.items.len)));
@@ -35,11 +34,11 @@ pub fn setRandomMovePiece(index: usize, state: *main.GameState) !void {
     }
 }
 
-pub fn setupMovePieces(state: *main.GameState) !void {
-    try state.player.availableMovePieces.appendSlice(state.movePieces);
-    try setRandomMovePiece(0, state);
-    try setRandomMovePiece(1, state);
-    try setRandomMovePiece(2, state);
+pub fn setupMovePieces(player: *main.Player, state: *main.GameState) !void {
+    try player.availableMovePieces.appendSlice(state.movePieces);
+    try setRandomMovePiece(player, 0);
+    try setRandomMovePiece(player, 1);
+    try setRandomMovePiece(player, 2);
 }
 
 pub fn createMovePieces() []const MovePiece {
@@ -79,67 +78,66 @@ pub fn createMovePieces() []const MovePiece {
     return &movePieces;
 }
 
-pub fn tickPlayerMovePiece(state: *main.GameState) !void {
-    if (state.player.executeMovePiece) |executeMovePiece| {
+pub fn tickPlayerMovePiece(player: *main.Player, state: *main.GameState) !void {
+    if (player.executeMovePiece) |executeMovePiece| {
         const step = executeMovePiece.steps[0];
         if (executeMovePiece.steps.len > 1) {
-            state.player.executeMovePiece = .{ .steps = executeMovePiece.steps[1..] };
+            player.executeMovePiece = .{ .steps = executeMovePiece.steps[1..] };
         } else {
-            state.player.executeMovePiece = null;
+            player.executeMovePiece = null;
         }
-        const direction = @mod(step.direction + state.player.executeDirection + 1, 4);
-        if (!state.player.slashedLastMoveTile) ninjaDogVulkanZig.movedAnimate(direction, state);
+        const direction = @mod(step.direction + player.executeDirection + 1, 4);
+        if (!player.slashedLastMoveTile) ninjaDogVulkanZig.movedAnimate(player, direction);
         switch (direction) {
             DIRECTION_RIGHT => {
-                try stepAndCheckEnemyHit(step.stepCount, direction, .{ .x = 1, .y = 0 }, state);
+                try stepAndCheckEnemyHit(player, step.stepCount, direction, .{ .x = 1, .y = 0 }, state);
             },
             DIRECTION_DOWN => {
-                try stepAndCheckEnemyHit(step.stepCount, direction, .{ .x = 0, .y = 1 }, state);
+                try stepAndCheckEnemyHit(player, step.stepCount, direction, .{ .x = 0, .y = 1 }, state);
             },
             DIRECTION_LEFT => {
-                try stepAndCheckEnemyHit(step.stepCount, direction, .{ .x = -1, .y = 0 }, state);
+                try stepAndCheckEnemyHit(player, step.stepCount, direction, .{ .x = -1, .y = 0 }, state);
             },
             else => {
-                try stepAndCheckEnemyHit(step.stepCount, direction, .{ .x = 0, .y = -1 }, state);
+                try stepAndCheckEnemyHit(player, step.stepCount, direction, .{ .x = 0, .y = -1 }, state);
             },
         }
-        if (state.player.executeMovePiece == null) {
-            ninjaDogVulkanZig.moveHandToCenter(state);
+        if (player.executeMovePiece == null) {
+            ninjaDogVulkanZig.moveHandToCenter(player, state);
         }
     }
 }
 
-pub fn stepAndCheckEnemyHit(stepCount: u8, direction: u8, stepDirection: main.Position, state: *main.GameState) !void {
+fn stepAndCheckEnemyHit(player: *main.Player, stepCount: u8, direction: u8, stepDirection: main.Position, state: *main.GameState) !void {
     for (0..stepCount) |_| {
-        state.player.slashedLastMoveTile = false;
-        try ninjaDogVulkanZig.addAfterImages(1, stepDirection, state.player, state);
-        state.player.position.x += stepDirection.x * main.TILESIZE;
-        state.player.position.y += stepDirection.y * main.TILESIZE;
-        if (try checkEnemyHitOnMoveStep(0, direction, state)) {
-            ninjaDogVulkanZig.bladeSlashAnimate(state);
-            state.player.slashedLastMoveTile = true;
+        player.slashedLastMoveTile = false;
+        try ninjaDogVulkanZig.addAfterImages(1, stepDirection, player, state);
+        player.position.x += stepDirection.x * main.TILESIZE;
+        player.position.y += stepDirection.y * main.TILESIZE;
+        if (try checkEnemyHitOnMoveStep(player, 0, direction, state)) {
+            ninjaDogVulkanZig.bladeSlashAnimate(player);
+            player.slashedLastMoveTile = true;
         }
     }
 }
 
-pub fn movePlayerByMovePiece(movePieceIndex: usize, directionInput: u8, state: *main.GameState) !void {
-    if (state.player.executeMovePiece != null) return;
-    state.player.executeMovePiece = state.player.moveOptions.items[movePieceIndex];
-    state.player.executeDirection = directionInput;
-    try setRandomMovePiece(movePieceIndex, state);
+pub fn movePlayerByMovePiece(player: *main.Player, movePieceIndex: usize, directionInput: u8) !void {
+    if (player.executeMovePiece != null) return;
+    player.executeMovePiece = player.moveOptions.items[movePieceIndex];
+    player.executeDirection = directionInput;
+    try setRandomMovePiece(player, movePieceIndex);
 }
 
-pub fn resetPieces(state: *main.GameState) !void {
-    const player = &state.player;
+pub fn resetPieces(player: *main.Player) !void {
     try player.availableMovePieces.appendSlice(player.usedMovePieces.items);
     player.usedMovePieces.clearRetainingCapacity();
     while (player.moveOptions.items.len < 3) {
-        try setRandomMovePiece(3, state);
+        try setRandomMovePiece(player, 3);
     }
 }
 
-fn checkEnemyHitOnMoveStep(stepAmount: f32, direction: u8, state: *main.GameState) !bool {
-    var position: main.Position = state.player.position;
+fn checkEnemyHitOnMoveStep(player: *main.Player, stepAmount: f32, direction: u8, state: *main.GameState) !bool {
+    var position: main.Position = player.position;
     var enemyIndex: usize = 0;
     var left: f32 = position.x - main.TILESIZE / 2;
     var top: f32 = position.y - main.TILESIZE / 2;
@@ -168,9 +166,9 @@ fn checkEnemyHitOnMoveStep(stepAmount: f32, direction: u8, state: *main.GameStat
         const enemy = state.enemies.items[enemyIndex];
         if (enemy.x > left and enemy.x < left + width and enemy.y > top and enemy.y < top + height) {
             const deadEnemy = state.enemies.swapRemove(enemyIndex);
-            const cutAngle = state.player.paintData.bladeRotation + std.math.pi / 2.0;
+            const cutAngle = player.paintData.bladeRotation + std.math.pi / 2.0;
             try state.enemyDeath.append(.{ .deathTime = state.gameTime, .position = deadEnemy, .cutAngle = cutAngle, .force = rand.float(f32) + 0.2 });
-            try resetPieces(state);
+            try resetPieces(player);
             hitSomething = true;
         } else {
             enemyIndex += 1;

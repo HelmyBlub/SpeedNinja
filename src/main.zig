@@ -19,7 +19,7 @@ pub const GameState = struct {
     mapTileRadius: u32 = BASE_MAP_TILE_RADIUS,
     enemies: std.ArrayList(Position),
     enemyDeath: std.ArrayList(EnemyDeathAnimation),
-    player: Player,
+    players: std.ArrayList(Player),
     highscore: u32 = 0,
     lastScore: u32 = 0,
     soundMixer: ?soundMixerZig.SoundMixer = null,
@@ -90,12 +90,14 @@ fn mainLoop(state: *GameState) !void {
             adjustZoom(state);
             try setupEnemies(state);
         }
-        if ((state.round > 1 and state.roundEndTimeMS < state.gameTime) or state.player.moveOptions.items.len == 0) {
+        if ((state.round > 1 and state.roundEndTimeMS < state.gameTime) or allPlayerOutOfMoveOptions(state)) {
             try restart(state);
         }
         try windowSdlZig.handleEvents(state);
-        try movePieceZig.tickPlayerMovePiece(state);
-        ninjaDogVulkanZig.tickNinjaDogAnimation(passedTime, state);
+        for (state.players.items) |*player| {
+            try movePieceZig.tickPlayerMovePiece(player, state);
+            ninjaDogVulkanZig.tickNinjaDogAnimation(player, passedTime, state);
+        }
         try paintVulkanZig.drawFrame(state);
         std.Thread.sleep(5_000_000);
         lastTime = currentTime;
@@ -105,6 +107,13 @@ fn mainLoop(state: *GameState) !void {
     }
 }
 
+fn allPlayerOutOfMoveOptions(state: *GameState) bool {
+    for (state.players.items) |player| {
+        if (player.moveOptions.items.len > 0) return false;
+    }
+    return true;
+}
+
 pub fn restart(state: *GameState) !void {
     state.lastScore = state.round;
     if (state.round > state.highscore) state.highscore = state.round;
@@ -112,14 +121,17 @@ pub fn restart(state: *GameState) !void {
     state.mapTileRadius = BASE_MAP_TILE_RADIUS;
     state.gameTime = 0;
     adjustZoom(state);
-    state.player.position.x = 0;
-    state.player.position.y = 0;
-    state.player.afterImages.clearRetainingCapacity();
-    state.player.animateData = .{};
-    state.player.paintData = .{};
+    for (state.players.items) |*player| {
+        player.position.x = 0;
+        player.position.y = 0;
+        player.afterImages.clearRetainingCapacity();
+        player.animateData = .{};
+        player.paintData = .{};
+        player.executeMovePiece = null;
+        try movePieceZig.resetPieces(player);
+    }
+
     state.enemyDeath.clearRetainingCapacity();
-    state.player.executeMovePiece = null;
-    try movePieceZig.resetPieces(state);
     try setupEnemies(state);
 }
 
@@ -135,22 +147,27 @@ pub fn adjustZoom(state: *GameState) void {
 fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
     state.* = .{
         .movePieces = movePieceZig.createMovePieces(),
-        .player = .{
-            .moveOptions = std.ArrayList(movePieceZig.MovePiece).init(allocator),
-            .availableMovePieces = std.ArrayList(movePieceZig.MovePiece).init(allocator),
-            .usedMovePieces = std.ArrayList(movePieceZig.MovePiece).init(allocator),
-            .afterImages = std.ArrayList(AfterImage).init(allocator),
-        },
+        .players = std.ArrayList(Player).init(allocator),
         .enemyDeath = std.ArrayList(EnemyDeathAnimation).init(allocator),
         .enemies = std.ArrayList(Position).init(allocator),
     };
     state.allocator = allocator;
+    try state.players.append(createPlayer(allocator));
     try windowSdlZig.initWindowSdl();
     try initVulkanZig.initVulkan(state);
-    try movePieceZig.setupMovePieces(state);
+    try movePieceZig.setupMovePieces(&state.players.items[0], state);
     try setupEnemies(state);
-    try soundMixerZig.createSoundMixer(state, state.allocator);
+    // try soundMixerZig.createSoundMixer(state, state.allocator);
     adjustZoom(state);
+}
+
+fn createPlayer(allocator: std.mem.Allocator) Player {
+    return .{
+        .moveOptions = std.ArrayList(movePieceZig.MovePiece).init(allocator),
+        .availableMovePieces = std.ArrayList(movePieceZig.MovePiece).init(allocator),
+        .usedMovePieces = std.ArrayList(movePieceZig.MovePiece).init(allocator),
+        .afterImages = std.ArrayList(AfterImage).init(allocator),
+    };
 }
 
 fn destroyGameState(state: *GameState) void {
@@ -159,10 +176,13 @@ fn destroyGameState(state: *GameState) void {
     };
     soundMixerZig.destroySoundMixer(state);
     windowSdlZig.destroyWindowSdl();
-    state.player.moveOptions.deinit();
-    state.player.availableMovePieces.deinit();
-    state.player.usedMovePieces.deinit();
-    state.player.afterImages.deinit();
+    for (state.players.items) |player| {
+        player.moveOptions.deinit();
+        player.availableMovePieces.deinit();
+        player.usedMovePieces.deinit();
+        player.afterImages.deinit();
+    }
+    state.players.deinit();
     state.enemyDeath.deinit();
     state.enemies.deinit();
 }
@@ -186,7 +206,9 @@ fn canSpawnEnemyOnTile(position: Position, state: *GameState) bool {
     for (state.enemies.items) |enemy| {
         if (@abs(enemy.x - position.x) < TILESIZE / 2 and @abs(enemy.y - position.y) < TILESIZE / 2) return false;
     }
-    if (@abs(state.player.position.x - position.x) < TILESIZE / 2 and @abs(state.player.position.y - position.y) < TILESIZE / 2) return false;
+    for (state.players.items) |player| {
+        if (@abs(player.position.x - position.x) < TILESIZE / 2 and @abs(player.position.y - position.y) < TILESIZE / 2) return false;
+    }
     return true;
 }
 

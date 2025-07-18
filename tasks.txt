@@ -1,8 +1,10 @@
 Tasks:
+- lokal multiplayer, but with steam "remote play together" also online possible
+    - one computer multiple input devices
+    - move 2 player with buttons as test
 - sound
     - sword cut sound
     - sword draw sound
     - move sound
-- multiplayer based on "remote play together"
-    - one computer multiple input devices
 
+offstream: look sound tutorial for sword

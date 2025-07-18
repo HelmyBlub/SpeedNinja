@@ -89,115 +89,118 @@ pub fn setupVertices(state: *main.GameState) !void {
     const fillColor: [3]f32 = .{ 0.25, 0.25, 0.25 };
     const selctedColor: [3]f32 = .{ 0.07, 0.07, 0.07 };
 
-    for (state.player.moveOptions.items, 0..) |movePiece, index| {
-        const rectFillColor = if (state.player.choosenMoveOptionIndex != null and state.player.choosenMoveOptionIndex.? == index) selctedColor else fillColor;
-        var x: i8 = 0;
-        var y: i8 = 0;
-        setupRectangleVertices(x, y, movePieceUx, index, state.player.moveOptions.items.len, startColor);
-        for (movePiece.steps) |step| {
-            const stepX: i8 = if (step.direction == 0) 1 else if (step.direction == 2) -1 else 0;
-            const stepY: i8 = if (step.direction == 1) 1 else if (step.direction == 3) -1 else 0;
-            for (0..step.stepCount) |_| {
-                x += stepX;
-                y += stepY;
-                setupRectangleVertices(x, y, movePieceUx, index, state.player.moveOptions.items.len, rectFillColor);
-            }
-        }
-    }
-
-    if (state.player.choosenMoveOptionIndex) |index| {
-        const lines = &movePieceUx.lines;
-        const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-        const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-        const zoomedTileSize = main.TILESIZE * state.camera.zoom;
-        const baseWidth = zoomedTileSize * onePixelXInVulkan;
-        const baseHeight = zoomedTileSize * onePixelYInVulkan;
-        for (0..4) |direction| {
-            var step: f32 = 0;
-            var position: main.Position = .{
-                .x = state.player.position.x * state.camera.zoom,
-                .y = state.player.position.y * state.camera.zoom,
-            };
-
-            const lineColor: [3]f32 = .{
-                if (direction == 0) 0.5 else 0,
-                if (direction == 1) 0.2 else 0,
-                if (direction == 2) 0.5 else 0,
-            };
-
-            var lastPosition: main.Position = position;
-            var lastMoveDirection: usize = 0;
-            var moveDirection: usize = 0;
-            for (state.player.moveOptions.items[index].steps, 0..) |moveStep, moveStepIndex| {
-                lastMoveDirection = moveDirection;
-                moveDirection = @mod(moveStep.direction + direction, 4);
-                const moveX: f32 = if (moveDirection == 0) zoomedTileSize else if (moveDirection == 2) -zoomedTileSize else 0;
-                const moveY: f32 = if (moveDirection == 1) zoomedTileSize else if (moveDirection == 3) -zoomedTileSize else 0;
-                for (0..moveStep.stepCount) |stepCount| {
-                    step += 1;
-                    const recFator = 1 / (1 + step / 8);
-                    lastPosition = position;
-                    position.x += moveX;
-                    position.y += moveY;
-                    if (moveStepIndex == 0 and stepCount == 0) continue;
-                    if (lines.verticeCount + 8 >= lines.vertices.len) break;
-                    const left = (lastPosition.x - zoomedTileSize / 2 * recFator) * onePixelXInVulkan;
-                    const top = (lastPosition.y - zoomedTileSize / 2 * recFator) * onePixelYInVulkan;
-                    const width = baseWidth * recFator;
-                    const height = baseHeight * recFator;
-                    if (moveDirection != movePieceZig.DIRECTION_UP and !(stepCount == 0 and lastMoveDirection == movePieceZig.DIRECTION_DOWN) and !(stepCount > 0 and moveDirection == movePieceZig.DIRECTION_DOWN)) {
-                        lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = lineColor };
-                        lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top }, .color = lineColor };
-                        lines.verticeCount += 2;
-                    }
-                    if (moveDirection != movePieceZig.DIRECTION_DOWN and !(stepCount == 0 and lastMoveDirection == movePieceZig.DIRECTION_UP) and !(stepCount > 0 and moveDirection == movePieceZig.DIRECTION_UP)) {
-                        lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top + height }, .color = lineColor };
-                        lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = lineColor };
-                        lines.verticeCount += 2;
-                    }
-                    if (moveDirection != movePieceZig.DIRECTION_LEFT and !(stepCount == 0 and lastMoveDirection == movePieceZig.DIRECTION_RIGHT) and !(stepCount > 0 and moveDirection == movePieceZig.DIRECTION_RIGHT)) {
-                        lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = lineColor };
-                        lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left, top + height }, .color = lineColor };
-                        lines.verticeCount += 2;
-                    }
-                    if (moveDirection != movePieceZig.DIRECTION_RIGHT and !(stepCount == 0 and lastMoveDirection == movePieceZig.DIRECTION_LEFT) and !(stepCount > 0 and moveDirection == movePieceZig.DIRECTION_LEFT)) {
-                        lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left + width, top }, .color = lineColor };
-                        lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = lineColor };
-                        lines.verticeCount += 2;
-                    }
+    for (state.players.items) |player| {
+        for (player.moveOptions.items, 0..) |movePiece, index| {
+            const rectFillColor = if (player.choosenMoveOptionIndex != null and player.choosenMoveOptionIndex.? == index) selctedColor else fillColor;
+            var x: i8 = 0;
+            var y: i8 = 0;
+            setupRectangleVertices(x, y, movePieceUx, index, player.moveOptions.items.len, startColor);
+            for (movePiece.steps) |step| {
+                const stepX: i8 = if (step.direction == 0) 1 else if (step.direction == 2) -1 else 0;
+                const stepY: i8 = if (step.direction == 1) 1 else if (step.direction == 3) -1 else 0;
+                for (0..step.stepCount) |_| {
+                    x += stepX;
+                    y += stepY;
+                    setupRectangleVertices(x, y, movePieceUx, index, player.moveOptions.items.len, rectFillColor);
                 }
             }
-            const recFator = 1 / (1 + step / 4);
-            const left = (position.x - zoomedTileSize / 2 * recFator) * onePixelXInVulkan;
-            const top = (position.y - zoomedTileSize / 2 * recFator) * onePixelYInVulkan;
-            const width = baseWidth * recFator;
-            const height = baseHeight * recFator;
-            if (moveDirection != movePieceZig.DIRECTION_DOWN) {
-                lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = lineColor };
-                lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top }, .color = lineColor };
-                lines.verticeCount += 2;
-            }
-            if (moveDirection != movePieceZig.DIRECTION_UP) {
-                lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top + height }, .color = lineColor };
-                lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = lineColor };
-                lines.verticeCount += 2;
-            }
-            if (moveDirection != movePieceZig.DIRECTION_RIGHT) {
-                lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = lineColor };
-                lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left, top + height }, .color = lineColor };
-                lines.verticeCount += 2;
-            }
-            if (moveDirection != movePieceZig.DIRECTION_LEFT) {
-                lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left + width, top }, .color = lineColor };
-                lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = lineColor };
-                lines.verticeCount += 2;
+        }
+
+        if (player.choosenMoveOptionIndex) |index| {
+            const lines = &movePieceUx.lines;
+            const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+            const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+            const zoomedTileSize = main.TILESIZE * state.camera.zoom;
+            const baseWidth = zoomedTileSize * onePixelXInVulkan;
+            const baseHeight = zoomedTileSize * onePixelYInVulkan;
+            for (0..4) |direction| {
+                var step: f32 = 0;
+                var position: main.Position = .{
+                    .x = player.position.x * state.camera.zoom,
+                    .y = player.position.y * state.camera.zoom,
+                };
+
+                const lineColor: [3]f32 = .{
+                    if (direction == 0) 0.5 else 0,
+                    if (direction == 1) 0.2 else 0,
+                    if (direction == 2) 0.5 else 0,
+                };
+
+                var lastPosition: main.Position = position;
+                var lastMoveDirection: usize = 0;
+                var moveDirection: usize = 0;
+                for (player.moveOptions.items[index].steps, 0..) |moveStep, moveStepIndex| {
+                    lastMoveDirection = moveDirection;
+                    moveDirection = @mod(moveStep.direction + direction, 4);
+                    const moveX: f32 = if (moveDirection == 0) zoomedTileSize else if (moveDirection == 2) -zoomedTileSize else 0;
+                    const moveY: f32 = if (moveDirection == 1) zoomedTileSize else if (moveDirection == 3) -zoomedTileSize else 0;
+                    for (0..moveStep.stepCount) |stepCount| {
+                        step += 1;
+                        const recFator = 1 / (1 + step / 8);
+                        lastPosition = position;
+                        position.x += moveX;
+                        position.y += moveY;
+                        if (moveStepIndex == 0 and stepCount == 0) continue;
+                        if (lines.verticeCount + 8 >= lines.vertices.len) break;
+                        const left = (lastPosition.x - zoomedTileSize / 2 * recFator) * onePixelXInVulkan;
+                        const top = (lastPosition.y - zoomedTileSize / 2 * recFator) * onePixelYInVulkan;
+                        const width = baseWidth * recFator;
+                        const height = baseHeight * recFator;
+                        if (moveDirection != movePieceZig.DIRECTION_UP and !(stepCount == 0 and lastMoveDirection == movePieceZig.DIRECTION_DOWN) and !(stepCount > 0 and moveDirection == movePieceZig.DIRECTION_DOWN)) {
+                            lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = lineColor };
+                            lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top }, .color = lineColor };
+                            lines.verticeCount += 2;
+                        }
+                        if (moveDirection != movePieceZig.DIRECTION_DOWN and !(stepCount == 0 and lastMoveDirection == movePieceZig.DIRECTION_UP) and !(stepCount > 0 and moveDirection == movePieceZig.DIRECTION_UP)) {
+                            lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top + height }, .color = lineColor };
+                            lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = lineColor };
+                            lines.verticeCount += 2;
+                        }
+                        if (moveDirection != movePieceZig.DIRECTION_LEFT and !(stepCount == 0 and lastMoveDirection == movePieceZig.DIRECTION_RIGHT) and !(stepCount > 0 and moveDirection == movePieceZig.DIRECTION_RIGHT)) {
+                            lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = lineColor };
+                            lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left, top + height }, .color = lineColor };
+                            lines.verticeCount += 2;
+                        }
+                        if (moveDirection != movePieceZig.DIRECTION_RIGHT and !(stepCount == 0 and lastMoveDirection == movePieceZig.DIRECTION_LEFT) and !(stepCount > 0 and moveDirection == movePieceZig.DIRECTION_LEFT)) {
+                            lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left + width, top }, .color = lineColor };
+                            lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = lineColor };
+                            lines.verticeCount += 2;
+                        }
+                    }
+                }
+                const recFator = 1 / (1 + step / 4);
+                const left = (position.x - zoomedTileSize / 2 * recFator) * onePixelXInVulkan;
+                const top = (position.y - zoomedTileSize / 2 * recFator) * onePixelYInVulkan;
+                const width = baseWidth * recFator;
+                const height = baseHeight * recFator;
+                if (moveDirection != movePieceZig.DIRECTION_DOWN) {
+                    lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = lineColor };
+                    lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top }, .color = lineColor };
+                    lines.verticeCount += 2;
+                }
+                if (moveDirection != movePieceZig.DIRECTION_UP) {
+                    lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top + height }, .color = lineColor };
+                    lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = lineColor };
+                    lines.verticeCount += 2;
+                }
+                if (moveDirection != movePieceZig.DIRECTION_RIGHT) {
+                    lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = lineColor };
+                    lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left, top + height }, .color = lineColor };
+                    lines.verticeCount += 2;
+                }
+                if (moveDirection != movePieceZig.DIRECTION_LEFT) {
+                    lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left + width, top }, .color = lineColor };
+                    lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = lineColor };
+                    lines.verticeCount += 2;
+                }
             }
         }
     }
 
     const fontSize = 30;
-    const remainingPieces = state.player.availableMovePieces.items.len + state.player.moveOptions.items.len;
-    const totalPieces = remainingPieces + state.player.usedMovePieces.items.len;
+    const player = state.players.items[0];
+    const remainingPieces = player.availableMovePieces.items.len + player.moveOptions.items.len;
+    const totalPieces = remainingPieces + player.usedMovePieces.items.len;
     var textWidthPieces = try fontVulkanZig.paintNumber(remainingPieces, .{ .x = 0.5, .y = 0.8 }, fontSize, &movePieceUx.font);
     textWidthPieces += fontVulkanZig.paintText(":", .{ .x = 0.5 + textWidthPieces, .y = 0.8 }, fontSize, &movePieceUx.font);
     _ = try fontVulkanZig.paintNumber(totalPieces, .{ .x = 0.5 + textWidthPieces, .y = 0.8 }, fontSize, &movePieceUx.font);

@@ -66,41 +66,42 @@ pub fn handleEvents(state: *main.GameState) !void {
             state.gameEnded = true;
         }
         if (event.type == sdl.SDL_EVENT_KEY_DOWN) {
+            const player = &state.players.items[0];
             if (event.key.scancode == sdl.SDL_SCANCODE_LEFT or event.key.scancode == sdl.SDL_SCANCODE_A) {
-                if (state.player.choosenMoveOptionIndex) |index| {
-                    try movePieceZig.movePlayerByMovePiece(index, movePieceZig.DIRECTION_LEFT, state);
-                    state.player.choosenMoveOptionIndex = null;
+                if (player.choosenMoveOptionIndex) |index| {
+                    try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_LEFT);
+                    player.choosenMoveOptionIndex = null;
                 }
             } else if (event.key.scancode == sdl.SDL_SCANCODE_RIGHT or event.key.scancode == sdl.SDL_SCANCODE_D) {
-                if (state.player.choosenMoveOptionIndex) |index| {
-                    try movePieceZig.movePlayerByMovePiece(index, movePieceZig.DIRECTION_RIGHT, state);
-                    state.player.choosenMoveOptionIndex = null;
+                if (player.choosenMoveOptionIndex) |index| {
+                    try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_RIGHT);
+                    player.choosenMoveOptionIndex = null;
                 }
             } else if (event.key.scancode == sdl.SDL_SCANCODE_UP or event.key.scancode == sdl.SDL_SCANCODE_W) {
-                if (state.player.choosenMoveOptionIndex) |index| {
-                    try movePieceZig.movePlayerByMovePiece(index, movePieceZig.DIRECTION_UP, state);
-                    state.player.choosenMoveOptionIndex = null;
+                if (player.choosenMoveOptionIndex) |index| {
+                    try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_UP);
+                    player.choosenMoveOptionIndex = null;
                 }
             } else if (event.key.scancode == sdl.SDL_SCANCODE_DOWN or event.key.scancode == sdl.SDL_SCANCODE_S) {
-                if (state.player.choosenMoveOptionIndex) |index| {
-                    try movePieceZig.movePlayerByMovePiece(index, movePieceZig.DIRECTION_DOWN, state);
-                    state.player.choosenMoveOptionIndex = null;
+                if (player.choosenMoveOptionIndex) |index| {
+                    try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_DOWN);
+                    player.choosenMoveOptionIndex = null;
                 }
             } else if (event.key.scancode == sdl.SDL_SCANCODE_1) {
-                setMoveOptionIndex(0, state);
+                setMoveOptionIndex(player, 0, state);
             } else if (event.key.scancode == sdl.SDL_SCANCODE_2) {
-                setMoveOptionIndex(1, state);
+                setMoveOptionIndex(player, 1, state);
             } else if (event.key.scancode == sdl.SDL_SCANCODE_3) {
-                setMoveOptionIndex(2, state);
+                setMoveOptionIndex(player, 2, state);
             }
         }
     }
 }
 
-pub fn setMoveOptionIndex(index: usize, state: *main.GameState) void {
-    if (state.player.moveOptions.items.len > index) {
-        state.player.choosenMoveOptionIndex = index;
-        ninjaDogVulkanZig.swordHandsCentered(state);
+pub fn setMoveOptionIndex(player: *main.Player, index: usize, state: *main.GameState) void {
+    if (player.moveOptions.items.len > index) {
+        player.choosenMoveOptionIndex = index;
+        ninjaDogVulkanZig.swordHandsCentered(player, state);
     }
 }
 
