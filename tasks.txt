@@ -1,9 +1,7 @@
 Tasks:
 - sound
-    - move sound
-        - quiet sound
     - sword cut sound
-    - sword draw sound
+        - does not feel fitting yet
     - create my own sounds
         - can create many, but might not soudn as good?
         - try around with audacity?
