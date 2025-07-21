@@ -17,6 +17,8 @@ pub const IMAGE_PUPIL_RIGHT = 9;
 pub const IMAGE_DOG_EAR = 10;
 pub const IMAGE_BANDANA_TAIL = 11;
 pub const IMAGE_DOG_TAIL = 12;
+pub const IMAGE_WARNING_TILE = 13;
+pub const IMAGE_WARNING_TILE_FILLED = 14;
 
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 
@@ -63,6 +65,8 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/dogEar.png" },
     .{ .path = "images/bandanaTail.png" },
     .{ .path = "images/dogTail.png" },
+    .{ .path = "images/warningTile.png" },
+    .{ .path = "images/warningTileFilled.png" },
 };
 
 pub fn getImageCenter(imageIndex: usize) main.Position {

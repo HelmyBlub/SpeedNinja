@@ -10,6 +10,7 @@ const fontVulkanZig = @import("fontVulkan.zig");
 const mapGridVulkanZig = @import("mapGridVulkan.zig");
 const cutSpriteVulkan = @import("cutSpriteVulkan.zig");
 const ninjaDogVulkanZig = @import("ninjaDogVulkan.zig");
+const enemyVulkanZig = @import("enemyVulkan.zig");
 
 pub fn drawFrame(state: *main.GameState) !void {
     const vkState = &state.vkState;
@@ -107,11 +108,6 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
         .extent = vkState.swapchainInfo.extent,
     };
     vk.vkCmdSetScissor.?(commandBuffer, 0, 1, &scissor);
-    try mapGridVulkanZig.recordCommandBuffer(commandBuffer, state);
-    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.spriteWithGlobalTransform);
-    const vertexBuffers: [1]vk.VkBuffer = .{vkState.spriteData.vertexBuffer};
-    const offsets: [1]vk.VkDeviceSize = .{0};
-    vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
     vk.vkCmdBindDescriptorSets.?(
         commandBuffer,
         vk.VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -122,7 +118,12 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
         0,
         null,
     );
-
+    try mapGridVulkanZig.recordCommandBuffer(commandBuffer, state);
+    try enemyVulkanZig.recordCommandBuffer(commandBuffer, state);
+    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.spriteWithGlobalTransform);
+    const vertexBuffers: [1]vk.VkBuffer = .{vkState.spriteData.vertexBuffer};
+    const offsets: [1]vk.VkDeviceSize = .{0};
+    vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
     vk.vkCmdDraw.?(commandBuffer, @intCast(vkState.spriteData.verticeUsedCount), 1, 0, 0);
     try cutSpriteVulkan.recordCommandBuffer(commandBuffer, state);
     try ninjaDogVulkanZig.recordCommandBuffer(commandBuffer, state);
@@ -142,8 +143,8 @@ fn setupVerticesForSprites(state: *main.GameState) !void {
     for (state.enemies.items) |enemy| {
         if (spriteData.verticeUsedCount >= spriteData.vertices.len) break;
         spriteData.vertices[spriteData.verticeUsedCount] = .{
-            .pos = .{ enemy.x, enemy.y },
-            .imageIndex = imageZig.IMAGE_EVIL_TREE,
+            .pos = .{ enemy.position.x, enemy.position.y },
+            .imageIndex = enemy.imageIndex,
             .size = main.TILESIZE,
             .rotate = 0,
             .cutY = 0,

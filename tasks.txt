@@ -1,9 +1,12 @@
 Tasks:
-- sound
-    - sword cut sound
-        - does not feel fitting yet
-- 
-
+- enemies
+    - attacking tree
+        - attacks every x seconds in one random direction one tile far
+            - continue: player hit check and and restart when hit
+            - visualize attack time and direction to player
+                - color tile which will be attacked
+                - fill amount visualizes time when it will happen
+                - icon on tile will visualize it is damage
 
 
 Next ideas:
@@ -14,9 +17,15 @@ Next ideas:
     - each round finished gives money
 
     - money can be spent after times up
-        - more damage
         - piece changes
-        - more hp
+            - add new piece
+            - delete piece
+            - combine two pices
+            - split one pice
+        - buy equippment which is visualized on character
+            - only certan slots: feet slot, weapong slot, head slot, chest slot
+            - e.g: chest which gives more hp
+            - weapon: for damage
         - heal? or auto heal?
     - difficulty rises
         - enemies gain new abilities 
@@ -30,6 +39,11 @@ Next ideas:
     - enemy which attacks after player moved x-times
     - enemy which attacks when player adjacent
     - enemy which trows projectile when player in view
+        - projectiles moves in intervals one tile
+    - enemy places damaging tile and moves one tile
+    - enemy moves one tile which is also attack move
+    - enemy moves with always the same move piece which is also an attack (like player) 
+    - enemy throws piece aoe
 - player upgrades
     - piece corner effect
     - start effect

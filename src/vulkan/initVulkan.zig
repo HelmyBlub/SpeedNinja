@@ -11,6 +11,7 @@ const fontVulkanZig = @import("fontVulkan.zig");
 const mapGridVulkanZig = @import("mapGridVulkan.zig");
 const cutSpriteVulkanZig = @import("cutSpriteVulkan.zig");
 const ninjaDogVulkanZig = @import("ninjaDogVulkan.zig");
+const enemyVulkanZig = @import("enemyVulkan.zig");
 pub const vk = @cImport({
     @cInclude("Volk/volk.h");
 });
@@ -75,6 +76,7 @@ pub const VkState = struct {
     movePieceUx: movePieceUxVulkanZig.VkMovePiecesUx = .{},
     cutSpriteData: cutSpriteVulkanZig.VkCutSpriteData = .{},
     ninjaDogData: ninjaDogVulkanZig.VkNinjaDogData = .{},
+    enemyData: enemyVulkanZig.VkEnemyData = .{},
 
     pub const MAX_FRAMES_IN_FLIGHT: u16 = 2;
     pub const BUFFER_ADDITIOAL_SIZE: u16 = 50;
@@ -124,6 +126,7 @@ pub fn initVulkan(state: *main.GameState) !void {
     try mapGridVulkanZig.create(state);
     try cutSpriteVulkanZig.create(state);
     try ninjaDogVulkanZig.create(state);
+    try enemyVulkanZig.create(state);
     try createUniformBuffers(vkState, state.allocator);
     try createDescriptorPool(vkState);
     try createDescriptorSets(vkState, state.allocator);
@@ -140,6 +143,7 @@ pub fn destroyPaintVulkan(vkState: *VkState, allocator: std.mem.Allocator) !void
     mapGridVulkanZig.destroy(vkState, allocator);
     cutSpriteVulkanZig.destroy(vkState, allocator);
     ninjaDogVulkanZig.destroy(vkState, allocator);
+    enemyVulkanZig.destroy(vkState, allocator);
 
     cleanupSwapChain(vkState, allocator);
 

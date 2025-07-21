@@ -5,6 +5,7 @@ const paintVulkanZig = @import("vulkan/paintVulkan.zig");
 const movePieceZig = @import("movePiece.zig");
 const ninjaDogVulkanZig = @import("vulkan/ninjaDogVulkan.zig");
 const soundMixerZig = @import("soundMixer.zig");
+const enemyZig = @import("enemy.zig");
 
 pub const TILESIZE = 20;
 pub const BASE_MAP_TILE_RADIUS = 3;
@@ -17,7 +18,7 @@ pub const GameState = struct {
     round: u32 = 1,
     roundEndTimeMS: i64 = 30_000,
     mapTileRadius: u32 = BASE_MAP_TILE_RADIUS,
-    enemies: std.ArrayList(Position),
+    enemies: std.ArrayList(enemyZig.Enemy),
     enemyDeath: std.ArrayList(EnemyDeathAnimation),
     players: std.ArrayList(Player),
     highscore: u32 = 0,
@@ -88,7 +89,7 @@ fn mainLoop(state: *GameState) !void {
             state.round += 1;
             state.mapTileRadius = BASE_MAP_TILE_RADIUS + @as(u32, @intFromFloat(@sqrt(@as(f32, @floatFromInt(state.round)))));
             adjustZoom(state);
-            try setupEnemies(state);
+            try enemyZig.setupEnemies(state);
         }
         if (shouldRestart(state)) {
             try restart(state);
@@ -98,6 +99,7 @@ fn mainLoop(state: *GameState) !void {
             try movePieceZig.tickPlayerMovePiece(player, state);
             try ninjaDogVulkanZig.tickNinjaDogAnimation(player, passedTime, state);
         }
+        try enemyZig.tickEnemies(state);
         try paintVulkanZig.drawFrame(state);
         std.Thread.sleep(5_000_000);
         lastTime = currentTime;
@@ -137,7 +139,7 @@ pub fn restart(state: *GameState) !void {
     }
 
     state.enemyDeath.clearRetainingCapacity();
-    try setupEnemies(state);
+    try enemyZig.setupEnemies(state);
 }
 
 pub fn adjustZoom(state: *GameState) void {
@@ -154,14 +156,14 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
         .movePieces = movePieceZig.createMovePieces(),
         .players = std.ArrayList(Player).init(allocator),
         .enemyDeath = std.ArrayList(EnemyDeathAnimation).init(allocator),
-        .enemies = std.ArrayList(Position).init(allocator),
+        .enemies = std.ArrayList(enemyZig.Enemy).init(allocator),
     };
     state.allocator = allocator;
     try state.players.append(createPlayer(allocator));
     try windowSdlZig.initWindowSdl();
     try initVulkanZig.initVulkan(state);
     try movePieceZig.setupMovePieces(&state.players.items[0], state);
-    try setupEnemies(state);
+    try enemyZig.setupEnemies(state);
     try soundMixerZig.createSoundMixer(state, state.allocator);
     adjustZoom(state);
 }
@@ -190,32 +192,6 @@ fn destroyGameState(state: *GameState) void {
     state.players.deinit();
     state.enemyDeath.deinit();
     state.enemies.deinit();
-}
-
-fn setupEnemies(state: *GameState) !void {
-    state.enemies.clearRetainingCapacity();
-    const rand = std.crypto.random;
-    const length: f32 = @floatFromInt(state.mapTileRadius * 2 + 1);
-    const enemyCount = state.round;
-    while (state.enemies.items.len < enemyCount) {
-        const randomTileX: i16 = @as(i16, @intFromFloat(rand.float(f32) * length - length / 2));
-        const randomTileY: i16 = @as(i16, @intFromFloat(rand.float(f32) * length - length / 2));
-        const randomPos: Position = .{
-            .x = @floatFromInt(randomTileX * TILESIZE),
-            .y = @floatFromInt(randomTileY * TILESIZE),
-        };
-        if (canSpawnEnemyOnTile(randomPos, state)) try state.enemies.append(randomPos);
-    }
-}
-
-fn canSpawnEnemyOnTile(position: Position, state: *GameState) bool {
-    for (state.enemies.items) |enemy| {
-        if (@abs(enemy.x - position.x) < TILESIZE / 2 and @abs(enemy.y - position.y) < TILESIZE / 2) return false;
-    }
-    for (state.players.items) |player| {
-        if (@abs(player.position.x - position.x) < TILESIZE / 2 and @abs(player.position.y - position.y) < TILESIZE / 2) return false;
-    }
-    return true;
 }
 
 pub fn calculateDistance(pos1: Position, pos2: Position) f32 {

@@ -565,7 +565,7 @@ fn angleAtB(a: main.Position, b: main.Position, c: main.Position) f32 {
 }
 
 /// rotatePoint = image coordinates
-fn addTiranglesForSprite(paintPosition: main.Position, imageAnkerPosition: main.Position, imageIndex: u8, rotateAngle: f32, rotatePoint: ?main.Position, optScale: ?main.Position, state: *main.GameState) void {
+pub fn addTiranglesForSprite(gamePosition: main.Position, imageAnkerPosition: main.Position, imageIndex: u8, rotateAngle: f32, rotatePoint: ?main.Position, optScale: ?main.Position, state: *main.GameState) void {
     const scale: main.Position = if (optScale) |s| s else .{ .x = 1, .y = 1 };
     const ninjaDogData = &state.vkState.ninjaDogData;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
@@ -590,8 +590,8 @@ fn addTiranglesForSprite(paintPosition: main.Position, imageAnkerPosition: main.
         } else .{ .x = 0, .y = 0 };
         const rotatedOffset = paintVulkanZig.rotateAroundPoint(cornerPosOffset, rotatePivot, rotateAngle);
         const vulkan: main.Position = .{
-            .x = (rotatedOffset.x - state.camera.position.x + paintPosition.x) * state.camera.zoom * onePixelXInVulkan,
-            .y = (rotatedOffset.y - state.camera.position.y + paintPosition.y) * state.camera.zoom * onePixelYInVulkan,
+            .x = (rotatedOffset.x - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
+            .y = (rotatedOffset.y - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
         };
         const texPos: [2]f32 = .{
             if (cornerPosOffset.x < 0) 0 else 1,
@@ -607,7 +607,7 @@ fn addTiranglesForSprite(paintPosition: main.Position, imageAnkerPosition: main.
     }
 }
 
-fn addTiranglesForSpriteWithWaveAnimation(paintPosition: main.Position, imageAnkerPosition: main.Position, imageIndex: u8, rotateAngle: f32, rotatePoint: ?main.Position, optScale: ?main.Position, waveOffset: f32, state: *main.GameState) void {
+fn addTiranglesForSpriteWithWaveAnimation(gamePosition: main.Position, imageAnkerPosition: main.Position, imageIndex: u8, rotateAngle: f32, rotatePoint: ?main.Position, optScale: ?main.Position, waveOffset: f32, state: *main.GameState) void {
     const scale: main.Position = if (optScale) |s| s else .{ .x = 1, .y = 1 };
     const ninjaDogData = &state.vkState.ninjaDogData;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
@@ -648,8 +648,8 @@ fn addTiranglesForSpriteWithWaveAnimation(paintPosition: main.Position, imageAnk
             };
             const rotatedOffset = paintVulkanZig.rotateAroundPoint(waveOffsetPos, rotatePivot, rotateAngle);
             const vulkan: main.Position = .{
-                .x = (rotatedOffset.x - state.camera.position.x + paintPosition.x) * state.camera.zoom * onePixelXInVulkan,
-                .y = (rotatedOffset.y - state.camera.position.y + paintPosition.y) * state.camera.zoom * onePixelYInVulkan,
+                .x = (rotatedOffset.x - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
+                .y = (rotatedOffset.y - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
             };
             ninjaDogData.vertices[ninjaDogData.verticeCount] = dataVulkanZig.SpriteComplexVertex{
                 .pos = .{ vulkan.x, vulkan.y },
@@ -662,7 +662,7 @@ fn addTiranglesForSpriteWithWaveAnimation(paintPosition: main.Position, imageAnk
     }
 }
 
-fn addTiranglesForSpriteWithBend(paintPosition: main.Position, imageAnkerPosition: main.Position, imageIndex: u8, rotateAngle: f32, rotatePoint: ?main.Position, optScale: ?main.Position, bend: f32, state: *main.GameState) void {
+fn addTiranglesForSpriteWithBend(gamePosition: main.Position, imageAnkerPosition: main.Position, imageIndex: u8, rotateAngle: f32, rotatePoint: ?main.Position, optScale: ?main.Position, bend: f32, state: *main.GameState) void {
     const scale: main.Position = if (optScale) |s| s else .{ .x = 1, .y = 1 };
     const ninjaDogData = &state.vkState.ninjaDogData;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
@@ -700,8 +700,8 @@ fn addTiranglesForSpriteWithBend(paintPosition: main.Position, imageAnkerPositio
             const bendAngle: f32 = rotateAngle + bend * texPos[0];
             const rotatedOffset = paintVulkanZig.rotateAroundPoint(cornerPosOffset, rotatePivot, bendAngle);
             const vulkan: main.Position = .{
-                .x = (rotatedOffset.x - state.camera.position.x + paintPosition.x) * state.camera.zoom * onePixelXInVulkan,
-                .y = (rotatedOffset.y - state.camera.position.y + paintPosition.y) * state.camera.zoom * onePixelYInVulkan,
+                .x = (rotatedOffset.x - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
+                .y = (rotatedOffset.y - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
             };
             ninjaDogData.vertices[ninjaDogData.verticeCount] = dataVulkanZig.SpriteComplexVertex{
                 .pos = .{ vulkan.x, vulkan.y },
