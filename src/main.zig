@@ -90,7 +90,7 @@ fn mainLoop(state: *GameState) !void {
             adjustZoom(state);
             try setupEnemies(state);
         }
-        if ((state.round > 1 and state.roundEndTimeMS < state.gameTime) or allPlayerOutOfMoveOptions(state)) {
+        if (shouldRestart(state)) {
             try restart(state);
         }
         try windowSdlZig.handleEvents(state);
@@ -107,9 +107,14 @@ fn mainLoop(state: *GameState) !void {
     }
 }
 
+fn shouldRestart(state: *GameState) bool {
+    return (state.round > 1 and state.roundEndTimeMS < state.gameTime) or allPlayerOutOfMoveOptions(state);
+}
+
 fn allPlayerOutOfMoveOptions(state: *GameState) bool {
     for (state.players.items) |player| {
         if (player.moveOptions.items.len > 0) return false;
+        if (player.executeMovePiece != null) return false;
     }
     return true;
 }
