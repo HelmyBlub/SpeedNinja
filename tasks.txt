@@ -1,9 +1,37 @@
 Tasks:
-- local multiplayer, but with steam "remote play together" also online possible
-    - one computer multiple input devices
-    - move 2 player with buttons as test
 - sound
+    - move sound
+        - quiet sound
     - sword cut sound
     - sword draw sound
-    - move sound
+    - create my own sounds
+        - can create many, but might not soudn as good?
+        - try around with audacity?
+    - or find free sounds
+        - time spend searching, maybe hard to find different alternations
 
+
+
+Next ideas:
+- something which makes player stronger over time, but better player get stronger faster
+    - round = spawn enemies and increases once all enemies are defeated
+    - level = start level 0, once time is up, shop phase starts, level goes up by 1
+    - give player 1 minute after first kill
+    - each round finished gives money
+
+    - money can be spent after times up
+        - more damage
+        - piece changes
+        - more hp
+        - heal? or auto heal?
+    - difficulty rises
+        - enemy get stronger 
+            - more hp
+        - enemies do attack
+        - boss rounds
+    - player has HP
+    - player can die
+
+- enemy ideas
+    - enemy which attacks on time intervals
+    - enemy which attacks after player moved x-times

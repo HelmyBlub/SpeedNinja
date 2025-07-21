@@ -34,7 +34,12 @@ pub const SoundData = struct {
     sounds: []SoundFile,
 };
 
-pub const SOUND_WOOD_CHOP = 0;
+var SOUND_FILE_PATHES = [_][]const u8{
+    "sounds/moveNinja.mp3",
+    "sounds/moveNinja2.mp3",
+    "sounds/moveNinja3.mp3",
+};
+pub const SOUND_NINJA_MOVE_INDICIES = [_]usize{ 0, 1, 2 };
 
 pub fn createSoundMixer(state: *main.GameState, allocator: std.mem.Allocator) !void {
     state.soundMixer = .{
@@ -58,13 +63,22 @@ pub fn destroySoundMixer(state: *main.GameState) void {
     }
 }
 
+fn cleanUpFinishedSounds(soundMixer: *SoundMixer) void {
+    var i: usize = 0;
+    while (i < soundMixer.soundsToPlay.items.len) {
+        if (soundMixer.soundsToPlay.items[i].dataIndex >= soundMixer.soundData.sounds[soundMixer.soundsToPlay.items[i].soundIndex].len) {
+            _ = soundMixer.soundsToPlay.swapRemove(i);
+        } else {
+            i += 1;
+        }
+    }
+}
+
 fn audioCallback(userdata: ?*anyopaque, stream: ?*sdl.SDL_AudioStream, additional_amount: c_int, len: c_int) callconv(.C) void {
     _ = len;
     const Sample = i16;
     const state: *main.GameState = @ptrCast(@alignCast(userdata.?));
     const soundMixer = &(state.soundMixer.?);
-    if (state.gameEnded) return;
-
     const sampleCount = @divExact(additional_amount, @sizeOf(Sample));
     var buffer = state.allocator.alloc(Sample, @intCast(sampleCount)) catch return;
     defer state.allocator.free(buffer);
@@ -89,13 +103,27 @@ fn audioCallback(userdata: ?*anyopaque, stream: ?*sdl.SDL_AudioStream, additiona
         }
     }
     _ = sdl.SDL_PutAudioStreamData(stream, buffer.ptr, additional_amount);
+    cleanUpFinishedSounds(soundMixer);
 }
 
-pub fn playSound(soundMixer: *SoundMixer, soundIndex: usize, offset: usize) !void {
-    try soundMixer.soundsToPlay.append(.{
-        .soundIndex = soundIndex,
-        .dataIndex = offset,
-    });
+pub fn playRandomSound(optSoundMixer: *?SoundMixer, soundIndex: []const usize, offset: usize) !void {
+    const rand = std.crypto.random;
+    const randomIndex: usize = @as(usize, @intFromFloat(rand.float(f32) * @as(f32, @floatFromInt(soundIndex.len))));
+    if (optSoundMixer.*) |*soundMixer| {
+        try soundMixer.soundsToPlay.append(.{
+            .soundIndex = randomIndex,
+            .dataIndex = offset,
+        });
+    }
+}
+
+pub fn playSound(optSoundMixer: *?SoundMixer, soundIndex: usize, offset: usize) !void {
+    if (optSoundMixer.*) |*soundMixer| {
+        try soundMixer.soundsToPlay.append(.{
+            .soundIndex = soundIndex,
+            .dataIndex = offset,
+        });
+    }
 }
 
 fn initSounds(state: *main.GameState, allocator: std.mem.Allocator) !SoundData {
@@ -104,8 +132,10 @@ fn initSounds(state: *main.GameState, allocator: std.mem.Allocator) !SoundData {
         .freq = 48000,
         .channels = 1,
     };
-    const sounds = try allocator.alloc(SoundFile, 1);
-    sounds[SOUND_WOOD_CHOP] = try loadSoundFile("sounds/553254__t-man95__axe-cutting-wood_chop_1.mp3", allocator);
+    const sounds = try allocator.alloc(SoundFile, SOUND_FILE_PATHES.len);
+    for (0..SOUND_FILE_PATHES.len) |i| {
+        sounds[i] = try loadSoundFile(SOUND_FILE_PATHES[i], allocator);
+    }
 
     const stream = sdl.SDL_OpenAudioDeviceStream(sdl.SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &desired_spec, audioCallback, state);
     if (stream == null) {

@@ -121,11 +121,12 @@ fn stepAndCheckEnemyHit(player: *main.Player, stepCount: u8, direction: u8, step
     }
 }
 
-pub fn movePlayerByMovePiece(player: *main.Player, movePieceIndex: usize, directionInput: u8) !void {
+pub fn movePlayerByMovePiece(player: *main.Player, movePieceIndex: usize, directionInput: u8, state: *main.GameState) !void {
     if (player.executeMovePiece != null) return;
     player.executeMovePiece = player.moveOptions.items[movePieceIndex];
     player.executeDirection = directionInput;
     try setRandomMovePiece(player, movePieceIndex);
+    try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_NINJA_MOVE_INDICIES[0..], 0);
 }
 
 pub fn resetPieces(player: *main.Player) !void {

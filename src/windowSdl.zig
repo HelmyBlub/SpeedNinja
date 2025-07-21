@@ -69,22 +69,22 @@ pub fn handleEvents(state: *main.GameState) !void {
             for (state.players.items) |*player| {
                 if (event.key.scancode == sdl.SDL_SCANCODE_LEFT or event.key.scancode == sdl.SDL_SCANCODE_A) {
                     if (player.choosenMoveOptionIndex) |index| {
-                        try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_LEFT);
+                        try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_LEFT, state);
                         player.choosenMoveOptionIndex = null;
                     }
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_RIGHT or event.key.scancode == sdl.SDL_SCANCODE_D) {
                     if (player.choosenMoveOptionIndex) |index| {
-                        try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_RIGHT);
+                        try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_RIGHT, state);
                         player.choosenMoveOptionIndex = null;
                     }
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_UP or event.key.scancode == sdl.SDL_SCANCODE_W) {
                     if (player.choosenMoveOptionIndex) |index| {
-                        try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_UP);
+                        try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_UP, state);
                         player.choosenMoveOptionIndex = null;
                     }
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_DOWN or event.key.scancode == sdl.SDL_SCANCODE_S) {
                     if (player.choosenMoveOptionIndex) |index| {
-                        try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_DOWN);
+                        try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_DOWN, state);
                         player.choosenMoveOptionIndex = null;
                     }
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_1) {

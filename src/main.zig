@@ -157,7 +157,7 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
     try initVulkanZig.initVulkan(state);
     try movePieceZig.setupMovePieces(&state.players.items[0], state);
     try setupEnemies(state);
-    // try soundMixerZig.createSoundMixer(state, state.allocator);
+    try soundMixerZig.createSoundMixer(state, state.allocator);
     adjustZoom(state);
 }
 
