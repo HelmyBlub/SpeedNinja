@@ -107,15 +107,11 @@ pub fn tickNinjaDogAnimation(player: *main.Player, timePassed: i64, state: *main
     tickNinjaDogEyeAnimation(player, state);
     tickNinjaDogEarAnimation(player, state);
     tickNinjaDogBandanaAnimation(player, timePassed);
-    tickNinjaDogTailAnimation(player, timePassed, state);
+    tickNinjaDogTailAnimation(player, state);
 }
 
-fn tickNinjaDogTailAnimation(player: *main.Player, timePassed: i64, state: *main.GameState) void {
-    // const rand = std.crypto.random;
-    _ = timePassed;
+fn tickNinjaDogTailAnimation(player: *main.Player, state: *main.GameState) void {
     const paintData = &player.paintData;
-
-    // const timePassedFloatFactor = @as(f32, @floatFromInt(timePassed)) * 0.01;
     paintData.tailBend = @sin(@as(f32, @floatFromInt(state.gameTime)) / 400) * 0.5;
 }
 
