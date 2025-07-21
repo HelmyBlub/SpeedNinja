@@ -96,7 +96,7 @@ fn mainLoop(state: *GameState) !void {
         try windowSdlZig.handleEvents(state);
         for (state.players.items) |*player| {
             try movePieceZig.tickPlayerMovePiece(player, state);
-            ninjaDogVulkanZig.tickNinjaDogAnimation(player, passedTime, state);
+            try ninjaDogVulkanZig.tickNinjaDogAnimation(player, passedTime, state);
         }
         try paintVulkanZig.drawFrame(state);
         std.Thread.sleep(5_000_000);
@@ -196,7 +196,8 @@ fn setupEnemies(state: *GameState) !void {
     state.enemies.clearRetainingCapacity();
     const rand = std.crypto.random;
     const length: f32 = @floatFromInt(state.mapTileRadius * 2 + 1);
-    while (state.enemies.items.len < state.round) {
+    const enemyCount = state.round;
+    while (state.enemies.items.len < enemyCount) {
         const randomTileX: i16 = @as(i16, @intFromFloat(rand.float(f32) * length - length / 2));
         const randomTileY: i16 = @as(i16, @intFromFloat(rand.float(f32) * length - length / 2));
         const randomPos: Position = .{

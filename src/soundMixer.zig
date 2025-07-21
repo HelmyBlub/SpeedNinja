@@ -42,10 +42,12 @@ var SOUND_FILE_PATHES = [_][]const u8{
     "sounds/bladeCut2.mp3",
     "sounds/bladeCut3.mp3",
     "sounds/bladeCut4.mp3",
+    "sounds/bladeDraw.mp3",
 };
 
 pub const SOUND_NINJA_MOVE_INDICIES = [_]usize{ 0, 1, 2 };
 pub const SOUND_BLADE_CUT_INDICIES = [_]usize{ 3, 4, 5, 6 };
+pub const SOUND_BLADE_DRAW = 7;
 
 pub fn createSoundMixer(state: *main.GameState, allocator: std.mem.Allocator) !void {
     state.soundMixer = .{
@@ -112,13 +114,13 @@ fn audioCallback(userdata: ?*anyopaque, stream: ?*sdl.SDL_AudioStream, additiona
     cleanUpFinishedSounds(soundMixer);
 }
 
-pub fn playRandomSound(optSoundMixer: *?SoundMixer, soundIndex: []const usize) !void {
+pub fn playRandomSound(optSoundMixer: *?SoundMixer, soundIndex: []const usize, offset: usize) !void {
     const rand = std.crypto.random;
     const randomIndex: usize = @as(usize, @intFromFloat(rand.float(f32) * @as(f32, @floatFromInt(soundIndex.len))));
     if (optSoundMixer.*) |*soundMixer| {
         try soundMixer.soundsToPlay.append(.{
             .soundIndex = soundIndex[randomIndex],
-            .dataIndex = 0,
+            .dataIndex = offset,
         });
     }
 }

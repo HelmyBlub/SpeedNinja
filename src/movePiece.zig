@@ -109,14 +109,14 @@ pub fn tickPlayerMovePiece(player: *main.Player, state: *main.GameState) !void {
 }
 
 fn stepAndCheckEnemyHit(player: *main.Player, stepCount: u8, direction: u8, stepDirection: main.Position, state: *main.GameState) !void {
-    for (0..stepCount) |_| {
+    for (0..stepCount) |i| {
         player.slashedLastMoveTile = false;
         try ninjaDogVulkanZig.addAfterImages(1, stepDirection, player, state);
         player.position.x += stepDirection.x * main.TILESIZE;
         player.position.y += stepDirection.y * main.TILESIZE;
         if (try checkEnemyHitOnMoveStep(player, 0, direction, state)) {
             ninjaDogVulkanZig.bladeSlashAnimate(player);
-            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BLADE_CUT_INDICIES[0..]);
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BLADE_CUT_INDICIES[0..], i * 25);
             player.slashedLastMoveTile = true;
         }
     }
@@ -127,7 +127,7 @@ pub fn movePlayerByMovePiece(player: *main.Player, movePieceIndex: usize, direct
     player.executeMovePiece = player.moveOptions.items[movePieceIndex];
     player.executeDirection = directionInput;
     try setRandomMovePiece(player, movePieceIndex);
-    try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_NINJA_MOVE_INDICIES[0..]);
+    try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_NINJA_MOVE_INDICIES[0..], 0);
 }
 
 pub fn resetPieces(player: *main.Player) !void {

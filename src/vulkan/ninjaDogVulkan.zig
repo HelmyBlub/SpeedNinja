@@ -6,6 +6,7 @@ const imageZig = @import("../image.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 const dataVulkanZig = @import("dataVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
+const soundMixerZig = @import("../soundMixer.zig");
 
 const DEATH_DURATION = 3000;
 
@@ -102,8 +103,8 @@ const NinjaDogAnimationStateDataTypeAngle = struct {
     duration: i64,
 };
 
-pub fn tickNinjaDogAnimation(player: *main.Player, timePassed: i64, state: *main.GameState) void {
-    tickNinjaDogPawAnimation(player, timePassed, state);
+pub fn tickNinjaDogAnimation(player: *main.Player, timePassed: i64, state: *main.GameState) !void {
+    try tickNinjaDogPawAnimation(player, timePassed, state);
     tickNinjaDogEyeAnimation(player, state);
     tickNinjaDogEarAnimation(player, state);
     tickNinjaDogBandanaAnimation(player, timePassed);
@@ -200,7 +201,7 @@ fn tickNinjaDogEyeAnimation(player: *main.Player, state: *main.GameState) void {
     }
 }
 
-fn tickNinjaDogPawAnimation(player: *main.Player, timePassed: i64, state: *main.GameState) void {
+fn tickNinjaDogPawAnimation(player: *main.Player, timePassed: i64, state: *main.GameState) !void {
     player.paintData.pawWaveOffset = @mod(player.paintData.pawWaveOffset + @as(f32, @floatFromInt(timePassed)) / 300, std.math.pi * 2);
     if (player.animateData.paws) |animationData| {
         switch (animationData) {
@@ -218,6 +219,7 @@ fn tickNinjaDogPawAnimation(player: *main.Player, timePassed: i64, state: *main.
                     player.animateData.paws = .{
                         .bladeToFront = .{ .angle = player.paintData.bladeRotation, .duration = 1000, .startTime = state.gameTime },
                     };
+                    try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BLADE_DRAW, 0);
                 }
             },
             .bladeToFront => |data| {

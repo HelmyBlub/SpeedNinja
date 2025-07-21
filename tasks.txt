@@ -2,11 +2,7 @@ Tasks:
 - sound
     - sword cut sound
         - does not feel fitting yet
-    - create my own sounds
-        - can create many, but might not soudn as good?
-        - try around with audacity?
-    - or find free sounds
-        - time spend searching, maybe hard to find different alternations
+- 
 
 
 
@@ -23,9 +19,8 @@ Next ideas:
         - more hp
         - heal? or auto heal?
     - difficulty rises
-        - enemy get stronger 
-            - more hp
-        - enemies do attack
+        - enemies gain new abilities 
+        - new enemy types
         - boss rounds
     - player has HP
     - player can die
@@ -33,3 +28,22 @@ Next ideas:
 - enemy ideas
     - enemy which attacks on time intervals
     - enemy which attacks after player moved x-times
+    - enemy which attacks when player adjacent
+    - enemy which trows projectile when player in view
+- player upgrades
+    - piece corner effect
+    - start effect
+    - end effect
+
+    - end tile aoe
+    - throw projectile on tile
+    
+- game modifier
+    - can be choosen -> more money per round, but harder or different
+    - no choice but more damage
+    - no refresh
+        - turn more into puzzle game
+        - can only use each pice once
+        - no time limit, but piece limit
+    - only one piece and copies of it
+
