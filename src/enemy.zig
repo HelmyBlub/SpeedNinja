@@ -51,8 +51,8 @@ pub const EnemyDeathAnimation = struct {
 };
 
 const ENEMY_TYPE_SPAWN_LEVEL_DATA = [_]EnemyTypeSpawnLevelData{
-    .{ .baseProbability = 1, .enemyType = .nothing, .startingLevel = 1, .leavingLevel = 20 },
-    .{ .baseProbability = 10, .enemyType = .attack, .startingLevel = 2, .leavingLevel = 40 },
+    .{ .baseProbability = 0.1, .enemyType = .nothing, .startingLevel = 1, .leavingLevel = 3 },
+    .{ .baseProbability = 1, .enemyType = .attack, .startingLevel = 2, .leavingLevel = 40 },
 };
 
 pub fn tickEnemies(state: *main.GameState) !void {
@@ -128,24 +128,16 @@ pub fn setupSpawnEnemiesOnLevelChange(state: *main.GameState) !void {
 }
 
 fn scaleEnemiesToLevel(state: *main.GameState) void {
-    var levelDependentProbability: f32 = 0;
-    var baseProbability: f32 = 0;
-    var enemyLevel: u32 = 0;
     for (state.enemySpawnData.enemyEntries.items) |*entry| {
         for (ENEMY_TYPE_SPAWN_LEVEL_DATA) |data| {
             if (entry.enemy.enemyTypeData == data.enemyType) {
-                baseProbability = data.baseProbability;
-                const levelRangeHalved = @divFloor(data.leavingLevel - data.startingLevel, 2);
-                enemyLevel = state.level - data.startingLevel;
-                if (levelRangeHalved > enemyLevel) {
-                    levelDependentProbability = @min(0.1, @as(f32, @floatFromInt(enemyLevel)) / @as(f32, @floatFromInt(levelRangeHalved)));
-                } else {
-                    levelDependentProbability = @min(0.1, 2 - @as(f32, @floatFromInt(enemyLevel)) / @as(f32, @floatFromInt(levelRangeHalved)));
-                }
+                const baseProbability = data.baseProbability;
+                const enemyLevel = state.level - data.startingLevel + 1;
+                const levelDependentProbability = @min(1, @as(f32, @floatFromInt(enemyLevel)) / 10.0);
+                entry.probability = baseProbability * levelDependentProbability;
                 break;
             }
         }
-        entry.probability = baseProbability * levelDependentProbability;
     }
     calcAndSetEnemySpawnProbabilities(&state.enemySpawnData);
 }
@@ -170,9 +162,9 @@ pub fn setupEnemies(state: *main.GameState) !void {
     const enemies = &state.enemies;
     enemies.clearRetainingCapacity();
     const rand = std.crypto.random;
-    const length: f32 = @floatFromInt(state.mapTileRadius * 2 + 1);
     const enemyCount = state.round + @min(10, state.level - 1);
     state.mapTileRadius = main.BASE_MAP_TILE_RADIUS + @as(u32, @intFromFloat(@sqrt(@as(f32, @floatFromInt(enemyCount)))));
+    const length: f32 = @floatFromInt(state.mapTileRadius * 2 + 1);
 
     while (enemies.items.len < enemyCount) {
         const randomTileX: i16 = @as(i16, @intFromFloat(rand.float(f32) * length - length / 2));

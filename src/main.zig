@@ -105,12 +105,14 @@ fn mainLoop(state: *GameState) !void {
 
 fn startNextRound(state: *GameState) !void {
     state.roundEndTimeMS = state.gameTime + 30_000;
-    if (state.round > 0) {
+    state.round += 1;
+    if (state.round > 1) {
         for (state.players.items) |*player| {
             player.money += state.level;
         }
+    } else {
+        try enemyZig.setupSpawnEnemiesOnLevelChange(state);
     }
-    state.round += 1;
     try enemyZig.setupEnemies(state);
     adjustZoom(state);
 }
@@ -119,7 +121,6 @@ fn startNextLevel(state: *GameState) !void {
     state.level += 1;
     state.round = 0;
     try startNextRound(state);
-    try enemyZig.setupSpawnEnemiesOnLevelChange(state);
 }
 
 fn shouldStartNextLevel(state: *GameState) bool {

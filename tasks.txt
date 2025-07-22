@@ -1,10 +1,4 @@
 Tasks:
-- rounds and levels
-    - rounds -> enemy counter up
-        - finished rounds gives money
-    - levels -> enemy difficulty up
-        - new randomized enemies
-        - but enemies consitent over the same run
 - shopping phase
     - spend money for piece changes
     - shopping phase should work with multiple players
