@@ -29,6 +29,13 @@ pub const VkSprites = struct {
     verticeCount: usize = 0,
 };
 
+pub const VkSpritesWithGlobalTransform = struct {
+    vertexBuffer: vk.VkBuffer = undefined,
+    vertexBufferMemory: vk.VkDeviceMemory = undefined,
+    vertices: []SpriteWithGlobalTransformVertex = undefined,
+    verticeCount: usize = 0,
+};
+
 pub const SpriteWithGlobalTransformVertex = struct {
     pos: [2]f32,
     imageIndex: u8,

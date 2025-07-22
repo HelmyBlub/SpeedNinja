@@ -41,40 +41,41 @@ pub fn destroy(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) vo
 }
 
 fn createVertexBuffers(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
-    vkState.movePieceUx.triangles.vertices = try allocator.alloc(dataVulkanZig.ColoredVertex, VkMovePiecesUx.MAX_VERTICES_TRIANGLES);
+    const movePieceUx = &vkState.movePieceUx;
+    movePieceUx.triangles.vertices = try allocator.alloc(dataVulkanZig.ColoredVertex, VkMovePiecesUx.MAX_VERTICES_TRIANGLES);
     try initVulkanZig.createBuffer(
         @sizeOf(dataVulkanZig.ColoredVertex) * VkMovePiecesUx.MAX_VERTICES_TRIANGLES,
         vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &vkState.movePieceUx.triangles.vertexBuffer,
-        &vkState.movePieceUx.triangles.vertexBufferMemory,
+        &movePieceUx.triangles.vertexBuffer,
+        &movePieceUx.triangles.vertexBufferMemory,
         vkState,
     );
-    vkState.movePieceUx.lines.vertices = try allocator.alloc(dataVulkanZig.ColoredVertex, VkMovePiecesUx.MAX_VERTICES_LINES);
+    movePieceUx.lines.vertices = try allocator.alloc(dataVulkanZig.ColoredVertex, VkMovePiecesUx.MAX_VERTICES_LINES);
     try initVulkanZig.createBuffer(
         @sizeOf(dataVulkanZig.ColoredVertex) * VkMovePiecesUx.MAX_VERTICES_LINES,
         vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &vkState.movePieceUx.lines.vertexBuffer,
-        &vkState.movePieceUx.lines.vertexBufferMemory,
+        &movePieceUx.lines.vertexBuffer,
+        &movePieceUx.lines.vertexBufferMemory,
         vkState,
     );
-    vkState.movePieceUx.sprites.vertices = try allocator.alloc(dataVulkanZig.SpriteVertex, VkMovePiecesUx.MAX_VERTICES_SPRITES);
+    movePieceUx.sprites.vertices = try allocator.alloc(dataVulkanZig.SpriteVertex, VkMovePiecesUx.MAX_VERTICES_SPRITES);
     try initVulkanZig.createBuffer(
         @sizeOf(dataVulkanZig.SpriteVertex) * VkMovePiecesUx.MAX_VERTICES_SPRITES,
         vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &vkState.movePieceUx.sprites.vertexBuffer,
-        &vkState.movePieceUx.sprites.vertexBufferMemory,
+        &movePieceUx.sprites.vertexBuffer,
+        &movePieceUx.sprites.vertexBufferMemory,
         vkState,
     );
-    vkState.movePieceUx.font.vertices = try allocator.alloc(fontVulkanZig.FontVertex, VkMovePiecesUx.MAX_VERTICES_FONT);
+    movePieceUx.font.vertices = try allocator.alloc(fontVulkanZig.FontVertex, VkMovePiecesUx.MAX_VERTICES_FONT);
     try initVulkanZig.createBuffer(
-        @sizeOf(fontVulkanZig.FontVertex) * vkState.movePieceUx.font.vertices.len,
+        @sizeOf(fontVulkanZig.FontVertex) * movePieceUx.font.vertices.len,
         vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &vkState.movePieceUx.font.vertexBuffer,
-        &vkState.movePieceUx.font.vertexBufferMemory,
+        &movePieceUx.font.vertexBuffer,
+        &movePieceUx.font.vertexBufferMemory,
         vkState,
     );
 }
@@ -253,7 +254,7 @@ fn setupVertexDataForGPU(vkState: *initVulkanZig.VkState) !void {
     @memcpy(gpu_vertices, movePieceUx.triangles.vertices[0..]);
     vk.vkUnmapMemory.?(vkState.logicalDevice, movePieceUx.triangles.vertexBufferMemory);
 
-    if (vk.vkMapMemory.?(vkState.logicalDevice, vkState.movePieceUx.lines.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.ColoredVertex) * movePieceUx.lines.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
+    if (vk.vkMapMemory.?(vkState.logicalDevice, movePieceUx.lines.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.ColoredVertex) * movePieceUx.lines.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
     gpu_vertices = @ptrCast(@alignCast(data));
     @memcpy(gpu_vertices, movePieceUx.lines.vertices[0..]);
     vk.vkUnmapMemory.?(vkState.logicalDevice, movePieceUx.lines.vertexBufferMemory);
@@ -263,7 +264,7 @@ fn setupVertexDataForGPU(vkState: *initVulkanZig.VkState) !void {
     @memcpy(gpuVerticesSprite, movePieceUx.sprites.vertices[0..]);
     vk.vkUnmapMemory.?(vkState.logicalDevice, movePieceUx.sprites.vertexBufferMemory);
 
-    if (vk.vkMapMemory.?(vkState.logicalDevice, movePieceUx.font.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.SpriteVertex) * movePieceUx.font.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
+    if (vk.vkMapMemory.?(vkState.logicalDevice, movePieceUx.font.vertexBufferMemory, 0, @sizeOf(fontVulkanZig.FontVertex) * movePieceUx.font.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
     const gpuVerticesFont: [*]fontVulkanZig.FontVertex = @ptrCast(@alignCast(data));
     @memcpy(gpuVerticesFont, movePieceUx.font.vertices[0..]);
     vk.vkUnmapMemory.?(vkState.logicalDevice, movePieceUx.font.vertexBufferMemory);

@@ -8,6 +8,7 @@ const windowSdlZig = @import("../windowSdl.zig");
 pub const VkFontData = struct {
     vkFont: VkFont = undefined,
     graphicsPipeline: vk.VkPipeline = undefined,
+    graphicsPipelineSubpass0: vk.VkPipeline = undefined,
     mipLevels: u32 = undefined,
     textureImage: vk.VkImage = undefined,
     textureImageMemory: vk.VkDeviceMemory = undefined,
@@ -191,6 +192,7 @@ pub fn destroyFont(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator
     vk.vkDestroyBuffer.?(vkState.logicalDevice, vkState.font.vkFont.vertexBuffer, null);
     vk.vkFreeMemory.?(vkState.logicalDevice, vkState.font.vkFont.vertexBufferMemory, null);
     vk.vkDestroyPipeline.?(vkState.logicalDevice, vkState.font.graphicsPipeline, null);
+    vk.vkDestroyPipeline.?(vkState.logicalDevice, vkState.font.graphicsPipelineSubpass0, null);
     allocator.free(vkState.font.vkFont.vertices);
 }
 
@@ -497,4 +499,23 @@ fn createGraphicsPipeline(vkState: *initVulkanZig.VkState, allocator: std.mem.Al
         .pNext = null,
     };
     if (vk.vkCreateGraphicsPipelines.?(vkState.logicalDevice, null, 1, &pipelineInfo, null, &vkState.font.graphicsPipeline) != vk.VK_SUCCESS) return error.createGraphicsPipeline;
+
+    var pipelineInfoSubpass0 = vk.VkGraphicsPipelineCreateInfo{
+        .sType = vk.VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .stageCount = shaderStages.len,
+        .pStages = &shaderStages,
+        .pVertexInputState = &vertexInputInfo,
+        .pInputAssemblyState = &inputAssembly,
+        .pViewportState = &viewportState,
+        .pRasterizationState = &rasterizer,
+        .pMultisampleState = &multisampling,
+        .pColorBlendState = &colorBlending,
+        .pDynamicState = &dynamicState,
+        .layout = vkState.pipelineLayout,
+        .renderPass = vkState.renderPass,
+        .subpass = 0,
+        .basePipelineHandle = null,
+        .pNext = null,
+    };
+    if (vk.vkCreateGraphicsPipelines.?(vkState.logicalDevice, null, 1, &pipelineInfoSubpass0, null, &vkState.font.graphicsPipelineSubpass0) != vk.VK_SUCCESS) return error.createGraphicsPipeline;
 }

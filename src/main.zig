@@ -6,6 +6,12 @@ const movePieceZig = @import("movePiece.zig");
 const ninjaDogVulkanZig = @import("vulkan/ninjaDogVulkan.zig");
 const soundMixerZig = @import("soundMixer.zig");
 const enemyZig = @import("enemy.zig");
+const shopZig = @import("shop.zig");
+
+pub const GamePhase = enum {
+    combat,
+    shopping,
+};
 
 pub const TILESIZE = 20;
 pub const BASE_MAP_TILE_RADIUS = 3;
@@ -27,6 +33,7 @@ pub const GameState = struct {
     lastScore: u32 = 0,
     soundMixer: ?soundMixerZig.SoundMixer = null,
     gameEnded: bool = false,
+    gamePhase: GamePhase = .combat,
 };
 
 pub const Player = struct {
@@ -43,6 +50,7 @@ pub const Player = struct {
     slashedLastMoveTile: bool = false,
     money: u32 = 0,
     hp: u32 = 1,
+    shop: shopZig.ShopPlayerData = undefined,
 };
 
 pub const AfterImage = struct {
@@ -54,6 +62,11 @@ pub const AfterImage = struct {
 pub const Position: type = struct {
     x: f32,
     y: f32,
+};
+
+pub const TilePosition: type = struct {
+    x: i32,
+    y: i32,
 };
 
 pub const Camera: type = struct {
@@ -81,9 +94,10 @@ fn mainLoop(state: *GameState) !void {
     var currentTime = lastTime;
     var passedTime: i64 = 0;
     while (!state.gameEnded) {
-        if (state.enemies.items.len == 0) {
+        if (state.enemies.items.len == 0 and state.gamePhase == .combat) {
             try startNextRound(state);
-        } else if (shouldStartNextLevel(state)) {
+        } else if (shouldEndLevel(state)) {
+            // startShoppingPhase(state);
             try startNextLevel(state);
         } else if (shouldRestart(state)) {
             try restart(state);
@@ -117,13 +131,23 @@ fn startNextRound(state: *GameState) !void {
     adjustZoom(state);
 }
 
+fn startShoppingPhase(state: *GameState) void {
+    state.gamePhase = .shopping;
+    state.enemies.clearRetainingCapacity();
+}
+
+pub fn endShoppingPhase(state: *GameState) !void {
+    state.gamePhase = .combat;
+    try startNextLevel(state);
+}
+
 fn startNextLevel(state: *GameState) !void {
     state.level += 1;
     state.round = 0;
     try startNextRound(state);
 }
 
-fn shouldStartNextLevel(state: *GameState) bool {
+fn shouldEndLevel(state: *GameState) bool {
     if (state.round > 1 and state.roundEndTimeMS < state.gameTime) return true;
     return false;
 }

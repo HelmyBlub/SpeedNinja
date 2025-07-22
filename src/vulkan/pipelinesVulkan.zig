@@ -8,6 +8,7 @@ pub const VkPipelines = struct {
     sprite: vk.VkPipeline = undefined,
     spriteComplex: vk.VkPipeline = undefined,
     triangle: vk.VkPipeline = undefined,
+    triangleSubpass0: vk.VkPipeline = undefined,
     lines: vk.VkPipeline = undefined,
     linesSubpass0: vk.VkPipeline = undefined,
 };
@@ -27,6 +28,7 @@ pub fn destroy(vkState: *initVulkanZig.VkState) void {
     vk.vkDestroyPipeline.?(vkState.logicalDevice, vkState.graphicsPipelines.lines, null);
     vk.vkDestroyPipeline.?(vkState.logicalDevice, vkState.graphicsPipelines.linesSubpass0, null);
     vk.vkDestroyPipeline.?(vkState.logicalDevice, vkState.graphicsPipelines.triangle, null);
+    vk.vkDestroyPipeline.?(vkState.logicalDevice, vkState.graphicsPipelines.triangleSubpass0, null);
 }
 
 fn createLayout(vkState: *initVulkanZig.VkState) !void {
@@ -469,7 +471,7 @@ fn createTriangleAndLines(vkState: *initVulkanZig.VkState, allocator: std.mem.Al
         .pVertexAttributeDescriptions = &attributeDescriptions,
     };
 
-    var inputAssembly = vk.VkPipelineInputAssemblyStateCreateInfo{
+    var lineInputAssembly = vk.VkPipelineInputAssemblyStateCreateInfo{
         .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
         .topology = vk.VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
         .primitiveRestartEnable = vk.VK_FALSE,
@@ -543,7 +545,7 @@ fn createTriangleAndLines(vkState: *initVulkanZig.VkState, allocator: std.mem.Al
         .stageCount = shaderStages.len,
         .pStages = &shaderStages,
         .pVertexInputState = &vertexInputInfo,
-        .pInputAssemblyState = &inputAssembly,
+        .pInputAssemblyState = &lineInputAssembly,
         .pViewportState = &viewportState,
         .pRasterizationState = &rasterizer,
         .pMultisampleState = &multisampling,
@@ -562,7 +564,7 @@ fn createTriangleAndLines(vkState: *initVulkanZig.VkState, allocator: std.mem.Al
         .stageCount = shaderStages.len,
         .pStages = &shaderStages,
         .pVertexInputState = &vertexInputInfo,
-        .pInputAssemblyState = &inputAssembly,
+        .pInputAssemblyState = &lineInputAssembly,
         .pViewportState = &viewportState,
         .pRasterizationState = &rasterizer,
         .pMultisampleState = &multisampling,
@@ -612,4 +614,23 @@ fn createTriangleAndLines(vkState: *initVulkanZig.VkState, allocator: std.mem.Al
         .pNext = null,
     };
     if (vk.vkCreateGraphicsPipelines.?(vkState.logicalDevice, null, 1, &trianglePipelineInfo, null, &vkState.graphicsPipelines.triangle) != vk.VK_SUCCESS) return error.FailedToCreateTriangleGraphicsPipeline;
+
+    var pipelineInfoTrianglesSubpass0 = vk.VkGraphicsPipelineCreateInfo{
+        .sType = vk.VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .stageCount = shaderStages.len,
+        .pStages = &shaderStages,
+        .pVertexInputState = &vertexInputInfo,
+        .pInputAssemblyState = &triangleInputAssembly,
+        .pViewportState = &viewportState,
+        .pRasterizationState = &fillRasterizer,
+        .pMultisampleState = &multisampling,
+        .pColorBlendState = &colorBlending,
+        .pDynamicState = &dynamicState,
+        .layout = vkState.pipelineLayout,
+        .renderPass = vkState.renderPass,
+        .subpass = 0,
+        .basePipelineHandle = null,
+        .pNext = null,
+    };
+    if (vk.vkCreateGraphicsPipelines.?(vkState.logicalDevice, null, 1, &pipelineInfoTrianglesSubpass0, null, &vkState.graphicsPipelines.triangleSubpass0) != vk.VK_SUCCESS) return error.createGraphicsPipeline0;
 }

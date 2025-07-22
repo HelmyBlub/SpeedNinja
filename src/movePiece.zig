@@ -2,6 +2,7 @@ const std = @import("std");
 const main = @import("main.zig");
 const ninjaDogVulkanZig = @import("vulkan/ninjaDogVulkan.zig");
 const soundMixerZig = @import("soundMixer.zig");
+const shopZig = @import("shop.zig");
 
 pub const MovePiece = struct {
     steps: []const MoveStep,
@@ -108,6 +109,9 @@ pub fn tickPlayerMovePiece(player: *main.Player, state: *main.GameState) !void {
         try stepAndCheckEnemyHit(player, step.stepCount, direction, getStepDirection(direction), state);
         if (player.executeMovePiece == null) {
             ninjaDogVulkanZig.moveHandToCenter(player, state);
+            if (state.gamePhase == .shopping) {
+                try shopZig.executeShopActionForPlayer(player, state);
+            }
         }
     }
 }
