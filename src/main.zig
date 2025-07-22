@@ -18,8 +18,9 @@ pub const GameState = struct {
     round: u32 = 1,
     roundEndTimeMS: i64 = 30_000,
     mapTileRadius: u32 = BASE_MAP_TILE_RADIUS,
-    enemies: std.ArrayList(enemyZig.Enemy),
-    enemyDeath: std.ArrayList(EnemyDeathAnimation),
+    enemies: std.ArrayList(enemyZig.Enemy) = undefined,
+    enemyDeath: std.ArrayList(enemyZig.EnemyDeathAnimation) = undefined,
+    enemySpawnData: enemyZig.EnemySpawnData = undefined,
     players: std.ArrayList(Player),
     highscore: u32 = 0,
     lastScore: u32 = 0,
@@ -39,19 +40,13 @@ pub const Player = struct {
     paintData: ninjaDogVulkanZig.NinjaDogPaintData = .{},
     animateData: ninjaDogVulkanZig.NinjaDogAnimationStateData = .{},
     slashedLastMoveTile: bool = false,
+    hp: u32 = 1,
 };
 
 pub const AfterImage = struct {
     paintData: ninjaDogVulkanZig.NinjaDogPaintData,
     position: Position,
     deleteTime: i64,
-};
-
-pub const EnemyDeathAnimation = struct {
-    position: Position,
-    deathTime: i64,
-    cutAngle: f32,
-    force: f32,
 };
 
 pub const Position: type = struct {
@@ -110,7 +105,17 @@ fn mainLoop(state: *GameState) !void {
 }
 
 fn shouldRestart(state: *GameState) bool {
-    return (state.round > 1 and state.roundEndTimeMS < state.gameTime) or allPlayerOutOfMoveOptions(state);
+    if (state.round > 1 and state.roundEndTimeMS < state.gameTime) return true;
+    if (allPlayerOutOfMoveOptions(state)) return true;
+    if (allPlayerNoHp(state)) return true;
+    return false;
+}
+
+fn allPlayerNoHp(state: *GameState) bool {
+    for (state.players.items) |player| {
+        if (player.hp > 0) return false;
+    }
+    return true;
 }
 
 fn allPlayerOutOfMoveOptions(state: *GameState) bool {
@@ -129,6 +134,7 @@ pub fn restart(state: *GameState) !void {
     state.gameTime = 0;
     adjustZoom(state);
     for (state.players.items) |*player| {
+        player.hp = 1;
         player.position.x = 0;
         player.position.y = 0;
         player.afterImages.clearRetainingCapacity();
@@ -155,11 +161,10 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
     state.* = .{
         .movePieces = movePieceZig.createMovePieces(),
         .players = std.ArrayList(Player).init(allocator),
-        .enemyDeath = std.ArrayList(EnemyDeathAnimation).init(allocator),
-        .enemies = std.ArrayList(enemyZig.Enemy).init(allocator),
     };
     state.allocator = allocator;
     try state.players.append(createPlayer(allocator));
+    try enemyZig.initEnemy(state);
     try windowSdlZig.initWindowSdl();
     try initVulkanZig.initVulkan(state);
     try movePieceZig.setupMovePieces(&state.players.items[0], state);
@@ -190,8 +195,7 @@ fn destroyGameState(state: *GameState) void {
         player.afterImages.deinit();
     }
     state.players.deinit();
-    state.enemyDeath.deinit();
-    state.enemies.deinit();
+    enemyZig.destroyEnemy(state);
 }
 
 pub fn calculateDistance(pos1: Position, pos2: Position) f32 {

@@ -6,6 +6,7 @@ const imageZig = @import("../image.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 const dataVulkanZig = @import("dataVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
+const enemyZig = @import("../enemy.zig");
 
 const DEATH_DURATION = 3000;
 
@@ -79,7 +80,7 @@ fn createVertexBuffer(vkState: *initVulkanZig.VkState, allocator: std.mem.Alloca
     );
 }
 
-fn setupVerticesForEnemyDeath(enemyDeath: main.EnemyDeathAnimation, state: *main.GameState) void {
+fn setupVerticesForEnemyDeath(enemyDeath: enemyZig.EnemyDeathAnimation, state: *main.GameState) void {
     const halfSize = main.TILESIZE / 2;
     const normal: main.Position = .{ .x = @cos(enemyDeath.cutAngle), .y = @sin(enemyDeath.cutAngle) };
     const corners: [4]main.Position = [4]main.Position{
@@ -146,7 +147,7 @@ fn setupVerticesForEnemyDeath(enemyDeath: main.EnemyDeathAnimation, state: *main
     addTriangle(.{ positionsNegative[0], positionsNegative[2], positionsNegative[3] }, enemyDeath, offsetX, offsetY, centerOfRotateNegative, state);
 }
 
-fn calculateOffsetY(enemyDeath: main.EnemyDeathAnimation, state: *main.GameState) f32 {
+fn calculateOffsetY(enemyDeath: enemyZig.EnemyDeathAnimation, state: *main.GameState) f32 {
     const iterations: f32 = @as(f32, @floatFromInt(@abs(state.gameTime - enemyDeath.deathTime))) / 8;
     const velocity = enemyDeath.force;
     const changePerIteration = 0.01;
@@ -155,7 +156,7 @@ fn calculateOffsetY(enemyDeath: main.EnemyDeathAnimation, state: *main.GameState
     return -avgVelocity * iterations / 2;
 }
 
-fn addTriangle(points: [3]main.Position, enemyDeath: main.EnemyDeathAnimation, offsetX: f32, offsetY: f32, rotateCenter: main.Position, state: *main.GameState) void {
+fn addTriangle(points: [3]main.Position, enemyDeath: enemyZig.EnemyDeathAnimation, offsetX: f32, offsetY: f32, rotateCenter: main.Position, state: *main.GameState) void {
     const alpha = 1 - @as(f32, @floatFromInt(state.gameTime - enemyDeath.deathTime)) / DEATH_DURATION;
     const rotate: f32 = @as(f32, @floatFromInt(state.gameTime - enemyDeath.deathTime)) / 512 * enemyDeath.force;
     const halfSize = main.TILESIZE / 2;

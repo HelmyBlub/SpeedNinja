@@ -1,12 +1,6 @@
 Tasks:
 - enemies
     - attacking tree
-        - attacks every x seconds in one random direction one tile far
-            - continue: player hit check and and restart when hit
-            - visualize attack time and direction to player
-                - color tile which will be attacked
-                - fill amount visualizes time when it will happen
-                - icon on tile will visualize it is damage
 
 
 Next ideas:
@@ -40,6 +34,7 @@ Next ideas:
     - enemy which attacks when player adjacent
     - enemy which trows projectile when player in view
         - projectiles moves in intervals one tile
+        - player can deflect projectile, which than damages enemies (weapon upgrade?)
     - enemy places damaging tile and moves one tile
     - enemy moves one tile which is also attack move
     - enemy moves with always the same move piece which is also an attack (like player) 
