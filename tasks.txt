@@ -1,13 +1,23 @@
 Tasks:
-- enemies
-    - attacking tree
+- rounds and levels
+    - rounds -> enemy counter up
+        - finished rounds gives money
+    - levels -> enemy difficulty up
+        - new randomized enemies
+        - but enemies consitent over the same run
+- shopping phase
+    - spend money for piece changes
+    - shopping phase should work with multiple players
 
 
 Next ideas:
 - something which makes player stronger over time, but better player get stronger faster
     - round = spawn enemies and increases once all enemies are defeated
     - level = start level 0, once time is up, shop phase starts, level goes up by 1
+        - 100 levels, each 10 level a boss
+            - boss needs more than 1 hit
     - give player 1 minute after first kill
+        - each finished round gives 5 seconds
     - each round finished gives money
 
     - money can be spent after times up
@@ -55,4 +65,8 @@ Next ideas:
         - can only use each pice once
         - no time limit, but piece limit
     - only one piece and copies of it
+    - chunky enemies: more hp -> no/easier attack pattens
+
+- early end level
+    - when round x reached, make tile to finish so player can progress faster, although less money
 

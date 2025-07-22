@@ -11,7 +11,14 @@ pub const EnemyType = enum {
 pub const EnemyTypeAttackData = struct {
     delay: i64,
     direction: u8,
-    startTime: i64,
+    startTime: ?i64 = null,
+};
+
+const EnemyTypeSpawnLevelData = struct {
+    enemyType: EnemyType,
+    startingLevel: u32,
+    leavingLevel: u32,
+    baseProbability: f32,
 };
 
 pub const EnemyTypeData = union(EnemyType) {
@@ -43,19 +50,28 @@ pub const EnemyDeathAnimation = struct {
     force: f32,
 };
 
+const ENEMY_TYPE_SPAWN_LEVEL_DATA = [_]EnemyTypeSpawnLevelData{
+    .{ .baseProbability = 1, .enemyType = .nothing, .startingLevel = 1, .leavingLevel = 20 },
+    .{ .baseProbability = 10, .enemyType = .attack, .startingLevel = 2, .leavingLevel = 40 },
+};
+
 pub fn tickEnemies(state: *main.GameState) !void {
     const enemies = &state.enemies;
     for (enemies.items) |*enemy| {
         switch (enemy.enemyTypeData) {
             .nothing => {},
             .attack => |*data| {
-                if (data.startTime + data.delay < state.gameTime) {
-                    const stepDirection = movePieceZig.getStepDirection(data.direction);
-                    const hitPosition: main.Position = .{
-                        .x = enemy.position.x + stepDirection.x * main.TILESIZE,
-                        .y = enemy.position.y + stepDirection.y * main.TILESIZE,
-                    };
-                    checkPlayerHit(hitPosition, state);
+                if (data.startTime) |startTime| {
+                    if (startTime + data.delay < state.gameTime) {
+                        const stepDirection = movePieceZig.getStepDirection(data.direction);
+                        const hitPosition: main.Position = .{
+                            .x = enemy.position.x + stepDirection.x * main.TILESIZE,
+                            .y = enemy.position.y + stepDirection.y * main.TILESIZE,
+                        };
+                        checkPlayerHit(hitPosition, state);
+                        data.startTime = null;
+                    }
+                } else {
                     data.startTime = state.gameTime;
                     data.direction = std.crypto.random.int(u2);
                 }
@@ -68,24 +84,69 @@ pub fn initEnemy(state: *main.GameState) !void {
     state.enemyDeath = std.ArrayList(EnemyDeathAnimation).init(state.allocator);
     state.enemies = std.ArrayList(Enemy).init(state.allocator);
     state.enemySpawnData.enemyEntries = std.ArrayList(EnemySpawnEntry).init(state.allocator);
-    try state.enemySpawnData.enemyEntries.append(EnemySpawnEntry{
-        .enemy = .{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_EVIL_TREE, .position = .{ .x = 0, .y = 0 } },
-        .probability = 1,
-    });
-    try state.enemySpawnData.enemyEntries.append(EnemySpawnEntry{
-        .enemy = .{
-            .imageIndex = imageZig.IMAGE_EVIL_TREE,
-            .position = .{ .x = 0, .y = 0 },
-            .enemyTypeData = .{
-                .attack = .{
-                    .delay = 5000,
-                    .direction = std.crypto.random.int(u2),
-                    .startTime = state.gameTime,
-                },
-            },
+    try setupSpawnEnemiesOnLevelChange(state);
+}
+
+fn createSpawnEnemyEntryEnemy(enemyType: EnemyType) Enemy {
+    switch (enemyType) {
+        .nothing => {
+            return .{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_EVIL_TREE, .position = .{ .x = 0, .y = 0 } };
         },
-        .probability = 0.5,
-    });
+        .attack => {
+            return .{
+                .imageIndex = imageZig.IMAGE_EVIL_TREE,
+                .position = .{ .x = 0, .y = 0 },
+                .enemyTypeData = .{
+                    .attack = .{
+                        .delay = 5000,
+                        .direction = std.crypto.random.int(u2),
+                    },
+                },
+            };
+        },
+    }
+}
+
+pub fn setupSpawnEnemiesOnLevelChange(state: *main.GameState) !void {
+    if (state.level == 1) {
+        state.enemySpawnData.enemyEntries.clearRetainingCapacity();
+    }
+    for (ENEMY_TYPE_SPAWN_LEVEL_DATA) |data| {
+        if (data.startingLevel == state.level) {
+            try state.enemySpawnData.enemyEntries.append(.{ .probability = 1, .enemy = createSpawnEnemyEntryEnemy(data.enemyType) });
+        }
+        if (data.leavingLevel == state.level) {
+            for (state.enemySpawnData.enemyEntries.items, 0..) |entry, index| {
+                if (entry.enemy.enemyTypeData == data.enemyType) {
+                    _ = state.enemySpawnData.enemyEntries.swapRemove(index);
+                    break;
+                }
+            }
+        }
+    }
+    scaleEnemiesToLevel(state);
+}
+
+fn scaleEnemiesToLevel(state: *main.GameState) void {
+    var levelDependentProbability: f32 = 0;
+    var baseProbability: f32 = 0;
+    var enemyLevel: u32 = 0;
+    for (state.enemySpawnData.enemyEntries.items) |*entry| {
+        for (ENEMY_TYPE_SPAWN_LEVEL_DATA) |data| {
+            if (entry.enemy.enemyTypeData == data.enemyType) {
+                baseProbability = data.baseProbability;
+                const levelRangeHalved = @divFloor(data.leavingLevel - data.startingLevel, 2);
+                enemyLevel = state.level - data.startingLevel;
+                if (levelRangeHalved > enemyLevel) {
+                    levelDependentProbability = @min(0.1, @as(f32, @floatFromInt(enemyLevel)) / @as(f32, @floatFromInt(levelRangeHalved)));
+                } else {
+                    levelDependentProbability = @min(0.1, 2 - @as(f32, @floatFromInt(enemyLevel)) / @as(f32, @floatFromInt(levelRangeHalved)));
+                }
+                break;
+            }
+        }
+        entry.probability = baseProbability * levelDependentProbability;
+    }
     calcAndSetEnemySpawnProbabilities(&state.enemySpawnData);
 }
 
@@ -110,7 +171,9 @@ pub fn setupEnemies(state: *main.GameState) !void {
     enemies.clearRetainingCapacity();
     const rand = std.crypto.random;
     const length: f32 = @floatFromInt(state.mapTileRadius * 2 + 1);
-    const enemyCount = state.round;
+    const enemyCount = state.round + @min(10, state.level - 1);
+    state.mapTileRadius = main.BASE_MAP_TILE_RADIUS + @as(u32, @intFromFloat(@sqrt(@as(f32, @floatFromInt(enemyCount)))));
+
     while (enemies.items.len < enemyCount) {
         const randomTileX: i16 = @as(i16, @intFromFloat(rand.float(f32) * length - length / 2));
         const randomTileY: i16 = @as(i16, @intFromFloat(rand.float(f32) * length - length / 2));

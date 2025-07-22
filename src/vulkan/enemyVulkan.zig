@@ -24,13 +24,15 @@ fn setupVertices(state: *main.GameState) !void {
         switch (enemy.enemyTypeData) {
             .nothing => {},
             .attack => |data| {
-                const moveStep = movePieceZig.getStepDirection(data.direction);
-                const attackPosition: main.Position = .{
-                    .x = enemy.position.x + moveStep.x * main.TILESIZE,
-                    .y = enemy.position.y + moveStep.y * main.TILESIZE,
-                };
-                const fillPerCent: f32 = @min(1, @max(0, @as(f32, @floatFromInt(state.gameTime - data.startTime)) / @as(f32, @floatFromInt(data.delay))));
-                addWarningTileSprites(attackPosition, moveStep, fillPerCent, state);
+                if (data.startTime) |startTime| {
+                    const moveStep = movePieceZig.getStepDirection(data.direction);
+                    const attackPosition: main.Position = .{
+                        .x = enemy.position.x + moveStep.x * main.TILESIZE,
+                        .y = enemy.position.y + moveStep.y * main.TILESIZE,
+                    };
+                    const fillPerCent: f32 = @min(1, @max(0, @as(f32, @floatFromInt(state.gameTime - startTime)) / @as(f32, @floatFromInt(data.delay))));
+                    addWarningTileSprites(attackPosition, moveStep, fillPerCent, state);
+                }
             },
         }
     }

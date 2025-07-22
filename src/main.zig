@@ -16,6 +16,7 @@ pub const GameState = struct {
     movePieces: []const movePieceZig.MovePiece,
     gameTime: i64 = 0,
     round: u32 = 1,
+    level: u32 = 1,
     roundEndTimeMS: i64 = 30_000,
     mapTileRadius: u32 = BASE_MAP_TILE_RADIUS,
     enemies: std.ArrayList(enemyZig.Enemy) = undefined,
@@ -40,6 +41,7 @@ pub const Player = struct {
     paintData: ninjaDogVulkanZig.NinjaDogPaintData = .{},
     animateData: ninjaDogVulkanZig.NinjaDogAnimationStateData = .{},
     slashedLastMoveTile: bool = false,
+    money: u32 = 0,
     hp: u32 = 1,
 };
 
@@ -80,13 +82,10 @@ fn mainLoop(state: *GameState) !void {
     var passedTime: i64 = 0;
     while (!state.gameEnded) {
         if (state.enemies.items.len == 0) {
-            state.roundEndTimeMS = state.gameTime + 30_000;
-            state.round += 1;
-            state.mapTileRadius = BASE_MAP_TILE_RADIUS + @as(u32, @intFromFloat(@sqrt(@as(f32, @floatFromInt(state.round)))));
-            adjustZoom(state);
-            try enemyZig.setupEnemies(state);
-        }
-        if (shouldRestart(state)) {
+            try startNextRound(state);
+        } else if (shouldStartNextLevel(state)) {
+            try startNextLevel(state);
+        } else if (shouldRestart(state)) {
             try restart(state);
         }
         try windowSdlZig.handleEvents(state);
@@ -104,8 +103,31 @@ fn mainLoop(state: *GameState) !void {
     }
 }
 
-fn shouldRestart(state: *GameState) bool {
+fn startNextRound(state: *GameState) !void {
+    state.roundEndTimeMS = state.gameTime + 30_000;
+    if (state.round > 0) {
+        for (state.players.items) |*player| {
+            player.money += state.level;
+        }
+    }
+    state.round += 1;
+    try enemyZig.setupEnemies(state);
+    adjustZoom(state);
+}
+
+fn startNextLevel(state: *GameState) !void {
+    state.level += 1;
+    state.round = 0;
+    try startNextRound(state);
+    try enemyZig.setupSpawnEnemiesOnLevelChange(state);
+}
+
+fn shouldStartNextLevel(state: *GameState) bool {
     if (state.round > 1 and state.roundEndTimeMS < state.gameTime) return true;
+    return false;
+}
+
+fn shouldRestart(state: *GameState) bool {
     if (allPlayerOutOfMoveOptions(state)) return true;
     if (allPlayerNoHp(state)) return true;
     return false;
@@ -129,12 +151,13 @@ fn allPlayerOutOfMoveOptions(state: *GameState) bool {
 pub fn restart(state: *GameState) !void {
     state.lastScore = state.round;
     if (state.round > state.highscore) state.highscore = state.round;
+    state.level = 1;
     state.round = 1;
     state.mapTileRadius = BASE_MAP_TILE_RADIUS;
     state.gameTime = 0;
-    adjustZoom(state);
     for (state.players.items) |*player| {
         player.hp = 1;
+        player.money = 0;
         player.position.x = 0;
         player.position.y = 0;
         player.afterImages.clearRetainingCapacity();
@@ -145,7 +168,9 @@ pub fn restart(state: *GameState) !void {
     }
 
     state.enemyDeath.clearRetainingCapacity();
+    try enemyZig.setupSpawnEnemiesOnLevelChange(state);
     try enemyZig.setupEnemies(state);
+    adjustZoom(state);
 }
 
 pub fn adjustZoom(state: *GameState) void {

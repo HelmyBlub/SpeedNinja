@@ -93,6 +93,8 @@ pub fn handleEvents(state: *main.GameState) !void {
                     setMoveOptionIndex(player, 1, state);
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_3) {
                     setMoveOptionIndex(player, 2, state);
+                } else if (event.key.scancode == sdl.SDL_SCANCODE_F1) {
+                    state.gameTime += 29_000;
                 }
             }
         }
