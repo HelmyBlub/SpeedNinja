@@ -28,18 +28,18 @@ pub fn setupVertices(state: *main.GameState) !void {
     shopUx.sprites.verticeCount = 0;
     shopUx.font.verticeCount = 0;
     if (state.gamePhase != .shopping) return;
-
+    paintGrid(&state.players.items[0], state);
     const player0ShopPos = state.players.items[0].shop.pieceShopTopLeft;
     for (shopZig.SHOP_BUTTONS) |shopButton| {
-        const nextLevelTile: main.Position = .{
+        const shopButtonGamePosition: main.Position = .{
             .x = @floatFromInt((player0ShopPos.x + shopButton.tileOffset.x) * main.TILESIZE),
             .y = @floatFromInt((player0ShopPos.y + shopButton.tileOffset.y) * main.TILESIZE),
         };
         if (shopButton.option != .none and shopButton.option == state.players.items[0].shop.selectedOption) {
-            rectangleForTile(nextLevelTile, .{ 0, 0, 1 }, shopUx, state);
+            rectangleForTile(shopButtonGamePosition, .{ 0, 0, 1 }, shopUx, false, state);
         }
         shopUx.sprites.vertices[shopUx.sprites.verticeCount] = .{
-            .pos = .{ nextLevelTile.x, nextLevelTile.y },
+            .pos = .{ shopButtonGamePosition.x, shopButtonGamePosition.y },
             .imageIndex = shopButton.imageIndex,
             .size = main.TILESIZE,
             .rotate = shopButton.imageRotate,
@@ -51,7 +51,67 @@ pub fn setupVertices(state: *main.GameState) !void {
     try setupVertexDataForGPU(&state.vkState);
 }
 
-fn rectangleForTile(gamePosition: main.Position, fillColor: [3]f32, shopUx: *VkShopUx, state: *main.GameState) void {
+fn paintGrid(player: *main.Player, state: *main.GameState) void {
+    const shopUx = &state.vkState.shopUx;
+
+    const player0ShopPos = player.shop.pieceShopTopLeft;
+    const gridGameTopLeft: main.Position = .{
+        .x = @floatFromInt((player0ShopPos.x + shopZig.GRID_OFFSET.x) * main.TILESIZE),
+        .y = @floatFromInt((player0ShopPos.y + shopZig.GRID_OFFSET.y) * main.TILESIZE),
+    };
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const size = main.TILESIZE * shopZig.GRID_SIZE;
+
+    const vulkan: main.Position = .{
+        .x = (-state.camera.position.x + gridGameTopLeft.x) * state.camera.zoom * onePixelXInVulkan,
+        .y = (-state.camera.position.y + gridGameTopLeft.y) * state.camera.zoom * onePixelYInVulkan,
+    };
+    const halveVulkanTileSizeX = main.TILESIZE * onePixelXInVulkan * state.camera.zoom / 2;
+    const halveVulkanTileSizeY = main.TILESIZE * onePixelYInVulkan * state.camera.zoom / 2;
+    const width = size * onePixelXInVulkan * state.camera.zoom;
+    const height = size * onePixelYInVulkan * state.camera.zoom;
+    const left = vulkan.x - halveVulkanTileSizeX;
+    const top = vulkan.y - halveVulkanTileSizeY;
+
+    const triangles = &shopUx.triangles;
+    const fillColor: [3]f32 = .{ 1, 1, 1 };
+    triangles.vertices[triangles.verticeCount] = .{ .pos = .{ left, top }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount + 2] = .{ .pos = .{ left, top + height }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount + 3] = .{ .pos = .{ left, top }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount + 4] = .{ .pos = .{ left + width, top }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount + 5] = .{ .pos = .{ left + width, top + height }, .color = fillColor };
+    triangles.verticeCount += 6;
+
+    paintMovePieceInGrid(player, gridGameTopLeft, state);
+}
+
+fn paintMovePieceInGrid(player: *main.Player, gridGameTopLeft: main.Position, state: *main.GameState) void {
+    const shopUx = &state.vkState.shopUx;
+    if (player.shop.gridDisplayPiece == null) return;
+    const gridDisplayPiece = player.shop.gridDisplayPiece.?;
+    var x: i8 = 4;
+    var y: i8 = 4;
+    rectangleForTile(.{
+        .x = gridGameTopLeft.x + @as(f32, @floatFromInt(x)) * main.TILESIZE,
+        .y = gridGameTopLeft.y + @as(f32, @floatFromInt(y)) * main.TILESIZE,
+    }, .{ 0, 0, 1 }, shopUx, true, state);
+    for (gridDisplayPiece.steps) |step| {
+        const stepX: i8 = if (step.direction == 0) 1 else if (step.direction == 2) -1 else 0;
+        const stepY: i8 = if (step.direction == 1) 1 else if (step.direction == 3) -1 else 0;
+        for (0..step.stepCount) |_| {
+            x += stepX;
+            y += stepY;
+            rectangleForTile(.{
+                .x = gridGameTopLeft.x + @as(f32, @floatFromInt(x)) * main.TILESIZE,
+                .y = gridGameTopLeft.y + @as(f32, @floatFromInt(y)) * main.TILESIZE,
+            }, .{ 0.25, 0.25, 0.25 }, shopUx, true, state);
+        }
+    }
+}
+
+fn rectangleForTile(gamePosition: main.Position, fillColor: [3]f32, shopUx: *VkShopUx, withOutline: bool, state: *main.GameState) void {
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const size = main.TILESIZE;
@@ -73,6 +133,19 @@ fn rectangleForTile(gamePosition: main.Position, fillColor: [3]f32, shopUx: *VkS
     triangles.vertices[triangles.verticeCount + 4] = .{ .pos = .{ left + width, top }, .color = fillColor };
     triangles.vertices[triangles.verticeCount + 5] = .{ .pos = .{ left + width, top + height }, .color = fillColor };
     triangles.verticeCount += 6;
+    if (withOutline) {
+        const borderColor: [3]f32 = .{ 0, 0, 0 };
+        const lines = &shopUx.lines;
+        lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = borderColor };
+        lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top }, .color = borderColor };
+        lines.vertices[lines.verticeCount + 2] = .{ .pos = .{ left, top }, .color = borderColor };
+        lines.vertices[lines.verticeCount + 3] = .{ .pos = .{ left, top + height }, .color = borderColor };
+        lines.vertices[lines.verticeCount + 4] = .{ .pos = .{ left + width, top }, .color = borderColor };
+        lines.vertices[lines.verticeCount + 5] = .{ .pos = .{ left + width, top + height }, .color = borderColor };
+        lines.vertices[lines.verticeCount + 6] = .{ .pos = .{ left, top + height }, .color = borderColor };
+        lines.vertices[lines.verticeCount + 7] = .{ .pos = .{ left + width, top + height }, .color = borderColor };
+        lines.verticeCount += 8;
+    }
 }
 
 pub fn create(state: *main.GameState) !void {

@@ -201,7 +201,7 @@ pub fn setupVertices(state: *main.GameState) !void {
     const fontSize = 30;
     const player = state.players.items[0];
     const remainingPieces = player.availableMovePieces.items.len + player.moveOptions.items.len;
-    const totalPieces = remainingPieces + player.usedMovePieces.items.len;
+    const totalPieces = player.totalMovePieces.items.len;
     var textWidthPieces = try fontVulkanZig.paintNumber(remainingPieces, .{ .x = 0.5, .y = 0.8 }, fontSize, &movePieceUx.font);
     textWidthPieces += fontVulkanZig.paintText(":", .{ .x = 0.5 + textWidthPieces, .y = 0.8 }, fontSize, &movePieceUx.font);
     _ = try fontVulkanZig.paintNumber(totalPieces, .{ .x = 0.5 + textWidthPieces, .y = 0.8 }, fontSize, &movePieceUx.font);

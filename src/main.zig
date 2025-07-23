@@ -43,7 +43,7 @@ pub const Player = struct {
     afterImages: std.ArrayList(AfterImage),
     choosenMoveOptionIndex: ?usize = null,
     moveOptions: std.ArrayList(movePieceZig.MovePiece),
-    usedMovePieces: std.ArrayList(movePieceZig.MovePiece),
+    totalMovePieces: std.ArrayList(movePieceZig.MovePiece),
     availableMovePieces: std.ArrayList(movePieceZig.MovePiece),
     paintData: ninjaDogVulkanZig.NinjaDogPaintData = .{},
     animateData: ninjaDogVulkanZig.NinjaDogAnimationStateData = .{},
@@ -227,7 +227,7 @@ fn createPlayer(allocator: std.mem.Allocator) Player {
     return .{
         .moveOptions = std.ArrayList(movePieceZig.MovePiece).init(allocator),
         .availableMovePieces = std.ArrayList(movePieceZig.MovePiece).init(allocator),
-        .usedMovePieces = std.ArrayList(movePieceZig.MovePiece).init(allocator),
+        .totalMovePieces = std.ArrayList(movePieceZig.MovePiece).init(allocator),
         .afterImages = std.ArrayList(AfterImage).init(allocator),
     };
 }
@@ -241,7 +241,7 @@ fn destroyGameState(state: *GameState) void {
     for (state.players.items) |player| {
         player.moveOptions.deinit();
         player.availableMovePieces.deinit();
-        player.usedMovePieces.deinit();
+        player.totalMovePieces.deinit();
         player.afterImages.deinit();
     }
     state.players.deinit();

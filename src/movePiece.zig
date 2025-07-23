@@ -26,16 +26,15 @@ pub fn setRandomMovePiece(player: *main.Player, index: usize) !void {
         if (player.moveOptions.items.len <= index) {
             try player.moveOptions.append(randomPiece);
         } else {
-            try player.usedMovePieces.append(player.moveOptions.items[index]);
             player.moveOptions.items[index] = randomPiece;
         }
     } else if (player.moveOptions.items.len > index) {
-        const removedPiece = player.moveOptions.swapRemove(index);
-        try player.usedMovePieces.append(removedPiece);
+        _ = player.moveOptions.swapRemove(index);
     }
 }
 
 pub fn setupMovePieces(player: *main.Player, state: *main.GameState) !void {
+    try player.totalMovePieces.appendSlice(state.movePieces);
     try player.availableMovePieces.appendSlice(state.movePieces);
     try setRandomMovePiece(player, 0);
     try setRandomMovePiece(player, 1);
@@ -139,11 +138,28 @@ pub fn movePlayerByMovePiece(player: *main.Player, movePieceIndex: usize, direct
 }
 
 pub fn resetPieces(player: *main.Player) !void {
-    try player.availableMovePieces.appendSlice(player.usedMovePieces.items);
-    player.usedMovePieces.clearRetainingCapacity();
+    player.availableMovePieces.clearRetainingCapacity();
+    try player.availableMovePieces.appendSlice(player.totalMovePieces.items);
+    for (player.moveOptions.items) |moveOption| {
+        for (player.availableMovePieces.items, 0..) |piece, index| {
+            if (areSameMovePieces(moveOption, piece)) {
+                _ = player.availableMovePieces.swapRemove(index);
+                break;
+            }
+        }
+    }
     while (player.moveOptions.items.len < 3) {
         try setRandomMovePiece(player, 3);
     }
+}
+
+pub fn areSameMovePieces(movePiece1: MovePiece, movePiece2: MovePiece) bool {
+    if (movePiece1.steps.len != movePiece2.steps.len) return false;
+    for (movePiece1.steps, movePiece2.steps) |stepA, stepB| {
+        if (stepA.direction != stepB.direction) return false;
+        if (stepA.stepCount != stepB.stepCount) return false;
+    }
+    return true;
 }
 
 fn checkEnemyHitOnMoveStep(player: *main.Player, stepAmount: f32, direction: u8, state: *main.GameState) !bool {

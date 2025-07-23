@@ -14,7 +14,9 @@ const ShopOptionData = union(ShopOption) {
     add: struct {
         selectedIndex: usize,
     },
-    delete,
+    delete: struct {
+        selectedIndex: usize,
+    },
 };
 
 pub const ShopButton = struct {
@@ -25,10 +27,8 @@ pub const ShopButton = struct {
     execute: *const fn (player: *main.Player, state: *main.GameState) anyerror!void,
 };
 
-pub const LEFT_BUTTON_OFFSET: main.TilePosition = .{ .x = 0, .y = GRID_SIZE / 2 };
 pub const GRID_SIZE = 8;
 pub const GRID_OFFSET: main.TilePosition = .{ .x = 1, .y = 1 };
-pub const RIGHT_BUTTON_OFFSET: main.TilePosition = .{ .x = GRID_SIZE + 2, .y = GRID_SIZE / 2 };
 
 pub const ShopPlayerData = struct {
     piecesToBuy: [3]?movePieceZig.MovePiece = [3]?movePieceZig.MovePiece{ null, null, null },
@@ -85,20 +85,35 @@ pub fn executeShopActionForPlayer(player: *main.Player, state: *main.GameState) 
 
 pub fn executeArrowRight(player: *main.Player, state: *main.GameState) !void {
     _ = state;
-    _ = player;
     std.debug.print("shop arrow right\n", .{});
+    switch (player.shop.selectedOption) {
+        .delete => |*data| {
+            data.selectedIndex = @min(data.selectedIndex + 1, player.totalMovePieces.items.len - 1);
+            player.shop.gridDisplayPiece = player.totalMovePieces.items[data.selectedIndex];
+        },
+        .add => {},
+        .none => {},
+    }
 }
 
 pub fn executeArrowLeft(player: *main.Player, state: *main.GameState) !void {
     _ = state;
-    _ = player;
     std.debug.print("shop arrow left\n", .{});
+    switch (player.shop.selectedOption) {
+        .delete => |*data| {
+            data.selectedIndex = data.selectedIndex -| 1;
+            player.shop.gridDisplayPiece = player.totalMovePieces.items[data.selectedIndex];
+        },
+        .add => {},
+        .none => {},
+    }
 }
 
 pub fn executeDeletePiece(player: *main.Player, state: *main.GameState) !void {
     _ = state;
     std.debug.print("shop delete\n", .{});
-    player.shop.selectedOption = .delete;
+    player.shop.selectedOption = .{ .delete = .{ .selectedIndex = 0 } };
+    player.shop.gridDisplayPiece = player.totalMovePieces.items[0];
 }
 
 pub fn executeAddPiece(player: *main.Player, state: *main.GameState) !void {
