@@ -34,28 +34,28 @@ void main(void)
     center[3] = 1;
 
     // top-left vertex
-    rotatedOffset = rotateAroundPoint(vec2(-size, -size * (1 - cutY[0] * 2)), vec2(0, 8), rotate[0]) * scale[0] / zoom;
+    rotatedOffset = rotateAroundPoint(vec2(-size, -size * (1 - cutY[0] * 2)), vec2(0, 0), rotate[0]) * scale[0] / zoom;
     gl_Position = center + vec4(rotatedOffset, 0.0, 0.0);
     fragTexCoord = vec2(0.0, cutY[0]);
     spriteIndex = inSpriteIndex[0];
     EmitVertex();
 
     // top-right vertex
-    rotatedOffset = rotateAroundPoint(vec2(size, -size * (1 - cutY[0] * 2)), vec2(0, 8), rotate[0]) * scale[0] / zoom;
+    rotatedOffset = rotateAroundPoint(vec2(size, -size * (1 - cutY[0] * 2)), vec2(0, 0), rotate[0]) * scale[0] / zoom;
     gl_Position = center + vec4(rotatedOffset, 0.0, 0.0);
     fragTexCoord = vec2(1.0, cutY[0]);
     spriteIndex = inSpriteIndex[0];
     EmitVertex();
 
     // bottom-left vertex
-    rotatedOffset = rotateAroundPoint(vec2(-size, size), vec2(0, 8), rotate[0]) * scale[0] / zoom;
+    rotatedOffset = rotateAroundPoint(vec2(-size, size), vec2(0, 0), rotate[0]) * scale[0] / zoom;
     gl_Position = center + vec4(rotatedOffset, 0.0, 0.0);
     fragTexCoord = vec2(0.0, 1.0);
     spriteIndex = inSpriteIndex[0];
     EmitVertex();
 
     // bottom-right vertex
-    rotatedOffset = rotateAroundPoint(vec2(size, size), vec2(0, 8), rotate[0]) * scale[0] / zoom;
+    rotatedOffset = rotateAroundPoint(vec2(size, size), vec2(0, 0), rotate[0]) * scale[0] / zoom;
     gl_Position = center + vec4(rotatedOffset, 0.0, 0.0);
     fragTexCoord = vec2(1.0, 1.0);
     spriteIndex = inSpriteIndex[0];

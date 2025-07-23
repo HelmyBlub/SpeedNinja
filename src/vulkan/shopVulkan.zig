@@ -29,28 +29,43 @@ pub fn setupVertices(state: *main.GameState) !void {
     shopUx.font.verticeCount = 0;
     if (state.gamePhase != .shopping) return;
 
+    const player0ShopPos = state.players.items[0].shop.pieceShopTopLeft;
+    for (shopZig.SHOP_BUTTONS) |shopButton| {
+        const nextLevelTile: main.Position = .{
+            .x = @floatFromInt((player0ShopPos.x + shopButton.tileOffset.x) * main.TILESIZE),
+            .y = @floatFromInt((player0ShopPos.y + shopButton.tileOffset.y) * main.TILESIZE),
+        };
+        if (shopButton.option != .none and shopButton.option == state.players.items[0].shop.selectedOption) {
+            rectangleForTile(nextLevelTile, .{ 0, 0, 1 }, shopUx, state);
+        }
+        shopUx.sprites.vertices[shopUx.sprites.verticeCount] = .{
+            .pos = .{ nextLevelTile.x, nextLevelTile.y },
+            .imageIndex = shopButton.imageIndex,
+            .size = main.TILESIZE,
+            .rotate = shopButton.imageRotate,
+            .cutY = 0,
+        };
+        shopUx.sprites.verticeCount += 1;
+    }
+
+    try setupVertexDataForGPU(&state.vkState);
+}
+
+fn rectangleForTile(gamePosition: main.Position, fillColor: [3]f32, shopUx: *VkShopUx, state: *main.GameState) void {
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const size = main.TILESIZE;
-    const width = size * onePixelXInVulkan;
-    const height = size * onePixelYInVulkan;
-
-    const player0ShopPos = state.players.items[0].shop.pieceShopTopLeft;
-    const nextLevelTile: main.Position = .{
-        .x = @floatFromInt((player0ShopPos.x + shopZig.START_NEXT_LEVEL_BUTTON_OFFSET.x) * main.TILESIZE),
-        .y = @floatFromInt((player0ShopPos.y + shopZig.START_NEXT_LEVEL_BUTTON_OFFSET.y) * main.TILESIZE),
-    };
 
     const vulkan: main.Position = .{
-        .x = (-state.camera.position.x + nextLevelTile.x) * state.camera.zoom * onePixelXInVulkan,
-        .y = (-state.camera.position.y + nextLevelTile.y) * state.camera.zoom * onePixelYInVulkan,
+        .x = (-state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
+        .y = (-state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
     };
+    const width = size * onePixelXInVulkan * state.camera.zoom;
+    const height = size * onePixelYInVulkan * state.camera.zoom;
+    const left = vulkan.x - width / 2;
+    const top = vulkan.y - height / 2;
 
     const triangles = &shopUx.triangles;
-    const left = vulkan.x;
-    const top = vulkan.y;
-    const fillColor: [3]f32 = .{ 0, 0, 0 };
-    const borderColor: [3]f32 = .{ 1, 1, 1 };
     triangles.vertices[triangles.verticeCount] = .{ .pos = .{ left, top }, .color = fillColor };
     triangles.vertices[triangles.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = fillColor };
     triangles.vertices[triangles.verticeCount + 2] = .{ .pos = .{ left, top + height }, .color = fillColor };
@@ -58,24 +73,6 @@ pub fn setupVertices(state: *main.GameState) !void {
     triangles.vertices[triangles.verticeCount + 4] = .{ .pos = .{ left + width, top }, .color = fillColor };
     triangles.vertices[triangles.verticeCount + 5] = .{ .pos = .{ left + width, top + height }, .color = fillColor };
     triangles.verticeCount += 6;
-
-    const lines = &shopUx.lines;
-    lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = borderColor };
-    lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top }, .color = borderColor };
-    lines.verticeCount += 2;
-
-    // _ = fontVulkanZig.paintText(":", .{ .x = 0.0, .y = 0.1 }, 30, &shopUx.font);
-
-    // shopUx.sprites.vertices[shopUx.sprites.verticeCount] = .{
-    //     .pos = .{ 0.0, 40 },
-    //     .imageIndex = imageZig.IMAGE_BLADE,
-    //     .size = main.TILESIZE,
-    //     .rotate = 0,
-    //     .cutY = 0,
-    // };
-    // shopUx.sprites.verticeCount += 1;
-
-    try setupVertexDataForGPU(&state.vkState);
 }
 
 pub fn create(state: *main.GameState) !void {

@@ -50,7 +50,7 @@ pub const Player = struct {
     slashedLastMoveTile: bool = false,
     money: u32 = 0,
     hp: u32 = 1,
-    shop: shopZig.ShopPlayerData = undefined,
+    shop: shopZig.ShopPlayerData = .{},
 };
 
 pub const AfterImage = struct {
@@ -97,8 +97,8 @@ fn mainLoop(state: *GameState) !void {
         if (state.enemies.items.len == 0 and state.gamePhase == .combat) {
             try startNextRound(state);
         } else if (shouldEndLevel(state)) {
-            // startShoppingPhase(state);
-            try startNextLevel(state);
+            startShoppingPhase(state);
+            // try startNextLevel(state);
         } else if (shouldRestart(state)) {
             try restart(state);
         }

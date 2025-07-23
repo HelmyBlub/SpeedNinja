@@ -1,7 +1,5 @@
 Tasks:
 - shopping phase
-    - enable 1 tile movement in shop
-    - start next level 
     - spend money for piece changes
         - add new movePiece
         - delete movePiece

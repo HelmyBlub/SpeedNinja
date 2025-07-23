@@ -19,7 +19,30 @@ pub const IMAGE_BANDANA_TAIL = 11;
 pub const IMAGE_DOG_TAIL = 12;
 pub const IMAGE_WARNING_TILE = 13;
 pub const IMAGE_WARNING_TILE_FILLED = 14;
+pub const IMAGE_PLUS = 15;
+pub const IMAGE_CUT = 16;
+pub const IMAGE_ARROW_RIGHT = 17;
 
+pub var IMAGE_DATA = [_]ImageData{
+    .{ .path = "images/ninjaDog.png" },
+    .{ .path = "images/whiteRectangle.png" },
+    .{ .path = "images/evilTree.png" },
+    .{ .path = "images/ninjablade.png" },
+    .{ .path = "images/ninjaDogPaw.png" },
+    .{ .path = "images/eyeClosed.png" },
+    .{ .path = "images/eyeLeft.png" },
+    .{ .path = "images/eyeRight.png" },
+    .{ .path = "images/pupilLeft.png" },
+    .{ .path = "images/pupilRight.png" },
+    .{ .path = "images/dogEar.png" },
+    .{ .path = "images/bandanaTail.png" },
+    .{ .path = "images/dogTail.png" },
+    .{ .path = "images/warningTile.png" },
+    .{ .path = "images/warningTileFilled.png" },
+    .{ .path = "images/plus.png" },
+    .{ .path = "images/cut.png" },
+    .{ .path = "images/arrow.png" },
+};
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 
 pub const IMAGE_DOG__EAR_LEFT: main.Position = .{ .x = 68, .y = 31 };
@@ -49,24 +72,6 @@ pub const ImageData = struct {
     path: []const u8,
     width: usize = undefined,
     height: usize = undefined,
-};
-
-pub var IMAGE_DATA = [_]ImageData{
-    .{ .path = "images/ninjaDog.png" },
-    .{ .path = "images/whiteRectangle.png" },
-    .{ .path = "images/evilTree.png" },
-    .{ .path = "images/ninjablade.png" },
-    .{ .path = "images/ninjaDogPaw.png" },
-    .{ .path = "images/eyeClosed.png" },
-    .{ .path = "images/eyeLeft.png" },
-    .{ .path = "images/eyeRight.png" },
-    .{ .path = "images/pupilLeft.png" },
-    .{ .path = "images/pupilRight.png" },
-    .{ .path = "images/dogEar.png" },
-    .{ .path = "images/bandanaTail.png" },
-    .{ .path = "images/dogTail.png" },
-    .{ .path = "images/warningTile.png" },
-    .{ .path = "images/warningTileFilled.png" },
 };
 
 pub fn getImageCenter(imageIndex: usize) main.Position {
