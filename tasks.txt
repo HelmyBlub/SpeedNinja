@@ -1,12 +1,9 @@
 Tasks:
 - shopping phase
     - spend money for piece changes
-        - add new movePiece
+        - split one pice
+            - player can move on shop grid and decide where to split
         
-        - tile based shop. player moves onto tiles to do tile changes
-            - 4x1 grid buttons to change: add, delete, combine, split 
-                - highlight selected
-            - below 5x5 grid to display selected tile, tile <left> <right> button to switch tile
     - shopping phase should work with multiple players
 - random move pieces
     - check that random move pieces can reach any tile and don't lock to certain ones

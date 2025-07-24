@@ -263,3 +263,10 @@ pub fn calculateDistance(pos1: Position, pos2: Position) f32 {
     const diffY = pos1.y - pos2.y;
     return @floatCast(@sqrt(diffX * diffX + diffY * diffY));
 }
+
+pub fn gamePositionToTilePosition(position: Position) TilePosition {
+    return .{
+        .x = @intFromFloat(@floor((position.x + TILESIZE / 2) / TILESIZE)),
+        .y = @intFromFloat(@floor((position.y + TILESIZE / 2) / TILESIZE)),
+    };
+}

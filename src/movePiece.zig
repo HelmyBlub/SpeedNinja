@@ -96,6 +96,114 @@ pub fn tickPlayerMovePiece(player: *main.Player, state: *main.GameState) !void {
     }
 }
 
+pub fn cutTilePositionOnMovePiece(player: *main.Player, cutTile: main.TilePosition, movePieceStartTile: main.TilePosition, movePiece: MovePiece, state: *main.GameState) !void {
+    std.debug.print("{} {} {}\n", .{ cutTile, movePieceStartTile, movePiece });
+    var x = movePieceStartTile.x;
+    var y = movePieceStartTile.y;
+    for (movePiece.steps, 0..) |step, stepIndex| {
+        var left = x;
+        var top = y;
+        var width: i32 = 1;
+        var height: i32 = 1;
+        switch (step.direction) {
+            DIRECTION_RIGHT => {
+                width += step.stepCount;
+                x += step.stepCount;
+            },
+            DIRECTION_DOWN => {
+                height += step.stepCount;
+                y += step.stepCount;
+            },
+            DIRECTION_LEFT => {
+                left -= step.stepCount;
+                width += step.stepCount;
+                x -= step.stepCount;
+            },
+            else => {
+                top -= step.stepCount;
+                height += step.stepCount;
+                y -= step.stepCount;
+            },
+        }
+        if (left < cutTile.x and left + width > cutTile.x and top <= cutTile.y and top + height > cutTile.y) {
+            std.debug.print("found cut\n", .{});
+            var cutStep = @max(cutTile.x - left, cutTile.y - top);
+            if (step.direction == DIRECTION_LEFT) cutStep = width - cutStep;
+            if (step.direction == DIRECTION_UP) cutStep = height - cutStep;
+            if (cutStep == 0) {
+                std.debug.print("should not happen?, movePieceZig cutTilePositionOnMovePiece", .{});
+                return;
+            }
+            const piece1StepCount = if (cutStep > 1) stepIndex + 1 else stepIndex;
+            if (piece1StepCount > 0) {
+                const steps: []MoveStep = try state.allocator.alloc(MoveStep, piece1StepCount);
+                const movePiece1: MovePiece = .{ .steps = steps };
+                for (steps, 0..) |*step1, step1Index| {
+                    step1.direction = step.direction;
+                    if (piece1StepCount - 1 == step1Index) {
+                        step1.stepCount = @intCast(cutStep);
+                    } else {
+                        step1.stepCount = step.stepCount;
+                    }
+                }
+                try addMovePiece(player, movePiece1);
+                std.debug.print("added piece {}\n", .{movePiece1});
+            }
+            // const piece2StepCount = if (cutStep < step.stepCount) movePiece.steps.len - stepIndex  else movePiece.steps.len - stepIndex - 1;
+            return;
+        }
+    }
+}
+
+pub fn isTilePositionOnMovePiece(checkTile: main.TilePosition, movePieceStartTile: main.TilePosition, movePiece: MovePiece, excludeStartPosition: bool) bool {
+    var x = movePieceStartTile.x;
+    var y = movePieceStartTile.y;
+    for (movePiece.steps, 0..) |step, index| {
+        var left = x;
+        var top = y;
+        var width: i32 = 1;
+        var height: i32 = 1;
+        switch (step.direction) {
+            DIRECTION_RIGHT => {
+                width += step.stepCount;
+                x += step.stepCount;
+                if (index == 0 and excludeStartPosition) {
+                    left += 1;
+                    width -= 1;
+                }
+            },
+            DIRECTION_DOWN => {
+                height += step.stepCount;
+                y += step.stepCount;
+                if (index == 0 and excludeStartPosition) {
+                    top += 1;
+                    height -= 1;
+                }
+            },
+            DIRECTION_LEFT => {
+                left -= step.stepCount;
+                width += step.stepCount;
+                x -= step.stepCount;
+                if (index == 0 and excludeStartPosition) {
+                    width -= 1;
+                }
+            },
+            else => {
+                top -= step.stepCount;
+                height += step.stepCount;
+                y -= step.stepCount;
+                if (index == 0 and excludeStartPosition) {
+                    height -= 1;
+                }
+            },
+        }
+        if (left <= checkTile.x and left + width > checkTile.x and top <= checkTile.y and top + height > checkTile.y) {
+            return true;
+        }
+    }
+    return false;
+}
+
 fn stepAndCheckEnemyHit(player: *main.Player, stepCount: u8, direction: u8, stepDirection: main.Position, state: *main.GameState) !void {
     for (0..stepCount) |i| {
         player.slashedLastMoveTile = false;

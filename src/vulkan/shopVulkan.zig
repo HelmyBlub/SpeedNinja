@@ -85,14 +85,31 @@ fn paintGrid(player: *main.Player, state: *main.GameState) void {
     triangles.verticeCount += 6;
 
     paintMovePieceInGrid(player, gridGameTopLeft, state);
+    if (player.shop.selectedOption == .cut) {
+        const cut = player.shop.selectedOption.cut;
+        if (cut.gridCutOffset) |gridCutOffset| {
+            const gamePositionCut: main.Position = .{
+                .x = gridGameTopLeft.x + @as(f32, @floatFromInt(gridCutOffset.x * main.TILESIZE)),
+                .y = gridGameTopLeft.y + @as(f32, @floatFromInt(gridCutOffset.y * main.TILESIZE)),
+            };
+            shopUx.sprites.vertices[shopUx.sprites.verticeCount] = .{
+                .pos = .{ gamePositionCut.x, gamePositionCut.y },
+                .imageIndex = imageZig.IMAGE_CUT,
+                .size = main.TILESIZE,
+                .rotate = 0,
+                .cutY = 0,
+            };
+            shopUx.sprites.verticeCount += 1;
+        }
+    }
 }
 
 fn paintMovePieceInGrid(player: *main.Player, gridGameTopLeft: main.Position, state: *main.GameState) void {
     const shopUx = &state.vkState.shopUx;
     if (player.shop.gridDisplayPiece == null) return;
     const gridDisplayPiece = player.shop.gridDisplayPiece.?;
-    var x: i8 = 4;
-    var y: i8 = 4;
+    var x: i32 = player.shop.gridDisplayPieceOffset.x;
+    var y: i32 = player.shop.gridDisplayPieceOffset.y;
     rectangleForTile(.{
         .x = gridGameTopLeft.x + @as(f32, @floatFromInt(x)) * main.TILESIZE,
         .y = gridGameTopLeft.y + @as(f32, @floatFromInt(y)) * main.TILESIZE,

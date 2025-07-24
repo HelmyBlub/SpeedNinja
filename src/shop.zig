@@ -7,6 +7,7 @@ const ShopOption = enum {
     none,
     add,
     delete,
+    cut,
 };
 
 const ShopOptionData = union(ShopOption) {
@@ -16,6 +17,11 @@ const ShopOptionData = union(ShopOption) {
     },
     delete: struct {
         selectedIndex: usize,
+    },
+    cut: struct {
+        selectedIndex: usize,
+        gridCutOffset: ?main.TilePosition = null,
+        isOnMovePiece: bool = false,
     },
 };
 
@@ -35,6 +41,7 @@ pub const ShopPlayerData = struct {
     selectedOption: ShopOptionData = .none,
     pieceShopTopLeft: main.TilePosition = .{ .x = -4, .y = -4 },
     gridDisplayPiece: ?movePieceZig.MovePiece = null,
+    gridDisplayPieceOffset: main.TilePosition = .{ .x = 4, .y = 4 },
 };
 
 pub const SHOP_BUTTONS = [_]ShopButton{
@@ -56,6 +63,12 @@ pub const SHOP_BUTTONS = [_]ShopButton{
         .option = .delete,
     },
     .{
+        .execute = executeCutPiece,
+        .imageIndex = imageZig.IMAGE_CUT,
+        .tileOffset = .{ .x = 3, .y = 0 },
+        .option = .cut,
+    },
+    .{
         .execute = executeArrowLeft,
         .imageIndex = imageZig.IMAGE_ARROW_RIGHT,
         .imageRotate = std.math.pi,
@@ -74,10 +87,7 @@ pub const SHOP_BUTTONS = [_]ShopButton{
 };
 
 pub fn executeShopActionForPlayer(player: *main.Player, state: *main.GameState) !void {
-    const playerTile: main.TilePosition = .{
-        .x = @intFromFloat(@floor((player.position.x + main.TILESIZE / 2) / main.TILESIZE)),
-        .y = @intFromFloat(@floor((player.position.y + main.TILESIZE / 2) / main.TILESIZE)),
-    };
+    const playerTile: main.TilePosition = main.gamePositionToTilePosition(player.position);
     const shopTopLeftTile = player.shop.pieceShopTopLeft;
     for (SHOP_BUTTONS) |shopButton| {
         const checkPosition: main.TilePosition = .{ .x = shopButton.tileOffset.x + shopTopLeftTile.x, .y = shopButton.tileOffset.y + shopTopLeftTile.y };
@@ -85,6 +95,11 @@ pub fn executeShopActionForPlayer(player: *main.Player, state: *main.GameState) 
             try shopButton.execute(player, state);
             return;
         }
+    }
+    const gridPosition: main.TilePosition = .{ .x = GRID_OFFSET.x + shopTopLeftTile.x, .y = GRID_OFFSET.y + shopTopLeftTile.y };
+    if (gridPosition.x <= playerTile.x and gridPosition.y <= playerTile.y and gridPosition.y + GRID_SIZE > playerTile.x and gridPosition.y + GRID_SIZE > playerTile.y) {
+        try executeGridTile(player, state);
+        return;
     }
 }
 
@@ -114,8 +129,28 @@ pub fn randomizeShop(state: *main.GameState) !void {
     }
 }
 
+pub fn executeGridTile(player: *main.Player, state: *main.GameState) !void {
+    _ = state;
+    switch (player.shop.selectedOption) {
+        .cut => |*data| {
+            const playerTile: main.TilePosition = main.gamePositionToTilePosition(player.position);
+            const playerGridTile: main.TilePosition = .{
+                .x = playerTile.x - player.shop.pieceShopTopLeft.x - GRID_OFFSET.x,
+                .y = playerTile.y - player.shop.pieceShopTopLeft.y - GRID_OFFSET.y,
+            };
+
+            if (movePieceZig.isTilePositionOnMovePiece(playerGridTile, player.shop.gridDisplayPieceOffset, player.shop.gridDisplayPiece.?, true)) {
+                data.gridCutOffset = playerGridTile;
+                data.isOnMovePiece = true;
+            } else if (!data.isOnMovePiece) {
+                data.gridCutOffset = playerGridTile;
+            }
+        },
+        else => {},
+    }
+}
+
 pub fn executePay(player: *main.Player, state: *main.GameState) !void {
-    std.debug.print("shop pay\n", .{});
     switch (player.shop.selectedOption) {
         .delete => |*data| {
             const cost = state.level * 1;
@@ -139,13 +174,19 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
                 }
             }
         },
-        .none => {},
+        .cut => |*data| {
+            const cost = state.level * 1;
+            if (player.money >= cost and data.gridCutOffset != null and player.shop.gridDisplayPiece != null) {
+                player.money -= cost;
+                try movePieceZig.cutTilePositionOnMovePiece(player, data.gridCutOffset.?, player.shop.gridDisplayPieceOffset, player.shop.gridDisplayPiece.?, state);
+            }
+        },
+        else => {},
     }
 }
 
 pub fn executeArrowRight(player: *main.Player, state: *main.GameState) !void {
     _ = state;
-    std.debug.print("shop arrow right\n", .{});
     switch (player.shop.selectedOption) {
         .delete => |*data| {
             data.selectedIndex = @min(data.selectedIndex + 1, player.totalMovePieces.items.len - 1);
@@ -155,13 +196,18 @@ pub fn executeArrowRight(player: *main.Player, state: *main.GameState) !void {
             data.selectedIndex = @min(data.selectedIndex + 1, player.shop.piecesToBuy.len - 1);
             player.shop.gridDisplayPiece = player.shop.piecesToBuy[data.selectedIndex];
         },
-        .none => {},
+        .cut => |*data| {
+            data.selectedIndex = @min(data.selectedIndex + 1, player.totalMovePieces.items.len - 1);
+            player.shop.gridDisplayPiece = player.totalMovePieces.items[data.selectedIndex];
+            data.gridCutOffset = null;
+            data.isOnMovePiece = false;
+        },
+        else => {},
     }
 }
 
 pub fn executeArrowLeft(player: *main.Player, state: *main.GameState) !void {
     _ = state;
-    std.debug.print("shop arrow left\n", .{});
     switch (player.shop.selectedOption) {
         .delete => |*data| {
             data.selectedIndex = data.selectedIndex -| 1;
@@ -171,26 +217,35 @@ pub fn executeArrowLeft(player: *main.Player, state: *main.GameState) !void {
             data.selectedIndex = data.selectedIndex -| 1;
             player.shop.gridDisplayPiece = player.shop.piecesToBuy[data.selectedIndex];
         },
-        .none => {},
+        .cut => |*data| {
+            data.selectedIndex = data.selectedIndex -| 1;
+            player.shop.gridDisplayPiece = player.totalMovePieces.items[data.selectedIndex];
+            data.gridCutOffset = null;
+            data.isOnMovePiece = false;
+        },
+        else => {},
     }
 }
 
 pub fn executeDeletePiece(player: *main.Player, state: *main.GameState) !void {
     _ = state;
-    std.debug.print("shop delete\n", .{});
     player.shop.selectedOption = .{ .delete = .{ .selectedIndex = 0 } };
+    player.shop.gridDisplayPiece = player.totalMovePieces.items[0];
+}
+
+pub fn executeCutPiece(player: *main.Player, state: *main.GameState) !void {
+    _ = state;
+    player.shop.selectedOption = .{ .cut = .{ .selectedIndex = 0 } };
     player.shop.gridDisplayPiece = player.totalMovePieces.items[0];
 }
 
 pub fn executeAddPiece(player: *main.Player, state: *main.GameState) !void {
     _ = state;
-    std.debug.print("shop add\n", .{});
     player.shop.selectedOption = .{ .add = .{ .selectedIndex = 0 } };
     player.shop.gridDisplayPiece = player.shop.piecesToBuy[0].?;
 }
 
 pub fn executeShopPhaseEnd(player: *main.Player, state: *main.GameState) !void {
     _ = player;
-    std.debug.print("shop phase end\n", .{});
     try main.endShoppingPhase(state);
 }
