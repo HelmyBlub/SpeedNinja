@@ -182,14 +182,14 @@ pub fn restart(state: *GameState) !void {
     state.gameTime = 0;
     for (state.players.items) |*player| {
         player.hp = 1;
-        player.money = 0;
+        player.money = 7;
         player.position.x = 0;
         player.position.y = 0;
         player.afterImages.clearRetainingCapacity();
         player.animateData = .{};
         player.paintData = .{};
         player.executeMovePiece = null;
-        try movePieceZig.resetPieces(player);
+        try movePieceZig.setupMovePieces(player, state);
     }
 
     state.enemyDeath.clearRetainingCapacity();
@@ -213,14 +213,12 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
         .players = std.ArrayList(Player).init(allocator),
     };
     state.allocator = allocator;
-    try state.players.append(createPlayer(allocator));
-    try enemyZig.initEnemy(state);
     try windowSdlZig.initWindowSdl();
     try initVulkanZig.initVulkan(state);
-    try movePieceZig.setupMovePieces(&state.players.items[0], state);
-    try enemyZig.setupEnemies(state);
     try soundMixerZig.createSoundMixer(state, state.allocator);
-    adjustZoom(state);
+    try enemyZig.initEnemy(state);
+    try state.players.append(createPlayer(allocator));
+    try restart(state);
 }
 
 fn createPlayer(allocator: std.mem.Allocator) Player {

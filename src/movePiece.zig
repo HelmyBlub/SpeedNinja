@@ -34,6 +34,9 @@ pub fn setRandomMovePiece(player: *main.Player, index: usize) !void {
 }
 
 pub fn setupMovePieces(player: *main.Player, state: *main.GameState) !void {
+    player.totalMovePieces.clearRetainingCapacity();
+    player.availableMovePieces.clearRetainingCapacity();
+    player.moveOptions.clearRetainingCapacity();
     try player.totalMovePieces.appendSlice(state.movePieces);
     try player.availableMovePieces.appendSlice(state.movePieces);
     try setRandomMovePiece(player, 0);
@@ -148,7 +151,7 @@ pub fn resetPieces(player: *main.Player) !void {
             }
         }
     }
-    while (player.moveOptions.items.len < 3) {
+    while (player.moveOptions.items.len < 3 and player.availableMovePieces.items.len > 0) {
         try setRandomMovePiece(player, 3);
     }
 }
@@ -160,6 +163,22 @@ pub fn areSameMovePieces(movePiece1: MovePiece, movePiece2: MovePiece) bool {
         if (stepA.stepCount != stepB.stepCount) return false;
     }
     return true;
+}
+
+pub fn removeMovePiece(player: *main.Player, movePieceIndex: usize) !void {
+    const removedPiece = player.totalMovePieces.orderedRemove(movePieceIndex);
+    for (player.moveOptions.items, 0..) |option, index| {
+        if (areSameMovePieces(removedPiece, option)) {
+            try setRandomMovePiece(player, index);
+            return;
+        }
+    }
+    for (player.availableMovePieces.items, 0..) |option, index| {
+        if (areSameMovePieces(removedPiece, option)) {
+            _ = player.availableMovePieces.swapRemove(index);
+            return;
+        }
+    }
 }
 
 fn checkEnemyHitOnMoveStep(player: *main.Player, stepAmount: f32, direction: u8, state: *main.GameState) !bool {

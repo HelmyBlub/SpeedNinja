@@ -79,7 +79,7 @@ fn setupVertices(state: *main.GameState) !void {
     textWidthRound += try paintNumber(state.round, .{ .x = textWidthRound, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
     textWidthRound += paintText(" Level: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
     textWidthRound += try paintNumber(state.level, .{ .x = textWidthRound, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
-    textWidthRound += paintText(" Money: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
+    textWidthRound += paintText(" Money: $", .{ .x = textWidthRound, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
     _ = try paintNumber(state.players.items[0].money, .{ .x = textWidthRound, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
 
     if (state.round > 1) {
@@ -217,7 +217,7 @@ pub fn recordFontCommandBuffer(commandBuffer: vk.VkCommandBuffer, state: *main.G
 
 pub fn charToTexCoords(char: u8, texX: *f32, texWidth: *f32) void {
     const fontImageWidth = 1600.0;
-    const imageCharSeperatePixels = [_]f32{ 0, 50, 88, 117, 142, 170, 198, 232, 262, 277, 307, 338, 365, 413, 445, 481, 508, 541, 569, 603, 638, 674, 711, 760, 801, 837, 873, 902, 931, 968, 1003, 1037, 1072, 1104, 1142, 1175, 1205, 1238, 1282, 1302, 1322, 1367, 1410 };
+    const imageCharSeperatePixels = [_]f32{ 0, 50, 88, 117, 142, 170, 198, 232, 262, 277, 307, 338, 365, 413, 445, 481, 508, 541, 569, 603, 638, 674, 711, 760, 801, 837, 873, 902, 931, 968, 1003, 1037, 1072, 1104, 1142, 1175, 1205, 1238, 1282, 1302, 1322, 1367, 1410, 1448 };
     var index: usize = 0;
     switch (char) {
         'a', 'A' => {
@@ -345,6 +345,9 @@ pub fn charToTexCoords(char: u8, texX: *f32, texWidth: *f32) void {
         },
         '-' => {
             index = 41;
+        },
+        '$' => {
+            index = 42;
         },
         else => {
             texX.* = 0;

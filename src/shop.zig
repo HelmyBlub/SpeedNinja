@@ -66,6 +66,11 @@ pub const SHOP_BUTTONS = [_]ShopButton{
         .imageIndex = imageZig.IMAGE_ARROW_RIGHT,
         .tileOffset = .{ .x = 0, .y = 2 },
     },
+    .{
+        .execute = executePay,
+        .imageIndex = imageZig.IMAGE_BORDER_TILE,
+        .tileOffset = .{ .x = 0, .y = 4 },
+    },
 };
 
 pub fn executeShopActionForPlayer(player: *main.Player, state: *main.GameState) !void {
@@ -80,6 +85,25 @@ pub fn executeShopActionForPlayer(player: *main.Player, state: *main.GameState) 
             try shopButton.execute(player, state);
             return;
         }
+    }
+}
+
+pub fn executePay(player: *main.Player, state: *main.GameState) !void {
+    std.debug.print("shop pay\n", .{});
+    switch (player.shop.selectedOption) {
+        .delete => |*data| {
+            const cost = state.level * 1;
+            if (player.money >= cost and player.totalMovePieces.items.len > 1) {
+                try movePieceZig.removeMovePiece(player, data.selectedIndex);
+                player.money -= cost;
+                if (player.totalMovePieces.items.len <= data.selectedIndex) {
+                    data.selectedIndex -= 1;
+                }
+                player.shop.gridDisplayPiece = player.totalMovePieces.items[data.selectedIndex];
+            }
+        },
+        .add => {},
+        .none => {},
     }
 }
 
