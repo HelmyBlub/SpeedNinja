@@ -5,7 +5,7 @@ const soundMixerZig = @import("soundMixer.zig");
 const shopZig = @import("shop.zig");
 
 pub const MovePiece = struct {
-    steps: []const MoveStep,
+    steps: []MoveStep,
 };
 
 pub const MoveStep = struct {
@@ -34,51 +34,30 @@ pub fn setRandomMovePiece(player: *main.Player, index: usize) !void {
 }
 
 pub fn setupMovePieces(player: *main.Player, state: *main.GameState) !void {
-    player.totalMovePieces.clearRetainingCapacity();
+    if (player.totalMovePieces.items.len > 0) {
+        for (player.totalMovePieces.items) |movePiece| {
+            state.allocator.free(movePiece.steps);
+        }
+        player.totalMovePieces.clearRetainingCapacity();
+    }
     player.availableMovePieces.clearRetainingCapacity();
     player.moveOptions.clearRetainingCapacity();
-    try player.totalMovePieces.appendSlice(state.movePieces);
-    try player.availableMovePieces.appendSlice(state.movePieces);
+    total: while (player.totalMovePieces.items.len < 7) {
+        const randomPiece = try createRandomMovePiece(state.allocator);
+        for (player.totalMovePieces.items) |otherPiece| {
+            if (areSameMovePieces(randomPiece, otherPiece)) {
+                state.allocator.free(randomPiece.steps);
+                std.debug.print("prevented same piece\n", .{});
+                continue :total;
+            }
+        }
+        try player.totalMovePieces.append(randomPiece);
+    }
+
+    try player.availableMovePieces.appendSlice(player.totalMovePieces.items);
     try setRandomMovePiece(player, 0);
     try setRandomMovePiece(player, 1);
     try setRandomMovePiece(player, 2);
-}
-
-pub fn createMovePieces() []const MovePiece {
-    const movePieces = [_]MovePiece{
-        .{ .steps = &[_]MoveStep{
-            .{ .direction = DIRECTION_UP, .stepCount = 1 },
-            .{ .direction = DIRECTION_RIGHT, .stepCount = 2 },
-            .{ .direction = DIRECTION_UP, .stepCount = 2 },
-        } },
-        .{ .steps = &[_]MoveStep{
-            .{ .direction = DIRECTION_UP, .stepCount = 2 },
-            .{ .direction = DIRECTION_LEFT, .stepCount = 2 },
-            .{ .direction = DIRECTION_UP, .stepCount = 2 },
-        } },
-        .{ .steps = &[_]MoveStep{
-            .{ .direction = DIRECTION_UP, .stepCount = 2 },
-            .{ .direction = DIRECTION_LEFT, .stepCount = 2 },
-            .{ .direction = DIRECTION_DOWN, .stepCount = 1 },
-        } },
-        .{ .steps = &[_]MoveStep{
-            .{ .direction = DIRECTION_UP, .stepCount = 1 },
-            .{ .direction = DIRECTION_RIGHT, .stepCount = 1 },
-            .{ .direction = DIRECTION_UP, .stepCount = 1 },
-            .{ .direction = DIRECTION_RIGHT, .stepCount = 1 },
-            .{ .direction = DIRECTION_UP, .stepCount = 1 },
-        } },
-        .{ .steps = &[_]MoveStep{
-            .{ .direction = DIRECTION_UP, .stepCount = 2 },
-        } },
-        .{ .steps = &[_]MoveStep{
-            .{ .direction = DIRECTION_UP, .stepCount = 3 },
-        } },
-        .{ .steps = &[_]MoveStep{
-            .{ .direction = DIRECTION_UP, .stepCount = 4 },
-        } },
-    };
-    return &movePieces;
 }
 
 pub fn getStepDirection(direction: u8) main.Position {
@@ -165,20 +144,37 @@ pub fn areSameMovePieces(movePiece1: MovePiece, movePiece2: MovePiece) bool {
     return true;
 }
 
-pub fn removeMovePiece(player: *main.Player, movePieceIndex: usize) !void {
+pub fn removeMovePiece(player: *main.Player, movePieceIndex: usize, allocator: std.mem.Allocator) !void {
     const removedPiece = player.totalMovePieces.orderedRemove(movePieceIndex);
+    var removed = false;
     for (player.moveOptions.items, 0..) |option, index| {
         if (areSameMovePieces(removedPiece, option)) {
             try setRandomMovePiece(player, index);
-            return;
+            removed = true;
         }
     }
-    for (player.availableMovePieces.items, 0..) |option, index| {
-        if (areSameMovePieces(removedPiece, option)) {
-            _ = player.availableMovePieces.swapRemove(index);
-            return;
+    if (!removed) {
+        for (player.availableMovePieces.items, 0..) |option, index| {
+            if (areSameMovePieces(removedPiece, option)) {
+                _ = player.availableMovePieces.swapRemove(index);
+                removed = true;
+            }
         }
     }
+    allocator.free(removedPiece.steps);
+}
+
+pub fn createRandomMovePiece(allocator: std.mem.Allocator) !MovePiece {
+    const stepsLength: usize = @intFromFloat(std.crypto.random.float(f32) * 3.0 + 1);
+    const steps: []MoveStep = try allocator.alloc(MoveStep, stepsLength);
+    const movePiece: MovePiece = .{ .steps = steps };
+    var currDirection: u8 = DIRECTION_UP;
+    for (movePiece.steps) |*step| {
+        step.direction = currDirection;
+        step.stepCount = @as(u8, @intFromFloat(std.crypto.random.float(f32) * 3.0)) + 1;
+        currDirection = @mod(currDirection + (@as(u8, @intFromFloat(std.crypto.random.float(f32) * 2.0)) * 2 + 1), 4);
+    }
+    return movePiece;
 }
 
 fn checkEnemyHitOnMoveStep(player: *main.Player, stepAmount: f32, direction: u8, state: *main.GameState) !bool {

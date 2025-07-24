@@ -19,7 +19,6 @@ pub const GameState = struct {
     vkState: initVulkanZig.VkState = .{},
     allocator: std.mem.Allocator = undefined,
     camera: Camera = .{ .position = .{ .x = 0, .y = 0 }, .zoom = 1 },
-    movePieces: []const movePieceZig.MovePiece,
     gameTime: i64 = 0,
     round: u32 = 1,
     level: u32 = 1,
@@ -189,6 +188,8 @@ pub fn restart(state: *GameState) !void {
         player.animateData = .{};
         player.paintData = .{};
         player.executeMovePiece = null;
+        player.shop.gridDisplayPiece = null;
+        player.shop.selectedOption = .none;
         try movePieceZig.setupMovePieces(player, state);
     }
 
@@ -209,7 +210,6 @@ pub fn adjustZoom(state: *GameState) void {
 
 fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
     state.* = .{
-        .movePieces = movePieceZig.createMovePieces(),
         .players = std.ArrayList(Player).init(allocator),
     };
     state.allocator = allocator;
@@ -239,6 +239,11 @@ fn destroyGameState(state: *GameState) void {
     for (state.players.items) |player| {
         player.moveOptions.deinit();
         player.availableMovePieces.deinit();
+        if (player.totalMovePieces.items.len > 0) {
+            for (player.totalMovePieces.items) |movePiece| {
+                state.allocator.free(movePiece.steps);
+            }
+        }
         player.totalMovePieces.deinit();
         player.afterImages.deinit();
     }

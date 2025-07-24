@@ -94,7 +94,7 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
         .delete => |*data| {
             const cost = state.level * 1;
             if (player.money >= cost and player.totalMovePieces.items.len > 1) {
-                try movePieceZig.removeMovePiece(player, data.selectedIndex);
+                try movePieceZig.removeMovePiece(player, data.selectedIndex, state.allocator);
                 player.money -= cost;
                 if (player.totalMovePieces.items.len <= data.selectedIndex) {
                     data.selectedIndex -= 1;
