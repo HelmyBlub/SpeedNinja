@@ -96,7 +96,7 @@ fn mainLoop(state: *GameState) !void {
         if (state.enemies.items.len == 0 and state.gamePhase == .combat) {
             try startNextRound(state);
         } else if (shouldEndLevel(state)) {
-            startShoppingPhase(state);
+            try startShoppingPhase(state);
             // try startNextLevel(state);
         } else if (shouldRestart(state)) {
             try restart(state);
@@ -130,9 +130,10 @@ fn startNextRound(state: *GameState) !void {
     adjustZoom(state);
 }
 
-fn startShoppingPhase(state: *GameState) void {
+fn startShoppingPhase(state: *GameState) !void {
     state.gamePhase = .shopping;
     state.enemies.clearRetainingCapacity();
+    try shopZig.randomizeShop(state);
 }
 
 pub fn endShoppingPhase(state: *GameState) !void {
@@ -147,7 +148,7 @@ fn startNextLevel(state: *GameState) !void {
 }
 
 fn shouldEndLevel(state: *GameState) bool {
-    if (state.round > 1 and state.roundEndTimeMS < state.gameTime) return true;
+    if (state.gamePhase == .combat and state.round > 1 and state.roundEndTimeMS < state.gameTime) return true;
     return false;
 }
 
@@ -190,6 +191,7 @@ pub fn restart(state: *GameState) !void {
         player.executeMovePiece = null;
         player.shop.gridDisplayPiece = null;
         player.shop.selectedOption = .none;
+
         try movePieceZig.setupMovePieces(player, state);
     }
 
@@ -246,6 +248,11 @@ fn destroyGameState(state: *GameState) void {
         }
         player.totalMovePieces.deinit();
         player.afterImages.deinit();
+        for (player.shop.piecesToBuy) |optPiece| {
+            if (optPiece) |piece| {
+                state.allocator.free(piece.steps);
+            }
+        }
     }
     state.players.deinit();
     enemyZig.destroyEnemy(state);

@@ -1,14 +1,17 @@
 Tasks:
 - shopping phase
     - spend money for piece changes
-        - delete movePiece
-            - pay button,
         - add new movePiece
+        
         - tile based shop. player moves onto tiles to do tile changes
             - 4x1 grid buttons to change: add, delete, combine, split 
                 - highlight selected
             - below 5x5 grid to display selected tile, tile <left> <right> button to switch tile
     - shopping phase should work with multiple players
+- random move pieces
+    - check that random move pieces can reach any tile and don't lock to certain ones
+    - how to display selected move piece when questionable pattern?
+        - i don't feel like i should disable certain pieces
 
 
 Next ideas:

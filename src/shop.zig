@@ -88,6 +88,32 @@ pub fn executeShopActionForPlayer(player: *main.Player, state: *main.GameState) 
     }
 }
 
+pub fn randomizeShop(state: *main.GameState) !void {
+    for (state.players.items) |*player| {
+        for (player.shop.piecesToBuy, 0..) |optPiece, index| {
+            if (optPiece) |piece| {
+                state.allocator.free(piece.steps);
+                player.shop.piecesToBuy[index] = null;
+            }
+        }
+    }
+
+    for (state.players.items) |*player| {
+        var pieceToBuyIndex: usize = 0;
+        toBuy: while (pieceToBuyIndex < player.shop.piecesToBuy.len) {
+            const randomPiece = try movePieceZig.createRandomMovePiece(state.allocator);
+            for (player.shop.piecesToBuy) |otherPiece| {
+                if (otherPiece != null and movePieceZig.areSameMovePieces(randomPiece, otherPiece.?)) {
+                    state.allocator.free(randomPiece.steps);
+                    continue :toBuy;
+                }
+            }
+            player.shop.piecesToBuy[pieceToBuyIndex] = randomPiece;
+            pieceToBuyIndex += 1;
+        }
+    }
+}
+
 pub fn executePay(player: *main.Player, state: *main.GameState) !void {
     std.debug.print("shop pay\n", .{});
     switch (player.shop.selectedOption) {
@@ -102,7 +128,17 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
                 player.shop.gridDisplayPiece = player.totalMovePieces.items[data.selectedIndex];
             }
         },
-        .add => {},
+        .add => |*data| {
+            const cost = state.level * 1;
+            if (player.money >= cost and player.totalMovePieces.items.len > 1) {
+                player.money -= cost;
+                if (player.shop.piecesToBuy[data.selectedIndex]) |buyPiece| {
+                    try movePieceZig.addMovePiece(player, buyPiece);
+                    player.shop.piecesToBuy[data.selectedIndex] = try movePieceZig.createRandomMovePiece(state.allocator);
+                    player.shop.gridDisplayPiece = player.shop.piecesToBuy[data.selectedIndex];
+                }
+            }
+        },
         .none => {},
     }
 }
@@ -115,7 +151,10 @@ pub fn executeArrowRight(player: *main.Player, state: *main.GameState) !void {
             data.selectedIndex = @min(data.selectedIndex + 1, player.totalMovePieces.items.len - 1);
             player.shop.gridDisplayPiece = player.totalMovePieces.items[data.selectedIndex];
         },
-        .add => {},
+        .add => |*data| {
+            data.selectedIndex = @min(data.selectedIndex + 1, player.shop.piecesToBuy.len - 1);
+            player.shop.gridDisplayPiece = player.shop.piecesToBuy[data.selectedIndex];
+        },
         .none => {},
     }
 }
@@ -128,7 +167,10 @@ pub fn executeArrowLeft(player: *main.Player, state: *main.GameState) !void {
             data.selectedIndex = data.selectedIndex -| 1;
             player.shop.gridDisplayPiece = player.totalMovePieces.items[data.selectedIndex];
         },
-        .add => {},
+        .add => |*data| {
+            data.selectedIndex = data.selectedIndex -| 1;
+            player.shop.gridDisplayPiece = player.shop.piecesToBuy[data.selectedIndex];
+        },
         .none => {},
     }
 }
@@ -144,6 +186,7 @@ pub fn executeAddPiece(player: *main.Player, state: *main.GameState) !void {
     _ = state;
     std.debug.print("shop add\n", .{});
     player.shop.selectedOption = .{ .add = .{ .selectedIndex = 0 } };
+    player.shop.gridDisplayPiece = player.shop.piecesToBuy[0].?;
 }
 
 pub fn executeShopPhaseEnd(player: *main.Player, state: *main.GameState) !void {

@@ -126,6 +126,7 @@ fn rectangleForTile(gamePosition: main.Position, fillColor: [3]f32, shopUx: *VkS
     const top = vulkan.y - height / 2;
 
     const triangles = &shopUx.triangles;
+    if (triangles.verticeCount + 6 >= triangles.vertices.len) return;
     triangles.vertices[triangles.verticeCount] = .{ .pos = .{ left, top }, .color = fillColor };
     triangles.vertices[triangles.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = fillColor };
     triangles.vertices[triangles.verticeCount + 2] = .{ .pos = .{ left, top + height }, .color = fillColor };

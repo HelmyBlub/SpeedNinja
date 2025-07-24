@@ -47,7 +47,6 @@ pub fn setupMovePieces(player: *main.Player, state: *main.GameState) !void {
         for (player.totalMovePieces.items) |otherPiece| {
             if (areSameMovePieces(randomPiece, otherPiece)) {
                 state.allocator.free(randomPiece.steps);
-                std.debug.print("prevented same piece\n", .{});
                 continue :total;
             }
         }
@@ -162,6 +161,15 @@ pub fn removeMovePiece(player: *main.Player, movePieceIndex: usize, allocator: s
         }
     }
     allocator.free(removedPiece.steps);
+}
+
+pub fn addMovePiece(player: *main.Player, newMovePiece: MovePiece) !void {
+    try player.totalMovePieces.append(newMovePiece);
+    if (player.moveOptions.items.len < 3) {
+        try player.moveOptions.append(newMovePiece);
+    } else {
+        try player.availableMovePieces.append(newMovePiece);
+    }
 }
 
 pub fn createRandomMovePiece(allocator: std.mem.Allocator) !MovePiece {
