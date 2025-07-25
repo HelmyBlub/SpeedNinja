@@ -178,7 +178,9 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
             const cost = state.level * 1;
             if (player.money >= cost and data.gridCutOffset != null and player.shop.gridDisplayPiece != null) {
                 player.money -= cost;
-                try movePieceZig.cutTilePositionOnMovePiece(player, data.gridCutOffset.?, player.shop.gridDisplayPieceOffset, player.shop.gridDisplayPiece.?, state);
+                try movePieceZig.cutTilePositionOnMovePiece(player, data.gridCutOffset.?, player.shop.gridDisplayPieceOffset, data.selectedIndex, state);
+                data.gridCutOffset = null;
+                player.shop.gridDisplayPiece = player.totalMovePieces.items[data.selectedIndex];
             }
         },
         else => {},

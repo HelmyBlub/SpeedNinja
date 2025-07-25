@@ -96,40 +96,39 @@ pub fn tickPlayerMovePiece(player: *main.Player, state: *main.GameState) !void {
     }
 }
 
-pub fn cutTilePositionOnMovePiece(player: *main.Player, cutTile: main.TilePosition, movePieceStartTile: main.TilePosition, movePiece: MovePiece, state: *main.GameState) !void {
-    std.debug.print("{} {} {}\n", .{ cutTile, movePieceStartTile, movePiece });
+pub fn cutTilePositionOnMovePiece(player: *main.Player, cutTile: main.TilePosition, movePieceStartTile: main.TilePosition, totalIndexOfMovePieceToCut: usize, state: *main.GameState) !void {
+    const movePiece = player.totalMovePieces.items[totalIndexOfMovePieceToCut];
     var x = movePieceStartTile.x;
     var y = movePieceStartTile.y;
-    for (movePiece.steps, 0..) |step, stepIndex| {
+    for (movePiece.steps, 0..) |cutPieceStep, stepIndex| {
         var left = x;
         var top = y;
         var width: i32 = 1;
         var height: i32 = 1;
-        switch (step.direction) {
+        switch (cutPieceStep.direction) {
             DIRECTION_RIGHT => {
-                width += step.stepCount;
-                x += step.stepCount;
+                width += cutPieceStep.stepCount;
+                x += cutPieceStep.stepCount;
             },
             DIRECTION_DOWN => {
-                height += step.stepCount;
-                y += step.stepCount;
+                height += cutPieceStep.stepCount;
+                y += cutPieceStep.stepCount;
             },
             DIRECTION_LEFT => {
-                left -= step.stepCount;
-                width += step.stepCount;
-                x -= step.stepCount;
+                left -= cutPieceStep.stepCount;
+                width += cutPieceStep.stepCount;
+                x -= cutPieceStep.stepCount;
             },
             else => {
-                top -= step.stepCount;
-                height += step.stepCount;
-                y -= step.stepCount;
+                top -= cutPieceStep.stepCount;
+                height += cutPieceStep.stepCount;
+                y -= cutPieceStep.stepCount;
             },
         }
-        if (left < cutTile.x and left + width > cutTile.x and top <= cutTile.y and top + height > cutTile.y) {
-            std.debug.print("found cut\n", .{});
+        if (left <= cutTile.x and left + width > cutTile.x and top <= cutTile.y and top + height > cutTile.y) {
             var cutStep = @max(cutTile.x - left, cutTile.y - top);
-            if (step.direction == DIRECTION_LEFT) cutStep = width - cutStep;
-            if (step.direction == DIRECTION_UP) cutStep = height - cutStep;
+            if (cutPieceStep.direction == DIRECTION_LEFT) cutStep = width - cutStep - 1;
+            if (cutPieceStep.direction == DIRECTION_UP) cutStep = height - cutStep - 1;
             if (cutStep == 0) {
                 std.debug.print("should not happen?, movePieceZig cutTilePositionOnMovePiece", .{});
                 return;
@@ -137,19 +136,18 @@ pub fn cutTilePositionOnMovePiece(player: *main.Player, cutTile: main.TilePositi
             const piece1StepCount = if (cutStep > 1) stepIndex + 1 else stepIndex;
             if (piece1StepCount > 0) {
                 const steps: []MoveStep = try state.allocator.alloc(MoveStep, piece1StepCount);
-                const movePiece1: MovePiece = .{ .steps = steps };
-                for (steps, 0..) |*step1, step1Index| {
-                    step1.direction = step.direction;
-                    if (piece1StepCount - 1 == step1Index) {
-                        step1.stepCount = @intCast(cutStep);
+                const shortenedPiece: MovePiece = .{ .steps = steps };
+                for (steps, 0..) |*splitStep, splitIndex| {
+                    splitStep.direction = movePiece.steps[splitIndex].direction;
+                    if (cutStep > 1 and piece1StepCount - 1 == splitIndex) {
+                        splitStep.stepCount = @intCast(cutStep - 1);
                     } else {
-                        step1.stepCount = step.stepCount;
+                        splitStep.stepCount = movePiece.steps[splitIndex].stepCount;
                     }
                 }
-                try addMovePiece(player, movePiece1);
-                std.debug.print("added piece {}\n", .{movePiece1});
+                replaceMovePiece(totalIndexOfMovePieceToCut, shortenedPiece, player, state.allocator);
+                std.debug.print("added piece {}\n", .{shortenedPiece});
             }
-            // const piece2StepCount = if (cutStep < step.stepCount) movePiece.steps.len - stepIndex  else movePiece.steps.len - stepIndex - 1;
             return;
         }
     }
@@ -165,7 +163,8 @@ pub fn isTilePositionOnMovePiece(checkTile: main.TilePosition, movePieceStartTil
         var height: i32 = 1;
         switch (step.direction) {
             DIRECTION_RIGHT => {
-                width += step.stepCount;
+                width = step.stepCount;
+                left += 1;
                 x += step.stepCount;
                 if (index == 0 and excludeStartPosition) {
                     left += 1;
@@ -173,7 +172,8 @@ pub fn isTilePositionOnMovePiece(checkTile: main.TilePosition, movePieceStartTil
                 }
             },
             DIRECTION_DOWN => {
-                height += step.stepCount;
+                height = step.stepCount;
+                top += 1;
                 y += step.stepCount;
                 if (index == 0 and excludeStartPosition) {
                     top += 1;
@@ -182,7 +182,7 @@ pub fn isTilePositionOnMovePiece(checkTile: main.TilePosition, movePieceStartTil
             },
             DIRECTION_LEFT => {
                 left -= step.stepCount;
-                width += step.stepCount;
+                width = step.stepCount;
                 x -= step.stepCount;
                 if (index == 0 and excludeStartPosition) {
                     width -= 1;
@@ -190,7 +190,7 @@ pub fn isTilePositionOnMovePiece(checkTile: main.TilePosition, movePieceStartTil
             },
             else => {
                 top -= step.stepCount;
-                height += step.stepCount;
+                height = step.stepCount;
                 y -= step.stepCount;
                 if (index == 0 and excludeStartPosition) {
                     height -= 1;
@@ -255,14 +255,14 @@ pub fn removeMovePiece(player: *main.Player, movePieceIndex: usize, allocator: s
     const removedPiece = player.totalMovePieces.orderedRemove(movePieceIndex);
     var removed = false;
     for (player.moveOptions.items, 0..) |option, index| {
-        if (areSameMovePieces(removedPiece, option)) {
+        if (removedPiece.steps.ptr == option.steps.ptr) {
             try setRandomMovePiece(player, index);
             removed = true;
         }
     }
     if (!removed) {
         for (player.availableMovePieces.items, 0..) |option, index| {
-            if (areSameMovePieces(removedPiece, option)) {
+            if (removedPiece.steps.ptr == option.steps.ptr) {
                 _ = player.availableMovePieces.swapRemove(index);
                 removed = true;
             }
@@ -278,6 +278,26 @@ pub fn addMovePiece(player: *main.Player, newMovePiece: MovePiece) !void {
     } else {
         try player.availableMovePieces.append(newMovePiece);
     }
+}
+
+pub fn replaceMovePiece(totalIndex: usize, newPiece: MovePiece, player: *main.Player, allocator: std.mem.Allocator) void {
+    const removedPiece = player.totalMovePieces.items[totalIndex];
+    player.totalMovePieces.items[totalIndex] = newPiece;
+    for (player.moveOptions.items, 0..) |option, index| {
+        if (option.steps.ptr == removedPiece.steps.ptr) {
+            player.moveOptions.items[index] = newPiece;
+            allocator.free(removedPiece.steps);
+            return;
+        }
+    }
+    for (player.availableMovePieces.items, 0..) |option, index| {
+        if (option.steps.ptr == removedPiece.steps.ptr) {
+            player.availableMovePieces.items[index] = newPiece;
+            allocator.free(removedPiece.steps);
+            return;
+        }
+    }
+    allocator.free(removedPiece.steps);
 }
 
 pub fn createRandomMovePiece(allocator: std.mem.Allocator) !MovePiece {

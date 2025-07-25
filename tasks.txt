@@ -1,8 +1,9 @@
 Tasks:
 - shopping phase
     - spend money for piece changes
-        - split one pice
-            - player can move on shop grid and decide where to split
+        - continue: cut piece 1 not working
+        - cut tool
+            - player can move on shop grid and decide where to cut
         
     - shopping phase should work with multiple players
 - random move pieces
