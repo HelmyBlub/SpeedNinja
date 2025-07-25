@@ -23,6 +23,7 @@ pub const IMAGE_PLUS = 15;
 pub const IMAGE_CUT = 16;
 pub const IMAGE_ARROW_RIGHT = 17;
 pub const IMAGE_BORDER_TILE = 18;
+pub const IMAGE_COMBINE = 19;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaDog.png" },
@@ -44,6 +45,7 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/cut.png" },
     .{ .path = "images/arrow.png" },
     .{ .path = "images/borderTile.png" },
+    .{ .path = "images/combine.png" },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 

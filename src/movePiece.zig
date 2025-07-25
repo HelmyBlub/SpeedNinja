@@ -96,6 +96,30 @@ pub fn tickPlayerMovePiece(player: *main.Player, state: *main.GameState) !void {
     }
 }
 
+pub fn combineMovePieces(player: *main.Player, movePieceIndex1: usize, movePieceIndex2: usize, combineDirection: u8, state: *main.GameState) !void {
+    if (movePieceIndex1 == movePieceIndex2) {
+        std.debug.print("can not combine move piece with itself\n", .{});
+        return;
+    }
+    const movePiece1 = player.totalMovePieces.items[movePieceIndex1];
+    const movePiece2 = player.totalMovePieces.items[movePieceIndex2];
+    const steps = try state.allocator.alloc(MoveStep, movePiece1.steps.len + movePiece2.steps.len);
+    const newMovePiece: MovePiece = .{ .steps = steps };
+    var newPieceIndex: usize = 0;
+    for (movePiece1.steps) |*step| {
+        newMovePiece.steps[newPieceIndex].direction = step.direction;
+        newMovePiece.steps[newPieceIndex].stepCount = step.stepCount;
+        newPieceIndex += 1;
+    }
+    for (movePiece2.steps) |*step| {
+        newMovePiece.steps[newPieceIndex].direction = @mod(step.direction + combineDirection, 4);
+        newMovePiece.steps[newPieceIndex].stepCount = step.stepCount;
+        newPieceIndex += 1;
+    }
+    replaceMovePiece(movePieceIndex1, newMovePiece, player, state.allocator);
+    try removeMovePiece(player, movePieceIndex2, state.allocator);
+}
+
 pub fn cutTilePositionOnMovePiece(player: *main.Player, cutTile: main.TilePosition, movePieceStartTile: main.TilePosition, totalIndexOfMovePieceToCut: usize, state: *main.GameState) !void {
     const movePiece = player.totalMovePieces.items[totalIndexOfMovePieceToCut];
     var x = movePieceStartTile.x;

@@ -8,20 +8,33 @@ const ShopOption = enum {
     add,
     delete,
     cut,
+    combine,
+};
+
+const CombineStep = enum {
+    selectPiece1,
+    selectPiece2,
+    selectDirection,
 };
 
 const ShopOptionData = union(ShopOption) {
     none,
     add: struct {
-        selectedIndex: usize,
+        selectedIndex: usize = 0,
     },
     delete: struct {
-        selectedIndex: usize,
+        selectedIndex: usize = 0,
     },
     cut: struct {
-        selectedIndex: usize,
+        selectedIndex: usize = 0,
         gridCutOffset: ?main.TilePosition = null,
         isOnMovePiece: bool = false,
+    },
+    combine: struct {
+        pieceIndex1: usize = 0,
+        pieceIndex2: ?usize = null,
+        direction: u8 = 0,
+        combineStep: CombineStep = .selectPiece1,
     },
 };
 
@@ -31,6 +44,7 @@ pub const ShopButton = struct {
     imageRotate: f32 = 0,
     option: ShopOption = .none,
     execute: *const fn (player: *main.Player, state: *main.GameState) anyerror!void,
+    isVisible: ?*const fn (player: *main.Player) bool = null,
 };
 
 pub const GRID_SIZE = 8;
@@ -69,6 +83,12 @@ pub const SHOP_BUTTONS = [_]ShopButton{
         .option = .cut,
     },
     .{
+        .execute = executeCombinePiece,
+        .imageIndex = imageZig.IMAGE_COMBINE,
+        .tileOffset = .{ .x = 4, .y = 0 },
+        .option = .combine,
+    },
+    .{
         .execute = executeArrowLeft,
         .imageIndex = imageZig.IMAGE_ARROW_RIGHT,
         .imageRotate = std.math.pi,
@@ -82,7 +102,13 @@ pub const SHOP_BUTTONS = [_]ShopButton{
     .{
         .execute = executePay,
         .imageIndex = imageZig.IMAGE_BORDER_TILE,
-        .tileOffset = .{ .x = 0, .y = 4 },
+        .tileOffset = .{ .x = 0, .y = 5 },
+    },
+    .{
+        .execute = executeNextStep,
+        .imageIndex = imageZig.IMAGE_BORDER_TILE,
+        .tileOffset = .{ .x = 0, .y = 3 },
+        .isVisible = isNextStepButtonVisible,
     },
 };
 
@@ -90,6 +116,7 @@ pub fn executeShopActionForPlayer(player: *main.Player, state: *main.GameState) 
     const playerTile: main.TilePosition = main.gamePositionToTilePosition(player.position);
     const shopTopLeftTile = player.shop.pieceShopTopLeft;
     for (SHOP_BUTTONS) |shopButton| {
+        if (shopButton.isVisible != null and !shopButton.isVisible.?(player)) continue;
         const checkPosition: main.TilePosition = .{ .x = shopButton.tileOffset.x + shopTopLeftTile.x, .y = shopButton.tileOffset.y + shopTopLeftTile.y };
         if (checkPosition.x == playerTile.x and checkPosition.y == playerTile.y) {
             try shopButton.execute(player, state);
@@ -150,6 +177,29 @@ pub fn executeGridTile(player: *main.Player, state: *main.GameState) !void {
     }
 }
 
+pub fn executeNextStep(player: *main.Player, state: *main.GameState) !void {
+    _ = state;
+    switch (player.shop.selectedOption) {
+        .combine => |*data| {
+            switch (data.combineStep) {
+                .selectPiece1 => {
+                    data.pieceIndex2 = @mod(data.pieceIndex1 + 1, player.totalMovePieces.items.len);
+                    data.combineStep = .selectPiece2;
+                },
+                .selectPiece2 => {
+                    data.combineStep = .selectDirection;
+                },
+                .selectDirection => {
+                    data.combineStep = .selectPiece1;
+                    data.direction = 0;
+                    data.pieceIndex2 = null;
+                },
+            }
+        },
+        else => {},
+    }
+}
+
 pub fn executePay(player: *main.Player, state: *main.GameState) !void {
     switch (player.shop.selectedOption) {
         .delete => |*data| {
@@ -183,6 +233,16 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
                 player.shop.gridDisplayPiece = player.totalMovePieces.items[data.selectedIndex];
             }
         },
+        .combine => |*data| {
+            const cost = state.level * 1;
+            if (player.money >= cost and data.pieceIndex2 != null and data.combineStep == .selectDirection) {
+                player.money -= cost;
+                try movePieceZig.combineMovePieces(player, data.pieceIndex1, data.pieceIndex2.?, data.direction, state);
+                data.pieceIndex2 = null;
+                data.combineStep = .selectPiece1;
+                player.shop.gridDisplayPiece = player.totalMovePieces.items[data.pieceIndex1];
+            }
+        },
         else => {},
     }
 }
@@ -203,6 +263,23 @@ pub fn executeArrowRight(player: *main.Player, state: *main.GameState) !void {
             player.shop.gridDisplayPiece = player.totalMovePieces.items[data.selectedIndex];
             data.gridCutOffset = null;
             data.isOnMovePiece = false;
+        },
+        .combine => |*data| {
+            switch (data.combineStep) {
+                .selectPiece1 => {
+                    data.pieceIndex1 = @min(data.pieceIndex1 + 1, player.totalMovePieces.items.len - 1);
+                    player.shop.gridDisplayPiece = player.totalMovePieces.items[data.pieceIndex1];
+                },
+                .selectPiece2 => {
+                    data.pieceIndex2 = @min(data.pieceIndex2.? + 1, player.totalMovePieces.items.len - 1);
+                    if (data.pieceIndex2 == data.pieceIndex1) {
+                        data.pieceIndex2 = @min(data.pieceIndex2.? + 1, player.totalMovePieces.items.len - 1);
+                    }
+                },
+                .selectDirection => {
+                    data.direction = @mod(data.direction + 1, 4);
+                },
+            }
         },
         else => {},
     }
@@ -225,29 +302,61 @@ pub fn executeArrowLeft(player: *main.Player, state: *main.GameState) !void {
             data.gridCutOffset = null;
             data.isOnMovePiece = false;
         },
+        .combine => |*data| {
+            switch (data.combineStep) {
+                .selectPiece1 => {
+                    data.pieceIndex1 = data.pieceIndex1 -| 1;
+                    player.shop.gridDisplayPiece = player.totalMovePieces.items[data.pieceIndex1];
+                },
+                .selectPiece2 => {
+                    data.pieceIndex2 = data.pieceIndex2.? -| 1;
+                    if (data.pieceIndex2 == data.pieceIndex1) {
+                        if (data.pieceIndex2 == 0) {
+                            data.pieceIndex2 = @min(data.pieceIndex2.? + 1, player.totalMovePieces.items.len - 1);
+                        } else {
+                            data.pieceIndex2 = data.pieceIndex2.? -| 1;
+                        }
+                    }
+                },
+                .selectDirection => {
+                    data.direction = @mod(data.direction + 3, 4);
+                },
+            }
+        },
         else => {},
     }
 }
 
 pub fn executeDeletePiece(player: *main.Player, state: *main.GameState) !void {
     _ = state;
-    player.shop.selectedOption = .{ .delete = .{ .selectedIndex = 0 } };
+    player.shop.selectedOption = .{ .delete = .{} };
     player.shop.gridDisplayPiece = player.totalMovePieces.items[0];
 }
 
 pub fn executeCutPiece(player: *main.Player, state: *main.GameState) !void {
     _ = state;
-    player.shop.selectedOption = .{ .cut = .{ .selectedIndex = 0 } };
+    player.shop.selectedOption = .{ .cut = .{} };
+    player.shop.gridDisplayPiece = player.totalMovePieces.items[0];
+}
+
+pub fn executeCombinePiece(player: *main.Player, state: *main.GameState) !void {
+    _ = state;
+    player.shop.selectedOption = .{ .combine = .{} };
     player.shop.gridDisplayPiece = player.totalMovePieces.items[0];
 }
 
 pub fn executeAddPiece(player: *main.Player, state: *main.GameState) !void {
     _ = state;
-    player.shop.selectedOption = .{ .add = .{ .selectedIndex = 0 } };
+    player.shop.selectedOption = .{ .add = .{} };
     player.shop.gridDisplayPiece = player.shop.piecesToBuy[0].?;
 }
 
 pub fn executeShopPhaseEnd(player: *main.Player, state: *main.GameState) !void {
     _ = player;
     try main.endShoppingPhase(state);
+}
+
+fn isNextStepButtonVisible(player: *main.Player) bool {
+    if (player.shop.selectedOption == .combine) return true;
+    return false;
 }

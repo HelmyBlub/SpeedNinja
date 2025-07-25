@@ -28,14 +28,16 @@ pub fn setupVertices(state: *main.GameState) !void {
     shopUx.sprites.verticeCount = 0;
     shopUx.font.verticeCount = 0;
     if (state.gamePhase != .shopping) return;
-    paintGrid(&state.players.items[0], state);
-    const player0ShopPos = state.players.items[0].shop.pieceShopTopLeft;
+    const player = &state.players.items[0];
+    paintGrid(player, state);
+    const player0ShopPos = player.shop.pieceShopTopLeft;
     for (shopZig.SHOP_BUTTONS) |shopButton| {
+        if (shopButton.isVisible != null and !shopButton.isVisible.?(player)) continue;
         const shopButtonGamePosition: main.Position = .{
             .x = @floatFromInt((player0ShopPos.x + shopButton.tileOffset.x) * main.TILESIZE),
             .y = @floatFromInt((player0ShopPos.y + shopButton.tileOffset.y) * main.TILESIZE),
         };
-        if (shopButton.option != .none and shopButton.option == state.players.items[0].shop.selectedOption) {
+        if (shopButton.option != .none and shopButton.option == player.shop.selectedOption) {
             rectangleForTile(shopButtonGamePosition, .{ 0, 0, 1 }, shopUx, false, state);
         }
         shopUx.sprites.vertices[shopUx.sprites.verticeCount] = .{
@@ -124,6 +126,28 @@ fn paintMovePieceInGrid(player: *main.Player, gridGameTopLeft: main.Position, st
                 .x = gridGameTopLeft.x + @as(f32, @floatFromInt(x)) * main.TILESIZE,
                 .y = gridGameTopLeft.y + @as(f32, @floatFromInt(y)) * main.TILESIZE,
             }, .{ 0.25, 0.25, 0.25 }, shopUx, true, state);
+        }
+    }
+
+    if (player.shop.selectedOption == .combine and player.shop.selectedOption.combine.pieceIndex2 != null) {
+        const displayPiece2 = player.totalMovePieces.items[player.shop.selectedOption.combine.pieceIndex2.?];
+        const directionChange = player.shop.selectedOption.combine.direction;
+        rectangleForTile(.{
+            .x = gridGameTopLeft.x + @as(f32, @floatFromInt(x)) * main.TILESIZE,
+            .y = gridGameTopLeft.y + @as(f32, @floatFromInt(y)) * main.TILESIZE,
+        }, .{ 0, 0, 1 }, shopUx, true, state);
+        for (displayPiece2.steps) |step| {
+            const changedDirection = @mod(step.direction + directionChange, 4);
+            const stepX: i8 = if (changedDirection == 0) 1 else if (changedDirection == 2) -1 else 0;
+            const stepY: i8 = if (changedDirection == 1) 1 else if (changedDirection == 3) -1 else 0;
+            for (0..step.stepCount) |_| {
+                x += stepX;
+                y += stepY;
+                rectangleForTile(.{
+                    .x = gridGameTopLeft.x + @as(f32, @floatFromInt(x)) * main.TILESIZE,
+                    .y = gridGameTopLeft.y + @as(f32, @floatFromInt(y)) * main.TILESIZE,
+                }, .{ 0.25, 0.25, 0.25 }, shopUx, true, state);
+            }
         }
     }
 }

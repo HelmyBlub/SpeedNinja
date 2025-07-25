@@ -1,10 +1,7 @@
 Tasks:
 - shopping phase
     - spend money for piece changes
-        - continue: cut piece 1 not working
-        - cut tool
-            - player can move on shop grid and decide where to cut
-        
+        - combine pieces
     - shopping phase should work with multiple players
 - random move pieces
     - check that random move pieces can reach any tile and don't lock to certain ones
