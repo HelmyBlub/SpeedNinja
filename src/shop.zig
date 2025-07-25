@@ -238,9 +238,12 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
             if (player.money >= cost and data.pieceIndex2 != null and data.combineStep == .selectDirection) {
                 player.money -= cost;
                 try movePieceZig.combineMovePieces(player, data.pieceIndex1, data.pieceIndex2.?, data.direction, state);
+                if (data.pieceIndex1 > data.pieceIndex2.?) {
+                    data.pieceIndex1 -= 1;
+                }
+                player.shop.gridDisplayPiece = player.totalMovePieces.items[data.pieceIndex1];
                 data.pieceIndex2 = null;
                 data.combineStep = .selectPiece1;
-                player.shop.gridDisplayPiece = player.totalMovePieces.items[data.pieceIndex1];
             }
         },
         else => {},
@@ -273,7 +276,7 @@ pub fn executeArrowRight(player: *main.Player, state: *main.GameState) !void {
                 .selectPiece2 => {
                     data.pieceIndex2 = @min(data.pieceIndex2.? + 1, player.totalMovePieces.items.len - 1);
                     if (data.pieceIndex2 == data.pieceIndex1) {
-                        data.pieceIndex2 = @min(data.pieceIndex2.? + 1, player.totalMovePieces.items.len - 1);
+                        data.pieceIndex2.? -|= 1;
                     }
                 },
                 .selectDirection => {

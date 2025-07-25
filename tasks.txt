@@ -1,12 +1,22 @@
 Tasks:
+-  change: draw move piece (shop grid and option UX):
+    - be able to draw in any size 
+    - should shrink over distance to be able to follow when overlap happens
+- change: draw move piece outline for visualizing where player moves
+    - make different directions have different shape
+        - as a side effect: this may make a piece look less like some illegal pattern
+    - make lines connected to hopefully be able to follow direction better
 - shopping phase
-    - spend money for piece changes
-        - combine pieces
+    - move selected piece in shop grid center
+        - try to prevent it going outside if possible
     - shopping phase should work with multiple players
+    - check tiles combine in same direction
 - random move pieces
     - check that random move pieces can reach any tile and don't lock to certain ones
     - how to display selected move piece when questionable pattern?
         - i don't feel like i should disable certain pieces
+- Bug: entering shop second time not reset properly
+    - no tool selected and a invald piece was dipslayed 
 
 
 Next ideas:

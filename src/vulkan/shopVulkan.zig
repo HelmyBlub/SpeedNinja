@@ -8,6 +8,7 @@ const windowSdlZig = @import("../windowSdl.zig");
 const movePieceZig = @import("../movePiece.zig");
 const fontVulkanZig = @import("fontVulkan.zig");
 const shopZig = @import("../shop.zig");
+const movePieceVulkanZig = @import("movePieceUxVulkan.zig");
 
 pub const VkShopUx = struct {
     triangles: dataVulkanZig.VkTriangles = undefined,
@@ -110,45 +111,51 @@ fn paintMovePieceInGrid(player: *main.Player, gridGameTopLeft: main.Position, st
     const shopUx = &state.vkState.shopUx;
     if (player.shop.gridDisplayPiece == null) return;
     const gridDisplayPiece = player.shop.gridDisplayPiece.?;
-    var x: i32 = player.shop.gridDisplayPieceOffset.x;
-    var y: i32 = player.shop.gridDisplayPieceOffset.y;
-    rectangleForTile(.{
-        .x = gridGameTopLeft.x + @as(f32, @floatFromInt(x)) * main.TILESIZE,
-        .y = gridGameTopLeft.y + @as(f32, @floatFromInt(y)) * main.TILESIZE,
-    }, .{ 0, 0, 1 }, shopUx, true, state);
-    for (gridDisplayPiece.steps) |step| {
-        const stepX: i8 = if (step.direction == 0) 1 else if (step.direction == 2) -1 else 0;
-        const stepY: i8 = if (step.direction == 1) 1 else if (step.direction == 3) -1 else 0;
-        for (0..step.stepCount) |_| {
-            x += stepX;
-            y += stepY;
-            rectangleForTile(.{
-                .x = gridGameTopLeft.x + @as(f32, @floatFromInt(x)) * main.TILESIZE,
-                .y = gridGameTopLeft.y + @as(f32, @floatFromInt(y)) * main.TILESIZE,
-            }, .{ 0.25, 0.25, 0.25 }, shopUx, true, state);
-        }
-    }
+
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const size = main.TILESIZE;
+    const gamePosition = .{
+        .x = gridGameTopLeft.x + @as(f32, @floatFromInt(player.shop.gridDisplayPieceOffset.x)) * main.TILESIZE,
+        .y = gridGameTopLeft.y + @as(f32, @floatFromInt(player.shop.gridDisplayPieceOffset.y)) * main.TILESIZE,
+    };
+    const vulkan: main.Position = .{
+        .x = (-state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
+        .y = (-state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
+    };
+    const width = size * onePixelXInVulkan * state.camera.zoom;
+    const height = size * onePixelYInVulkan * state.camera.zoom;
+    var left = vulkan.x - width / 2;
+    var top = vulkan.y - height / 2;
+
+    const endPos = movePieceVulkanZig.verticesForMovePiece(
+        gridDisplayPiece,
+        .{ 0.25, 0.25, 0.25 },
+        left,
+        top,
+        width,
+        height,
+        0,
+        &shopUx.lines,
+        &shopUx.triangles,
+    );
+    left = endPos.x;
+    top = endPos.y;
 
     if (player.shop.selectedOption == .combine and player.shop.selectedOption.combine.pieceIndex2 != null) {
         const displayPiece2 = player.totalMovePieces.items[player.shop.selectedOption.combine.pieceIndex2.?];
         const directionChange = player.shop.selectedOption.combine.direction;
-        rectangleForTile(.{
-            .x = gridGameTopLeft.x + @as(f32, @floatFromInt(x)) * main.TILESIZE,
-            .y = gridGameTopLeft.y + @as(f32, @floatFromInt(y)) * main.TILESIZE,
-        }, .{ 0, 0, 1 }, shopUx, true, state);
-        for (displayPiece2.steps) |step| {
-            const changedDirection = @mod(step.direction + directionChange, 4);
-            const stepX: i8 = if (changedDirection == 0) 1 else if (changedDirection == 2) -1 else 0;
-            const stepY: i8 = if (changedDirection == 1) 1 else if (changedDirection == 3) -1 else 0;
-            for (0..step.stepCount) |_| {
-                x += stepX;
-                y += stepY;
-                rectangleForTile(.{
-                    .x = gridGameTopLeft.x + @as(f32, @floatFromInt(x)) * main.TILESIZE,
-                    .y = gridGameTopLeft.y + @as(f32, @floatFromInt(y)) * main.TILESIZE,
-                }, .{ 0.25, 0.25, 0.25 }, shopUx, true, state);
-            }
-        }
+        _ = movePieceVulkanZig.verticesForMovePiece(
+            displayPiece2,
+            .{ 0.25, 0.25, 0.25 },
+            left,
+            top,
+            width,
+            height,
+            directionChange,
+            &shopUx.lines,
+            &shopUx.triangles,
+        );
     }
 }
 

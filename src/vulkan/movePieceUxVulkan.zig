@@ -8,6 +8,8 @@ const windowSdlZig = @import("../windowSdl.zig");
 const movePieceZig = @import("../movePiece.zig");
 const fontVulkanZig = @import("fontVulkan.zig");
 
+const INITIAL_PIECE_COLOR: [3]f32 = .{ 0.0, 0.0, 1 };
+
 pub const VkMovePiecesUx = struct {
     triangles: dataVulkanZig.VkTriangles = undefined,
     lines: dataVulkanZig.VkLines = undefined,
@@ -86,26 +88,9 @@ pub fn setupVertices(state: *main.GameState) !void {
     movePieceUx.triangles.verticeCount = 0;
     movePieceUx.sprites.verticeCount = 0;
     movePieceUx.font.verticeCount = 0;
-    const startColor: [3]f32 = .{ 0.0, 0.0, 1 };
-    const fillColor: [3]f32 = .{ 0.25, 0.25, 0.25 };
-    const selctedColor: [3]f32 = .{ 0.07, 0.07, 0.07 };
 
-    for (state.players.items) |player| {
-        for (player.moveOptions.items, 0..) |movePiece, index| {
-            const rectFillColor = if (player.choosenMoveOptionIndex != null and player.choosenMoveOptionIndex.? == index) selctedColor else fillColor;
-            var x: i8 = 0;
-            var y: i8 = 0;
-            setupRectangleVertices(x, y, movePieceUx, index, player.moveOptions.items.len, startColor);
-            for (movePiece.steps) |step| {
-                const stepX: i8 = if (step.direction == 0) 1 else if (step.direction == 2) -1 else 0;
-                const stepY: i8 = if (step.direction == 1) 1 else if (step.direction == 3) -1 else 0;
-                for (0..step.stepCount) |_| {
-                    x += stepX;
-                    y += stepY;
-                    setupRectangleVertices(x, y, movePieceUx, index, player.moveOptions.items.len, rectFillColor);
-                }
-            }
-        }
+    for (state.players.items) |*player| {
+        verticesForMoveOptions(player, movePieceUx);
 
         if (player.choosenMoveOptionIndex) |index| {
             const lines = &movePieceUx.lines;
@@ -209,40 +194,117 @@ pub fn setupVertices(state: *main.GameState) !void {
     try setupVertexDataForGPU(&state.vkState);
 }
 
-fn setupRectangleVertices(leftIndex: i8, topIndex: i8, movePieceUx: *VkMovePiecesUx, currentMovePieceIndex: usize, maxMovePieces: usize, fillColor: [3]f32) void {
-    const borderColor: [3]f32 = .{ 0, 0, 0 };
+fn verticesForMoveOptions(player: *main.Player, movePieceUx: *VkMovePiecesUx) void {
+    if (player.moveOptions.items.len == 0) return;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const size = main.TILESIZE;
     const width = size * onePixelXInVulkan;
     const height = size * onePixelYInVulkan;
     const pieceXSpacing = width * 8;
-    const someWidth = @as(f32, @floatFromInt(maxMovePieces - 1)) * pieceXSpacing - width / 2;
-    const leftStart = -someWidth / 2;
-    const left: f32 = @as(f32, @floatFromInt(leftIndex)) * width + leftStart + pieceXSpacing * @as(f32, @floatFromInt(currentMovePieceIndex));
-    const offsetY = 0.9;
-    const top: f32 = @as(f32, @floatFromInt(topIndex)) * height + offsetY;
+    const someWidth = @as(f32, @floatFromInt(player.moveOptions.items.len - 1)) * pieceXSpacing - width / 2;
+    var startX: f32 = -someWidth / 2;
+    const startY = 0.9;
 
     const lines = &movePieceUx.lines;
     const triangles = &movePieceUx.triangles;
+    for (player.moveOptions.items, 0..) |option, index| {
+        const fillColor: [3]f32 = .{ 0.25, 0.25, 0.25 };
+        const selctedColor: [3]f32 = .{ 0.07, 0.07, 0.07 };
+        const rectFillColor = if (player.choosenMoveOptionIndex != null and player.choosenMoveOptionIndex.? == index) selctedColor else fillColor;
+        _ = verticesForMovePiece(option, rectFillColor, startX, startY, width, height, 0, lines, triangles);
+        startX += pieceXSpacing;
+    }
+}
+
+pub fn verticesForMovePiece(movePiece: movePieceZig.MovePiece, fillColor: [3]f32, vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, direction: u8, lines: *dataVulkanZig.VkLines, triangles: *dataVulkanZig.VkTriangles) struct { x: f32, y: f32 } {
+    var x: f32 = vulkanX;
+    var y: f32 = vulkanY;
+    var sizeFactor: f32 = 1;
+    const factor = 0.9;
+    verticesForRectangle(x, y, vulkanTileWidth, vulkanTileHeight, INITIAL_PIECE_COLOR, lines, triangles);
+    for (movePiece.steps) |step| {
+        const modStepDirection = @mod(step.direction + direction, 4);
+        const stepDirection = movePieceZig.getStepDirection(modStepDirection);
+        sizeFactor *= factor;
+        for (0..step.stepCount) |i| {
+            x += stepDirection.x * vulkanTileWidth;
+            y += stepDirection.y * vulkanTileHeight;
+            var modWidth = vulkanTileWidth;
+            var modHeight = vulkanTileHeight;
+            var tempX = x;
+            var tempY = y;
+            switch (modStepDirection) {
+                movePieceZig.DIRECTION_RIGHT => {
+                    modHeight *= sizeFactor;
+                    const offsetBasedOnSizeFactor = vulkanTileWidth * (1 - sizeFactor) / 2;
+                    tempX -= offsetBasedOnSizeFactor;
+                    tempY += vulkanTileHeight * (1 - sizeFactor) / 2;
+                    if (i == 0) {
+                        const offsetBasedOnOldSizeFactor = vulkanTileWidth * (1 - sizeFactor / factor) / 2;
+                        tempX -= offsetBasedOnOldSizeFactor - offsetBasedOnSizeFactor;
+                        modWidth -= offsetBasedOnSizeFactor - offsetBasedOnOldSizeFactor;
+                    }
+                },
+                movePieceZig.DIRECTION_LEFT => {
+                    modHeight *= sizeFactor;
+                    const offsetBasedOnSizeFactor = vulkanTileWidth * (1 - sizeFactor) / 2;
+                    tempX += offsetBasedOnSizeFactor;
+                    tempY += vulkanTileHeight * (1 - sizeFactor) / 2;
+                    if (i == 0) {
+                        const offsetBasedOnOldSizeFactor = vulkanTileWidth * (1 - sizeFactor / factor) / 2;
+                        modWidth -= offsetBasedOnSizeFactor - offsetBasedOnOldSizeFactor;
+                    }
+                },
+                movePieceZig.DIRECTION_UP => {
+                    modWidth *= sizeFactor;
+                    tempX += vulkanTileWidth * (1 - sizeFactor) / 2;
+                    const offsetBasedOnSizeFactor = (vulkanTileHeight * (1 - sizeFactor) / 2.0);
+                    tempY += offsetBasedOnSizeFactor;
+                    if (i == 0) {
+                        const offsetBasedOnOldSizeFactor = (vulkanTileHeight * (1 - sizeFactor / factor) / 2.0);
+                        modHeight -= offsetBasedOnSizeFactor - offsetBasedOnOldSizeFactor;
+                    }
+                },
+                else => {
+                    modWidth *= sizeFactor;
+                    const offsetBasedOnSizeFactor = (vulkanTileHeight * (1 - sizeFactor) / 2.0);
+                    tempX += vulkanTileWidth * (1 - sizeFactor) / 2;
+                    tempY -= offsetBasedOnSizeFactor;
+                    if (i == 0) {
+                        const offsetBasedOnOldSizeFactor = vulkanTileHeight * (1 - sizeFactor / factor) / 2;
+                        tempY -= offsetBasedOnOldSizeFactor - offsetBasedOnSizeFactor;
+                        modHeight -= offsetBasedOnSizeFactor - offsetBasedOnOldSizeFactor;
+                    }
+                },
+            }
+
+            verticesForRectangle(tempX, tempY, modWidth, modHeight, fillColor, lines, triangles);
+        }
+    }
+    return .{ .x = x, .y = y };
+}
+
+fn verticesForRectangle(x: f32, y: f32, width: f32, height: f32, fillColor: [3]f32, lines: *dataVulkanZig.VkLines, triangles: *dataVulkanZig.VkTriangles) void {
     if (triangles.verticeCount + 6 >= triangles.vertices.len) return;
-    triangles.vertices[triangles.verticeCount] = .{ .pos = .{ left, top }, .color = fillColor };
-    triangles.vertices[triangles.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = fillColor };
-    triangles.vertices[triangles.verticeCount + 2] = .{ .pos = .{ left, top + height }, .color = fillColor };
-    triangles.vertices[triangles.verticeCount + 3] = .{ .pos = .{ left, top }, .color = fillColor };
-    triangles.vertices[triangles.verticeCount + 4] = .{ .pos = .{ left + width, top }, .color = fillColor };
-    triangles.vertices[triangles.verticeCount + 5] = .{ .pos = .{ left + width, top + height }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount] = .{ .pos = .{ x, y }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount + 1] = .{ .pos = .{ x + width, y + height }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount + 2] = .{ .pos = .{ x, y + height }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount + 3] = .{ .pos = .{ x, y }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount + 4] = .{ .pos = .{ x + width, y }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount + 5] = .{ .pos = .{ x + width, y + height }, .color = fillColor };
     triangles.verticeCount += 6;
 
     if (lines.verticeCount + 8 >= lines.vertices.len) return;
-    lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = borderColor };
-    lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top }, .color = borderColor };
-    lines.vertices[lines.verticeCount + 2] = .{ .pos = .{ left, top }, .color = borderColor };
-    lines.vertices[lines.verticeCount + 3] = .{ .pos = .{ left, top + height }, .color = borderColor };
-    lines.vertices[lines.verticeCount + 4] = .{ .pos = .{ left + width, top }, .color = borderColor };
-    lines.vertices[lines.verticeCount + 5] = .{ .pos = .{ left + width, top + height }, .color = borderColor };
-    lines.vertices[lines.verticeCount + 6] = .{ .pos = .{ left, top + height }, .color = borderColor };
-    lines.vertices[lines.verticeCount + 7] = .{ .pos = .{ left + width, top + height }, .color = borderColor };
+    const borderColor: [3]f32 = .{ 0, 0, 0 };
+    lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ x, y }, .color = borderColor };
+    lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ x + width, y }, .color = borderColor };
+    lines.vertices[lines.verticeCount + 2] = .{ .pos = .{ x, y }, .color = borderColor };
+    lines.vertices[lines.verticeCount + 3] = .{ .pos = .{ x, y + height }, .color = borderColor };
+    lines.vertices[lines.verticeCount + 4] = .{ .pos = .{ x + width, y }, .color = borderColor };
+    lines.vertices[lines.verticeCount + 5] = .{ .pos = .{ x + width, y + height }, .color = borderColor };
+    lines.vertices[lines.verticeCount + 6] = .{ .pos = .{ x, y + height }, .color = borderColor };
+    lines.vertices[lines.verticeCount + 7] = .{ .pos = .{ x + width, y + height }, .color = borderColor };
     lines.verticeCount += 8;
 }
 

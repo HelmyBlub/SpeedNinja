@@ -170,7 +170,6 @@ pub fn cutTilePositionOnMovePiece(player: *main.Player, cutTile: main.TilePositi
                     }
                 }
                 replaceMovePiece(totalIndexOfMovePieceToCut, shortenedPiece, player, state.allocator);
-                std.debug.print("added piece {}\n", .{shortenedPiece});
             }
             return;
         }
