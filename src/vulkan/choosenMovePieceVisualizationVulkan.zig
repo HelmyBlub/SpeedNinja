@@ -78,49 +78,51 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
                         } else {
                             const nextDirection = @mod(movePiece.steps[moveStepIndex + 1].direction + direction, 4);
                             var rotation: f32 = 0;
+                            const offsetAngledX = baseWidth / 4.0;
+                            const offsetAngledY = baseHeight / 4.0;
                             switch (moveDirection) {
                                 movePieceZig.DIRECTION_UP => {
                                     if (nextDirection == movePieceZig.DIRECTION_LEFT) {
                                         rotation = std.math.pi * 1.25;
-                                        x -= baseWidth / 3.0;
-                                        y += baseWidth / 3.0;
+                                        x -= offsetAngledX;
+                                        y += offsetAngledY;
                                     } else {
                                         rotation = std.math.pi * 1.75;
-                                        x += baseWidth / 3.0;
-                                        y += baseWidth / 3.0;
+                                        x += offsetAngledX;
+                                        y += offsetAngledY;
                                     }
                                 },
                                 movePieceZig.DIRECTION_DOWN => {
                                     if (nextDirection == movePieceZig.DIRECTION_LEFT) {
                                         rotation = std.math.pi * 0.75;
-                                        x -= baseWidth / 3.0;
-                                        y -= baseWidth / 3.0;
+                                        x -= offsetAngledX;
+                                        y -= offsetAngledY;
                                     } else {
                                         rotation = std.math.pi * 0.25;
-                                        x += baseWidth / 3.0;
-                                        y -= baseWidth / 3.0;
+                                        x += offsetAngledX;
+                                        y -= offsetAngledY;
                                     }
                                 },
                                 movePieceZig.DIRECTION_LEFT => {
                                     if (nextDirection == movePieceZig.DIRECTION_UP) {
                                         rotation = std.math.pi * 1.25;
-                                        x += baseWidth / 3.0;
-                                        y -= baseWidth / 3.0;
+                                        x += offsetAngledX;
+                                        y -= offsetAngledY;
                                     } else {
-                                        x += baseWidth / 3.0;
-                                        y += baseWidth / 3.0;
+                                        x += offsetAngledX;
+                                        y += offsetAngledY;
                                         rotation = std.math.pi * 0.75;
                                     }
                                 },
                                 else => {
                                     if (nextDirection == movePieceZig.DIRECTION_UP) {
                                         rotation = std.math.pi * -0.25;
-                                        x -= baseWidth / 3.0;
-                                        y -= baseWidth / 3.0;
+                                        x -= offsetAngledX;
+                                        y -= offsetAngledY;
                                     } else {
                                         rotation = std.math.pi * 0.25;
-                                        x -= baseWidth / 3.0;
-                                        y += baseWidth / 3.0;
+                                        x -= offsetAngledX;
+                                        y += offsetAngledY;
                                     }
                                 },
                             }

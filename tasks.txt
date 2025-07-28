@@ -1,7 +1,5 @@
 Tasks:
 - change: draw move piece outline for visualizing where player moves
-    - simplified visualiuation for pieces which have no overlap
-        - change corner pieces
     - overlapping pieces
         - make lines connected to hopefully be able to follow direction better
         - highlight one direction and switch through
