@@ -37,13 +37,10 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
         const baseWidth = zoomedTileSize * onePixelXInVulkan;
         const baseHeight = zoomedTileSize * onePixelYInVulkan;
         const movePiece = player.moveOptions.items[index];
+        if (isChoosenPieceVisualizationOverlapping(movePiece)) {
+            //
+        }
         for (0..4) |direction| {
-            // if (direction == @mod(@divFloor(state.gameTime, 1000), 4)) {
-            //     const left = (player.position.x * state.camera.zoom - zoomedTileSize / 2) * onePixelXInVulkan;
-            //     const top = (player.position.y * state.camera.zoom - zoomedTileSize / 2) * onePixelYInVulkan;
-            //     _ = movePieceVulkanZig.verticesForMovePiece(movePiece, .{ 0.25, 0.25, 0.25 }, left, top, baseWidth, baseHeight, @intCast(direction), true, lines, triangles);
-            //     continue;
-            // }
             var step: f32 = 0;
             var position: main.Position = .{
                 .x = player.position.x * state.camera.zoom,
@@ -364,6 +361,33 @@ fn verticesMiddleArrowed(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulka
         lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ vulkanX + vulkanTileWidth * rotatedOffset2.x, vulkanY + vulkanTileHeight * rotatedOffset2.y }, .color = lineColor };
         lines.verticeCount += 2;
     }
+}
+
+fn isChoosenPieceVisualizationOverlapping(movePiece: movePieceZig.MovePiece) bool {
+    var x1: i32 = 0;
+    var y1: i32 = 0;
+    for (0..movePiece.steps.len) |movePieceIndex1| {
+        const movePiece1Steps = movePiece.steps[movePieceIndex1];
+        const stepDirection = movePieceZig.getStepDirectionTile(movePiece1Steps.direction);
+        for (0..movePiece1Steps.stepCount) |_| {
+            x1 += stepDirection.x;
+            y1 += stepDirection.y;
+            var x2: i32 = 0;
+            var y2: i32 = 0;
+            for (movePieceIndex1..movePiece.steps.len) |movePieceIndex2| {
+                const movePiece2Steps = movePiece.steps[movePieceIndex2];
+                const stepDirection2 = movePieceZig.getStepDirectionTile(movePiece2Steps.direction);
+                for (0..movePiece2Steps.stepCount) |_| {
+                    x2 += stepDirection2.x;
+                    y2 += stepDirection2.y;
+                    if (x1 * x2 + y1 * y2 == 0) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
 }
 
 pub fn create(state: *main.GameState) !void {

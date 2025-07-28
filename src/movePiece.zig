@@ -75,6 +75,22 @@ pub fn getStepDirection(direction: u8) main.Position {
         },
     }
 }
+pub fn getStepDirectionTile(direction: u8) main.TilePosition {
+    switch (direction) {
+        DIRECTION_RIGHT => {
+            return .{ .x = 1, .y = 0 };
+        },
+        DIRECTION_DOWN => {
+            return .{ .x = 0, .y = 1 };
+        },
+        DIRECTION_LEFT => {
+            return .{ .x = -1, .y = 0 };
+        },
+        else => {
+            return .{ .x = 0, .y = -1 };
+        },
+    }
+}
 
 pub fn tickPlayerMovePiece(player: *main.Player, state: *main.GameState) !void {
     if (player.executeMovePiece) |executeMovePiece| {
