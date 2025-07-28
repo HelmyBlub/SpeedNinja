@@ -1,11 +1,10 @@
 Tasks:
 - change: draw move piece outline for visualizing where player moves
-    - highlight one direction and switch through
-    - simplified visualiuation for pieces which are short and have no overlap
-        - only highlighted direction whill be shown full
-    - complex move pieces
+    - simplified visualiuation for pieces which have no overlap
+        - change corner pieces
+    - overlapping pieces
         - make lines connected to hopefully be able to follow direction better
-        - also make highlight for one direction
+        - highlight one direction and switch through
 -  change: draw move piece (shop grid and option UX):
     - problem: overlapping lines and rectangles
         - try to do on cpu side with many draw calls
