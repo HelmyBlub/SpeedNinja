@@ -15,7 +15,7 @@ pub const VkEnemyData = struct {
     vertexBufferMemory: vk.VkDeviceMemory = undefined,
     vertices: []dataVulkanZig.SpriteComplexVertex = undefined,
     verticeCount: usize = 0,
-    pub const MAX_VERTICES = 200; //TODO not checked limit
+    pub const MAX_VERTICES = 2000; //TODO not checked limit
 };
 
 fn setupVertices(state: *main.GameState) !void {

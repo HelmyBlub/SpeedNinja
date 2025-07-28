@@ -136,6 +136,7 @@ fn paintMovePieceInGrid(player: *main.Player, gridGameTopLeft: main.Position, st
         width,
         height,
         0,
+        false,
         &shopUx.lines,
         &shopUx.triangles,
     );
@@ -153,6 +154,7 @@ fn paintMovePieceInGrid(player: *main.Player, gridGameTopLeft: main.Position, st
             width,
             height,
             directionChange,
+            false,
             &shopUx.lines,
             &shopUx.triangles,
         );

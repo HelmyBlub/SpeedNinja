@@ -22,66 +22,6 @@ pub const VkMovePiecesUx = struct {
     pub const MAX_VERTICES_FONT = 50;
 };
 
-pub fn create(state: *main.GameState) !void {
-    try createVertexBuffers(&state.vkState, state.allocator);
-}
-
-pub fn destroy(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) void {
-    const movePieceUx = &vkState.movePieceUx;
-    vk.vkDestroyBuffer.?(vkState.logicalDevice, movePieceUx.triangles.vertexBuffer, null);
-    vk.vkDestroyBuffer.?(vkState.logicalDevice, movePieceUx.lines.vertexBuffer, null);
-    vk.vkDestroyBuffer.?(vkState.logicalDevice, movePieceUx.sprites.vertexBuffer, null);
-    vk.vkDestroyBuffer.?(vkState.logicalDevice, movePieceUx.font.vertexBuffer, null);
-    vk.vkFreeMemory.?(vkState.logicalDevice, movePieceUx.triangles.vertexBufferMemory, null);
-    vk.vkFreeMemory.?(vkState.logicalDevice, movePieceUx.lines.vertexBufferMemory, null);
-    vk.vkFreeMemory.?(vkState.logicalDevice, movePieceUx.sprites.vertexBufferMemory, null);
-    vk.vkFreeMemory.?(vkState.logicalDevice, movePieceUx.font.vertexBufferMemory, null);
-    allocator.free(movePieceUx.triangles.vertices);
-    allocator.free(movePieceUx.lines.vertices);
-    allocator.free(movePieceUx.sprites.vertices);
-    allocator.free(movePieceUx.font.vertices);
-}
-
-fn createVertexBuffers(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
-    const movePieceUx = &vkState.movePieceUx;
-    movePieceUx.triangles.vertices = try allocator.alloc(dataVulkanZig.ColoredVertex, VkMovePiecesUx.MAX_VERTICES_TRIANGLES);
-    try initVulkanZig.createBuffer(
-        @sizeOf(dataVulkanZig.ColoredVertex) * VkMovePiecesUx.MAX_VERTICES_TRIANGLES,
-        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &movePieceUx.triangles.vertexBuffer,
-        &movePieceUx.triangles.vertexBufferMemory,
-        vkState,
-    );
-    movePieceUx.lines.vertices = try allocator.alloc(dataVulkanZig.ColoredVertex, VkMovePiecesUx.MAX_VERTICES_LINES);
-    try initVulkanZig.createBuffer(
-        @sizeOf(dataVulkanZig.ColoredVertex) * VkMovePiecesUx.MAX_VERTICES_LINES,
-        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &movePieceUx.lines.vertexBuffer,
-        &movePieceUx.lines.vertexBufferMemory,
-        vkState,
-    );
-    movePieceUx.sprites.vertices = try allocator.alloc(dataVulkanZig.SpriteVertex, VkMovePiecesUx.MAX_VERTICES_SPRITES);
-    try initVulkanZig.createBuffer(
-        @sizeOf(dataVulkanZig.SpriteVertex) * VkMovePiecesUx.MAX_VERTICES_SPRITES,
-        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &movePieceUx.sprites.vertexBuffer,
-        &movePieceUx.sprites.vertexBufferMemory,
-        vkState,
-    );
-    movePieceUx.font.vertices = try allocator.alloc(fontVulkanZig.FontVertex, VkMovePiecesUx.MAX_VERTICES_FONT);
-    try initVulkanZig.createBuffer(
-        @sizeOf(fontVulkanZig.FontVertex) * movePieceUx.font.vertices.len,
-        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &movePieceUx.font.vertexBuffer,
-        &movePieceUx.font.vertexBufferMemory,
-        vkState,
-    );
-}
-
 pub fn setupVertices(state: *main.GameState) !void {
     const movePieceUx = &state.vkState.movePieceUx;
     movePieceUx.lines.verticeCount = 0;
@@ -91,96 +31,6 @@ pub fn setupVertices(state: *main.GameState) !void {
 
     for (state.players.items) |*player| {
         verticesForMoveOptions(player, movePieceUx);
-
-        if (player.choosenMoveOptionIndex) |index| {
-            const lines = &movePieceUx.lines;
-            const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-            const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-            const zoomedTileSize = main.TILESIZE * state.camera.zoom;
-            const baseWidth = zoomedTileSize * onePixelXInVulkan;
-            const baseHeight = zoomedTileSize * onePixelYInVulkan;
-            for (0..4) |direction| {
-                var step: f32 = 0;
-                var position: main.Position = .{
-                    .x = player.position.x * state.camera.zoom,
-                    .y = player.position.y * state.camera.zoom,
-                };
-
-                const lineColor: [3]f32 = .{
-                    if (direction == 0) 0.5 else 0,
-                    if (direction == 1) 0.2 else 0,
-                    if (direction == 2) 0.5 else 0,
-                };
-
-                var lastPosition: main.Position = position;
-                var lastMoveDirection: usize = 0;
-                var moveDirection: usize = 0;
-                for (player.moveOptions.items[index].steps, 0..) |moveStep, moveStepIndex| {
-                    lastMoveDirection = moveDirection;
-                    moveDirection = @mod(moveStep.direction + direction, 4);
-                    const moveX: f32 = if (moveDirection == 0) zoomedTileSize else if (moveDirection == 2) -zoomedTileSize else 0;
-                    const moveY: f32 = if (moveDirection == 1) zoomedTileSize else if (moveDirection == 3) -zoomedTileSize else 0;
-                    for (0..moveStep.stepCount) |stepCount| {
-                        step += 1;
-                        const recFator = 1 / (1 + step / 8);
-                        lastPosition = position;
-                        position.x += moveX;
-                        position.y += moveY;
-                        if (moveStepIndex == 0 and stepCount == 0) continue;
-                        if (lines.verticeCount + 8 >= lines.vertices.len) break;
-                        const left = (lastPosition.x - zoomedTileSize / 2 * recFator) * onePixelXInVulkan;
-                        const top = (lastPosition.y - zoomedTileSize / 2 * recFator) * onePixelYInVulkan;
-                        const width = baseWidth * recFator;
-                        const height = baseHeight * recFator;
-                        if (moveDirection != movePieceZig.DIRECTION_UP and !(stepCount == 0 and lastMoveDirection == movePieceZig.DIRECTION_DOWN) and !(stepCount > 0 and moveDirection == movePieceZig.DIRECTION_DOWN)) {
-                            lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = lineColor };
-                            lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top }, .color = lineColor };
-                            lines.verticeCount += 2;
-                        }
-                        if (moveDirection != movePieceZig.DIRECTION_DOWN and !(stepCount == 0 and lastMoveDirection == movePieceZig.DIRECTION_UP) and !(stepCount > 0 and moveDirection == movePieceZig.DIRECTION_UP)) {
-                            lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top + height }, .color = lineColor };
-                            lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = lineColor };
-                            lines.verticeCount += 2;
-                        }
-                        if (moveDirection != movePieceZig.DIRECTION_LEFT and !(stepCount == 0 and lastMoveDirection == movePieceZig.DIRECTION_RIGHT) and !(stepCount > 0 and moveDirection == movePieceZig.DIRECTION_RIGHT)) {
-                            lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = lineColor };
-                            lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left, top + height }, .color = lineColor };
-                            lines.verticeCount += 2;
-                        }
-                        if (moveDirection != movePieceZig.DIRECTION_RIGHT and !(stepCount == 0 and lastMoveDirection == movePieceZig.DIRECTION_LEFT) and !(stepCount > 0 and moveDirection == movePieceZig.DIRECTION_LEFT)) {
-                            lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left + width, top }, .color = lineColor };
-                            lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = lineColor };
-                            lines.verticeCount += 2;
-                        }
-                    }
-                }
-                const recFator = 1 / (1 + step / 4);
-                const left = (position.x - zoomedTileSize / 2 * recFator) * onePixelXInVulkan;
-                const top = (position.y - zoomedTileSize / 2 * recFator) * onePixelYInVulkan;
-                const width = baseWidth * recFator;
-                const height = baseHeight * recFator;
-                if (moveDirection != movePieceZig.DIRECTION_DOWN) {
-                    lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = lineColor };
-                    lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top }, .color = lineColor };
-                    lines.verticeCount += 2;
-                }
-                if (moveDirection != movePieceZig.DIRECTION_UP) {
-                    lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top + height }, .color = lineColor };
-                    lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = lineColor };
-                    lines.verticeCount += 2;
-                }
-                if (moveDirection != movePieceZig.DIRECTION_RIGHT) {
-                    lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = lineColor };
-                    lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left, top + height }, .color = lineColor };
-                    lines.verticeCount += 2;
-                }
-                if (moveDirection != movePieceZig.DIRECTION_LEFT) {
-                    lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left + width, top }, .color = lineColor };
-                    lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = lineColor };
-                    lines.verticeCount += 2;
-                }
-            }
-        }
     }
 
     const fontSize = 30;
@@ -212,17 +62,28 @@ fn verticesForMoveOptions(player: *main.Player, movePieceUx: *VkMovePiecesUx) vo
         const fillColor: [3]f32 = .{ 0.25, 0.25, 0.25 };
         const selctedColor: [3]f32 = .{ 0.07, 0.07, 0.07 };
         const rectFillColor = if (player.choosenMoveOptionIndex != null and player.choosenMoveOptionIndex.? == index) selctedColor else fillColor;
-        _ = verticesForMovePiece(option, rectFillColor, startX, startY, width, height, 0, lines, triangles);
+        _ = verticesForMovePiece(option, rectFillColor, startX, startY, width, height, 0, false, lines, triangles);
         startX += pieceXSpacing;
     }
 }
 
-pub fn verticesForMovePiece(movePiece: movePieceZig.MovePiece, fillColor: [3]f32, vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, direction: u8, lines: *dataVulkanZig.VkLines, triangles: *dataVulkanZig.VkTriangles) struct { x: f32, y: f32 } {
+pub fn verticesForMovePiece(
+    movePiece: movePieceZig.MovePiece,
+    fillColor: [3]f32,
+    vulkanX: f32,
+    vulkanY: f32,
+    vulkanTileWidth: f32,
+    vulkanTileHeight: f32,
+    direction: u8,
+    skipInitialRect: bool,
+    lines: *dataVulkanZig.VkLines,
+    triangles: *dataVulkanZig.VkTriangles,
+) struct { x: f32, y: f32 } {
     var x: f32 = vulkanX;
     var y: f32 = vulkanY;
     var sizeFactor: f32 = 1;
     const factor = 0.9;
-    verticesForRectangle(x, y, vulkanTileWidth, vulkanTileHeight, INITIAL_PIECE_COLOR, lines, triangles);
+    if (!skipInitialRect) verticesForRectangle(x, y, vulkanTileWidth, vulkanTileHeight, INITIAL_PIECE_COLOR, lines, triangles);
     for (movePiece.steps) |step| {
         const modStepDirection = @mod(step.direction + direction, 4);
         const stepDirection = movePieceZig.getStepDirection(modStepDirection);
@@ -306,6 +167,66 @@ fn verticesForRectangle(x: f32, y: f32, width: f32, height: f32, fillColor: [3]f
     lines.vertices[lines.verticeCount + 6] = .{ .pos = .{ x, y + height }, .color = borderColor };
     lines.vertices[lines.verticeCount + 7] = .{ .pos = .{ x + width, y + height }, .color = borderColor };
     lines.verticeCount += 8;
+}
+
+pub fn create(state: *main.GameState) !void {
+    try createVertexBuffers(&state.vkState, state.allocator);
+}
+
+pub fn destroy(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) void {
+    const movePieceUx = &vkState.movePieceUx;
+    vk.vkDestroyBuffer.?(vkState.logicalDevice, movePieceUx.triangles.vertexBuffer, null);
+    vk.vkDestroyBuffer.?(vkState.logicalDevice, movePieceUx.lines.vertexBuffer, null);
+    vk.vkDestroyBuffer.?(vkState.logicalDevice, movePieceUx.sprites.vertexBuffer, null);
+    vk.vkDestroyBuffer.?(vkState.logicalDevice, movePieceUx.font.vertexBuffer, null);
+    vk.vkFreeMemory.?(vkState.logicalDevice, movePieceUx.triangles.vertexBufferMemory, null);
+    vk.vkFreeMemory.?(vkState.logicalDevice, movePieceUx.lines.vertexBufferMemory, null);
+    vk.vkFreeMemory.?(vkState.logicalDevice, movePieceUx.sprites.vertexBufferMemory, null);
+    vk.vkFreeMemory.?(vkState.logicalDevice, movePieceUx.font.vertexBufferMemory, null);
+    allocator.free(movePieceUx.triangles.vertices);
+    allocator.free(movePieceUx.lines.vertices);
+    allocator.free(movePieceUx.sprites.vertices);
+    allocator.free(movePieceUx.font.vertices);
+}
+
+fn createVertexBuffers(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
+    const movePieceUx = &vkState.movePieceUx;
+    movePieceUx.triangles.vertices = try allocator.alloc(dataVulkanZig.ColoredVertex, VkMovePiecesUx.MAX_VERTICES_TRIANGLES);
+    try initVulkanZig.createBuffer(
+        @sizeOf(dataVulkanZig.ColoredVertex) * VkMovePiecesUx.MAX_VERTICES_TRIANGLES,
+        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        &movePieceUx.triangles.vertexBuffer,
+        &movePieceUx.triangles.vertexBufferMemory,
+        vkState,
+    );
+    movePieceUx.lines.vertices = try allocator.alloc(dataVulkanZig.ColoredVertex, VkMovePiecesUx.MAX_VERTICES_LINES);
+    try initVulkanZig.createBuffer(
+        @sizeOf(dataVulkanZig.ColoredVertex) * VkMovePiecesUx.MAX_VERTICES_LINES,
+        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        &movePieceUx.lines.vertexBuffer,
+        &movePieceUx.lines.vertexBufferMemory,
+        vkState,
+    );
+    movePieceUx.sprites.vertices = try allocator.alloc(dataVulkanZig.SpriteVertex, VkMovePiecesUx.MAX_VERTICES_SPRITES);
+    try initVulkanZig.createBuffer(
+        @sizeOf(dataVulkanZig.SpriteVertex) * VkMovePiecesUx.MAX_VERTICES_SPRITES,
+        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        &movePieceUx.sprites.vertexBuffer,
+        &movePieceUx.sprites.vertexBufferMemory,
+        vkState,
+    );
+    movePieceUx.font.vertices = try allocator.alloc(fontVulkanZig.FontVertex, VkMovePiecesUx.MAX_VERTICES_FONT);
+    try initVulkanZig.createBuffer(
+        @sizeOf(fontVulkanZig.FontVertex) * movePieceUx.font.vertices.len,
+        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        &movePieceUx.font.vertexBuffer,
+        &movePieceUx.font.vertexBufferMemory,
+        vkState,
+    );
 }
 
 fn setupVertexDataForGPU(vkState: *initVulkanZig.VkState) !void {

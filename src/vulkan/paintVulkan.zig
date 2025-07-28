@@ -12,6 +12,7 @@ const cutSpriteVulkan = @import("cutSpriteVulkan.zig");
 const ninjaDogVulkanZig = @import("ninjaDogVulkan.zig");
 const enemyVulkanZig = @import("enemyVulkan.zig");
 const shopVulkanZig = @import("shopVulkan.zig");
+const choosenMovePieceVulkanZig = @import("choosenMovePieceVisualizationVulkan.zig");
 
 pub fn drawFrame(state: *main.GameState) !void {
     const vkState = &state.vkState;
@@ -120,8 +121,9 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
         null,
     );
     try mapGridVulkanZig.recordCommandBuffer(commandBuffer, state);
-    try enemyVulkanZig.recordCommandBuffer(commandBuffer, state);
     try shopVulkanZig.recordCommandBuffer(commandBuffer, state);
+    try choosenMovePieceVulkanZig.recordCommandBuffer(commandBuffer, state);
+    try enemyVulkanZig.recordCommandBuffer(commandBuffer, state);
     vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.spriteWithGlobalTransform);
     const vertexBuffers: [1]vk.VkBuffer = .{vkState.spriteData.vertexBuffer};
     const offsets: [1]vk.VkDeviceSize = .{0};
