@@ -37,7 +37,6 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
         const baseWidth = zoomedTileSize * onePixelXInVulkan;
         const baseHeight = zoomedTileSize * onePixelYInVulkan;
         const movePiece = player.moveOptions.items[index];
-        _ = triangles;
         for (0..4) |direction| {
             // if (direction == @mod(@divFloor(state.gameTime, 1000), 4)) {
             //     const left = (player.position.x * state.camera.zoom - zoomedTileSize / 2) * onePixelXInVulkan;
@@ -67,71 +66,59 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
                 const moveY: f32 = if (moveDirection == 1) zoomedTileSize else if (moveDirection == 3) -zoomedTileSize else 0;
                 for (0..moveStep.stepCount) |stepCount| {
                     step += 1;
-                    const recFator = 1 / (1 + step / 8);
                     lastPosition = position;
                     position.x += moveX;
                     position.y += moveY;
-                    if (moveStepIndex == 0 and stepCount == 0) continue;
-                    if (lines.verticeCount + 8 >= lines.vertices.len) break;
-                    const left = (lastPosition.x - zoomedTileSize / 2 * recFator) * onePixelXInVulkan;
-                    const top = (lastPosition.y - zoomedTileSize / 2 * recFator) * onePixelYInVulkan;
-                    const width = baseWidth * recFator;
-                    const height = baseHeight * recFator;
-                    if (moveDirection != movePieceZig.DIRECTION_UP and !(stepCount == 0 and lastMoveDirection == movePieceZig.DIRECTION_DOWN) and !(stepCount > 0 and moveDirection == movePieceZig.DIRECTION_DOWN)) {
-                        lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = lineColor };
-                        lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top }, .color = lineColor };
-                        lines.verticeCount += 2;
-                    }
-                    if (moveDirection != movePieceZig.DIRECTION_DOWN and !(stepCount == 0 and lastMoveDirection == movePieceZig.DIRECTION_UP) and !(stepCount > 0 and moveDirection == movePieceZig.DIRECTION_UP)) {
-                        lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top + height }, .color = lineColor };
-                        lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = lineColor };
-                        lines.verticeCount += 2;
-                    }
-                    if (moveDirection != movePieceZig.DIRECTION_LEFT and !(stepCount == 0 and lastMoveDirection == movePieceZig.DIRECTION_RIGHT) and !(stepCount > 0 and moveDirection == movePieceZig.DIRECTION_RIGHT)) {
-                        lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = lineColor };
-                        lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left, top + height }, .color = lineColor };
-                        lines.verticeCount += 2;
-                    }
-                    if (moveDirection != movePieceZig.DIRECTION_RIGHT and !(stepCount == 0 and lastMoveDirection == movePieceZig.DIRECTION_LEFT) and !(stepCount > 0 and moveDirection == movePieceZig.DIRECTION_LEFT)) {
-                        lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left + width, top }, .color = lineColor };
-                        lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = lineColor };
-                        lines.verticeCount += 2;
+                    const x = position.x * onePixelXInVulkan;
+                    const y = position.y * onePixelYInVulkan;
+                    if (stepCount == moveStep.stepCount - 1) {
+                        if (moveStepIndex == movePiece.steps.len - 1) {
+                            verticesForSquare(x, y, baseWidth, baseHeight, lineColor, lines);
+                            verticesForFilledArrow(
+                                x,
+                                y,
+                                baseWidth * 0.9,
+                                baseHeight * 0.9,
+                                @intCast(@mod(direction + 3, 4)),
+                                lineColor,
+                                lines,
+                                triangles,
+                            );
+                        } else {
+                            const nextDirection = @mod(movePiece.steps[moveStepIndex + 1].direction + direction, 4);
+                            verticesForArrow(
+                                x,
+                                y,
+                                baseWidth * 0.5,
+                                baseHeight * 0.5,
+                                @intCast(nextDirection),
+                                lineColor,
+                                lines,
+                            );
+                        }
+                    } else {
+                        switch (direction) {
+                            0 => {
+                                verticesMiddleDotted(x, y, baseWidth, baseHeight, @intCast(moveDirection), lineColor, lines);
+                            },
+                            1 => {
+                                verticesMiddleArrowed(x, y, baseWidth, baseHeight, @intCast(moveDirection), lineColor, lines);
+                            },
+                            2 => {
+                                verticesMiddleZigZag(x, y, baseWidth, baseHeight, @intCast(moveDirection), lineColor, lines);
+                            },
+                            else => {
+                                verticesMiddleLine(x, y, baseWidth, baseHeight, @intCast(moveDirection), lineColor, lines);
+                            },
+                        }
                     }
                 }
             }
-            // const recFator = 1 / (1 + step / 4);
-            // const left = (position.x - zoomedTileSize / 2 * recFator) * onePixelXInVulkan;
-            // const top = (position.y - zoomedTileSize / 2 * recFator) * onePixelYInVulkan;
-            // const width = baseWidth * recFator;
-            // const height = baseHeight * recFator;
-            // if (moveDirection != movePieceZig.DIRECTION_DOWN) {
-            //     lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = lineColor };
-            //     lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top }, .color = lineColor };
-            //     lines.verticeCount += 2;
-            // }
-            // if (moveDirection != movePieceZig.DIRECTION_UP) {
-            //     lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top + height }, .color = lineColor };
-            //     lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = lineColor };
-            //     lines.verticeCount += 2;
-            // }
-            // if (moveDirection != movePieceZig.DIRECTION_RIGHT) {
-            //     lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = lineColor };
-            //     lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left, top + height }, .color = lineColor };
-            //     lines.verticeCount += 2;
-            // }
-            // if (moveDirection != movePieceZig.DIRECTION_LEFT) {
-            //     lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left + width, top }, .color = lineColor };
-            //     lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = lineColor };
-            //     lines.verticeCount += 2;
-            // }
-            const left = (position.x) * onePixelXInVulkan;
-            const top = (position.y) * onePixelYInVulkan;
-            verticesForArrowCorner(left, top, baseWidth, baseHeight, @intCast(moveDirection), lineColor, lines);
         }
     }
 }
 
-fn verticesForArrowCorner(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, arrowDirection: u8, lineColor: [3]f32, lines: *dataVulkanZig.VkLines) void {
+fn verticesForArrow(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, arrowDirection: u8, lineColor: [3]f32, lines: *dataVulkanZig.VkLines) void {
     const offsets = [_]main.Position{
         .{ .x = -0.5, .y = -0.20 },
         .{ .x = 0.0, .y = -0.20 },
@@ -169,12 +156,190 @@ fn verticesForArrowCorner(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulk
     }
 }
 
-fn verticesForEnd() void {
-    //
+fn verticesForFilledArrow(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, arrowDirection: u8, fillColor: [3]f32, lines: *dataVulkanZig.VkLines, triangles: *dataVulkanZig.VkTriangles) void {
+    if (triangles.verticeCount + 9 >= triangles.vertices.len) return;
+    const lineColor: [3]f32 = .{ 0, 0, 0 };
+    var angle: f32 = 0;
+    switch (arrowDirection) {
+        movePieceZig.DIRECTION_UP => {
+            angle = std.math.pi * 3.0 / 2.0;
+        },
+        movePieceZig.DIRECTION_DOWN => {
+            angle = std.math.pi / 2.0;
+        },
+        movePieceZig.DIRECTION_LEFT => {
+            angle = std.math.pi;
+        },
+        else => {},
+    }
+    const offsets = [_]main.Position{
+        paintVulkanZig.rotateAroundPoint(.{ .x = -0.5, .y = -0.20 }, .{ .x = 0, .y = 0 }, angle),
+        paintVulkanZig.rotateAroundPoint(.{ .x = 0.0, .y = -0.20 }, .{ .x = 0, .y = 0 }, angle),
+        paintVulkanZig.rotateAroundPoint(.{ .x = 0.0, .y = -0.5 }, .{ .x = 0, .y = 0 }, angle),
+        paintVulkanZig.rotateAroundPoint(.{ .x = 0.5, .y = 0 }, .{ .x = 0, .y = 0 }, angle),
+        paintVulkanZig.rotateAroundPoint(.{ .x = 0.0, .y = 0.5 }, .{ .x = 0, .y = 0 }, angle),
+        paintVulkanZig.rotateAroundPoint(.{ .x = 0.0, .y = 0.20 }, .{ .x = 0, .y = 0 }, angle),
+        paintVulkanZig.rotateAroundPoint(.{ .x = -0.5, .y = 0.20 }, .{ .x = 0, .y = 0 }, angle),
+        paintVulkanZig.rotateAroundPoint(.{ .x = -0.5, .y = -0.20 }, .{ .x = 0, .y = 0 }, angle),
+    };
+    if (lines.verticeCount + 2 * offsets.len >= lines.vertices.len) return;
+    var pos: [offsets.len]main.Position = undefined;
+    for (0..pos.len) |i| {
+        pos[i] = .{ .x = vulkanX + vulkanTileWidth * offsets[i].x, .y = vulkanY + vulkanTileHeight * offsets[i].y };
+    }
+    var lastPos: main.Position = .{ .x = 0, .y = 0 };
+    var currentPos: main.Position = pos[0];
+    for (1..offsets.len) |i| {
+        lastPos = currentPos;
+        currentPos = pos[i];
+        lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ lastPos.x, lastPos.y }, .color = lineColor };
+        lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ currentPos.x, currentPos.y }, .color = lineColor };
+        lines.verticeCount += 2;
+    }
+    triangles.vertices[triangles.verticeCount + 0] = .{ .pos = .{ pos[0].x, pos[0].y }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount + 1] = .{ .pos = .{ pos[1].x, pos[1].y }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount + 2] = .{ .pos = .{ pos[5].x, pos[5].y }, .color = fillColor };
+    triangles.verticeCount += 3;
+    triangles.vertices[triangles.verticeCount + 0] = .{ .pos = .{ pos[0].x, pos[0].y }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount + 1] = .{ .pos = .{ pos[5].x, pos[5].y }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount + 2] = .{ .pos = .{ pos[6].x, pos[6].y }, .color = fillColor };
+    triangles.verticeCount += 3;
+    triangles.vertices[triangles.verticeCount + 0] = .{ .pos = .{ pos[2].x, pos[2].y }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount + 1] = .{ .pos = .{ pos[3].x, pos[3].y }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount + 2] = .{ .pos = .{ pos[4].x, pos[4].y }, .color = fillColor };
+    triangles.verticeCount += 3;
 }
 
-fn verticesMiddleShapeDashLine() void {
-    //
+fn verticesForSquare(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, lineColor: [3]f32, lines: *dataVulkanZig.VkLines) void {
+    const offsets = [_]main.Position{
+        .{ .x = -0.45, .y = -0.45 },
+        .{ .x = 0.45, .y = -0.45 },
+        .{ .x = 0.45, .y = 0.45 },
+        .{ .x = -0.45, .y = 0.45 },
+        .{ .x = -0.45, .y = -0.45 },
+    };
+    if (lines.verticeCount + 2 * offsets.len >= lines.vertices.len) return;
+    var lastPos: main.Position = .{ .x = vulkanX, .y = vulkanY };
+    var currentPos: main.Position = .{ .x = vulkanX + vulkanTileWidth * offsets[0].x, .y = vulkanY + vulkanTileHeight * offsets[0].y };
+    for (1..offsets.len) |i| {
+        lastPos = currentPos;
+        currentPos = .{ .x = vulkanX + vulkanTileWidth * offsets[i].x, .y = vulkanY + vulkanTileHeight * offsets[i].y };
+        lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ lastPos.x, lastPos.y }, .color = lineColor };
+        lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ currentPos.x, currentPos.y }, .color = lineColor };
+        lines.verticeCount += 2;
+    }
+}
+
+fn verticesMiddleLine(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, arrowDirection: u8, lineColor: [3]f32, lines: *dataVulkanZig.VkLines) void {
+    const offsets = [_]main.Position{
+        .{ .x = -0.3, .y = 0 },
+        .{ .x = 0.3, .y = 0 },
+    };
+    if (lines.verticeCount + 2 * offsets.len >= lines.vertices.len) return;
+    var lastPos: main.Position = .{ .x = vulkanX, .y = vulkanY };
+    var angle: f32 = 0;
+    switch (arrowDirection) {
+        movePieceZig.DIRECTION_UP, movePieceZig.DIRECTION_DOWN => {
+            angle = std.math.pi / 2.0;
+        },
+        else => {},
+    }
+    var rotatedOffset = paintVulkanZig.rotateAroundPoint(offsets[0], .{ .x = 0, .y = 0 }, angle);
+    var currentPos: main.Position = .{ .x = vulkanX + vulkanTileWidth * rotatedOffset.x, .y = vulkanY + vulkanTileHeight * rotatedOffset.y };
+    for (1..offsets.len) |i| {
+        lastPos = currentPos;
+        rotatedOffset = paintVulkanZig.rotateAroundPoint(offsets[i], .{ .x = 0, .y = 0 }, angle);
+        currentPos = .{ .x = vulkanX + vulkanTileWidth * rotatedOffset.x, .y = vulkanY + vulkanTileHeight * rotatedOffset.y };
+        lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ lastPos.x, lastPos.y }, .color = lineColor };
+        lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ currentPos.x, currentPos.y }, .color = lineColor };
+        lines.verticeCount += 2;
+    }
+}
+
+fn verticesMiddleZigZag(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, arrowDirection: u8, lineColor: [3]f32, lines: *dataVulkanZig.VkLines) void {
+    const offsets = [_]main.Position{
+        .{ .x = -0.3, .y = 0.2 },
+        .{ .x = -0.1, .y = -0.2 },
+        .{ .x = 0.1, .y = 0.2 },
+        .{ .x = 0.3, .y = -0.2 },
+    };
+    if (lines.verticeCount + 2 * offsets.len >= lines.vertices.len) return;
+    var lastPos: main.Position = .{ .x = vulkanX, .y = vulkanY };
+    var angle: f32 = 0;
+    switch (arrowDirection) {
+        movePieceZig.DIRECTION_UP, movePieceZig.DIRECTION_DOWN => {
+            angle = std.math.pi / 2.0;
+        },
+        else => {},
+    }
+    var rotatedOffset = paintVulkanZig.rotateAroundPoint(offsets[0], .{ .x = 0, .y = 0 }, angle);
+    var currentPos: main.Position = .{ .x = vulkanX + vulkanTileWidth * rotatedOffset.x, .y = vulkanY + vulkanTileHeight * rotatedOffset.y };
+    for (1..offsets.len) |i| {
+        lastPos = currentPos;
+        rotatedOffset = paintVulkanZig.rotateAroundPoint(offsets[i], .{ .x = 0, .y = 0 }, angle);
+        currentPos = .{ .x = vulkanX + vulkanTileWidth * rotatedOffset.x, .y = vulkanY + vulkanTileHeight * rotatedOffset.y };
+        lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ lastPos.x, lastPos.y }, .color = lineColor };
+        lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ currentPos.x, currentPos.y }, .color = lineColor };
+        lines.verticeCount += 2;
+    }
+}
+
+fn verticesMiddleDotted(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, arrowDirection: u8, lineColor: [3]f32, lines: *dataVulkanZig.VkLines) void {
+    const offsets = [_]main.Position{
+        .{ .x = -0.4, .y = 0 },
+        .{ .x = -0.3, .y = 0 },
+        .{ .x = -0.1, .y = 0 },
+        .{ .x = 0.0, .y = 0 },
+        .{ .x = 0.2, .y = 0 },
+        .{ .x = 0.3, .y = 0 },
+    };
+    if (lines.verticeCount + 2 * offsets.len >= lines.vertices.len) return;
+    var angle: f32 = 0;
+    switch (arrowDirection) {
+        movePieceZig.DIRECTION_UP, movePieceZig.DIRECTION_DOWN => {
+            angle = std.math.pi / 2.0;
+        },
+        else => {},
+    }
+    for (0..@divFloor(offsets.len, 2)) |i| {
+        const rotatedOffset = paintVulkanZig.rotateAroundPoint(offsets[i * 2], .{ .x = 0, .y = 0 }, angle);
+        const rotatedOffset2 = paintVulkanZig.rotateAroundPoint(offsets[i * 2 + 1], .{ .x = 0, .y = 0 }, angle);
+        lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ vulkanX + vulkanTileWidth * rotatedOffset.x, vulkanY + vulkanTileHeight * rotatedOffset.y }, .color = lineColor };
+        lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ vulkanX + vulkanTileWidth * rotatedOffset2.x, vulkanY + vulkanTileHeight * rotatedOffset2.y }, .color = lineColor };
+        lines.verticeCount += 2;
+    }
+}
+
+fn verticesMiddleArrowed(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, arrowDirection: u8, lineColor: [3]f32, lines: *dataVulkanZig.VkLines) void {
+    const offsets = [_]main.Position{
+        .{ .x = -0.3, .y = 0 },
+        .{ .x = 0.3, .y = 0 },
+        .{ .x = 0.3, .y = 0 },
+        .{ .x = 0.15, .y = -0.15 },
+        .{ .x = 0.3, .y = 0 },
+        .{ .x = 0.15, .y = 0.15 },
+    };
+    if (lines.verticeCount + 2 * offsets.len >= lines.vertices.len) return;
+    var angle: f32 = 0;
+    switch (arrowDirection) {
+        movePieceZig.DIRECTION_UP => {
+            angle = std.math.pi * 3.0 / 2.0;
+        },
+        movePieceZig.DIRECTION_DOWN => {
+            angle = std.math.pi / 2.0;
+        },
+        movePieceZig.DIRECTION_LEFT => {
+            angle = std.math.pi;
+        },
+        else => {},
+    }
+    for (0..@divFloor(offsets.len, 2)) |i| {
+        const rotatedOffset = paintVulkanZig.rotateAroundPoint(offsets[i * 2], .{ .x = 0, .y = 0 }, angle);
+        const rotatedOffset2 = paintVulkanZig.rotateAroundPoint(offsets[i * 2 + 1], .{ .x = 0, .y = 0 }, angle);
+        lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ vulkanX + vulkanTileWidth * rotatedOffset.x, vulkanY + vulkanTileHeight * rotatedOffset.y }, .color = lineColor };
+        lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ vulkanX + vulkanTileWidth * rotatedOffset2.x, vulkanY + vulkanTileHeight * rotatedOffset2.y }, .color = lineColor };
+        lines.verticeCount += 2;
+    }
 }
 
 pub fn create(state: *main.GameState) !void {
