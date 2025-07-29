@@ -280,6 +280,9 @@ pub fn movePlayerByMovePiece(player: *main.Player, movePieceIndex: usize, direct
     player.executeDirection = directionInput;
     try setRandomMovePiece(player, movePieceIndex);
     try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_NINJA_MOVE_INDICIES[0..], 0);
+    if (state.gamePhase == .shopping and player.availableMovePieces.items.len == 0 and player.moveOptions.items.len == 0) {
+        try resetPieces(player);
+    }
 }
 
 pub fn resetPieces(player: *main.Player) !void {

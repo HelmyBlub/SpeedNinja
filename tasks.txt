@@ -1,6 +1,4 @@
 Tasks:
-- Bug: entering shop second time not reset properly
-    - no tool selected and a invald piece was dipslayed 
 - change: starting combat phase should reset move pieces
 - using up all move pieces in shop phase should reset them
 

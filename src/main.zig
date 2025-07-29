@@ -138,6 +138,9 @@ pub fn endShoppingPhase(state: *GameState) !void {
 fn startNextLevel(state: *GameState) !void {
     state.level += 1;
     state.round = 0;
+    for (state.players.items) |*player| {
+        try movePieceZig.resetPieces(player);
+    }
     try startNextRound(state);
 }
 
@@ -147,6 +150,7 @@ fn shouldEndLevel(state: *GameState) bool {
 }
 
 fn shouldRestart(state: *GameState) bool {
+    if (state.gamePhase == .shopping) return false;
     if (allPlayerOutOfMoveOptions(state)) return true;
     if (allPlayerNoHp(state)) return true;
     return false;
