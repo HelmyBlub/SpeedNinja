@@ -22,7 +22,11 @@ pub const GameState = struct {
     gameTime: i64 = 0,
     round: u32 = 1,
     level: u32 = 1,
-    roundEndTimeMS: i64 = 30_000,
+    roundToReachForNextLevel: usize = 5,
+    bonusTimePerRoundFinished: i32 = 5000,
+    minimalTimePerRequiredRounds: i32 = 30_000,
+    levelInitialTime: i32 = 60_000,
+    roundEndTimeMS: i64 = 0,
     mapTileRadius: u32 = BASE_MAP_TILE_RADIUS,
     enemies: std.ArrayList(enemyZig.Enemy) = undefined,
     enemyDeath: std.ArrayList(enemyZig.EnemyDeathAnimation) = undefined,
@@ -123,7 +127,14 @@ fn mainLoop(state: *GameState) !void {
 }
 
 fn startNextRound(state: *GameState) !void {
-    state.roundEndTimeMS = state.gameTime + 30_000;
+    if (state.round == 1) {
+        state.roundEndTimeMS = state.gameTime + state.levelInitialTime;
+    } else {
+        state.roundEndTimeMS += state.bonusTimePerRoundFinished;
+    }
+    if (state.roundEndTimeMS < state.gameTime + state.minimalTimePerRequiredRounds and state.round < state.roundToReachForNextLevel) {
+        state.roundEndTimeMS = state.gameTime + state.minimalTimePerRequiredRounds;
+    }
     state.round += 1;
     if (state.round > 1) {
         for (state.players.items) |*player| {
@@ -151,7 +162,7 @@ fn startNextLevel(state: *GameState) !void {
 }
 
 fn shouldEndLevel(state: *GameState) bool {
-    if (state.gamePhase == .combat and state.round > 1 and state.roundEndTimeMS < state.gameTime) return true;
+    if (state.gamePhase == .combat and state.round > state.roundToReachForNextLevel and state.roundEndTimeMS < state.gameTime) return true;
     return false;
 }
 
@@ -159,6 +170,7 @@ fn shouldRestart(state: *GameState) bool {
     if (state.gamePhase == .shopping) return false;
     if (allPlayerOutOfMoveOptions(state)) return true;
     if (allPlayerNoHp(state)) return true;
+    if (state.round > 1 and state.roundEndTimeMS < state.gameTime) return true;
     return false;
 }
 
