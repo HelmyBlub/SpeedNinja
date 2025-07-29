@@ -1,8 +1,6 @@
 Tasks:
 - bug: when only 1 move piece, shop buggy and can crash
 - shopping phase
-    - move selected piece in shop grid center
-        - try to prevent it going outside if possible
     - shopping phase should work with multiple players
     - check tiles combine in same direction
     - check prevent oposite direction

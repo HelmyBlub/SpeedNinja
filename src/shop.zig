@@ -193,8 +193,10 @@ pub fn executeNextStep(player: *main.Player, state: *main.GameState) !void {
         .combine => |*data| {
             switch (data.combineStep) {
                 .selectPiece1 => {
-                    data.pieceIndex2 = @mod(data.pieceIndex1 + 1, player.totalMovePieces.items.len);
-                    data.combineStep = .selectPiece2;
+                    if (player.totalMovePieces.items.len > 1) {
+                        data.pieceIndex2 = @mod(data.pieceIndex1 + 1, player.totalMovePieces.items.len);
+                        data.combineStep = .selectPiece2;
+                    }
                 },
                 .selectPiece2 => {
                     data.combineStep = .selectDirection;
@@ -225,7 +227,7 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
         },
         .add => |*data| {
             const cost = state.level * 1;
-            if (player.money >= cost and player.totalMovePieces.items.len > 1) {
+            if (player.money >= cost) {
                 player.money -= cost;
                 if (player.shop.piecesToBuy[data.selectedIndex]) |buyPiece| {
                     try movePieceZig.addMovePiece(player, buyPiece);
@@ -269,7 +271,7 @@ pub fn executeArrowRight(player: *main.Player, state: *main.GameState) !void {
         },
         .add => |*data| {
             data.selectedIndex = @min(data.selectedIndex + 1, player.shop.piecesToBuy.len - 1);
-            setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
+            setGridDisplayPiece(player, player.shop.piecesToBuy[data.selectedIndex]);
         },
         .cut => |*data| {
             data.selectedIndex = @min(data.selectedIndex + 1, player.totalMovePieces.items.len - 1);
@@ -307,7 +309,7 @@ pub fn executeArrowLeft(player: *main.Player, state: *main.GameState) !void {
         },
         .add => |*data| {
             data.selectedIndex = data.selectedIndex -| 1;
-            setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
+            setGridDisplayPiece(player, player.shop.piecesToBuy[data.selectedIndex]);
         },
         .cut => |*data| {
             data.selectedIndex = data.selectedIndex -| 1;
