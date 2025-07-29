@@ -1,7 +1,5 @@
 Tasks:
-- change: starting combat phase should reset move pieces
-- using up all move pieces in shop phase should reset them
-
+- bug: when only 1 move piece, shop buggy and can crash
 - shopping phase
     - move selected piece in shop grid center
         - try to prevent it going outside if possible

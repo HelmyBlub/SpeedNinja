@@ -285,6 +285,23 @@ pub fn movePlayerByMovePiece(player: *main.Player, movePieceIndex: usize, direct
     }
 }
 
+pub fn getBoundingBox(movePiece: MovePiece) main.TileRectangle {
+    var top: i32 = 0;
+    var left: i32 = 0;
+    var bottom: i32 = 0;
+    var right: i32 = 0;
+    var x: i32 = 0;
+    var y: i32 = 0;
+    for (movePiece.steps) |step| {
+        const stepDirection = getStepDirectionTile(step.direction);
+        x += stepDirection.x * step.stepCount;
+        y += stepDirection.y * step.stepCount;
+        if (x < left) left = x else if (x > right) right = x;
+        if (y < top) top = y else if (y > bottom) bottom = y;
+    }
+    return main.TileRectangle{ .height = bottom - top, .width = right - left, .pos = .{ .x = left, .y = top } };
+}
+
 pub fn resetPieces(player: *main.Player) !void {
     player.availableMovePieces.clearRetainingCapacity();
     try player.availableMovePieces.appendSlice(player.totalMovePieces.items);

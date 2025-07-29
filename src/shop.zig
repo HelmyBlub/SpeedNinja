@@ -220,7 +220,7 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
                 if (player.totalMovePieces.items.len <= data.selectedIndex) {
                     data.selectedIndex -= 1;
                 }
-                player.shop.gridDisplayPiece = player.totalMovePieces.items[data.selectedIndex];
+                setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
             }
         },
         .add => |*data| {
@@ -230,7 +230,7 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
                 if (player.shop.piecesToBuy[data.selectedIndex]) |buyPiece| {
                     try movePieceZig.addMovePiece(player, buyPiece);
                     player.shop.piecesToBuy[data.selectedIndex] = try movePieceZig.createRandomMovePiece(state.allocator);
-                    player.shop.gridDisplayPiece = player.shop.piecesToBuy[data.selectedIndex];
+                    setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
                 }
             }
         },
@@ -240,7 +240,7 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
                 player.money -= cost;
                 try movePieceZig.cutTilePositionOnMovePiece(player, data.gridCutOffset.?, player.shop.gridDisplayPieceOffset, data.selectedIndex, state);
                 data.gridCutOffset = null;
-                player.shop.gridDisplayPiece = player.totalMovePieces.items[data.selectedIndex];
+                setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
             }
         },
         .combine => |*data| {
@@ -251,7 +251,7 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
                 if (data.pieceIndex1 > data.pieceIndex2.?) {
                     data.pieceIndex1 -= 1;
                 }
-                player.shop.gridDisplayPiece = player.totalMovePieces.items[data.pieceIndex1];
+                setGridDisplayPiece(player, player.totalMovePieces.items[data.pieceIndex1]);
                 data.pieceIndex2 = null;
                 data.combineStep = .selectPiece1;
             }
@@ -265,15 +265,15 @@ pub fn executeArrowRight(player: *main.Player, state: *main.GameState) !void {
     switch (player.shop.selectedOption) {
         .delete => |*data| {
             data.selectedIndex = @min(data.selectedIndex + 1, player.totalMovePieces.items.len - 1);
-            player.shop.gridDisplayPiece = player.totalMovePieces.items[data.selectedIndex];
+            setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
         },
         .add => |*data| {
             data.selectedIndex = @min(data.selectedIndex + 1, player.shop.piecesToBuy.len - 1);
-            player.shop.gridDisplayPiece = player.shop.piecesToBuy[data.selectedIndex];
+            setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
         },
         .cut => |*data| {
             data.selectedIndex = @min(data.selectedIndex + 1, player.totalMovePieces.items.len - 1);
-            player.shop.gridDisplayPiece = player.totalMovePieces.items[data.selectedIndex];
+            setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
             data.gridCutOffset = null;
             data.isOnMovePiece = false;
         },
@@ -281,7 +281,7 @@ pub fn executeArrowRight(player: *main.Player, state: *main.GameState) !void {
             switch (data.combineStep) {
                 .selectPiece1 => {
                     data.pieceIndex1 = @min(data.pieceIndex1 + 1, player.totalMovePieces.items.len - 1);
-                    player.shop.gridDisplayPiece = player.totalMovePieces.items[data.pieceIndex1];
+                    setGridDisplayPiece(player, player.totalMovePieces.items[data.pieceIndex1]);
                 },
                 .selectPiece2 => {
                     data.pieceIndex2 = @min(data.pieceIndex2.? + 1, player.totalMovePieces.items.len - 1);
@@ -303,15 +303,15 @@ pub fn executeArrowLeft(player: *main.Player, state: *main.GameState) !void {
     switch (player.shop.selectedOption) {
         .delete => |*data| {
             data.selectedIndex = data.selectedIndex -| 1;
-            player.shop.gridDisplayPiece = player.totalMovePieces.items[data.selectedIndex];
+            setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
         },
         .add => |*data| {
             data.selectedIndex = data.selectedIndex -| 1;
-            player.shop.gridDisplayPiece = player.shop.piecesToBuy[data.selectedIndex];
+            setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
         },
         .cut => |*data| {
             data.selectedIndex = data.selectedIndex -| 1;
-            player.shop.gridDisplayPiece = player.totalMovePieces.items[data.selectedIndex];
+            setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
             data.gridCutOffset = null;
             data.isOnMovePiece = false;
         },
@@ -319,7 +319,7 @@ pub fn executeArrowLeft(player: *main.Player, state: *main.GameState) !void {
             switch (data.combineStep) {
                 .selectPiece1 => {
                     data.pieceIndex1 = data.pieceIndex1 -| 1;
-                    player.shop.gridDisplayPiece = player.totalMovePieces.items[data.pieceIndex1];
+                    setGridDisplayPiece(player, player.totalMovePieces.items[data.pieceIndex1]);
                 },
                 .selectPiece2 => {
                     data.pieceIndex2 = data.pieceIndex2.? -| 1;
@@ -343,25 +343,25 @@ pub fn executeArrowLeft(player: *main.Player, state: *main.GameState) !void {
 pub fn executeDeletePiece(player: *main.Player, state: *main.GameState) !void {
     _ = state;
     player.shop.selectedOption = .{ .delete = .{} };
-    player.shop.gridDisplayPiece = player.totalMovePieces.items[0];
+    setGridDisplayPiece(player, player.totalMovePieces.items[0]);
 }
 
 pub fn executeCutPiece(player: *main.Player, state: *main.GameState) !void {
     _ = state;
     player.shop.selectedOption = .{ .cut = .{} };
-    player.shop.gridDisplayPiece = player.totalMovePieces.items[0];
+    setGridDisplayPiece(player, player.totalMovePieces.items[0]);
 }
 
 pub fn executeCombinePiece(player: *main.Player, state: *main.GameState) !void {
     _ = state;
     player.shop.selectedOption = .{ .combine = .{} };
-    player.shop.gridDisplayPiece = player.totalMovePieces.items[0];
+    setGridDisplayPiece(player, player.totalMovePieces.items[0]);
 }
 
 pub fn executeAddPiece(player: *main.Player, state: *main.GameState) !void {
     _ = state;
     player.shop.selectedOption = .{ .add = .{} };
-    player.shop.gridDisplayPiece = player.shop.piecesToBuy[0].?;
+    setGridDisplayPiece(player, player.shop.piecesToBuy[0].?);
 }
 
 pub fn executeShopPhaseEnd(player: *main.Player, state: *main.GameState) !void {
@@ -372,4 +372,15 @@ pub fn executeShopPhaseEnd(player: *main.Player, state: *main.GameState) !void {
 fn isNextStepButtonVisible(player: *main.Player) bool {
     if (player.shop.selectedOption == .combine) return true;
     return false;
+}
+
+fn setGridDisplayPiece(player: *main.Player, optMovePiece: ?movePieceZig.MovePiece) void {
+    player.shop.gridDisplayPiece = optMovePiece;
+    if (optMovePiece) |movePiece| {
+        const boundingBox = movePieceZig.getBoundingBox(movePiece);
+        const spaceX = @divFloor(GRID_SIZE - boundingBox.width, 2);
+        player.shop.gridDisplayPieceOffset.x = spaceX - boundingBox.pos.x;
+        const spaceY = @divFloor(GRID_SIZE - boundingBox.height, 2);
+        player.shop.gridDisplayPieceOffset.y = spaceY - boundingBox.pos.y;
+    }
 }

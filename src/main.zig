@@ -59,19 +59,25 @@ pub const AfterImage = struct {
     deleteTime: i64,
 };
 
-pub const Position: type = struct {
+pub const Position = struct {
     x: f32,
     y: f32,
 };
 
-pub const TilePosition: type = struct {
+pub const TilePosition = struct {
     x: i32,
     y: i32,
 };
 
-pub const Camera: type = struct {
+pub const Camera = struct {
     position: Position,
     zoom: f32,
+};
+
+pub const TileRectangle = struct {
+    pos: TilePosition,
+    width: i32,
+    height: i32,
 };
 
 pub fn main() !void {
