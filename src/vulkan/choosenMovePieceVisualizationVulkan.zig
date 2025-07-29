@@ -37,32 +37,34 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
         const baseWidth = zoomedTileSize * onePixelXInVulkan;
         const baseHeight = zoomedTileSize * onePixelYInVulkan;
         const movePiece = player.moveOptions.items[index];
-        if (isChoosenPieceVisualizationOverlapping(movePiece)) {
-            //
-        }
+        const pieceTotalSteps = movePieceZig.getMovePieceTotalStepes(movePiece);
+        const highlightModLimit = @max(5, pieceTotalSteps + 1);
         for (0..4) |direction| {
-            var step: f32 = 0;
             var position: main.Position = .{
                 .x = player.position.x * state.camera.zoom,
                 .y = player.position.y * state.camera.zoom,
             };
 
-            const lineColor: [3]f32 = .{
+            const lineColorForDirection: [3]f32 = .{
                 if (direction == 0) 0.5 else 0,
                 if (direction == 1) 0.2 else 0,
                 if (direction == 2) 0.5 else 0,
             };
+            const highlightedLineColor: [3]f32 = .{ 1, 1, 1 };
 
             var lastPosition: main.Position = position;
             var lastMoveDirection: usize = 0;
             var moveDirection: usize = 0;
+            var totalStepCount: usize = 0;
             for (movePiece.steps, 0..) |moveStep, moveStepIndex| {
                 lastMoveDirection = moveDirection;
                 moveDirection = @mod(moveStep.direction + direction, 4);
                 const moveX: f32 = if (moveDirection == 0) zoomedTileSize else if (moveDirection == 2) -zoomedTileSize else 0;
                 const moveY: f32 = if (moveDirection == 1) zoomedTileSize else if (moveDirection == 3) -zoomedTileSize else 0;
                 for (0..moveStep.stepCount) |stepCount| {
-                    step += 1;
+                    totalStepCount += 1;
+                    const modColor = player.choosenMoveOptionVisualizationOverlapping and @mod(totalStepCount, highlightModLimit) == @mod(@as(usize, @intCast(@divFloor(state.gameTime, 100))), highlightModLimit);
+                    const lineColor = if (modColor) highlightedLineColor else lineColorForDirection;
                     lastPosition = position;
                     position.x += moveX;
                     position.y += moveY;
@@ -71,7 +73,7 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
                     if (stepCount == moveStep.stepCount - 1) {
                         if (moveStepIndex == movePiece.steps.len - 1) {
                             verticesForSquare(x, y, baseWidth, baseHeight, lineColor, lines);
-                            verticesForFilledArrow(x, y, baseWidth * 0.9, baseHeight * 0.9, @intCast(@mod(direction + 3, 4)), lineColor, lines, triangles);
+                            verticesForFilledArrow(x, y, baseWidth * 0.9, baseHeight * 0.9, @intCast(@mod(direction + 3, 4)), lineColorForDirection, lines, triangles);
                         } else {
                             const nextDirection = @mod(movePiece.steps[moveStepIndex + 1].direction + direction, 4);
                             var rotation: f32 = 0;
@@ -363,24 +365,26 @@ fn verticesMiddleArrowed(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulka
     }
 }
 
-fn isChoosenPieceVisualizationOverlapping(movePiece: movePieceZig.MovePiece) bool {
+pub fn isChoosenPieceVisualizationOverlapping(movePiece: movePieceZig.MovePiece) bool {
     var x1: i32 = 0;
     var y1: i32 = 0;
     for (0..movePiece.steps.len) |movePieceIndex1| {
         const movePiece1Steps = movePiece.steps[movePieceIndex1];
         const stepDirection = movePieceZig.getStepDirectionTile(movePiece1Steps.direction);
-        for (0..movePiece1Steps.stepCount) |_| {
+        for (0..movePiece1Steps.stepCount) |stepCount1| {
             x1 += stepDirection.x;
             y1 += stepDirection.y;
-            var x2: i32 = 0;
-            var y2: i32 = 0;
+            if (x1 == 0 and y1 == 0) return true;
+            var x2: i32 = x1;
+            var y2: i32 = y1;
             for (movePieceIndex1..movePiece.steps.len) |movePieceIndex2| {
+                const stepCount2Start = if (movePieceIndex2 == movePieceIndex1) stepCount1 + 1 else 0;
                 const movePiece2Steps = movePiece.steps[movePieceIndex2];
                 const stepDirection2 = movePieceZig.getStepDirectionTile(movePiece2Steps.direction);
-                for (0..movePiece2Steps.stepCount) |_| {
+                for (stepCount2Start..movePiece2Steps.stepCount) |_| {
                     x2 += stepDirection2.x;
                     y2 += stepDirection2.y;
-                    if (x1 * x2 + y1 * y2 == 0) {
+                    if ((x1 == y2 and y1 == -x2) or (x1 == -x2 and y1 == -y2) or (x1 == -y2 and y1 == x2)) {
                         return true;
                     }
                 }

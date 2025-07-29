@@ -41,6 +41,7 @@ pub const Player = struct {
     executeDirection: u8 = 0,
     afterImages: std.ArrayList(AfterImage),
     choosenMoveOptionIndex: ?usize = null,
+    choosenMoveOptionVisualizationOverlapping: bool = false,
     moveOptions: std.ArrayList(movePieceZig.MovePiece),
     totalMovePieces: std.ArrayList(movePieceZig.MovePiece),
     availableMovePieces: std.ArrayList(movePieceZig.MovePiece),

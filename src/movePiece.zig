@@ -3,6 +3,7 @@ const main = @import("main.zig");
 const ninjaDogVulkanZig = @import("vulkan/ninjaDogVulkan.zig");
 const soundMixerZig = @import("soundMixer.zig");
 const shopZig = @import("shop.zig");
+const choosenMovePieceVisualizationVulkanZig = @import("vulkan/choosenMovePieceVisualizationVulkan.zig");
 
 pub const MovePiece = struct {
     steps: []MoveStep,
@@ -89,6 +90,22 @@ pub fn getStepDirectionTile(direction: u8) main.TilePosition {
         else => {
             return .{ .x = 0, .y = -1 };
         },
+    }
+}
+
+pub fn getMovePieceTotalStepes(movePiece: MovePiece) usize {
+    var total: usize = 0;
+    for (movePiece.steps) |step| {
+        total += step.stepCount;
+    }
+    return total;
+}
+
+pub fn setMoveOptionIndex(player: *main.Player, index: usize, state: *main.GameState) void {
+    if (player.moveOptions.items.len > index) {
+        player.choosenMoveOptionIndex = index;
+        ninjaDogVulkanZig.swordHandsCentered(player, state);
+        player.choosenMoveOptionVisualizationOverlapping = choosenMovePieceVisualizationVulkanZig.isChoosenPieceVisualizationOverlapping(player.moveOptions.items[index]);
     }
 }
 

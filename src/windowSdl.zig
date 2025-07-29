@@ -101,11 +101,11 @@ pub fn handleEvents(state: *main.GameState) !void {
                         try shopZig.executeShopActionForPlayer(player, state);
                     }
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_1) {
-                    setMoveOptionIndex(player, 0, state);
+                    movePieceZig.setMoveOptionIndex(player, 0, state);
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_2) {
-                    setMoveOptionIndex(player, 1, state);
+                    movePieceZig.setMoveOptionIndex(player, 1, state);
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_3) {
-                    setMoveOptionIndex(player, 2, state);
+                    movePieceZig.setMoveOptionIndex(player, 2, state);
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_F1) {
                     state.gameTime += 29_000;
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_F2) {
@@ -116,13 +116,6 @@ pub fn handleEvents(state: *main.GameState) !void {
                 }
             }
         }
-    }
-}
-
-pub fn setMoveOptionIndex(player: *main.Player, index: usize, state: *main.GameState) void {
-    if (player.moveOptions.items.len > index) {
-        player.choosenMoveOptionIndex = index;
-        ninjaDogVulkanZig.swordHandsCentered(player, state);
     }
 }
 
