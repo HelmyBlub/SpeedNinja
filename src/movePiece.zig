@@ -35,23 +35,28 @@ pub fn setRandomMovePiece(player: *main.Player, index: usize) !void {
 }
 
 pub fn setupMovePieces(player: *main.Player, state: *main.GameState) !void {
-    if (player.totalMovePieces.items.len > 0) {
-        for (player.totalMovePieces.items) |movePiece| {
-            state.allocator.free(movePiece.steps);
-        }
-        player.totalMovePieces.clearRetainingCapacity();
-    }
-    player.availableMovePieces.clearRetainingCapacity();
-    player.moveOptions.clearRetainingCapacity();
-    total: while (player.totalMovePieces.items.len < 7) {
-        const randomPiece = try createRandomMovePiece(state.allocator);
-        for (player.totalMovePieces.items) |otherPiece| {
-            if (areSameMovePieces(randomPiece, otherPiece)) {
-                state.allocator.free(randomPiece.steps);
-                continue :total;
+    var done = false;
+    while (!done) {
+        if (player.totalMovePieces.items.len > 0) {
+            for (player.totalMovePieces.items) |movePiece| {
+                state.allocator.free(movePiece.steps);
             }
+            player.totalMovePieces.clearRetainingCapacity();
         }
-        try player.totalMovePieces.append(randomPiece);
+        player.availableMovePieces.clearRetainingCapacity();
+        player.moveOptions.clearRetainingCapacity();
+        total: while (player.totalMovePieces.items.len < 7) {
+            const randomPiece = try createRandomMovePiece(state.allocator);
+            for (player.totalMovePieces.items) |otherPiece| {
+                if (areSameMovePieces(randomPiece, otherPiece)) {
+                    state.allocator.free(randomPiece.steps);
+                    continue :total;
+                }
+            }
+            try player.totalMovePieces.append(randomPiece);
+        }
+
+        done = validatePlayerMovePiecesToFullfillDemands(player);
     }
 
     try player.availableMovePieces.appendSlice(player.totalMovePieces.items);
@@ -436,4 +441,78 @@ fn checkEnemyHitOnMoveStep(player: *main.Player, stepAmount: f32, direction: u8,
     }
     position.x += stepAmount;
     return hitSomething;
+}
+
+fn getMovePieceTileDistances(movePiece: MovePiece) [2]i32 {
+    var x: i32 = 0;
+    var y: i32 = 0;
+    for (movePiece.steps) |step| {
+        const tileDirection = getStepDirectionTile(step.direction);
+        x += tileDirection.x * step.stepCount;
+        y += tileDirection.y * step.stepCount;
+    }
+    return [2]i32{ x, y };
+}
+
+fn validatePlayerMovePiecesToFullfillDemands(player: *main.Player) bool {
+    return isDistanceDemandFullfilled(player) and validateCanReachEveryTile(player);
+}
+
+fn validateCanReachEveryTile(player: *main.Player) bool {
+    var evenPiece = false;
+    var oddPiece = false;
+    for (player.totalMovePieces.items) |movePiece| {
+        const distances = getMovePieceTileDistances(movePiece);
+        if (@mod(distances[0], 2) == 0) {
+            evenPiece = true;
+        } else {
+            oddPiece = true;
+        }
+        if (@mod(distances[1], 2) == 0) {
+            evenPiece = true;
+        } else {
+            oddPiece = true;
+        }
+        if (evenPiece and oddPiece) return true;
+    }
+    return false;
+}
+
+fn isDistanceDemandFullfilled(player: *main.Player) bool {
+    const toReachStraightDistance = 16;
+    var offsetY: i32 = 0;
+    var maxStraightDistance: u32 = 0;
+    for (player.totalMovePieces.items) |movePiece| {
+        const distances = getMovePieceTileDistances(movePiece);
+        if (distances[0] == 0) {
+            maxStraightDistance += @abs(distances[1]);
+        } else if (distances[1] == 0) {
+            maxStraightDistance += @abs(distances[0]);
+        } else if (@abs(offsetY) < 5) {
+            if (@abs(distances[0]) > @abs(distances[1])) {
+                maxStraightDistance += @abs(distances[0]);
+                offsetY += distances[1] * std.math.sign(distances[0]);
+            } else {
+                maxStraightDistance += @abs(distances[1]);
+                offsetY += distances[0] * std.math.sign(distances[1]) * -1;
+            }
+        } else if (offsetY < 0) {
+            if (std.math.sign(distances[0]) == std.math.sign(distances[1])) {
+                maxStraightDistance += @abs(distances[0]);
+                offsetY += @intCast(@abs(distances[1]));
+            } else {
+                maxStraightDistance += @abs(distances[1]);
+                offsetY += @intCast(@abs(distances[0]));
+            }
+        } else {
+            if (std.math.sign(distances[0]) == std.math.sign(distances[1])) {
+                maxStraightDistance += @abs(distances[1]);
+                offsetY -= @intCast(@abs(distances[0]));
+            } else {
+                maxStraightDistance += @abs(distances[0]);
+                offsetY -= @intCast(@abs(distances[1]));
+            }
+        }
+    }
+    return maxStraightDistance >= toReachStraightDistance;
 }
