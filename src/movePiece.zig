@@ -136,7 +136,9 @@ pub fn combineMovePieces(player: *main.Player, movePieceIndex1: usize, movePiece
     }
     const movePiece1 = player.totalMovePieces.items[movePieceIndex1];
     const movePiece2 = player.totalMovePieces.items[movePieceIndex2];
-    const steps = try state.allocator.alloc(MoveStep, movePiece1.steps.len + movePiece2.steps.len);
+    const combineLastFirst = movePiece1.steps[movePiece1.steps.len - 1].direction == movePiece2.steps[0].direction;
+    const combinedLength = if (combineLastFirst) movePiece1.steps.len + movePiece2.steps.len - 1 else movePiece1.steps.len + movePiece2.steps.len;
+    const steps = try state.allocator.alloc(MoveStep, combinedLength);
     const newMovePiece: MovePiece = .{ .steps = steps };
     var newPieceIndex: usize = 0;
     for (movePiece1.steps) |*step| {
@@ -144,9 +146,14 @@ pub fn combineMovePieces(player: *main.Player, movePieceIndex1: usize, movePiece
         newMovePiece.steps[newPieceIndex].stepCount = step.stepCount;
         newPieceIndex += 1;
     }
-    for (movePiece2.steps) |*step| {
-        newMovePiece.steps[newPieceIndex].direction = @mod(step.direction + combineDirection, 4);
-        newMovePiece.steps[newPieceIndex].stepCount = step.stepCount;
+    for (movePiece2.steps, 0..) |*step, index| {
+        if (combineLastFirst and index == 0) {
+            newPieceIndex -= 1;
+            newMovePiece.steps[newPieceIndex].stepCount += step.stepCount;
+        } else {
+            newMovePiece.steps[newPieceIndex].direction = @mod(step.direction + combineDirection, 4);
+            newMovePiece.steps[newPieceIndex].stepCount = step.stepCount;
+        }
         newPieceIndex += 1;
     }
     replaceMovePiece(movePieceIndex1, newMovePiece, player, state.allocator);

@@ -196,6 +196,8 @@ pub fn executeNextStep(player: *main.Player, state: *main.GameState) !void {
                     if (player.totalMovePieces.items.len > 1) {
                         data.pieceIndex2 = @mod(data.pieceIndex1 + 1, player.totalMovePieces.items.len);
                         data.combineStep = .selectPiece2;
+                        const steps = player.shop.gridDisplayPiece.?.steps;
+                        data.direction = @mod(steps[steps.len - 1].direction + 1, 4);
                     }
                 },
                 .selectPiece2 => {
@@ -232,7 +234,7 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
                 if (player.shop.piecesToBuy[data.selectedIndex]) |buyPiece| {
                     try movePieceZig.addMovePiece(player, buyPiece);
                     player.shop.piecesToBuy[data.selectedIndex] = try movePieceZig.createRandomMovePiece(state.allocator);
-                    setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
+                    setGridDisplayPiece(player, player.shop.piecesToBuy[data.selectedIndex]);
                 }
             }
         },
@@ -293,6 +295,10 @@ pub fn executeArrowRight(player: *main.Player, state: *main.GameState) !void {
                 },
                 .selectDirection => {
                     data.direction = @mod(data.direction + 1, 4);
+                    const steps = player.shop.gridDisplayPiece.?.steps;
+                    if (@mod(data.direction + 1, 4) == steps[steps.len - 1].direction) {
+                        data.direction = @mod(data.direction + 1, 4);
+                    }
                 },
             }
         },
@@ -335,6 +341,10 @@ pub fn executeArrowLeft(player: *main.Player, state: *main.GameState) !void {
                 },
                 .selectDirection => {
                     data.direction = @mod(data.direction + 3, 4);
+                    const steps = player.shop.gridDisplayPiece.?.steps;
+                    if (@mod(data.direction + 1, 4) == steps[steps.len - 1].direction) {
+                        data.direction = @mod(data.direction + 3, 4);
+                    }
                 },
             }
         },

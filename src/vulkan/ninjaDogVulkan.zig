@@ -15,7 +15,7 @@ pub const VkNinjaDogData = struct {
     vertexBufferMemory: vk.VkDeviceMemory = undefined,
     vertices: []dataVulkanZig.SpriteComplexVertex = undefined,
     verticeCount: usize = 0,
-    pub const MAX_VERTICES = 4000; //TODO not checked limit
+    pub const MAX_VERTICES = 8000; //TODO not checked limit
 };
 
 pub const NinjaDogPaintData = struct {

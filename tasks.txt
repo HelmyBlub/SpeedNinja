@@ -1,7 +1,5 @@
 Tasks:
-- bug: when only 1 move piece, shop buggy and can crash
 - shopping phase
-    - shopping phase should work with multiple players
     - check tiles combine in same direction
     - check prevent oposite direction
 - change: draw move piece (shop grid and option UX):
