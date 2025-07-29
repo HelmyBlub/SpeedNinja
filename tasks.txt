@@ -1,30 +1,23 @@
 Tasks:
-- change: draw move piece outline for visualizing where player moves
-    - overlapping pieces
-        - continue: function "isChoosenPieceVisualizationOverlapping"
-            - has false positive: overlap 
-                    - (x,y) (y,-x)(-x,-y)(-y,x)
+- Bug: entering shop second time not reset properly
+    - no tool selected and a invald piece was dipslayed 
+- change: starting combat phase should reset move pieces
+- using up all move pieces in shop phase should reset them
 
-            - only check once per piece, not each frame
-        - make lines connected to hopefully be able to follow direction better
-        - highlight one direction and switch through
-        - or move a visualization piece following the path
--  change: draw move piece (shop grid and option UX):
-    - problem: overlapping lines and rectangles
-        - try to do on cpu side with many draw calls
 - shopping phase
     - move selected piece in shop grid center
         - try to prevent it going outside if possible
     - shopping phase should work with multiple players
     - check tiles combine in same direction
     - check prevent oposite direction
+- change: draw move piece (shop grid and option UX):
+    - problem: overlapping lines and rectangles
+        - try to do on cpu side with many draw calls
 - random move pieces
     - check that random move pieces can reach any tile and don't lock to certain ones
         - check max travel distance high enough in all directions
     - how to display selected move piece when questionable pattern?
         - i don't feel like i should disable certain pieces
-- Bug: entering shop second time not reset properly
-    - no tool selected and a invald piece was dipslayed 
 
 
 Next ideas:

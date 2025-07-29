@@ -97,8 +97,7 @@ fn mainLoop(state: *GameState) !void {
         if (state.enemies.items.len == 0 and state.gamePhase == .combat) {
             try startNextRound(state);
         } else if (shouldEndLevel(state)) {
-            try startShoppingPhase(state);
-            // try startNextLevel(state);
+            try shopZig.startShoppingPhase(state);
         } else if (shouldRestart(state)) {
             try restart(state);
         }
@@ -129,12 +128,6 @@ fn startNextRound(state: *GameState) !void {
     }
     try enemyZig.setupEnemies(state);
     adjustZoom(state);
-}
-
-fn startShoppingPhase(state: *GameState) !void {
-    state.gamePhase = .shopping;
-    state.enemies.clearRetainingCapacity();
-    try shopZig.randomizeShop(state);
 }
 
 pub fn endShoppingPhase(state: *GameState) !void {

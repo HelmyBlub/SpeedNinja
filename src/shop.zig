@@ -130,6 +130,16 @@ pub fn executeShopActionForPlayer(player: *main.Player, state: *main.GameState) 
     }
 }
 
+pub fn startShoppingPhase(state: *main.GameState) !void {
+    state.gamePhase = .shopping;
+    state.enemies.clearRetainingCapacity();
+    try randomizeShop(state);
+    for (state.players.items) |*player| {
+        player.shop.gridDisplayPiece = null;
+        player.shop.selectedOption = .none;
+    }
+}
+
 pub fn randomizeShop(state: *main.GameState) !void {
     for (state.players.items) |*player| {
         for (player.shop.piecesToBuy, 0..) |optPiece, index| {
