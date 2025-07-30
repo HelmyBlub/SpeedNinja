@@ -1,7 +1,4 @@
 Tasks:
-- give player 1 minute after first kill
-    - player can end combat early once round 5 reached
-        - area appears outside of normal grid. When player enters he will end combatphase early
 - boss round on level 5 (to reach is faster, maybe 10 later)
     - "stomp boss"
         - jumps above a player, will come down with 2seconds delay

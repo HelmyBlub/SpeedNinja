@@ -140,8 +140,6 @@ fn startNextRound(state: *GameState) !void {
         for (state.players.items) |*player| {
             player.money += state.level;
         }
-    } else {
-        try enemyZig.setupSpawnEnemiesOnLevelChange(state);
     }
     try enemyZig.setupEnemies(state);
     adjustZoom(state);
@@ -158,6 +156,7 @@ fn startNextLevel(state: *GameState) !void {
     for (state.players.items) |*player| {
         try movePieceZig.resetPieces(player);
     }
+    try enemyZig.setupSpawnEnemiesOnLevelChange(state);
     try startNextRound(state);
 }
 
@@ -192,8 +191,8 @@ fn allPlayerOutOfMoveOptions(state: *GameState) bool {
 pub fn restart(state: *GameState) !void {
     state.lastScore = state.round;
     if (state.round > state.highscore) state.highscore = state.round;
-    state.level = 1;
-    state.round = 1;
+    state.level = 0;
+    state.round = 0;
     state.mapTileRadius = BASE_MAP_TILE_RADIUS;
     state.gameTime = 0;
     for (state.players.items) |*player| {
@@ -212,9 +211,7 @@ pub fn restart(state: *GameState) !void {
     }
 
     state.enemyDeath.clearRetainingCapacity();
-    try enemyZig.setupSpawnEnemiesOnLevelChange(state);
-    try enemyZig.setupEnemies(state);
-    adjustZoom(state);
+    try startNextLevel(state);
 }
 
 pub fn adjustZoom(state: *GameState) void {
