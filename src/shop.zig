@@ -49,6 +49,7 @@ pub const ShopButton = struct {
 
 pub const GRID_SIZE = 8;
 pub const GRID_OFFSET: main.TilePosition = .{ .x = 1, .y = 1 };
+pub const EARLY_SHOP_GRID_SIZE = 2;
 
 pub const ShopPlayerData = struct {
     piecesToBuy: [3]?movePieceZig.MovePiece = [3]?movePieceZig.MovePiece{ null, null, null },
@@ -128,6 +129,24 @@ pub fn executeShopActionForPlayer(player: *main.Player, state: *main.GameState) 
         try executeGridTile(player, state);
         return;
     }
+}
+
+pub fn getShopEarlyTriggerPosition(state: *main.GameState) ?main.TilePosition {
+    if (state.gamePhase == .shopping) return null;
+    if (state.round < state.roundToReachForNextLevel) return null;
+    return main.TilePosition{
+        .x = @intCast(state.mapTileRadius + 2),
+        .y = @intCast(@divFloor(state.mapTileRadius, 2) - 1),
+    };
+}
+
+pub fn isPlayerInEarlyShopTrigger(player: *main.Player, state: *main.GameState) bool {
+    const optTilePosition = getShopEarlyTriggerPosition(state);
+    if (optTilePosition == null) return false;
+    const tilePosition = optTilePosition.?;
+    const playerTile = main.gamePositionToTilePosition(player.position);
+    return tilePosition.x <= playerTile.x and tilePosition.x + EARLY_SHOP_GRID_SIZE > playerTile.x and
+        tilePosition.y <= playerTile.y and tilePosition.y + EARLY_SHOP_GRID_SIZE > playerTile.y;
 }
 
 pub fn startShoppingPhase(state: *main.GameState) !void {

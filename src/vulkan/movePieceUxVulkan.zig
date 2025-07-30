@@ -146,7 +146,7 @@ pub fn verticesForMovePiece(
     return .{ .x = x, .y = y };
 }
 
-fn verticesForRectangle(x: f32, y: f32, width: f32, height: f32, fillColor: [3]f32, lines: *dataVulkanZig.VkLines, triangles: *dataVulkanZig.VkTriangles) void {
+pub fn verticesForRectangle(x: f32, y: f32, width: f32, height: f32, fillColor: [3]f32, lines: *dataVulkanZig.VkLines, triangles: *dataVulkanZig.VkTriangles) void {
     if (triangles.verticeCount + 6 >= triangles.vertices.len) return;
     triangles.vertices[triangles.verticeCount] = .{ .pos = .{ x, y }, .color = fillColor };
     triangles.vertices[triangles.verticeCount + 1] = .{ .pos = .{ x + width, y + height }, .color = fillColor };

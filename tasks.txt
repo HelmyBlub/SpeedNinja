@@ -1,10 +1,19 @@
 Tasks:
 - give player 1 minute after first kill
-    - 5 rounds have to be completed to be allowed to reach next level
-    - if timer < 30 and round < 5, set timer to 30seconds
-    - if timer runs out and round 5 not reached, player loses
-    - else next level
     - player can end combat early once round 5 reached
+        - area appears outside of normal grid. When player enters he will end combatphase early
+- boss round on level 5 (to reach is faster, maybe 10 later)
+    - "stomp boss"
+        - jumps above a player, will come down with 2seconds delay
+            - can not be hit in air
+            - does aoe damage (indicated on tiles) when landing
+            - player has 2seconds to evade
+            - after boss comes down, player can do damage to him
+        - boss hp = ?
+        - player damage value
+    - time limit on boss?
+    - retries for money?
+        - each retry gets more expensive
 
 Next ideas:
 - something which makes player stronger over time, but better player get stronger faster

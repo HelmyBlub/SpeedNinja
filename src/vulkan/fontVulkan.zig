@@ -83,9 +83,11 @@ fn setupVertices(state: *main.GameState) !void {
     _ = try paintNumber(state.players.items[0].money, .{ .x = textWidthRound, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
 
     if (state.round > 1) {
-        const textWidthTime = paintText("Time: ", .{ .x = 0, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
-        const remainingTime: i64 = @max(0, @divFloor(state.roundEndTimeMS - state.gameTime, 1000));
-        _ = try paintNumber(remainingTime, .{ .x = textWidthTime, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
+        if (state.gamePhase == .combat) {
+            const textWidthTime = paintText("Time: ", .{ .x = 0, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
+            const remainingTime: i64 = @max(0, @divFloor(state.roundEndTimeMS - state.gameTime, 1000));
+            _ = try paintNumber(remainingTime, .{ .x = textWidthTime, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
+        }
     }
     if (state.highscore > 0) {
         const textWidthTime = paintText("Highscore: ", .{ .x = 0.5, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);

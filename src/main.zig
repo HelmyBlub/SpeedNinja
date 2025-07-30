@@ -162,7 +162,7 @@ fn startNextLevel(state: *GameState) !void {
 }
 
 fn shouldEndLevel(state: *GameState) bool {
-    if (state.gamePhase == .combat and state.round > state.roundToReachForNextLevel and state.roundEndTimeMS < state.gameTime) return true;
+    if (state.gamePhase == .combat and state.round >= state.roundToReachForNextLevel and state.roundEndTimeMS < state.gameTime) return true;
     return false;
 }
 

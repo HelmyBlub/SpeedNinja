@@ -28,30 +28,60 @@ pub fn setupVertices(state: *main.GameState) !void {
     shopUx.triangles.verticeCount = 0;
     shopUx.sprites.verticeCount = 0;
     shopUx.font.verticeCount = 0;
-    if (state.gamePhase != .shopping) return;
-    const player = &state.players.items[0];
-    paintGrid(player, state);
-    const player0ShopPos = player.shop.pieceShopTopLeft;
-    for (shopZig.SHOP_BUTTONS) |shopButton| {
-        if (shopButton.isVisible != null and !shopButton.isVisible.?(player)) continue;
-        const shopButtonGamePosition: main.Position = .{
-            .x = @floatFromInt((player0ShopPos.x + shopButton.tileOffset.x) * main.TILESIZE),
-            .y = @floatFromInt((player0ShopPos.y + shopButton.tileOffset.y) * main.TILESIZE),
-        };
-        if (shopButton.option != .none and shopButton.option == player.shop.selectedOption) {
-            rectangleForTile(shopButtonGamePosition, .{ 0, 0, 1 }, shopUx, false, state);
+    if (state.gamePhase != .shopping) {
+        verticesForEarlyShopTrigger(state);
+    } else {
+        const player = &state.players.items[0];
+        paintGrid(player, state);
+        const player0ShopPos = player.shop.pieceShopTopLeft;
+        for (shopZig.SHOP_BUTTONS) |shopButton| {
+            if (shopButton.isVisible != null and !shopButton.isVisible.?(player)) continue;
+            const shopButtonGamePosition: main.Position = .{
+                .x = @floatFromInt((player0ShopPos.x + shopButton.tileOffset.x) * main.TILESIZE),
+                .y = @floatFromInt((player0ShopPos.y + shopButton.tileOffset.y) * main.TILESIZE),
+            };
+            if (shopButton.option != .none and shopButton.option == player.shop.selectedOption) {
+                rectangleForTile(shopButtonGamePosition, .{ 0, 0, 1 }, shopUx, false, state);
+            }
+            shopUx.sprites.vertices[shopUx.sprites.verticeCount] = .{
+                .pos = .{ shopButtonGamePosition.x, shopButtonGamePosition.y },
+                .imageIndex = shopButton.imageIndex,
+                .size = main.TILESIZE,
+                .rotate = shopButton.imageRotate,
+                .cutY = 0,
+            };
+            shopUx.sprites.verticeCount += 1;
         }
-        shopUx.sprites.vertices[shopUx.sprites.verticeCount] = .{
-            .pos = .{ shopButtonGamePosition.x, shopButtonGamePosition.y },
-            .imageIndex = shopButton.imageIndex,
-            .size = main.TILESIZE,
-            .rotate = shopButton.imageRotate,
-            .cutY = 0,
-        };
-        shopUx.sprites.verticeCount += 1;
     }
 
     try setupVertexDataForGPU(&state.vkState);
+}
+
+fn verticesForEarlyShopTrigger(state: *main.GameState) void {
+    const optTilePosition = shopZig.getShopEarlyTriggerPosition(state);
+    if (optTilePosition == null) return;
+    const shopUx = &state.vkState.shopUx;
+    const tilePosition = optTilePosition.?;
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const gridEarlyShopTopLeft: main.Position = .{
+        .x = @floatFromInt(tilePosition.x * main.TILESIZE),
+        .y = @floatFromInt(tilePosition.y * main.TILESIZE),
+    };
+    const vulkan: main.Position = .{
+        .x = (-state.camera.position.x + gridEarlyShopTopLeft.x) * state.camera.zoom * onePixelXInVulkan,
+        .y = (-state.camera.position.y + gridEarlyShopTopLeft.y) * state.camera.zoom * onePixelYInVulkan,
+    };
+    const halveVulkanTileSizeX = main.TILESIZE * onePixelXInVulkan * state.camera.zoom / 2;
+    const halveVulkanTileSizeY = main.TILESIZE * onePixelYInVulkan * state.camera.zoom / 2;
+    const width = main.TILESIZE * shopZig.EARLY_SHOP_GRID_SIZE * onePixelXInVulkan * state.camera.zoom;
+    const height = main.TILESIZE * shopZig.EARLY_SHOP_GRID_SIZE * onePixelYInVulkan * state.camera.zoom;
+    const left = vulkan.x - halveVulkanTileSizeX;
+    const top = vulkan.y - halveVulkanTileSizeY;
+    const fontSize = 26;
+    _ = fontVulkanZig.paintText("early", .{ .x = left, .y = top }, fontSize, &shopUx.font);
+    _ = fontVulkanZig.paintText("shop", .{ .x = left, .y = top + fontSize * onePixelYInVulkan }, fontSize, &shopUx.font);
+    movePieceVulkanZig.verticesForRectangle(left, top, width, height, .{ 1, 1, 1 }, &shopUx.lines, &shopUx.triangles);
 }
 
 fn paintGrid(player: *main.Player, state: *main.GameState) void {

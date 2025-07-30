@@ -129,6 +129,10 @@ pub fn tickPlayerMovePiece(player: *main.Player, state: *main.GameState) !void {
             ninjaDogVulkanZig.moveHandToCenter(player, state);
             if (state.gamePhase == .shopping) {
                 try shopZig.executeShopActionForPlayer(player, state);
+            } else {
+                if (shopZig.isPlayerInEarlyShopTrigger(player, state)) {
+                    try shopZig.startShoppingPhase(state);
+                }
             }
         }
     }
