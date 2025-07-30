@@ -110,6 +110,11 @@ fn mainLoop(state: *GameState) !void {
         if (state.enemies.items.len == 0 and state.gamePhase == .combat) {
             try startNextRound(state);
         } else if (shouldEndLevel(state)) {
+            if (state.gamePhase == .boss) {
+                for (state.players.items) |*player| {
+                    player.money += state.level * 10;
+                }
+            }
             try shopZig.startShoppingPhase(state);
         } else if (shouldRestart(state)) {
             try restart(state);
@@ -120,7 +125,7 @@ fn mainLoop(state: *GameState) !void {
             try ninjaDogVulkanZig.tickNinjaDogAnimation(player, passedTime, state);
         }
         try enemyZig.tickEnemies(state);
-        bossZig.tickBosses(state);
+        bossZig.tickBosses(state, passedTime);
         try paintVulkanZig.drawFrame(state);
         std.Thread.sleep(5_000_000);
         lastTime = currentTime;
@@ -170,6 +175,7 @@ fn startNextLevel(state: *GameState) !void {
 
 fn shouldEndLevel(state: *GameState) bool {
     if (state.gamePhase == .combat and state.round >= state.roundToReachForNextLevel and state.roundEndTimeMS < state.gameTime) return true;
+    if (state.gamePhase == .boss and state.bosses.items.len == 0) return true;
     return false;
 }
 
@@ -202,10 +208,11 @@ pub fn restart(state: *GameState) !void {
     state.level = 0;
     state.round = 0;
     state.mapTileRadius = BASE_MAP_TILE_RADIUS;
+    state.gamePhase = .combat;
     state.gameTime = 0;
     for (state.players.items) |*player| {
         player.hp = 1;
-        player.money = 7;
+        player.money = 0;
         player.position.x = 0;
         player.position.y = 0;
         player.afterImages.clearRetainingCapacity();
@@ -296,5 +303,12 @@ pub fn gamePositionToTilePosition(position: Position) TilePosition {
     return .{
         .x = @intFromFloat(@floor((position.x + TILESIZE / 2) / TILESIZE)),
         .y = @intFromFloat(@floor((position.y + TILESIZE / 2) / TILESIZE)),
+    };
+}
+
+pub fn tilePositionToGamePosition(tilePosition: TilePosition) Position {
+    return .{
+        .x = @as(f32, @floatFromInt(tilePosition.x * TILESIZE)),
+        .y = @as(f32, @floatFromInt(tilePosition.y * TILESIZE)),
     };
 }

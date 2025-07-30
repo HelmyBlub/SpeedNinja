@@ -1,5 +1,8 @@
 Tasks:
 - boss round on level 5 (to reach is faster, maybe 10 later)
+    - paint boss
+    - tick boss
+    - check boss defeated
     - "stomp boss"
         - jumps above a player, will come down with 2seconds delay
             - can not be hit in air

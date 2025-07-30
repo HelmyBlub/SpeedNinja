@@ -286,6 +286,7 @@ fn stepAndCheckEnemyHit(player: *main.Player, stepCount: u8, stepDirection: main
         if (try checkEnemyHitOnMoveStep(player, state)) {
             ninjaDogVulkanZig.bladeSlashAnimate(player);
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BLADE_CUT_INDICIES[0..], i * 25);
+            try resetPieces(player);
             player.slashedLastMoveTile = true;
         }
     }
@@ -422,7 +423,6 @@ fn checkEnemyHitOnMoveStep(player: *main.Player, state: *main.GameState) !bool {
             const deadEnemy = state.enemies.swapRemove(enemyIndex);
             const cutAngle = player.paintData.bladeRotation + std.math.pi / 2.0;
             try state.enemyDeath.append(.{ .deathTime = state.gameTime, .position = deadEnemy.position, .cutAngle = cutAngle, .force = rand.float(f32) + 0.2 });
-            try resetPieces(player);
             hitSomething = true;
         } else {
             enemyIndex += 1;
@@ -430,7 +430,7 @@ fn checkEnemyHitOnMoveStep(player: *main.Player, state: *main.GameState) !bool {
     }
     if (state.bosses.items.len > 0) {
         const tilePosition = main.gamePositionToTilePosition(position);
-        if (bossZig.isBossHit(.{ .pos = tilePosition, .height = 1, .width = 1 }, state)) {
+        if (try bossZig.isBossHit(.{ .pos = tilePosition, .height = 1, .width = 1 }, player.paintData.bladeRotation, state)) {
             hitSomething = true;
         }
     }
