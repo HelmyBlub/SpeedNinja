@@ -1,17 +1,20 @@
 Tasks:
-- boss round on level 5 (to reach is faster, maybe 10 later)
-    - paint boss
-    - tick boss
-    - check boss defeated
-    - "stomp boss"
-        - jumps above a player, will come down with 2seconds delay
-            - can not be hit in air
-            - does aoe damage (indicated on tiles) when landing
-            - player has 2seconds to evade
-            - after boss comes down, player can do damage to him
-        - boss hp = ?
-        - player damage value
-    - time limit on boss?
+- bug: shop cut tool produced borken piece:
+    - moveOption piece was broken, looked like incorrect memory
+    - what i did before: produce a lot of the same pieces by cutting them straight
+        - i think when cut => bug happened
+- boss round
+    - visualization:
+        - boss in air
+            - paint him higher
+            - paint shadow
+        - tileWarnings paint before boss
+    - boss round ux
+        - hp bar for boss
+        - boss name?
+    - sounds
+
+
     - retries for money?
         - each retry gets more expensive
 

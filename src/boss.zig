@@ -62,6 +62,8 @@ fn startBossStomp(state: *main.GameState) !void {
         .imageIndex = imageZig.IMAGE_EVIL_TREE,
         .position = .{ .x = 0, .y = 0 },
     });
+    state.mapTileRadius = 6;
+    main.adjustZoom(state);
 }
 
 pub fn tickBosses(state: *main.GameState, passedTime: i64) void {
