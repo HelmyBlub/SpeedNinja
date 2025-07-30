@@ -7,10 +7,12 @@ const ninjaDogVulkanZig = @import("vulkan/ninjaDogVulkan.zig");
 const soundMixerZig = @import("soundMixer.zig");
 const enemyZig = @import("enemy.zig");
 const shopZig = @import("shop.zig");
+const bossZig = @import("boss.zig");
 
 pub const GamePhase = enum {
     combat,
     shopping,
+    boss,
 };
 
 pub const TILESIZE = 20;
@@ -29,6 +31,7 @@ pub const GameState = struct {
     roundEndTimeMS: i64 = 0,
     mapTileRadius: u32 = BASE_MAP_TILE_RADIUS,
     enemies: std.ArrayList(enemyZig.Enemy) = undefined,
+    bosses: std.ArrayList(bossZig.Boss) = undefined,
     enemyDeath: std.ArrayList(enemyZig.EnemyDeathAnimation) = undefined,
     enemySpawnData: enemyZig.EnemySpawnData = undefined,
     players: std.ArrayList(Player),
@@ -117,6 +120,7 @@ fn mainLoop(state: *GameState) !void {
             try ninjaDogVulkanZig.tickNinjaDogAnimation(player, passedTime, state);
         }
         try enemyZig.tickEnemies(state);
+        bossZig.tickBosses(state);
         try paintVulkanZig.drawFrame(state);
         std.Thread.sleep(5_000_000);
         lastTime = currentTime;
@@ -157,7 +161,11 @@ fn startNextLevel(state: *GameState) !void {
         try movePieceZig.resetPieces(player);
     }
     try enemyZig.setupSpawnEnemiesOnLevelChange(state);
-    try startNextRound(state);
+    if (bossZig.isBossLevel(state.level)) {
+        try bossZig.startBossLevel(state);
+    } else {
+        try startNextRound(state);
+    }
 }
 
 fn shouldEndLevel(state: *GameState) bool {
@@ -209,7 +217,7 @@ pub fn restart(state: *GameState) !void {
 
         try movePieceZig.setupMovePieces(player, state);
     }
-
+    state.bosses.clearAndFree();
     state.enemyDeath.clearRetainingCapacity();
     try startNextLevel(state);
 }
@@ -226,6 +234,7 @@ pub fn adjustZoom(state: *GameState) void {
 fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
     state.* = .{
         .players = std.ArrayList(Player).init(allocator),
+        .bosses = std.ArrayList(bossZig.Boss).init(allocator),
     };
     state.allocator = allocator;
     try windowSdlZig.initWindowSdl();
@@ -268,6 +277,7 @@ fn destroyGameState(state: *GameState) void {
         }
     }
     state.players.deinit();
+    state.bosses.deinit();
     enemyZig.destroyEnemy(state);
 }
 
@@ -275,6 +285,11 @@ pub fn calculateDistance(pos1: Position, pos2: Position) f32 {
     const diffX = pos1.x - pos2.x;
     const diffY = pos1.y - pos2.y;
     return @floatCast(@sqrt(diffX * diffX + diffY * diffY));
+}
+
+pub fn isTilePositionInTileRectangle(tilePosition: TilePosition, tileRectangle: TileRectangle) bool {
+    return tileRectangle.pos.x <= tilePosition.x and tileRectangle.pos.x + tileRectangle.width > tilePosition.x and
+        tileRectangle.pos.y <= tilePosition.y and tileRectangle.pos.y + tileRectangle.height > tilePosition.y;
 }
 
 pub fn gamePositionToTilePosition(position: Position) TilePosition {

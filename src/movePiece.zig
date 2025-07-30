@@ -4,6 +4,7 @@ const ninjaDogVulkanZig = @import("vulkan/ninjaDogVulkan.zig");
 const soundMixerZig = @import("soundMixer.zig");
 const shopZig = @import("shop.zig");
 const choosenMovePieceVisualizationVulkanZig = @import("vulkan/choosenMovePieceVisualizationVulkan.zig");
+const bossZig = @import("boss.zig");
 
 pub const MovePiece = struct {
     steps: []MoveStep,
@@ -124,7 +125,7 @@ pub fn tickPlayerMovePiece(player: *main.Player, state: *main.GameState) !void {
         }
         const direction = @mod(step.direction + player.executeDirection + 1, 4);
         if (!player.slashedLastMoveTile) ninjaDogVulkanZig.movedAnimate(player, direction);
-        try stepAndCheckEnemyHit(player, step.stepCount, direction, getStepDirection(direction), state);
+        try stepAndCheckEnemyHit(player, step.stepCount, getStepDirection(direction), state);
         if (player.executeMovePiece == null) {
             ninjaDogVulkanZig.moveHandToCenter(player, state);
             if (state.gamePhase == .shopping) {
@@ -276,13 +277,13 @@ pub fn isTilePositionOnMovePiece(checkTile: main.TilePosition, movePieceStartTil
     return false;
 }
 
-fn stepAndCheckEnemyHit(player: *main.Player, stepCount: u8, direction: u8, stepDirection: main.Position, state: *main.GameState) !void {
+fn stepAndCheckEnemyHit(player: *main.Player, stepCount: u8, stepDirection: main.Position, state: *main.GameState) !void {
     for (0..stepCount) |i| {
         player.slashedLastMoveTile = false;
         try ninjaDogVulkanZig.addAfterImages(1, stepDirection, player, state);
         player.position.x += stepDirection.x * main.TILESIZE;
         player.position.y += stepDirection.y * main.TILESIZE;
-        if (try checkEnemyHitOnMoveStep(player, 0, direction, state)) {
+        if (try checkEnemyHitOnMoveStep(player, state)) {
             ninjaDogVulkanZig.bladeSlashAnimate(player);
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BLADE_CUT_INDICIES[0..], i * 25);
             player.slashedLastMoveTile = true;
@@ -405,29 +406,13 @@ pub fn createRandomMovePiece(allocator: std.mem.Allocator) !MovePiece {
     return movePiece;
 }
 
-fn checkEnemyHitOnMoveStep(player: *main.Player, stepAmount: f32, direction: u8, state: *main.GameState) !bool {
-    var position: main.Position = player.position;
+fn checkEnemyHitOnMoveStep(player: *main.Player, state: *main.GameState) !bool {
+    const position: main.Position = player.position;
     var enemyIndex: usize = 0;
-    var left: f32 = position.x - main.TILESIZE / 2;
-    var top: f32 = position.y - main.TILESIZE / 2;
-    var width: f32 = main.TILESIZE;
-    var height: f32 = main.TILESIZE;
-    switch (direction) {
-        DIRECTION_RIGHT => {
-            width += stepAmount;
-        },
-        DIRECTION_DOWN => {
-            height += stepAmount;
-        },
-        DIRECTION_LEFT => {
-            left -= stepAmount;
-            width += stepAmount;
-        },
-        else => {
-            top -= stepAmount;
-            height += stepAmount;
-        },
-    }
+    const left: f32 = position.x - main.TILESIZE / 2;
+    const top: f32 = position.y - main.TILESIZE / 2;
+    const width: f32 = main.TILESIZE;
+    const height: f32 = main.TILESIZE;
 
     const rand = std.crypto.random;
     var hitSomething = false;
@@ -443,7 +428,12 @@ fn checkEnemyHitOnMoveStep(player: *main.Player, stepAmount: f32, direction: u8,
             enemyIndex += 1;
         }
     }
-    position.x += stepAmount;
+    if (state.bosses.items.len > 0) {
+        const tilePosition = main.gamePositionToTilePosition(position);
+        if (bossZig.isBossHit(.{ .pos = tilePosition, .height = 1, .width = 1 }, state)) {
+            hitSomething = true;
+        }
+    }
     return hitSomething;
 }
 
