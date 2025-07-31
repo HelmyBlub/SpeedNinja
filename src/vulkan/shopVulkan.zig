@@ -9,11 +9,12 @@ const movePieceZig = @import("../movePiece.zig");
 const fontVulkanZig = @import("fontVulkan.zig");
 const shopZig = @import("../shop.zig");
 const movePieceVulkanZig = @import("movePieceUxVulkan.zig");
+const paintVulkanZig = @import("paintVulkan.zig");
 
 pub const VkShopUx = struct {
     triangles: dataVulkanZig.VkTriangles = undefined,
     lines: dataVulkanZig.VkLines = undefined,
-    sprites: dataVulkanZig.VkSpritesWithGlobalTransform = undefined,
+    sprites: dataVulkanZig.VkSpriteComplex = undefined,
     font: fontVulkanZig.VkFont = undefined,
     const UX_RECTANGLES = 100;
     pub const MAX_VERTICES_TRIANGLES = 6 * UX_RECTANGLES;
@@ -43,14 +44,16 @@ pub fn setupVertices(state: *main.GameState) !void {
             if (shopButton.option != .none and shopButton.option == player.shop.selectedOption) {
                 rectangleForTile(shopButtonGamePosition, .{ 0, 0, 1 }, shopUx, false, state);
             }
-            shopUx.sprites.vertices[shopUx.sprites.verticeCount] = .{
-                .pos = .{ shopButtonGamePosition.x, shopButtonGamePosition.y },
-                .imageIndex = shopButton.imageIndex,
-                .size = main.TILESIZE,
-                .rotate = shopButton.imageRotate,
-                .cutY = 0,
-            };
-            shopUx.sprites.verticeCount += 1;
+            paintVulkanZig.verticesForComplexSprite(shopButtonGamePosition, shopButton.imageIndex, &shopUx.sprites, state);
+
+            // shopUx.sprites.vertices[shopUx.sprites.verticeCount] = .{
+            //     .pos = .{ shopButtonGamePosition.x, shopButtonGamePosition.y },
+            //     .imageIndex = shopButton.imageIndex,
+            //     .size = main.TILESIZE,
+            //     .rotate = shopButton.imageRotate,
+            //     .cutY = 0,
+            // };
+            // shopUx.sprites.verticeCount += 1;
         }
     }
 
@@ -125,14 +128,7 @@ fn paintGrid(player: *main.Player, state: *main.GameState) void {
                 .x = gridGameTopLeft.x + @as(f32, @floatFromInt(gridCutOffset.x * main.TILESIZE)),
                 .y = gridGameTopLeft.y + @as(f32, @floatFromInt(gridCutOffset.y * main.TILESIZE)),
             };
-            shopUx.sprites.vertices[shopUx.sprites.verticeCount] = .{
-                .pos = .{ gamePositionCut.x, gamePositionCut.y },
-                .imageIndex = imageZig.IMAGE_CUT,
-                .size = main.TILESIZE,
-                .rotate = 0,
-                .cutY = 0,
-            };
-            shopUx.sprites.verticeCount += 1;
+            paintVulkanZig.verticesForComplexSprite(gamePositionCut, imageZig.IMAGE_CUT, &shopUx.sprites, state);
         }
     }
 }
@@ -269,9 +265,9 @@ fn createVertexBuffers(vkState: *initVulkanZig.VkState, allocator: std.mem.Alloc
         &shopUx.lines.vertexBufferMemory,
         vkState,
     );
-    shopUx.sprites.vertices = try allocator.alloc(dataVulkanZig.SpriteWithGlobalTransformVertex, VkShopUx.MAX_VERTICES_SPRITES);
+    shopUx.sprites.vertices = try allocator.alloc(dataVulkanZig.SpriteComplexVertex, VkShopUx.MAX_VERTICES_SPRITES);
     try initVulkanZig.createBuffer(
-        @sizeOf(dataVulkanZig.SpriteWithGlobalTransformVertex) * VkShopUx.MAX_VERTICES_SPRITES,
+        @sizeOf(dataVulkanZig.SpriteComplexVertex) * VkShopUx.MAX_VERTICES_SPRITES,
         vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
         &shopUx.sprites.vertexBuffer,
@@ -302,8 +298,8 @@ fn setupVertexDataForGPU(vkState: *initVulkanZig.VkState) !void {
     @memcpy(gpu_vertices, shopUx.lines.vertices[0..]);
     vk.vkUnmapMemory.?(vkState.logicalDevice, shopUx.lines.vertexBufferMemory);
 
-    if (vk.vkMapMemory.?(vkState.logicalDevice, shopUx.sprites.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.SpriteWithGlobalTransformVertex) * shopUx.sprites.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
-    const gpuVerticesSprite: [*]dataVulkanZig.SpriteWithGlobalTransformVertex = @ptrCast(@alignCast(data));
+    if (vk.vkMapMemory.?(vkState.logicalDevice, shopUx.sprites.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.SpriteComplexVertex) * shopUx.sprites.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
+    const gpuVerticesSprite: [*]dataVulkanZig.SpriteComplexVertex = @ptrCast(@alignCast(data));
     @memcpy(gpuVerticesSprite, shopUx.sprites.vertices[0..]);
     vk.vkUnmapMemory.?(vkState.logicalDevice, shopUx.sprites.vertexBufferMemory);
 
@@ -323,7 +319,7 @@ pub fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, state: *main.GameS
     vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
     vk.vkCmdDraw.?(commandBuffer, @intCast(shopUx.triangles.verticeCount), 1, 0, 0);
 
-    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.spriteWithGlobalTransform);
+    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.spriteComplex);
     vertexBuffers = .{shopUx.sprites.vertexBuffer};
     offsets = .{0};
     vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);

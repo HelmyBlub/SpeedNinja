@@ -74,7 +74,7 @@ pub const VkState = struct {
 
     font: fontVulkanZig.VkFontData = .{},
     mapGrid: mapGridVulkanZig.VkMapGridUx = .{},
-    spriteData: dataVulkanZig.SpriteData = .{},
+    spriteData: dataVulkanZig.VkSpriteComplex = .{},
     movePieceUx: movePieceUxVulkanZig.VkMovePiecesUx = .{},
     cutSpriteData: dataVulkanZig.VkSpriteComplex = .{},
     ninjaDogData: dataVulkanZig.VkSpriteComplex = .{},

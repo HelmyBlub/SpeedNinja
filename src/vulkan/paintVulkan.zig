@@ -73,6 +73,42 @@ pub fn drawFrame(state: *main.GameState) !void {
     vkState.currentFrame = (vkState.currentFrame + 1) % initVulkanZig.VkState.MAX_FRAMES_IN_FLIGHT;
 }
 
+pub fn verticesForComplexSprite(gamePosition: main.Position, imageIndex: u8, vkSpriteComplex: *dataVulkanZig.VkSpriteComplex, state: *main.GameState) void {
+    if (vkSpriteComplex.verticeCount + 6 >= vkSpriteComplex.vertices.len) return;
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const halfSizeWidth: f32 = main.TILESIZE / 2;
+    const halfSizeHeigh: f32 = main.TILESIZE / 2;
+    const points = [_]main.Position{
+        main.Position{ .x = -halfSizeWidth, .y = halfSizeHeigh },
+        main.Position{ .x = -halfSizeWidth, .y = -halfSizeHeigh },
+        main.Position{ .x = halfSizeWidth, .y = halfSizeHeigh },
+        main.Position{ .x = halfSizeWidth, .y = -halfSizeHeigh },
+    };
+
+    for (0..points.len - 2) |i| {
+        const pointsIndexes = [_]usize{ i, i + 1 + @mod(i, 2), i + 2 - @mod(i, 2) };
+        for (pointsIndexes) |verticeIndex| {
+            const cornerPosOffset = points[verticeIndex];
+            const vulkan: main.Position = .{
+                .x = (cornerPosOffset.x - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
+                .y = (cornerPosOffset.y - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
+            };
+            const texPos: [2]f32 = .{
+                (cornerPosOffset.x / halfSizeWidth + 1) / 2,
+                (cornerPosOffset.y / halfSizeHeigh + 1) / 2,
+            };
+            vkSpriteComplex.vertices[vkSpriteComplex.verticeCount] = dataVulkanZig.SpriteComplexVertex{
+                .pos = .{ vulkan.x, vulkan.y },
+                .imageIndex = imageIndex,
+                .alpha = 1,
+                .tex = texPos,
+            };
+            vkSpriteComplex.verticeCount += 1;
+        }
+    }
+}
+
 fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state: *main.GameState) !void {
     const vkState = &state.vkState;
     var beginInfo = vk.VkCommandBufferBeginInfo{
@@ -124,11 +160,11 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
     try shopVulkanZig.recordCommandBuffer(commandBuffer, state);
     try choosenMovePieceVulkanZig.recordCommandBuffer(commandBuffer, state);
     try enemyVulkanZig.recordCommandBuffer(commandBuffer, state);
-    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.spriteWithGlobalTransform);
+    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.spriteComplex);
     const vertexBuffers: [1]vk.VkBuffer = .{vkState.spriteData.vertexBuffer};
     const offsets: [1]vk.VkDeviceSize = .{0};
     vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
-    vk.vkCmdDraw.?(commandBuffer, @intCast(vkState.spriteData.verticeUsedCount), 1, 0, 0);
+    vk.vkCmdDraw.?(commandBuffer, @intCast(vkState.spriteData.verticeCount), 1, 0, 0);
     try cutSpriteVulkan.recordCommandBuffer(commandBuffer, state);
     try ninjaDogVulkanZig.recordCommandBuffer(commandBuffer, state);
     vk.vkCmdNextSubpass.?(commandBuffer, vk.VK_SUBPASS_CONTENTS_INLINE);
@@ -142,26 +178,14 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
 
 fn setupVerticesForSprites(state: *main.GameState) !void {
     const spriteData = &state.vkState.spriteData;
-    spriteData.verticeUsedCount = 0;
-
-    for (state.enemies.items) |enemy| {
-        if (spriteData.verticeUsedCount >= spriteData.vertices.len) break;
-        spriteData.vertices[spriteData.verticeUsedCount] = .{
-            .pos = .{ enemy.position.x, enemy.position.y },
-            .imageIndex = enemy.imageIndex,
-            .size = main.TILESIZE,
-            .rotate = 0,
-            .cutY = 0,
-        };
-        spriteData.verticeUsedCount += 1;
-    }
+    spriteData.verticeCount = 0;
     try setupVertexDataForGPU(&state.vkState);
 }
 
 pub fn setupVertexDataForGPU(vkState: *initVulkanZig.VkState) !void {
     var data: ?*anyopaque = undefined;
-    if (vk.vkMapMemory.?(vkState.logicalDevice, vkState.spriteData.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.SpriteWithGlobalTransformVertex) * vkState.spriteData.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
-    const gpuVertices: [*]dataVulkanZig.SpriteWithGlobalTransformVertex = @ptrCast(@alignCast(data));
+    if (vk.vkMapMemory.?(vkState.logicalDevice, vkState.spriteData.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.SpriteComplexVertex) * vkState.spriteData.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
+    const gpuVertices: [*]dataVulkanZig.SpriteComplexVertex = @ptrCast(@alignCast(data));
     @memcpy(gpuVertices, vkState.spriteData.vertices[0..]);
     vk.vkUnmapMemory.?(vkState.logicalDevice, vkState.spriteData.vertexBufferMemory);
 }
@@ -191,9 +215,9 @@ pub fn destroy(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) vo
 }
 
 pub fn createVertexBuffer(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
-    vkState.spriteData.vertices = try allocator.alloc(dataVulkanZig.SpriteWithGlobalTransformVertex, 50);
+    vkState.spriteData.vertices = try allocator.alloc(dataVulkanZig.SpriteComplexVertex, 50);
     try initVulkanZig.createBuffer(
-        @sizeOf(dataVulkanZig.SpriteWithGlobalTransformVertex) * vkState.spriteData.vertices.len,
+        @sizeOf(dataVulkanZig.SpriteComplexVertex) * vkState.spriteData.vertices.len,
         vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
         &vkState.spriteData.vertexBuffer,
