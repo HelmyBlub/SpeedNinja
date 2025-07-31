@@ -325,7 +325,7 @@ pub fn resetPieces(player: *main.Player) !void {
     try player.availableMovePieces.appendSlice(player.totalMovePieces.items);
     for (player.moveOptions.items) |moveOption| {
         for (player.availableMovePieces.items, 0..) |piece, index| {
-            if (areSameMovePieces(moveOption, piece)) {
+            if (moveOption.steps.ptr == piece.steps.ptr) {
                 _ = player.availableMovePieces.swapRemove(index);
                 break;
             }

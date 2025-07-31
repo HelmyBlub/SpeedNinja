@@ -212,7 +212,7 @@ pub fn restart(state: *GameState) !void {
     state.gameTime = 0;
     for (state.players.items) |*player| {
         player.hp = 1;
-        player.money = 0;
+        player.money = 20;
         player.position.x = 0;
         player.position.y = 0;
         player.afterImages.clearRetainingCapacity();

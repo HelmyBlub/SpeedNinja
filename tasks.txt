@@ -3,6 +3,8 @@ Tasks:
     - moveOption piece was broken, looked like incorrect memory
     - what i did before: produce a lot of the same pieces by cutting them straight
         - i think when cut => bug happened
+    - maybe something when moveOptions go from 3 to 2 when changing?
+        - try use up most available moves before using shop?
 - boss round
     - visualization:
         - boss in air
@@ -13,7 +15,7 @@ Tasks:
         - hp bar for boss
         - boss name?
     - sounds
-
+    - prevent boss from leaving grid
 
     - retries for money?
         - each retry gets more expensive
