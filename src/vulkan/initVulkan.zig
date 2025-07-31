@@ -72,6 +72,7 @@ pub const VkState = struct {
     inFlightFence: []vk.VkFence = undefined,
     currentFrame: u16 = 0,
 
+    layers: dataVulkanZig.VkLayers = .{},
     font: fontVulkanZig.VkFontData = .{},
     mapGrid: mapGridVulkanZig.VkMapGridUx = .{},
     spriteData: dataVulkanZig.VkSpriteComplex = .{},

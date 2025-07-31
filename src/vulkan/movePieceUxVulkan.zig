@@ -14,7 +14,7 @@ pub const VkMovePiecesUx = struct {
     triangles: dataVulkanZig.VkTriangles = undefined,
     lines: dataVulkanZig.VkLines = undefined,
     sprites: dataVulkanZig.VkSprites = undefined,
-    font: fontVulkanZig.VkFont = undefined,
+    font: dataVulkanZig.VkFont = undefined,
     const UX_RECTANGLES = 100;
     pub const MAX_VERTICES_TRIANGLES = 6 * UX_RECTANGLES;
     pub const MAX_VERTICES_LINES = 8 * UX_RECTANGLES;
@@ -218,9 +218,9 @@ fn createVertexBuffers(vkState: *initVulkanZig.VkState, allocator: std.mem.Alloc
         &movePieceUx.sprites.vertexBufferMemory,
         vkState,
     );
-    movePieceUx.font.vertices = try allocator.alloc(fontVulkanZig.FontVertex, VkMovePiecesUx.MAX_VERTICES_FONT);
+    movePieceUx.font.vertices = try allocator.alloc(dataVulkanZig.FontVertex, VkMovePiecesUx.MAX_VERTICES_FONT);
     try initVulkanZig.createBuffer(
-        @sizeOf(fontVulkanZig.FontVertex) * movePieceUx.font.vertices.len,
+        @sizeOf(dataVulkanZig.FontVertex) * movePieceUx.font.vertices.len,
         vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
         &movePieceUx.font.vertexBuffer,
@@ -247,8 +247,8 @@ fn setupVertexDataForGPU(vkState: *initVulkanZig.VkState) !void {
     @memcpy(gpuVerticesSprite, movePieceUx.sprites.vertices[0..]);
     vk.vkUnmapMemory.?(vkState.logicalDevice, movePieceUx.sprites.vertexBufferMemory);
 
-    if (vk.vkMapMemory.?(vkState.logicalDevice, movePieceUx.font.vertexBufferMemory, 0, @sizeOf(fontVulkanZig.FontVertex) * movePieceUx.font.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
-    const gpuVerticesFont: [*]fontVulkanZig.FontVertex = @ptrCast(@alignCast(data));
+    if (vk.vkMapMemory.?(vkState.logicalDevice, movePieceUx.font.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.FontVertex) * movePieceUx.font.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
+    const gpuVerticesFont: [*]dataVulkanZig.FontVertex = @ptrCast(@alignCast(data));
     @memcpy(gpuVerticesFont, movePieceUx.font.vertices[0..]);
     vk.vkUnmapMemory.?(vkState.logicalDevice, movePieceUx.font.vertexBufferMemory);
 }

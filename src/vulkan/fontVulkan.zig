@@ -4,9 +4,10 @@ const initVulkanZig = @import("initVulkan.zig");
 const vk = initVulkanZig.vk;
 const imageZig = @import("../image.zig");
 const windowSdlZig = @import("../windowSdl.zig");
+const dataVulkanZig = @import("dataVulkan.zig");
 
 pub const VkFontData = struct {
-    vkFont: VkFont = undefined,
+    vkFont: dataVulkanZig.VkFont = undefined,
     graphicsPipeline: vk.VkPipeline = undefined,
     graphicsPipelineSubpass0: vk.VkPipeline = undefined,
     mipLevels: u32 = undefined,
@@ -15,61 +16,7 @@ pub const VkFontData = struct {
     textureImageView: vk.VkImageView = undefined,
 };
 
-pub const VkFont = struct {
-    vertexBuffer: vk.VkBuffer = undefined,
-    vertexBufferMemory: vk.VkDeviceMemory = undefined,
-    vertices: []FontVertex = undefined,
-    verticeCount: usize = 0,
-    pub const MAX_VERTICES = 100;
-};
-
-pub const FontVertex = struct {
-    pos: [2]f32,
-    texX: f32,
-    texWidth: f32,
-    size: f32,
-    color: [3]f32,
-
-    pub fn getBindingDescription() vk.VkVertexInputBindingDescription {
-        const bindingDescription: vk.VkVertexInputBindingDescription = .{
-            .binding = 0,
-            .stride = @sizeOf(FontVertex),
-            .inputRate = vk.VK_VERTEX_INPUT_RATE_VERTEX,
-        };
-
-        return bindingDescription;
-    }
-
-    pub fn getAttributeDescriptions() [5]vk.VkVertexInputAttributeDescription {
-        const attributeDescriptions = [_]vk.VkVertexInputAttributeDescription{ .{
-            .binding = 0,
-            .location = 0,
-            .format = vk.VK_FORMAT_R32G32_SFLOAT,
-            .offset = @offsetOf(FontVertex, "pos"),
-        }, .{
-            .binding = 0,
-            .location = 1,
-            .format = vk.VK_FORMAT_R32_SFLOAT,
-            .offset = @offsetOf(FontVertex, "texX"),
-        }, .{
-            .binding = 0,
-            .location = 2,
-            .format = vk.VK_FORMAT_R32_SFLOAT,
-            .offset = @offsetOf(FontVertex, "texWidth"),
-        }, .{
-            .binding = 0,
-            .location = 3,
-            .format = vk.VK_FORMAT_R32_SFLOAT,
-            .offset = @offsetOf(FontVertex, "size"),
-        }, .{
-            .binding = 0,
-            .location = 4,
-            .format = vk.VK_FORMAT_R32G32B32_SFLOAT,
-            .offset = @offsetOf(FontVertex, "color"),
-        } };
-        return attributeDescriptions;
-    }
-};
+const MAX_VERTICES = 100;
 
 fn setupVertices(state: *main.GameState) !void {
     state.vkState.font.vkFont.verticeCount = 0;
@@ -101,7 +48,7 @@ fn setupVertices(state: *main.GameState) !void {
 }
 
 /// returns vulkan surface width of text
-pub fn paintText(chars: []const u8, vulkanSurfacePosition: main.Position, fontSize: f32, vkFont: *VkFont) f32 {
+pub fn paintText(chars: []const u8, vulkanSurfacePosition: main.Position, fontSize: f32, vkFont: *dataVulkanZig.VkFont) f32 {
     var texX: f32 = 0;
     var texWidth: f32 = 0;
     var xOffset: f32 = 0;
@@ -121,7 +68,7 @@ pub fn paintText(chars: []const u8, vulkanSurfacePosition: main.Position, fontSi
     return xOffset;
 }
 
-pub fn getCharFontVertex(char: u8, vulkanSurfacePosition: main.Position, fontSize: f32) FontVertex {
+pub fn getCharFontVertex(char: u8, vulkanSurfacePosition: main.Position, fontSize: f32) dataVulkanZig.FontVertex {
     var texX: f32 = 0;
     var texWidth: f32 = 0;
     charToTexCoords(char, &texX, &texWidth);
@@ -134,7 +81,7 @@ pub fn getCharFontVertex(char: u8, vulkanSurfacePosition: main.Position, fontSiz
     };
 }
 
-pub fn paintNumber(number: anytype, vulkanSurfacePosition: main.Position, fontSize: f32, vkFont: *VkFont) !f32 {
+pub fn paintNumber(number: anytype, vulkanSurfacePosition: main.Position, fontSize: f32, vkFont: *dataVulkanZig.VkFont) !f32 {
     const max_len = 20;
     var buf: [max_len]u8 = undefined;
     var numberAsString: []u8 = undefined;
@@ -200,8 +147,8 @@ pub fn destroyFont(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator
 
 fn setupVertexDataForGPU(vkState: *initVulkanZig.VkState) !void {
     var data: ?*anyopaque = undefined;
-    if (vk.vkMapMemory.?(vkState.logicalDevice, vkState.font.vkFont.vertexBufferMemory, 0, @sizeOf(FontVertex) * vkState.font.vkFont.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
-    const gpu_vertices: [*]FontVertex = @ptrCast(@alignCast(data));
+    if (vk.vkMapMemory.?(vkState.logicalDevice, vkState.font.vkFont.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.FontVertex) * vkState.font.vkFont.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
+    const gpu_vertices: [*]dataVulkanZig.FontVertex = @ptrCast(@alignCast(data));
     @memcpy(gpu_vertices, vkState.font.vkFont.vertices[0..]);
     vk.vkUnmapMemory.?(vkState.logicalDevice, vkState.font.vkFont.vertexBufferMemory);
 }
@@ -361,9 +308,9 @@ pub fn charToTexCoords(char: u8, texX: *f32, texWidth: *f32) void {
 }
 
 fn createVertexBuffer(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
-    vkState.font.vkFont.vertices = try allocator.alloc(FontVertex, VkFont.MAX_VERTICES);
+    vkState.font.vkFont.vertices = try allocator.alloc(dataVulkanZig.FontVertex, MAX_VERTICES);
     try initVulkanZig.createBuffer(
-        @sizeOf(FontVertex) * vkState.font.vkFont.vertices.len,
+        @sizeOf(dataVulkanZig.FontVertex) * vkState.font.vkFont.vertices.len,
         vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
         &vkState.font.vkFont.vertexBuffer,
@@ -407,8 +354,8 @@ fn createGraphicsPipeline(vkState: *initVulkanZig.VkState, allocator: std.mem.Al
     };
 
     const shaderStages = [_]vk.VkPipelineShaderStageCreateInfo{ vertShaderStageInfo, fragShaderStageInfo, geomShaderStageInfo };
-    const bindingDescription = FontVertex.getBindingDescription();
-    const attributeDescriptions = FontVertex.getAttributeDescriptions();
+    const bindingDescription = dataVulkanZig.FontVertex.getBindingDescription();
+    const attributeDescriptions = dataVulkanZig.FontVertex.getAttributeDescriptions();
     var vertexInputInfo = vk.VkPipelineVertexInputStateCreateInfo{
         .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
         .vertexBindingDescriptionCount = 1,

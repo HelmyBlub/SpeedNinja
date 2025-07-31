@@ -8,6 +8,22 @@ pub const VkCameraData = struct {
     translate: [2]f32,
 };
 
+pub const LAYER1_INDEX_GROUND = 0;
+pub const LAYER2_INDEX = 1;
+pub const LAYER3_INDEX_UX = 2;
+
+pub const VkLayers = struct {
+    layers: [3]VkLayer = [_]VkLayer{ .{}, .{}, .{} },
+};
+
+pub const VkLayer = struct {
+    triangles: VkTriangles = .{},
+    lines: VkLines = .{},
+    sprites: VkSprites = .{},
+    spritesComplex: VkSpriteComplex = .{},
+    font: VkFont = .{},
+};
+
 pub const VkTriangles = struct {
     vertexBuffer: vk.VkBuffer = undefined,
     vertexBufferMemory: vk.VkDeviceMemory = undefined,
@@ -33,6 +49,13 @@ pub const VkSpriteComplex = struct {
     vertexBuffer: vk.VkBuffer = undefined,
     vertexBufferMemory: vk.VkDeviceMemory = undefined,
     vertices: []SpriteComplexVertex = undefined,
+    verticeCount: usize = 0,
+};
+
+pub const VkFont = struct {
+    vertexBuffer: vk.VkBuffer = undefined,
+    vertexBufferMemory: vk.VkDeviceMemory = undefined,
+    vertices: []FontVertex = undefined,
     verticeCount: usize = 0,
 };
 
@@ -136,6 +159,54 @@ pub const ColoredVertex = struct {
         attributeDescriptions[1].location = 1;
         attributeDescriptions[1].format = vk.VK_FORMAT_R32G32B32_SFLOAT;
         attributeDescriptions[1].offset = @offsetOf(ColoredVertex, "color");
+        return attributeDescriptions;
+    }
+};
+
+pub const FontVertex = struct {
+    pos: [2]f32,
+    texX: f32,
+    texWidth: f32,
+    size: f32,
+    color: [3]f32,
+
+    pub fn getBindingDescription() vk.VkVertexInputBindingDescription {
+        const bindingDescription: vk.VkVertexInputBindingDescription = .{
+            .binding = 0,
+            .stride = @sizeOf(FontVertex),
+            .inputRate = vk.VK_VERTEX_INPUT_RATE_VERTEX,
+        };
+
+        return bindingDescription;
+    }
+
+    pub fn getAttributeDescriptions() [5]vk.VkVertexInputAttributeDescription {
+        const attributeDescriptions = [_]vk.VkVertexInputAttributeDescription{ .{
+            .binding = 0,
+            .location = 0,
+            .format = vk.VK_FORMAT_R32G32_SFLOAT,
+            .offset = @offsetOf(FontVertex, "pos"),
+        }, .{
+            .binding = 0,
+            .location = 1,
+            .format = vk.VK_FORMAT_R32_SFLOAT,
+            .offset = @offsetOf(FontVertex, "texX"),
+        }, .{
+            .binding = 0,
+            .location = 2,
+            .format = vk.VK_FORMAT_R32_SFLOAT,
+            .offset = @offsetOf(FontVertex, "texWidth"),
+        }, .{
+            .binding = 0,
+            .location = 3,
+            .format = vk.VK_FORMAT_R32_SFLOAT,
+            .offset = @offsetOf(FontVertex, "size"),
+        }, .{
+            .binding = 0,
+            .location = 4,
+            .format = vk.VK_FORMAT_R32G32B32_SFLOAT,
+            .offset = @offsetOf(FontVertex, "color"),
+        } };
         return attributeDescriptions;
     }
 };
