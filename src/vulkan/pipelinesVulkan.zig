@@ -167,7 +167,7 @@ fn createSprite(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !
         .pDynamicState = &dynamicState,
         .layout = vkState.pipelineLayout,
         .renderPass = vkState.renderPass,
-        .subpass = 2,
+        .subpass = 0,
         .basePipelineHandle = null,
         .pNext = null,
     };
@@ -415,7 +415,7 @@ fn createTriangleAndLines(vkState: *initVulkanZig.VkState, allocator: std.mem.Al
         .pDynamicState = &dynamicState,
         .layout = vkState.pipelineLayout,
         .renderPass = vkState.renderPass,
-        .subpass = 2,
+        .subpass = 0,
         .basePipelineHandle = null,
         .pNext = null,
     };
@@ -471,7 +471,7 @@ fn createTriangleAndLines(vkState: *initVulkanZig.VkState, allocator: std.mem.Al
         .pDynamicState = &dynamicState,
         .layout = vkState.pipelineLayout,
         .renderPass = vkState.renderPass,
-        .subpass = 2,
+        .subpass = 0,
         .basePipelineHandle = null,
         .pNext = null,
     };

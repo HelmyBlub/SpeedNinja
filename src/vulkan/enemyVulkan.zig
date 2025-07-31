@@ -1,20 +1,13 @@
 const std = @import("std");
 const main = @import("../main.zig");
-const initVulkanZig = @import("initVulkan.zig");
-const vk = initVulkanZig.vk;
 const imageZig = @import("../image.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 const dataVulkanZig = @import("dataVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
-const soundMixerZig = @import("../soundMixer.zig");
-const ninjaDogVulkan = @import("ninjaDogVulkan.zig");
 const movePieceZig = @import("../movePiece.zig");
 
-const MAX_VERTICES = 2000; //TODO not checked limit
-
-fn setupVertices(state: *main.GameState) !void {
-    const enemyData = &state.vkState.enemyData;
-    enemyData.verticeCount = 0;
+pub fn setupVertices(state: *main.GameState) !void {
+    const verticeData = &state.vkState.verticeData;
     for (state.enemies.items) |enemy| {
         switch (enemy.enemyTypeData) {
             .nothing => {},
@@ -32,15 +25,14 @@ fn setupVertices(state: *main.GameState) !void {
         }
     }
     for (state.enemies.items) |enemy| {
-        paintVulkanZig.verticesForComplexSprite(enemy.position, enemy.imageIndex, &state.vkState.enemyData, state);
+        paintVulkanZig.verticesForComplexSprite(enemy.position, enemy.imageIndex, &verticeData.spritesComplex, state);
     }
     verticesForBosses(state);
-    try setupVertexDataForGPU(&state.vkState);
 }
 
 fn verticesForBosses(state: *main.GameState) void {
     for (state.bosses.items) |boss| {
-        paintVulkanZig.verticesForComplexSprite(boss.position, boss.imageIndex, &state.vkState.enemyData, state);
+        paintVulkanZig.verticesForComplexSprite(boss.position, boss.imageIndex, &state.vkState.verticeData.spritesComplex, state);
         if (boss.state == .chargeStomp) {
             const fillPerCent: f32 = @min(1, @max(0, @as(f32, @floatFromInt(boss.attackChargeTime + state.gameTime - boss.nextStateTime)) / @as(f32, @floatFromInt(boss.attackChargeTime))));
             const size: usize = @intCast(boss.attackTileRadius * 2 + 1);
@@ -59,7 +51,8 @@ fn verticesForBosses(state: *main.GameState) void {
 }
 
 fn addWarningTileSprites(gamePosition: main.Position, fillPerCent: f32, state: *main.GameState) void {
-    const enemyData = &state.vkState.enemyData;
+    const verticeData = &state.vkState.verticeData;
+    if (verticeData.spritesComplex.verticeCount + 12 >= verticeData.spritesComplex.vertices.len) return;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const imageData = imageZig.IMAGE_DATA[imageZig.IMAGE_WARNING_TILE];
@@ -87,56 +80,13 @@ fn addWarningTileSprites(gamePosition: main.Position, fillPerCent: f32, state: *
                 (cornerPosOffset.x / halfSizeWidth + 1) / 2,
                 (cornerPosOffset.y / halfSizeHeigh + 1) / 2,
             };
-            enemyData.vertices[enemyData.verticeCount] = dataVulkanZig.SpriteComplexVertex{
+            verticeData.spritesComplex.vertices[verticeData.spritesComplex.verticeCount] = dataVulkanZig.SpriteComplexVertex{
                 .pos = .{ vulkan.x, vulkan.y },
                 .imageIndex = if (i < 2) imageZig.IMAGE_WARNING_TILE_FILLED else imageZig.IMAGE_WARNING_TILE,
                 .alpha = 1,
                 .tex = texPos,
             };
-            enemyData.verticeCount += 1;
+            verticeData.spritesComplex.verticeCount += 1;
         }
     }
-}
-
-pub fn create(state: *main.GameState) !void {
-    try createVertexBuffer(&state.vkState, state.allocator);
-}
-
-pub fn destroy(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) void {
-    const enemies = vkState.enemyData;
-    vk.vkDestroyBuffer.?(vkState.logicalDevice, enemies.vertexBuffer, null);
-    vk.vkFreeMemory.?(vkState.logicalDevice, enemies.vertexBufferMemory, null);
-    allocator.free(enemies.vertices);
-}
-
-fn setupVertexDataForGPU(vkState: *initVulkanZig.VkState) !void {
-    const enemy = vkState.enemyData;
-    var data: ?*anyopaque = undefined;
-    if (vk.vkMapMemory.?(vkState.logicalDevice, enemy.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.SpriteComplexVertex) * enemy.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
-    const gpu_vertices: [*]dataVulkanZig.SpriteComplexVertex = @ptrCast(@alignCast(data));
-    @memcpy(gpu_vertices, enemy.vertices[0..]);
-    vk.vkUnmapMemory.?(vkState.logicalDevice, enemy.vertexBufferMemory);
-}
-
-pub fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, state: *main.GameState) !void {
-    try setupVertices(state);
-    const vkState = &state.vkState;
-
-    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.spriteComplex);
-    const vertexBuffers: [1]vk.VkBuffer = .{vkState.enemyData.vertexBuffer};
-    const offsets: [1]vk.VkDeviceSize = .{0};
-    vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
-    vk.vkCmdDraw.?(commandBuffer, @intCast(vkState.enemyData.verticeCount), 1, 0, 0);
-}
-
-fn createVertexBuffer(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
-    vkState.enemyData.vertices = try allocator.alloc(dataVulkanZig.SpriteComplexVertex, MAX_VERTICES);
-    try initVulkanZig.createBuffer(
-        @sizeOf(dataVulkanZig.SpriteComplexVertex) * vkState.enemyData.vertices.len,
-        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &vkState.enemyData.vertexBuffer,
-        &vkState.enemyData.vertexBufferMemory,
-        vkState,
-    );
 }

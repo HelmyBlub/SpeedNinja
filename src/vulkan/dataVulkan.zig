@@ -8,10 +8,6 @@ pub const VkCameraData = struct {
     translate: [2]f32,
 };
 
-pub const LAYER1_INDEX_GROUND = 0;
-pub const LAYER2_INDEX = 1;
-pub const LAYER3_INDEX_UX = 2;
-
 pub const VkVerticeDataCut = struct {
     triangle: usize,
     lines: usize,

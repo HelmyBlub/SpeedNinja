@@ -8,12 +8,7 @@ const dataVulkanZig = @import("dataVulkan.zig");
 const movePieceUxVulkanZig = @import("movePieceUxVulkan.zig");
 const pipelinesVulkanZig = @import("pipelinesVulkan.zig");
 const fontVulkanZig = @import("fontVulkan.zig");
-const mapGridVulkanZig = @import("mapGridVulkan.zig");
-const cutSpriteVulkanZig = @import("cutSpriteVulkan.zig");
 const ninjaDogVulkanZig = @import("ninjaDogVulkan.zig");
-const enemyVulkanZig = @import("enemyVulkan.zig");
-const shopVulkanZig = @import("shopVulkan.zig");
-const choosenMovePieceVulkanZig = @import("choosenMovePieceVisualizationVulkan.zig");
 pub const vk = @cImport({
     @cInclude("Volk/volk.h");
 });
@@ -75,14 +70,8 @@ pub const VkState = struct {
 
     verticeData: dataVulkanZig.VkVerticeData = .{},
     font: fontVulkanZig.VkFontData = .{},
-    mapGrid: mapGridVulkanZig.VkMapGridUx = .{},
-    spriteData: dataVulkanZig.VkSpriteComplex = .{},
     movePieceUx: movePieceUxVulkanZig.VkMovePiecesUx = .{},
-    cutSpriteData: dataVulkanZig.VkSpriteComplex = .{},
     ninjaDogData: dataVulkanZig.VkSpriteComplex = .{},
-    enemyData: dataVulkanZig.VkSpriteComplex = .{},
-    shopUx: shopVulkanZig.VkShopUx = .{},
-    choosenMovePiece: choosenMovePieceVulkanZig.VkChoosenMovePieceVisualization = .{},
 
     pub const MAX_FRAMES_IN_FLIGHT: u16 = 2;
     pub const BUFFER_ADDITIOAL_SIZE: u16 = 50;
@@ -127,15 +116,9 @@ pub fn initVulkan(state: *main.GameState) !void {
     try imageZig.createVulkanTextureSprites(vkState, state.allocator);
     try createTextureSampler(vkState);
     try createVertexBuffer(vkState, state.allocator);
-    try createVertexBufferSpritesComplex(vkState, &vkState.spriteData, 200, state.allocator);
     try fontVulkanZig.initFont(state);
     try movePieceUxVulkanZig.create(state);
-    try mapGridVulkanZig.create(state);
-    try cutSpriteVulkanZig.create(state);
     try ninjaDogVulkanZig.create(state);
-    try enemyVulkanZig.create(state);
-    try shopVulkanZig.create(state);
-    try choosenMovePieceVulkanZig.create(state);
     try createUniformBuffers(vkState, state.allocator);
     try createDescriptorPool(vkState);
     try createDescriptorSets(vkState, state.allocator);
@@ -146,15 +129,9 @@ pub fn initVulkan(state: *main.GameState) !void {
 
 pub fn destroyPaintVulkan(vkState: *VkState, allocator: std.mem.Allocator) !void {
     if (vk.vkDeviceWaitIdle.?(vkState.logicalDevice) != vk.VK_SUCCESS) return error.vkDeviceWaitIdleDestroyPaintVulkan;
-    paintVulkanZig.destroy(vkState, allocator);
     fontVulkanZig.destroyFont(vkState, allocator);
     movePieceUxVulkanZig.destroy(vkState, allocator);
-    mapGridVulkanZig.destroy(vkState, allocator);
-    cutSpriteVulkanZig.destroy(vkState, allocator);
     ninjaDogVulkanZig.destroy(vkState, allocator);
-    enemyVulkanZig.destroy(vkState, allocator);
-    shopVulkanZig.destroy(vkState, allocator);
-    choosenMovePieceVulkanZig.destroy(vkState, allocator);
     destroyVerticeData(vkState, allocator);
     cleanupSwapChain(vkState, allocator);
 
@@ -260,6 +237,7 @@ fn destroyVerticeData(vkState: *VkState, allocator: std.mem.Allocator) void {
     allocator.free(verticeData.font.vertices);
     allocator.free(verticeData.font.vertexBufferCleanUp);
     allocator.free(verticeData.font.vertexBufferMemoryCleanUp);
+    verticeData.dataDrawCut.deinit();
 }
 
 fn cleanupSwapChain(vkState: *VkState, allocator: std.mem.Allocator) void {
@@ -485,31 +463,13 @@ fn createRenderPass(vkState: *VkState, allocator: std.mem.Allocator) !void {
         .finalLayout = vk.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
     };
 
-    var depthAttachmentRef = vk.VkAttachmentReference{
-        .attachment = 1,
-        .layout = vk.VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-    };
-
     const subpassLayer1 = vk.VkSubpassDescription{
         .pipelineBindPoint = vk.VK_PIPELINE_BIND_POINT_GRAPHICS,
         .colorAttachmentCount = 1,
         .pColorAttachments = &colorAttachmentRef,
         .pResolveAttachments = &colorAttachmentResolveRef,
     };
-    const subpassLayer2 = vk.VkSubpassDescription{
-        .pipelineBindPoint = vk.VK_PIPELINE_BIND_POINT_GRAPHICS,
-        .colorAttachmentCount = 1,
-        .pColorAttachments = &colorAttachmentRef,
-        .pResolveAttachments = &colorAttachmentResolveRef,
-        .pDepthStencilAttachment = &depthAttachmentRef,
-    };
-    const subpassWihtoutDepth = vk.VkSubpassDescription{
-        .pipelineBindPoint = vk.VK_PIPELINE_BIND_POINT_GRAPHICS,
-        .colorAttachmentCount = 1,
-        .pColorAttachments = &colorAttachmentRef,
-        .pResolveAttachments = &colorAttachmentResolveRef,
-    };
-    const subpasses = [_]vk.VkSubpassDescription{ subpassLayer1, subpassLayer2, subpassWihtoutDepth };
+    const subpasses = [_]vk.VkSubpassDescription{subpassLayer1};
 
     const dependency: vk.VkSubpassDependency = .{
         .srcSubpass = vk.VK_SUBPASS_EXTERNAL,
@@ -519,25 +479,9 @@ fn createRenderPass(vkState: *VkState, allocator: std.mem.Allocator) !void {
         .dstStageMask = vk.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | vk.VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
         .dstAccessMask = vk.VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | vk.VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
     };
-    const dependency01: vk.VkSubpassDependency = .{
-        .srcSubpass = 0,
-        .dstSubpass = 1,
-        .srcStageMask = vk.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | vk.VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-        .srcAccessMask = vk.VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | vk.VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-        .dstStageMask = vk.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | vk.VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-        .dstAccessMask = vk.VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | vk.VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-    };
-    const dependency12: vk.VkSubpassDependency = .{
-        .srcSubpass = 1,
-        .dstSubpass = 2,
-        .srcStageMask = vk.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | vk.VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-        .srcAccessMask = vk.VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | vk.VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-        .dstStageMask = vk.VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | vk.VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-        .dstAccessMask = vk.VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-    };
 
     const attachments = [_]vk.VkAttachmentDescription{ colorAttachment, depthAttachment, colorAttachmentResolve };
-    const dependencies = [_]vk.VkSubpassDependency{ dependency, dependency01, dependency12 };
+    const dependencies = [_]vk.VkSubpassDependency{dependency};
     var renderPassInfo = vk.VkRenderPassCreateInfo{
         .sType = vk.VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
         .attachmentCount = attachments.len,
@@ -705,6 +649,7 @@ fn createVertexBuffer(vkState: *VkState, allocator: std.mem.Allocator) !void {
     try createVertexBufferSprites(vkState, &verticeData.sprites, DEFAULT_VERTEX_BUFFER_INITIAL_SIZE, allocator);
     try createVertexBufferSpritesComplex(vkState, &verticeData.spritesComplex, DEFAULT_VERTEX_BUFFER_INITIAL_SIZE * 6, allocator);
     try createVertexBufferSpritesFont(vkState, &verticeData.font, DEFAULT_VERTEX_BUFFER_INITIAL_SIZE, allocator);
+    verticeData.dataDrawCut = std.ArrayList(dataVulkanZig.VkVerticeDataCut).init(allocator);
 }
 
 pub fn createVertexBufferColored(vkState: *VkState, triangles: *dataVulkanZig.VkColoredVertexes, size: usize, allocator: std.mem.Allocator) !void {

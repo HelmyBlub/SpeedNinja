@@ -1,4 +1,12 @@
 Tasks:
+- shop combine bug:
+    - piece combine did not do direction correct
+    - what i remember doing
+        - combined seconds time
+        - first combined was "down" to "left left" tile
+        - second combine was "up" to "left up"?
+        - bug: first attach was "up" instead of "left"
+        - seconds attach was up, but if first connect was already up, this would be wrong
 - redesign code
     - make buffer/vertice sizes to adjust automatically
     - each vertex type only once

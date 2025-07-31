@@ -1,7 +1,5 @@
 const std = @import("std");
 const main = @import("../main.zig");
-const initVulkanZig = @import("initVulkan.zig");
-const vk = initVulkanZig.vk;
 const imageZig = @import("../image.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 const dataVulkanZig = @import("dataVulkan.zig");
@@ -9,15 +7,13 @@ const paintVulkanZig = @import("paintVulkan.zig");
 const enemyZig = @import("../enemy.zig");
 
 const DEATH_DURATION = 3000;
-const MAX_VERTICES = 200;
 
-fn setupVertices(state: *main.GameState) !void {
-    const cutSprite = &state.vkState.cutSpriteData;
-    cutSprite.verticeCount = 0;
+pub fn setupVertices(state: *main.GameState) !void {
+    const verticeData = &state.vkState.verticeData;
     var enemyDeathIndex: usize = 0;
 
     while (enemyDeathIndex < state.enemyDeath.items.len) {
-        if (cutSprite.vertices.len <= cutSprite.verticeCount) break;
+        if (verticeData.spritesComplex.vertices.len <= verticeData.spritesComplex.verticeCount + 12) break;
         const enemyDeath = state.enemyDeath.items[enemyDeathIndex];
         if (enemyDeath.deathTime + DEATH_DURATION < state.gameTime) {
             _ = state.enemyDeath.swapRemove(enemyDeathIndex);
@@ -26,51 +22,6 @@ fn setupVertices(state: *main.GameState) !void {
         setupVerticesForEnemyDeath(enemyDeath, state);
         enemyDeathIndex += 1;
     }
-
-    try setupVertexDataForGPU(&state.vkState);
-}
-
-pub fn create(state: *main.GameState) !void {
-    try createVertexBuffer(&state.vkState, state.allocator);
-}
-
-pub fn destroy(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) void {
-    const cutSprite = vkState.cutSpriteData;
-    vk.vkDestroyBuffer.?(vkState.logicalDevice, cutSprite.vertexBuffer, null);
-    vk.vkFreeMemory.?(vkState.logicalDevice, cutSprite.vertexBufferMemory, null);
-    allocator.free(cutSprite.vertices);
-}
-
-fn setupVertexDataForGPU(vkState: *initVulkanZig.VkState) !void {
-    const cutSprite = vkState.cutSpriteData;
-    var data: ?*anyopaque = undefined;
-    if (vk.vkMapMemory.?(vkState.logicalDevice, cutSprite.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.SpriteComplexVertex) * cutSprite.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
-    const gpu_vertices: [*]dataVulkanZig.SpriteComplexVertex = @ptrCast(@alignCast(data));
-    @memcpy(gpu_vertices, cutSprite.vertices[0..]);
-    vk.vkUnmapMemory.?(vkState.logicalDevice, cutSprite.vertexBufferMemory);
-}
-
-pub fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, state: *main.GameState) !void {
-    try setupVertices(state);
-    const vkState = &state.vkState;
-
-    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.spriteComplex);
-    const vertexBuffers: [1]vk.VkBuffer = .{vkState.cutSpriteData.vertexBuffer};
-    const offsets: [1]vk.VkDeviceSize = .{0};
-    vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
-    vk.vkCmdDraw.?(commandBuffer, @intCast(vkState.cutSpriteData.verticeCount), 1, 0, 0);
-}
-
-fn createVertexBuffer(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
-    vkState.cutSpriteData.vertices = try allocator.alloc(dataVulkanZig.SpriteComplexVertex, MAX_VERTICES);
-    try initVulkanZig.createBuffer(
-        @sizeOf(dataVulkanZig.SpriteComplexVertex) * vkState.cutSpriteData.vertices.len,
-        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &vkState.cutSpriteData.vertexBuffer,
-        &vkState.cutSpriteData.vertexBufferMemory,
-        vkState,
-    );
 }
 
 fn setupVerticesForEnemyDeath(enemyDeath: enemyZig.EnemyDeathAnimation, state: *main.GameState) void {
@@ -153,7 +104,7 @@ fn addTriangle(points: [3]main.Position, enemyDeath: enemyZig.EnemyDeathAnimatio
     const alpha = 1 - @as(f32, @floatFromInt(state.gameTime - enemyDeath.deathTime)) / DEATH_DURATION;
     const rotate: f32 = @as(f32, @floatFromInt(state.gameTime - enemyDeath.deathTime)) / 512 * enemyDeath.force;
     const halfSize = main.TILESIZE / 2;
-    const cutSprite = &state.vkState.cutSpriteData;
+    const verticeData = &state.vkState.verticeData;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
 
@@ -167,12 +118,12 @@ fn addTriangle(points: [3]main.Position, enemyDeath: enemyZig.EnemyDeathAnimatio
             .x = (point.x / halfSize + 1) / 2,
             .y = (point.y / halfSize + 1) / 2,
         };
-        cutSprite.vertices[cutSprite.verticeCount] = dataVulkanZig.SpriteComplexVertex{
+        verticeData.spritesComplex.vertices[verticeData.spritesComplex.verticeCount] = dataVulkanZig.SpriteComplexVertex{
             .pos = .{ vulkan.x, vulkan.y },
             .tex = .{ texPos.x, texPos.y },
             .imageIndex = imageZig.IMAGE_EVIL_TREE,
             .alpha = alpha,
         };
-        cutSprite.verticeCount += 1;
+        verticeData.spritesComplex.verticeCount += 1;
     }
 }

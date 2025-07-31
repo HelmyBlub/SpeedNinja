@@ -1,13 +1,8 @@
 const std = @import("std");
 const main = @import("../main.zig");
-const initVulkanZig = @import("initVulkan.zig");
-const vk = initVulkanZig.vk;
 const dataVulkanZig = @import("dataVulkan.zig");
-const imageZig = @import("../image.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 const movePieceZig = @import("../movePiece.zig");
-const fontVulkanZig = @import("fontVulkan.zig");
-const movePieceVulkanZig = @import("movePieceUxVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 
 pub const VkChoosenMovePieceVisualization = struct {
@@ -20,13 +15,10 @@ const MAX_VERTICES_TRIANGLES = 6 * UX_RECTANGLES;
 const MAX_VERTICES_LINES = 8 * UX_RECTANGLES;
 
 pub fn setupVertices(state: *main.GameState) !void {
-    const choosen = &state.vkState.choosenMovePiece;
-    choosen.lines.verticeCount = 0;
-    choosen.triangles.verticeCount = 0;
+    const verticeData = &state.vkState.verticeData;
     for (state.players.items) |*player| {
-        verticesForChoosenMoveOptionVisualization(player, &choosen.lines, &choosen.triangles, state);
+        verticesForChoosenMoveOptionVisualization(player, &verticeData.lines, &verticeData.triangles, state);
     }
-    try setupVertexDataForGPU(&state.vkState);
 }
 
 fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataVulkanZig.VkColoredVertexes, triangles: *dataVulkanZig.VkColoredVertexes, state: *main.GameState) void {
@@ -392,71 +384,4 @@ pub fn isChoosenPieceVisualizationOverlapping(movePiece: movePieceZig.MovePiece)
         }
     }
     return false;
-}
-
-pub fn create(state: *main.GameState) !void {
-    try createVertexBuffers(&state.vkState, state.allocator);
-}
-
-pub fn destroy(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) void {
-    const choosenMovePiece = &vkState.choosenMovePiece;
-    vk.vkDestroyBuffer.?(vkState.logicalDevice, choosenMovePiece.triangles.vertexBuffer, null);
-    vk.vkDestroyBuffer.?(vkState.logicalDevice, choosenMovePiece.lines.vertexBuffer, null);
-    vk.vkFreeMemory.?(vkState.logicalDevice, choosenMovePiece.triangles.vertexBufferMemory, null);
-    vk.vkFreeMemory.?(vkState.logicalDevice, choosenMovePiece.lines.vertexBufferMemory, null);
-    allocator.free(choosenMovePiece.triangles.vertices);
-    allocator.free(choosenMovePiece.lines.vertices);
-}
-
-fn createVertexBuffers(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
-    const choosenMovePiece = &vkState.choosenMovePiece;
-    choosenMovePiece.triangles.vertices = try allocator.alloc(dataVulkanZig.ColoredVertex, MAX_VERTICES_TRIANGLES);
-    try initVulkanZig.createBuffer(
-        @sizeOf(dataVulkanZig.ColoredVertex) * choosenMovePiece.triangles.vertices.len,
-        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &choosenMovePiece.triangles.vertexBuffer,
-        &choosenMovePiece.triangles.vertexBufferMemory,
-        vkState,
-    );
-    choosenMovePiece.lines.vertices = try allocator.alloc(dataVulkanZig.ColoredVertex, MAX_VERTICES_LINES);
-    try initVulkanZig.createBuffer(
-        @sizeOf(dataVulkanZig.ColoredVertex) * choosenMovePiece.lines.vertices.len,
-        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &choosenMovePiece.lines.vertexBuffer,
-        &choosenMovePiece.lines.vertexBufferMemory,
-        vkState,
-    );
-}
-
-fn setupVertexDataForGPU(vkState: *initVulkanZig.VkState) !void {
-    const choosenMovePiece = &vkState.choosenMovePiece;
-    var data: ?*anyopaque = undefined;
-    if (vk.vkMapMemory.?(vkState.logicalDevice, choosenMovePiece.triangles.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.ColoredVertex) * choosenMovePiece.triangles.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
-    var gpu_vertices: [*]dataVulkanZig.ColoredVertex = @ptrCast(@alignCast(data));
-    @memcpy(gpu_vertices, choosenMovePiece.triangles.vertices[0..]);
-    vk.vkUnmapMemory.?(vkState.logicalDevice, choosenMovePiece.triangles.vertexBufferMemory);
-
-    if (vk.vkMapMemory.?(vkState.logicalDevice, choosenMovePiece.lines.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.ColoredVertex) * choosenMovePiece.lines.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
-    gpu_vertices = @ptrCast(@alignCast(data));
-    @memcpy(gpu_vertices, choosenMovePiece.lines.vertices[0..]);
-    vk.vkUnmapMemory.?(vkState.logicalDevice, choosenMovePiece.lines.vertexBufferMemory);
-}
-
-pub fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, state: *main.GameState) !void {
-    try setupVertices(state);
-    const choosenMovePiece = &state.vkState.choosenMovePiece;
-    const vkState = &state.vkState;
-    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.triangleSubpass0);
-    var vertexBuffers: [1]vk.VkBuffer = .{choosenMovePiece.triangles.vertexBuffer};
-    var offsets: [1]vk.VkDeviceSize = .{0};
-    vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
-    vk.vkCmdDraw.?(commandBuffer, @intCast(choosenMovePiece.triangles.verticeCount), 1, 0, 0);
-
-    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.linesSubpass0);
-    vertexBuffers = .{choosenMovePiece.lines.vertexBuffer};
-    offsets = .{0};
-    vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
-    vk.vkCmdDraw.?(commandBuffer, @intCast(choosenMovePiece.lines.verticeCount), 1, 0, 0);
 }

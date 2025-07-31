@@ -11,24 +11,8 @@ const shopZig = @import("../shop.zig");
 const movePieceVulkanZig = @import("movePieceUxVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 
-pub const VkShopUx = struct {
-    triangles: dataVulkanZig.VkColoredVertexes = undefined,
-    lines: dataVulkanZig.VkColoredVertexes = undefined,
-    sprites: dataVulkanZig.VkSpriteComplex = undefined,
-    font: dataVulkanZig.VkFont = undefined,
-    const UX_RECTANGLES = 100;
-    pub const MAX_VERTICES_TRIANGLES = 6 * UX_RECTANGLES;
-    pub const MAX_VERTICES_LINES = 8 * UX_RECTANGLES;
-    pub const MAX_VERTICES_SPRITES = UX_RECTANGLES;
-    pub const MAX_VERTICES_FONT = 50;
-};
-
 pub fn setupVertices(state: *main.GameState) !void {
-    const shopUx = &state.vkState.shopUx;
-    shopUx.lines.verticeCount = 0;
-    shopUx.triangles.verticeCount = 0;
-    shopUx.sprites.verticeCount = 0;
-    shopUx.font.verticeCount = 0;
+    const verticeData = &state.vkState.verticeData;
     if (state.gamePhase != .shopping) {
         verticesForEarlyShopTrigger(state);
     } else {
@@ -42,23 +26,21 @@ pub fn setupVertices(state: *main.GameState) !void {
                 .y = @floatFromInt((player0ShopPos.y + shopButton.tileOffset.y) * main.TILESIZE),
             };
             if (shopButton.option != .none and shopButton.option == player.shop.selectedOption) {
-                rectangleForTile(shopButtonGamePosition, .{ 0, 0, 1 }, shopUx, false, state);
+                rectangleForTile(shopButtonGamePosition, .{ 0, 0, 1 }, verticeData, false, state);
             }
             if (shopButton.imageRotate != 0) {
-                paintVulkanZig.verticesForComplexSpriteWithRotate(shopButtonGamePosition, shopButton.imageIndex, shopButton.imageRotate, &shopUx.sprites, state);
+                paintVulkanZig.verticesForComplexSpriteWithRotate(shopButtonGamePosition, shopButton.imageIndex, shopButton.imageRotate, &verticeData.spritesComplex, state);
             } else {
-                paintVulkanZig.verticesForComplexSprite(shopButtonGamePosition, shopButton.imageIndex, &shopUx.sprites, state);
+                paintVulkanZig.verticesForComplexSprite(shopButtonGamePosition, shopButton.imageIndex, &verticeData.spritesComplex, state);
             }
         }
     }
-
-    try setupVertexDataForGPU(&state.vkState);
 }
 
 fn verticesForEarlyShopTrigger(state: *main.GameState) void {
     const optTilePosition = shopZig.getShopEarlyTriggerPosition(state);
     if (optTilePosition == null) return;
-    const shopUx = &state.vkState.shopUx;
+    const verticeData = &state.vkState.verticeData;
     const tilePosition = optTilePosition.?;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
@@ -77,13 +59,13 @@ fn verticesForEarlyShopTrigger(state: *main.GameState) void {
     const left = vulkan.x - halveVulkanTileSizeX;
     const top = vulkan.y - halveVulkanTileSizeY;
     const fontSize = 26;
-    _ = fontVulkanZig.paintText("early", .{ .x = left, .y = top }, fontSize, &shopUx.font);
-    _ = fontVulkanZig.paintText("shop", .{ .x = left, .y = top + fontSize * onePixelYInVulkan }, fontSize, &shopUx.font);
-    movePieceVulkanZig.verticesForRectangle(left, top, width, height, .{ 1, 1, 1 }, &shopUx.lines, &shopUx.triangles);
+    _ = fontVulkanZig.paintText("early", .{ .x = left, .y = top }, fontSize, &verticeData.font);
+    _ = fontVulkanZig.paintText("shop", .{ .x = left, .y = top + fontSize * onePixelYInVulkan }, fontSize, &verticeData.font);
+    movePieceVulkanZig.verticesForRectangle(left, top, width, height, .{ 1, 1, 1 }, &verticeData.lines, &verticeData.triangles);
 }
 
 fn paintGrid(player: *main.Player, state: *main.GameState) void {
-    const shopUx = &state.vkState.shopUx;
+    const verticeData = &state.vkState.verticeData;
 
     const player0ShopPos = player.shop.pieceShopTopLeft;
     const gridGameTopLeft: main.Position = .{
@@ -105,7 +87,7 @@ fn paintGrid(player: *main.Player, state: *main.GameState) void {
     const left = vulkan.x - halveVulkanTileSizeX;
     const top = vulkan.y - halveVulkanTileSizeY;
 
-    const triangles = &shopUx.triangles;
+    const triangles = &verticeData.triangles;
     const fillColor: [3]f32 = .{ 1, 1, 1 };
     triangles.vertices[triangles.verticeCount] = .{ .pos = .{ left, top }, .color = fillColor };
     triangles.vertices[triangles.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = fillColor };
@@ -123,13 +105,13 @@ fn paintGrid(player: *main.Player, state: *main.GameState) void {
                 .x = gridGameTopLeft.x + @as(f32, @floatFromInt(gridCutOffset.x * main.TILESIZE)),
                 .y = gridGameTopLeft.y + @as(f32, @floatFromInt(gridCutOffset.y * main.TILESIZE)),
             };
-            paintVulkanZig.verticesForComplexSprite(gamePositionCut, imageZig.IMAGE_CUT, &shopUx.sprites, state);
+            paintVulkanZig.verticesForComplexSprite(gamePositionCut, imageZig.IMAGE_CUT, &verticeData.spritesComplex, state);
         }
     }
 }
 
 fn paintMovePieceInGrid(player: *main.Player, gridGameTopLeft: main.Position, state: *main.GameState) void {
-    const shopUx = &state.vkState.shopUx;
+    const verticeData = &state.vkState.verticeData;
     if (player.shop.gridDisplayPiece == null) return;
     const gridDisplayPiece = player.shop.gridDisplayPiece.?;
 
@@ -158,8 +140,8 @@ fn paintMovePieceInGrid(player: *main.Player, gridGameTopLeft: main.Position, st
         height,
         0,
         false,
-        &shopUx.lines,
-        &shopUx.triangles,
+        &verticeData.lines,
+        &verticeData.triangles,
     );
     left = endPos.x;
     top = endPos.y;
@@ -176,13 +158,13 @@ fn paintMovePieceInGrid(player: *main.Player, gridGameTopLeft: main.Position, st
             height,
             directionChange,
             false,
-            &shopUx.lines,
-            &shopUx.triangles,
+            &verticeData.lines,
+            &verticeData.triangles,
         );
     }
 }
 
-fn rectangleForTile(gamePosition: main.Position, fillColor: [3]f32, shopUx: *VkShopUx, withOutline: bool, state: *main.GameState) void {
+fn rectangleForTile(gamePosition: main.Position, fillColor: [3]f32, verticeData: *dataVulkanZig.VkVerticeData, withOutline: bool, state: *main.GameState) void {
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const size = main.TILESIZE;
@@ -196,7 +178,7 @@ fn rectangleForTile(gamePosition: main.Position, fillColor: [3]f32, shopUx: *VkS
     const left = vulkan.x - width / 2;
     const top = vulkan.y - height / 2;
 
-    const triangles = &shopUx.triangles;
+    const triangles = &verticeData.triangles;
     if (triangles.verticeCount + 6 >= triangles.vertices.len) return;
     triangles.vertices[triangles.verticeCount] = .{ .pos = .{ left, top }, .color = fillColor };
     triangles.vertices[triangles.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = fillColor };
@@ -207,7 +189,7 @@ fn rectangleForTile(gamePosition: main.Position, fillColor: [3]f32, shopUx: *VkS
     triangles.verticeCount += 6;
     if (withOutline) {
         const borderColor: [3]f32 = .{ 0, 0, 0 };
-        const lines = &shopUx.lines;
+        const lines = &verticeData.lines;
         lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = borderColor };
         lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top }, .color = borderColor };
         lines.vertices[lines.verticeCount + 2] = .{ .pos = .{ left, top }, .color = borderColor };
@@ -218,117 +200,4 @@ fn rectangleForTile(gamePosition: main.Position, fillColor: [3]f32, shopUx: *VkS
         lines.vertices[lines.verticeCount + 7] = .{ .pos = .{ left + width, top + height }, .color = borderColor };
         lines.verticeCount += 8;
     }
-}
-
-pub fn create(state: *main.GameState) !void {
-    try createVertexBuffers(&state.vkState, state.allocator);
-}
-
-pub fn destroy(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) void {
-    const shopUx = &vkState.shopUx;
-    vk.vkDestroyBuffer.?(vkState.logicalDevice, shopUx.triangles.vertexBuffer, null);
-    vk.vkDestroyBuffer.?(vkState.logicalDevice, shopUx.lines.vertexBuffer, null);
-    vk.vkDestroyBuffer.?(vkState.logicalDevice, shopUx.sprites.vertexBuffer, null);
-    vk.vkDestroyBuffer.?(vkState.logicalDevice, shopUx.font.vertexBuffer, null);
-    vk.vkFreeMemory.?(vkState.logicalDevice, shopUx.triangles.vertexBufferMemory, null);
-    vk.vkFreeMemory.?(vkState.logicalDevice, shopUx.lines.vertexBufferMemory, null);
-    vk.vkFreeMemory.?(vkState.logicalDevice, shopUx.sprites.vertexBufferMemory, null);
-    vk.vkFreeMemory.?(vkState.logicalDevice, shopUx.font.vertexBufferMemory, null);
-    allocator.free(shopUx.triangles.vertices);
-    allocator.free(shopUx.lines.vertices);
-    allocator.free(shopUx.sprites.vertices);
-    allocator.free(shopUx.font.vertices);
-}
-
-fn createVertexBuffers(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
-    const shopUx = &vkState.shopUx;
-    shopUx.triangles.vertices = try allocator.alloc(dataVulkanZig.ColoredVertex, VkShopUx.MAX_VERTICES_TRIANGLES);
-    try initVulkanZig.createBuffer(
-        @sizeOf(dataVulkanZig.ColoredVertex) * VkShopUx.MAX_VERTICES_TRIANGLES,
-        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &shopUx.triangles.vertexBuffer,
-        &shopUx.triangles.vertexBufferMemory,
-        vkState,
-    );
-    shopUx.lines.vertices = try allocator.alloc(dataVulkanZig.ColoredVertex, VkShopUx.MAX_VERTICES_LINES);
-    try initVulkanZig.createBuffer(
-        @sizeOf(dataVulkanZig.ColoredVertex) * VkShopUx.MAX_VERTICES_LINES,
-        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &shopUx.lines.vertexBuffer,
-        &shopUx.lines.vertexBufferMemory,
-        vkState,
-    );
-    shopUx.sprites.vertices = try allocator.alloc(dataVulkanZig.SpriteComplexVertex, VkShopUx.MAX_VERTICES_SPRITES);
-    try initVulkanZig.createBuffer(
-        @sizeOf(dataVulkanZig.SpriteComplexVertex) * VkShopUx.MAX_VERTICES_SPRITES,
-        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &shopUx.sprites.vertexBuffer,
-        &shopUx.sprites.vertexBufferMemory,
-        vkState,
-    );
-    shopUx.font.vertices = try allocator.alloc(dataVulkanZig.FontVertex, VkShopUx.MAX_VERTICES_FONT);
-    try initVulkanZig.createBuffer(
-        @sizeOf(dataVulkanZig.FontVertex) * shopUx.font.vertices.len,
-        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &shopUx.font.vertexBuffer,
-        &shopUx.font.vertexBufferMemory,
-        vkState,
-    );
-}
-
-fn setupVertexDataForGPU(vkState: *initVulkanZig.VkState) !void {
-    const shopUx = &vkState.shopUx;
-    var data: ?*anyopaque = undefined;
-    if (vk.vkMapMemory.?(vkState.logicalDevice, shopUx.triangles.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.ColoredVertex) * shopUx.triangles.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
-    var gpu_vertices: [*]dataVulkanZig.ColoredVertex = @ptrCast(@alignCast(data));
-    @memcpy(gpu_vertices, shopUx.triangles.vertices[0..]);
-    vk.vkUnmapMemory.?(vkState.logicalDevice, shopUx.triangles.vertexBufferMemory);
-
-    if (vk.vkMapMemory.?(vkState.logicalDevice, shopUx.lines.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.ColoredVertex) * shopUx.lines.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
-    gpu_vertices = @ptrCast(@alignCast(data));
-    @memcpy(gpu_vertices, shopUx.lines.vertices[0..]);
-    vk.vkUnmapMemory.?(vkState.logicalDevice, shopUx.lines.vertexBufferMemory);
-
-    if (vk.vkMapMemory.?(vkState.logicalDevice, shopUx.sprites.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.SpriteComplexVertex) * shopUx.sprites.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
-    const gpuVerticesSprite: [*]dataVulkanZig.SpriteComplexVertex = @ptrCast(@alignCast(data));
-    @memcpy(gpuVerticesSprite, shopUx.sprites.vertices[0..]);
-    vk.vkUnmapMemory.?(vkState.logicalDevice, shopUx.sprites.vertexBufferMemory);
-
-    if (vk.vkMapMemory.?(vkState.logicalDevice, shopUx.font.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.FontVertex) * shopUx.font.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
-    const gpuVerticesFont: [*]dataVulkanZig.FontVertex = @ptrCast(@alignCast(data));
-    @memcpy(gpuVerticesFont, shopUx.font.vertices[0..]);
-    vk.vkUnmapMemory.?(vkState.logicalDevice, shopUx.font.vertexBufferMemory);
-}
-
-pub fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, state: *main.GameState) !void {
-    try setupVertices(state);
-    const shopUx = &state.vkState.shopUx;
-    const vkState = &state.vkState;
-    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.triangleSubpass0);
-    var vertexBuffers: [1]vk.VkBuffer = .{shopUx.triangles.vertexBuffer};
-    var offsets: [1]vk.VkDeviceSize = .{0};
-    vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
-    vk.vkCmdDraw.?(commandBuffer, @intCast(shopUx.triangles.verticeCount), 1, 0, 0);
-
-    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.spriteComplex);
-    vertexBuffers = .{shopUx.sprites.vertexBuffer};
-    offsets = .{0};
-    vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
-    vk.vkCmdDraw.?(commandBuffer, @intCast(shopUx.sprites.verticeCount), 1, 0, 0);
-
-    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.linesSubpass0);
-    vertexBuffers = .{shopUx.lines.vertexBuffer};
-    offsets = .{0};
-    vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
-    vk.vkCmdDraw.?(commandBuffer, @intCast(shopUx.lines.verticeCount), 1, 0, 0);
-
-    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.font.graphicsPipelineSubpass0);
-    vertexBuffers = .{shopUx.font.vertexBuffer};
-    offsets = .{0};
-    vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
-    vk.vkCmdDraw.?(commandBuffer, @intCast(shopUx.font.verticeCount), 1, 0, 0);
 }

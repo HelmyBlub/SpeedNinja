@@ -8,7 +8,7 @@ const movePieceUxVulkanZig = @import("movePieceUxVulkan.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 const fontVulkanZig = @import("fontVulkan.zig");
 const mapGridVulkanZig = @import("mapGridVulkan.zig");
-const cutSpriteVulkan = @import("cutSpriteVulkan.zig");
+const cutSpriteVulkanZig = @import("cutSpriteVulkan.zig");
 const ninjaDogVulkanZig = @import("ninjaDogVulkan.zig");
 const enemyVulkanZig = @import("enemyVulkan.zig");
 const shopVulkanZig = @import("shopVulkan.zig");
@@ -16,7 +16,14 @@ const choosenMovePieceVulkanZig = @import("choosenMovePieceVisualizationVulkan.z
 
 pub fn drawFrame(state: *main.GameState) !void {
     const vkState = &state.vkState;
-    try setupVerticesForSprites(state);
+    try resetVerticeData(state);
+    try mapGridVulkanZig.setupVertices(state);
+    try shopVulkanZig.setupVertices(state);
+    try choosenMovePieceVulkanZig.setupVertices(state);
+    try enemyVulkanZig.setupVertices(state);
+    try cutSpriteVulkanZig.setupVertices(state);
+    try setupVertexDataForGPU(vkState);
+
     try movePieceUxVulkanZig.setupVertices(state);
     if (!try initVulkanZig.createSwapChainRelatedStuffAndCheckWindowSize(state, state.allocator)) return;
     try updateUniformBuffer(state);
@@ -183,7 +190,7 @@ fn resetVerticeData(state: *main.GameState) !void {
         verticeData.sprites.vertexBufferMemoryCleanUp[vkState.currentFrame] = null;
     }
     if (verticeData.sprites.verticeCount + increaseBy > verticeData.sprites.vertices.len) {
-        verticeData.sprites.vertexBufferCleanUp[vkState.currentFrame] = verticeData.v.vertexBuffer;
+        verticeData.sprites.vertexBufferCleanUp[vkState.currentFrame] = verticeData.sprites.vertexBuffer;
         verticeData.sprites.vertexBufferMemoryCleanUp[vkState.currentFrame] = verticeData.sprites.vertexBufferMemory;
         try initVulkanZig.createVertexBufferSprites(vkState, &verticeData.sprites, verticeData.sprites.vertices.len + increaseBy, state.allocator);
     }
@@ -196,7 +203,7 @@ fn resetVerticeData(state: *main.GameState) !void {
         verticeData.spritesComplex.vertexBufferMemoryCleanUp[vkState.currentFrame] = null;
     }
     if (verticeData.spritesComplex.verticeCount + increaseBy * 6 > verticeData.spritesComplex.vertices.len) {
-        verticeData.spritesComplex.vertexBufferCleanUp[vkState.currentFrame] = verticeData.v.vertexBuffer;
+        verticeData.spritesComplex.vertexBufferCleanUp[vkState.currentFrame] = verticeData.spritesComplex.vertexBuffer;
         verticeData.spritesComplex.vertexBufferMemoryCleanUp[vkState.currentFrame] = verticeData.spritesComplex.vertexBufferMemory;
         try initVulkanZig.createVertexBufferSpritesComplex(vkState, &verticeData.spritesComplex, verticeData.spritesComplex.vertices.len + increaseBy * 6, state.allocator);
     }
@@ -209,7 +216,7 @@ fn resetVerticeData(state: *main.GameState) !void {
         verticeData.font.vertexBufferMemoryCleanUp[vkState.currentFrame] = null;
     }
     if (verticeData.font.verticeCount + increaseBy > verticeData.font.vertices.len) {
-        verticeData.font.vertexBufferCleanUp[vkState.currentFrame] = verticeData.v.vertexBuffer;
+        verticeData.font.vertexBufferCleanUp[vkState.currentFrame] = verticeData.font.vertexBuffer;
         verticeData.font.vertexBufferMemoryCleanUp[vkState.currentFrame] = verticeData.font.vertexBufferMemory;
         try initVulkanZig.createVertexBufferSpritesFont(vkState, &verticeData.font, verticeData.font.vertices.len + increaseBy, state.allocator);
     }
@@ -263,19 +270,81 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
         0,
         null,
     );
-    try mapGridVulkanZig.recordCommandBuffer(commandBuffer, state);
-    try shopVulkanZig.recordCommandBuffer(commandBuffer, state);
-    try choosenMovePieceVulkanZig.recordCommandBuffer(commandBuffer, state);
-    try enemyVulkanZig.recordCommandBuffer(commandBuffer, state);
-    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.spriteComplex);
-    const vertexBuffers: [1]vk.VkBuffer = .{vkState.spriteData.vertexBuffer};
-    const offsets: [1]vk.VkDeviceSize = .{0};
-    vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
-    vk.vkCmdDraw.?(commandBuffer, @intCast(vkState.spriteData.verticeCount), 1, 0, 0);
-    try cutSpriteVulkan.recordCommandBuffer(commandBuffer, state);
+
+    var linesIndex: usize = 0;
+    var triangleIndex: usize = 0;
+    var spriteIndex: usize = 0;
+    var spriteComplexIndex: usize = 0;
+    var fontIndex: usize = 0;
+    const verticeData = &state.vkState.verticeData;
+    for (0..verticeData.dataDrawCut.items.len + 1) |i| {
+        var triangleVerticeCount = verticeData.triangles.verticeCount - triangleIndex;
+        if (i < verticeData.dataDrawCut.items.len) {
+            triangleVerticeCount = verticeData.dataDrawCut.items[i].triangle - triangleIndex;
+        }
+        if (triangleVerticeCount > 0) {
+            vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.triangle);
+            const vertexBuffers: [1]vk.VkBuffer = .{verticeData.triangles.vertexBuffer};
+            const offsets: [1]vk.VkDeviceSize = .{0};
+            vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
+            vk.vkCmdDraw.?(commandBuffer, @intCast(triangleVerticeCount), 1, @intCast(triangleIndex), 0);
+            triangleIndex += triangleVerticeCount;
+        }
+
+        var linesVerticeCount = verticeData.lines.verticeCount - linesIndex;
+        if (i < verticeData.dataDrawCut.items.len) {
+            linesVerticeCount = verticeData.dataDrawCut.items[i].lines - linesIndex;
+        }
+        if (linesVerticeCount > 0) {
+            vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.lines);
+            const vertexBuffers: [1]vk.VkBuffer = .{verticeData.lines.vertexBuffer};
+            const offsets: [1]vk.VkDeviceSize = .{0};
+            vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
+            vk.vkCmdDraw.?(commandBuffer, @intCast(linesVerticeCount), 1, @intCast(linesIndex), 0);
+            linesIndex += linesVerticeCount;
+        }
+
+        var spritesVerticeCount = verticeData.sprites.verticeCount - spriteIndex;
+        if (i < verticeData.dataDrawCut.items.len) {
+            spritesVerticeCount = verticeData.dataDrawCut.items[i].sprites - spriteIndex;
+        }
+        if (spritesVerticeCount > 0) {
+            vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.sprite);
+            const vertexBuffers: [1]vk.VkBuffer = .{verticeData.sprites.vertexBuffer};
+            const offsets: [1]vk.VkDeviceSize = .{0};
+            vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
+            vk.vkCmdDraw.?(commandBuffer, @intCast(spritesVerticeCount), 1, @intCast(spriteIndex), 0);
+            spriteIndex += spritesVerticeCount;
+        }
+
+        var spritesComplexVerticeCount = verticeData.spritesComplex.verticeCount - spriteComplexIndex;
+        if (i < verticeData.dataDrawCut.items.len) {
+            spritesComplexVerticeCount = verticeData.dataDrawCut.items[i].spritesComplex - spriteComplexIndex;
+        }
+        if (spritesComplexVerticeCount > 0) {
+            vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.spriteComplex);
+            const vertexBuffers: [1]vk.VkBuffer = .{verticeData.spritesComplex.vertexBuffer};
+            const offsets: [1]vk.VkDeviceSize = .{0};
+            vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
+            vk.vkCmdDraw.?(commandBuffer, @intCast(spritesComplexVerticeCount), 1, @intCast(spriteComplexIndex), 0);
+            spriteComplexIndex += spritesComplexVerticeCount;
+        }
+
+        var fontVerticeCount = verticeData.font.verticeCount - fontIndex;
+        if (i < verticeData.dataDrawCut.items.len) {
+            fontVerticeCount = verticeData.dataDrawCut.items[i].font - fontIndex;
+        }
+        if (fontVerticeCount > 0) {
+            vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.font.graphicsPipeline);
+            const vertexBuffers: [1]vk.VkBuffer = .{verticeData.font.vertexBuffer};
+            const offsets: [1]vk.VkDeviceSize = .{0};
+            vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
+            vk.vkCmdDraw.?(commandBuffer, @intCast(fontVerticeCount), 1, @intCast(fontIndex), 0);
+            fontIndex += fontVerticeCount;
+        }
+    }
+
     try ninjaDogVulkanZig.recordCommandBuffer(commandBuffer, state);
-    vk.vkCmdNextSubpass.?(commandBuffer, vk.VK_SUBPASS_CONTENTS_INLINE);
-    vk.vkCmdNextSubpass.?(commandBuffer, vk.VK_SUBPASS_CONTENTS_INLINE);
     try movePieceUxVulkanZig.recordCommandBuffer(commandBuffer, state);
     try fontVulkanZig.recordFontCommandBuffer(commandBuffer, state);
 
@@ -283,18 +352,39 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
     try initVulkanZig.vkcheck(vk.vkEndCommandBuffer.?(commandBuffer), "Failed to End Command Buffer.");
 }
 
-fn setupVerticesForSprites(state: *main.GameState) !void {
-    const spriteData = &state.vkState.spriteData;
-    spriteData.verticeCount = 0;
-    try setupVertexDataForGPU(&state.vkState);
-}
-
 pub fn setupVertexDataForGPU(vkState: *initVulkanZig.VkState) !void {
     var data: ?*anyopaque = undefined;
-    if (vk.vkMapMemory.?(vkState.logicalDevice, vkState.spriteData.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.SpriteComplexVertex) * vkState.spriteData.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
-    const gpuVertices: [*]dataVulkanZig.SpriteComplexVertex = @ptrCast(@alignCast(data));
-    @memcpy(gpuVertices, vkState.spriteData.vertices[0..]);
-    vk.vkUnmapMemory.?(vkState.logicalDevice, vkState.spriteData.vertexBufferMemory);
+    const verticeData = &vkState.verticeData;
+    {
+        if (vk.vkMapMemory.?(vkState.logicalDevice, verticeData.triangles.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.ColoredVertex) * verticeData.triangles.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
+        const gpuVertices: [*]dataVulkanZig.ColoredVertex = @ptrCast(@alignCast(data));
+        @memcpy(gpuVertices, verticeData.triangles.vertices[0..]);
+        vk.vkUnmapMemory.?(vkState.logicalDevice, verticeData.triangles.vertexBufferMemory);
+    }
+    {
+        if (vk.vkMapMemory.?(vkState.logicalDevice, verticeData.lines.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.ColoredVertex) * verticeData.lines.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
+        const gpuVertices: [*]dataVulkanZig.ColoredVertex = @ptrCast(@alignCast(data));
+        @memcpy(gpuVertices, verticeData.lines.vertices[0..]);
+        vk.vkUnmapMemory.?(vkState.logicalDevice, verticeData.lines.vertexBufferMemory);
+    }
+    {
+        if (vk.vkMapMemory.?(vkState.logicalDevice, verticeData.sprites.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.SpriteVertex) * verticeData.sprites.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
+        const gpuVertices: [*]dataVulkanZig.SpriteVertex = @ptrCast(@alignCast(data));
+        @memcpy(gpuVertices, verticeData.sprites.vertices[0..]);
+        vk.vkUnmapMemory.?(vkState.logicalDevice, verticeData.sprites.vertexBufferMemory);
+    }
+    {
+        if (vk.vkMapMemory.?(vkState.logicalDevice, verticeData.spritesComplex.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.SpriteComplexVertex) * verticeData.spritesComplex.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
+        const gpuVertices: [*]dataVulkanZig.SpriteComplexVertex = @ptrCast(@alignCast(data));
+        @memcpy(gpuVertices, verticeData.spritesComplex.vertices[0..]);
+        vk.vkUnmapMemory.?(vkState.logicalDevice, verticeData.spritesComplex.vertexBufferMemory);
+    }
+    {
+        if (vk.vkMapMemory.?(vkState.logicalDevice, verticeData.font.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.FontVertex) * verticeData.font.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
+        const gpuVertices: [*]dataVulkanZig.FontVertex = @ptrCast(@alignCast(data));
+        @memcpy(gpuVertices, verticeData.font.vertices[0..]);
+        vk.vkUnmapMemory.?(vkState.logicalDevice, verticeData.font.vertexBufferMemory);
+    }
 }
 
 fn updateUniformBuffer(state: *main.GameState) !void {
@@ -313,12 +403,6 @@ fn updateUniformBuffer(state: *main.GameState) !void {
             @as([*]u8, @ptrCast(&ubo)),
         );
     }
-}
-
-pub fn destroy(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) void {
-    vk.vkDestroyBuffer.?(vkState.logicalDevice, vkState.spriteData.vertexBuffer, null);
-    vk.vkFreeMemory.?(vkState.logicalDevice, vkState.spriteData.vertexBufferMemory, null);
-    allocator.free(vkState.spriteData.vertices);
 }
 
 pub fn rotateAroundPoint(point: main.Position, pivot: main.Position, angle: f32) main.Position {
