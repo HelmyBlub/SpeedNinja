@@ -10,13 +10,7 @@ const enemyZig = @import("../enemy.zig");
 
 const DEATH_DURATION = 3000;
 
-pub const VkCutSpriteData = struct {
-    vertexBuffer: vk.VkBuffer = undefined,
-    vertexBufferMemory: vk.VkDeviceMemory = undefined,
-    vertices: []dataVulkanZig.SpriteComplexVertex = undefined,
-    verticeCount: usize = 0,
-    pub const MAX_VERTICES = 200;
-};
+const MAX_VERTICES = 200;
 
 fn setupVertices(state: *main.GameState) !void {
     const cutSprite = &state.vkState.cutSpriteData;
@@ -69,7 +63,7 @@ pub fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, state: *main.GameS
 }
 
 fn createVertexBuffer(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
-    vkState.cutSpriteData.vertices = try allocator.alloc(dataVulkanZig.SpriteComplexVertex, VkCutSpriteData.MAX_VERTICES);
+    vkState.cutSpriteData.vertices = try allocator.alloc(dataVulkanZig.SpriteComplexVertex, MAX_VERTICES);
     try initVulkanZig.createBuffer(
         @sizeOf(dataVulkanZig.SpriteComplexVertex) * vkState.cutSpriteData.vertices.len,
         vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,

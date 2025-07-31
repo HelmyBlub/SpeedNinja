@@ -9,14 +9,7 @@ const paintVulkanZig = @import("paintVulkan.zig");
 const soundMixerZig = @import("../soundMixer.zig");
 
 const DEATH_DURATION = 3000;
-
-pub const VkNinjaDogData = struct {
-    vertexBuffer: vk.VkBuffer = undefined,
-    vertexBufferMemory: vk.VkDeviceMemory = undefined,
-    vertices: []dataVulkanZig.SpriteComplexVertex = undefined,
-    verticeCount: usize = 0,
-    pub const MAX_VERTICES = 8000; //TODO not checked limit
-};
+const MAX_VERTICES = 8000; //TODO not checked limit
 
 pub const NinjaDogPaintData = struct {
     bladeDrawn: bool = false,
@@ -746,7 +739,7 @@ pub fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, state: *main.GameS
 }
 
 fn createVertexBuffer(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
-    vkState.ninjaDogData.vertices = try allocator.alloc(dataVulkanZig.SpriteComplexVertex, VkNinjaDogData.MAX_VERTICES);
+    vkState.ninjaDogData.vertices = try allocator.alloc(dataVulkanZig.SpriteComplexVertex, MAX_VERTICES);
     try initVulkanZig.createBuffer(
         @sizeOf(dataVulkanZig.SpriteComplexVertex) * vkState.ninjaDogData.vertices.len,
         vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,

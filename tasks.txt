@@ -1,10 +1,17 @@
 Tasks:
-- bug: shop cut tool produced borken piece:
-    - moveOption piece was broken, looked like incorrect memory
-    - what i did before: produce a lot of the same pieces by cutting them straight
-        - i think when cut => bug happened
-    - maybe something when moveOptions go from 3 to 2 when changing?
-        - try use up most available moves before using shop?
+- redesign code
+    - each vertex type only once
+        - needs to be able to change size on runtime
+    - have a system for "layers". number of layers fix on build time?
+        - 
+
+
+    - enemise behind player. boss above player, but with alpha if overlap? boss shadow ?
+    - i am creating more and more vulkan buffers, but i could have them central and only once
+        - less work to set up new stuff if there is a layer already
+        - with some redesign could also care for ordered draw
+    - performance loss
+
 - boss round
     - visualization:
         - boss in air
@@ -19,6 +26,7 @@ Tasks:
 
     - retries for money?
         - each retry gets more expensive
+- shop: prevent same piece from being sold
 
 Next ideas:
 - something which makes player stronger over time, but better player get stronger faster

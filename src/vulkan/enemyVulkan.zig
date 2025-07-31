@@ -10,13 +10,7 @@ const soundMixerZig = @import("../soundMixer.zig");
 const ninjaDogVulkan = @import("ninjaDogVulkan.zig");
 const movePieceZig = @import("../movePiece.zig");
 
-pub const VkEnemyData = struct {
-    vertexBuffer: vk.VkBuffer = undefined,
-    vertexBufferMemory: vk.VkDeviceMemory = undefined,
-    vertices: []dataVulkanZig.SpriteComplexVertex = undefined,
-    verticeCount: usize = 0,
-    pub const MAX_VERTICES = 2000; //TODO not checked limit
-};
+const MAX_VERTICES = 2000; //TODO not checked limit
 
 fn setupVertices(state: *main.GameState) !void {
     state.vkState.enemyData.verticeCount = 0;
@@ -170,7 +164,7 @@ pub fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, state: *main.GameS
 }
 
 fn createVertexBuffer(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
-    vkState.enemyData.vertices = try allocator.alloc(dataVulkanZig.SpriteComplexVertex, VkEnemyData.MAX_VERTICES);
+    vkState.enemyData.vertices = try allocator.alloc(dataVulkanZig.SpriteComplexVertex, MAX_VERTICES);
     try initVulkanZig.createBuffer(
         @sizeOf(dataVulkanZig.SpriteComplexVertex) * vkState.enemyData.vertices.len,
         vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,

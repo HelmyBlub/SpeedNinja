@@ -76,9 +76,9 @@ pub const VkState = struct {
     mapGrid: mapGridVulkanZig.VkMapGridUx = .{},
     spriteData: dataVulkanZig.SpriteData = .{},
     movePieceUx: movePieceUxVulkanZig.VkMovePiecesUx = .{},
-    cutSpriteData: cutSpriteVulkanZig.VkCutSpriteData = .{},
-    ninjaDogData: ninjaDogVulkanZig.VkNinjaDogData = .{},
-    enemyData: enemyVulkanZig.VkEnemyData = .{},
+    cutSpriteData: dataVulkanZig.VkSpriteComplex = .{},
+    ninjaDogData: dataVulkanZig.VkSpriteComplex = .{},
+    enemyData: dataVulkanZig.VkSpriteComplex = .{},
     shopUx: shopVulkanZig.VkShopUx = .{},
     choosenMovePiece: choosenMovePieceVulkanZig.VkChoosenMovePieceVisualization = .{},
 

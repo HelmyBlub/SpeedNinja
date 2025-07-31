@@ -36,6 +36,13 @@ pub const VkSpritesWithGlobalTransform = struct {
     verticeCount: usize = 0,
 };
 
+pub const VkSpriteComplex = struct {
+    vertexBuffer: vk.VkBuffer = undefined,
+    vertexBufferMemory: vk.VkDeviceMemory = undefined,
+    vertices: []SpriteComplexVertex = undefined,
+    verticeCount: usize = 0,
+};
+
 pub const SpriteWithGlobalTransformVertex = struct {
     pos: [2]f32,
     imageIndex: u8,
