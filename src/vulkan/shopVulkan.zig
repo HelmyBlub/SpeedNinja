@@ -44,16 +44,11 @@ pub fn setupVertices(state: *main.GameState) !void {
             if (shopButton.option != .none and shopButton.option == player.shop.selectedOption) {
                 rectangleForTile(shopButtonGamePosition, .{ 0, 0, 1 }, shopUx, false, state);
             }
-            paintVulkanZig.verticesForComplexSprite(shopButtonGamePosition, shopButton.imageIndex, &shopUx.sprites, state);
-
-            // shopUx.sprites.vertices[shopUx.sprites.verticeCount] = .{
-            //     .pos = .{ shopButtonGamePosition.x, shopButtonGamePosition.y },
-            //     .imageIndex = shopButton.imageIndex,
-            //     .size = main.TILESIZE,
-            //     .rotate = shopButton.imageRotate,
-            //     .cutY = 0,
-            // };
-            // shopUx.sprites.verticeCount += 1;
+            if (shopButton.imageRotate != 0) {
+                paintVulkanZig.verticesForComplexSpriteWithRotate(shopButtonGamePosition, shopButton.imageIndex, shopButton.imageRotate, &shopUx.sprites, state);
+            } else {
+                paintVulkanZig.verticesForComplexSprite(shopButtonGamePosition, shopButton.imageIndex, &shopUx.sprites, state);
+            }
         }
     }
 

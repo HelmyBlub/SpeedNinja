@@ -9,7 +9,6 @@ const paintVulkanZig = @import("paintVulkan.zig");
 const enemyZig = @import("../enemy.zig");
 
 const DEATH_DURATION = 3000;
-
 const MAX_VERTICES = 200;
 
 fn setupVertices(state: *main.GameState) !void {

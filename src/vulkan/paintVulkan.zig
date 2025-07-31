@@ -109,6 +109,43 @@ pub fn verticesForComplexSprite(gamePosition: main.Position, imageIndex: u8, vkS
     }
 }
 
+pub fn verticesForComplexSpriteWithRotate(gamePosition: main.Position, imageIndex: u8, rotation: f32, vkSpriteComplex: *dataVulkanZig.VkSpriteComplex, state: *main.GameState) void {
+    if (vkSpriteComplex.verticeCount + 6 >= vkSpriteComplex.vertices.len) return;
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const halfSizeWidth: f32 = main.TILESIZE / 2;
+    const halfSizeHeigh: f32 = main.TILESIZE / 2;
+    const points = [_]main.Position{
+        main.Position{ .x = -halfSizeWidth, .y = halfSizeHeigh },
+        main.Position{ .x = -halfSizeWidth, .y = -halfSizeHeigh },
+        main.Position{ .x = halfSizeWidth, .y = halfSizeHeigh },
+        main.Position{ .x = halfSizeWidth, .y = -halfSizeHeigh },
+    };
+
+    for (0..points.len - 2) |i| {
+        const pointsIndexes = [_]usize{ i, i + 1 + @mod(i, 2), i + 2 - @mod(i, 2) };
+        for (pointsIndexes) |verticeIndex| {
+            const cornerPosOffset = points[verticeIndex];
+            const rotatedOffset = rotateAroundPoint(cornerPosOffset, .{ .x = 0, .y = 0 }, rotation);
+            const vulkan: main.Position = .{
+                .x = (rotatedOffset.x - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
+                .y = (rotatedOffset.y - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
+            };
+            const texPos: [2]f32 = .{
+                (cornerPosOffset.x / halfSizeWidth + 1) / 2,
+                (cornerPosOffset.y / halfSizeHeigh + 1) / 2,
+            };
+            vkSpriteComplex.vertices[vkSpriteComplex.verticeCount] = dataVulkanZig.SpriteComplexVertex{
+                .pos = .{ vulkan.x, vulkan.y },
+                .imageIndex = imageIndex,
+                .alpha = 1,
+                .tex = texPos,
+            };
+            vkSpriteComplex.verticeCount += 1;
+        }
+    }
+}
+
 fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state: *main.GameState) !void {
     const vkState = &state.vkState;
     var beginInfo = vk.VkCommandBufferBeginInfo{
