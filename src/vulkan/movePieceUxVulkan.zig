@@ -11,8 +11,8 @@ const fontVulkanZig = @import("fontVulkan.zig");
 const INITIAL_PIECE_COLOR: [3]f32 = .{ 0.0, 0.0, 1 };
 
 pub const VkMovePiecesUx = struct {
-    triangles: dataVulkanZig.VkTriangles = undefined,
-    lines: dataVulkanZig.VkLines = undefined,
+    triangles: dataVulkanZig.VkColoredVertexes = undefined,
+    lines: dataVulkanZig.VkColoredVertexes = undefined,
     sprites: dataVulkanZig.VkSprites = undefined,
     font: dataVulkanZig.VkFont = undefined,
     const UX_RECTANGLES = 100;
@@ -76,8 +76,8 @@ pub fn verticesForMovePiece(
     vulkanTileHeight: f32,
     direction: u8,
     skipInitialRect: bool,
-    lines: *dataVulkanZig.VkLines,
-    triangles: *dataVulkanZig.VkTriangles,
+    lines: *dataVulkanZig.VkColoredVertexes,
+    triangles: *dataVulkanZig.VkColoredVertexes,
 ) struct { x: f32, y: f32 } {
     var x: f32 = vulkanX;
     var y: f32 = vulkanY;
@@ -146,7 +146,7 @@ pub fn verticesForMovePiece(
     return .{ .x = x, .y = y };
 }
 
-pub fn verticesForRectangle(x: f32, y: f32, width: f32, height: f32, fillColor: [3]f32, lines: *dataVulkanZig.VkLines, triangles: *dataVulkanZig.VkTriangles) void {
+pub fn verticesForRectangle(x: f32, y: f32, width: f32, height: f32, fillColor: [3]f32, lines: *dataVulkanZig.VkColoredVertexes, triangles: *dataVulkanZig.VkColoredVertexes) void {
     if (triangles.verticeCount + 6 >= triangles.vertices.len) return;
     triangles.vertices[triangles.verticeCount] = .{ .pos = .{ x, y }, .color = fillColor };
     triangles.vertices[triangles.verticeCount + 1] = .{ .pos = .{ x + width, y + height }, .color = fillColor };

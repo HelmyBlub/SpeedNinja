@@ -11,8 +11,8 @@ const movePieceVulkanZig = @import("movePieceUxVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 
 pub const VkChoosenMovePieceVisualization = struct {
-    triangles: dataVulkanZig.VkTriangles = undefined,
-    lines: dataVulkanZig.VkLines = undefined,
+    triangles: dataVulkanZig.VkColoredVertexes = undefined,
+    lines: dataVulkanZig.VkColoredVertexes = undefined,
 };
 
 const UX_RECTANGLES = 200; //TODO size
@@ -29,7 +29,7 @@ pub fn setupVertices(state: *main.GameState) !void {
     try setupVertexDataForGPU(&state.vkState);
 }
 
-fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataVulkanZig.VkLines, triangles: *dataVulkanZig.VkTriangles, state: *main.GameState) void {
+fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataVulkanZig.VkColoredVertexes, triangles: *dataVulkanZig.VkColoredVertexes, state: *main.GameState) void {
     if (player.choosenMoveOptionIndex) |index| {
         const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
         const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
@@ -175,7 +175,7 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
     }
 }
 
-fn verticesForArrow(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, arrowDirection: u8, lineColor: [3]f32, lines: *dataVulkanZig.VkLines) void {
+fn verticesForArrow(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, arrowDirection: u8, lineColor: [3]f32, lines: *dataVulkanZig.VkColoredVertexes) void {
     const offsets = [_]main.Position{
         .{ .x = -0.5, .y = -0.20 },
         .{ .x = 0.0, .y = -0.20 },
@@ -213,7 +213,7 @@ fn verticesForArrow(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTile
     }
 }
 
-fn verticesForFilledArrow(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, arrowDirection: u8, fillColor: [3]f32, lines: *dataVulkanZig.VkLines, triangles: *dataVulkanZig.VkTriangles) void {
+fn verticesForFilledArrow(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, arrowDirection: u8, fillColor: [3]f32, lines: *dataVulkanZig.VkColoredVertexes, triangles: *dataVulkanZig.VkColoredVertexes) void {
     if (triangles.verticeCount + 9 >= triangles.vertices.len) return;
     const lineColor: [3]f32 = .{ 0, 0, 0 };
     var angle: f32 = 0;
@@ -267,7 +267,7 @@ fn verticesForFilledArrow(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulk
     triangles.verticeCount += 3;
 }
 
-fn verticesForSquare(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, lineColor: [3]f32, lines: *dataVulkanZig.VkLines) void {
+fn verticesForSquare(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, lineColor: [3]f32, lines: *dataVulkanZig.VkColoredVertexes) void {
     const offsets = [_]main.Position{
         .{ .x = -0.45, .y = -0.45 },
         .{ .x = 0.45, .y = -0.45 },
@@ -287,7 +287,7 @@ fn verticesForSquare(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTil
     }
 }
 
-fn verticesMiddleLine(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, rotation: f32, lineColor: [3]f32, lines: *dataVulkanZig.VkLines) void {
+fn verticesMiddleLine(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, rotation: f32, lineColor: [3]f32, lines: *dataVulkanZig.VkColoredVertexes) void {
     const offsets = [_]main.Position{
         .{ .x = -0.3, .y = 0 },
         .{ .x = 0.3, .y = 0 },
@@ -306,7 +306,7 @@ fn verticesMiddleLine(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTi
     }
 }
 
-fn verticesMiddleZigZag(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, rotation: f32, lineColor: [3]f32, lines: *dataVulkanZig.VkLines) void {
+fn verticesMiddleZigZag(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, rotation: f32, lineColor: [3]f32, lines: *dataVulkanZig.VkColoredVertexes) void {
     const offsets = [_]main.Position{
         .{ .x = -0.3, .y = 0.2 },
         .{ .x = -0.1, .y = -0.2 },
@@ -327,7 +327,7 @@ fn verticesMiddleZigZag(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkan
     }
 }
 
-fn verticesMiddleDotted(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, rotation: f32, lineColor: [3]f32, lines: *dataVulkanZig.VkLines) void {
+fn verticesMiddleDotted(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, rotation: f32, lineColor: [3]f32, lines: *dataVulkanZig.VkColoredVertexes) void {
     const offsets = [_]main.Position{
         .{ .x = -0.4, .y = 0 },
         .{ .x = -0.3, .y = 0 },
@@ -346,7 +346,7 @@ fn verticesMiddleDotted(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkan
     }
 }
 
-fn verticesMiddleArrowed(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, rotation: f32, lineColor: [3]f32, lines: *dataVulkanZig.VkLines) void {
+fn verticesMiddleArrowed(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, rotation: f32, lineColor: [3]f32, lines: *dataVulkanZig.VkColoredVertexes) void {
     const offsets = [_]main.Position{
         .{ .x = -0.3, .y = 0 },
         .{ .x = 0.3, .y = 0 },

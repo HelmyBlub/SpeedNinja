@@ -12,8 +12,8 @@ const movePieceVulkanZig = @import("movePieceUxVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 
 pub const VkShopUx = struct {
-    triangles: dataVulkanZig.VkTriangles = undefined,
-    lines: dataVulkanZig.VkLines = undefined,
+    triangles: dataVulkanZig.VkColoredVertexes = undefined,
+    lines: dataVulkanZig.VkColoredVertexes = undefined,
     sprites: dataVulkanZig.VkSpriteComplex = undefined,
     font: dataVulkanZig.VkFont = undefined,
     const UX_RECTANGLES = 100;

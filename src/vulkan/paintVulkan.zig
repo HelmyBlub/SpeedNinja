@@ -146,6 +146,76 @@ pub fn verticesForComplexSpriteWithRotate(gamePosition: main.Position, imageInde
     }
 }
 
+fn resetVerticeData(state: *main.GameState) !void {
+    const vkState = &state.vkState;
+    const verticeData = &vkState.verticeData;
+    const increaseBy = 200;
+    if (verticeData.triangles.vertexBufferCleanUp[vkState.currentFrame] != null) {
+        vk.vkDestroyBuffer.?(vkState.logicalDevice, verticeData.triangles.vertexBufferCleanUp[vkState.currentFrame].?, null);
+        vk.vkFreeMemory.?(vkState.logicalDevice, verticeData.triangles.vertexBufferMemoryCleanUp[vkState.currentFrame].?, null);
+        verticeData.triangles.vertexBufferCleanUp[vkState.currentFrame] = null;
+        verticeData.triangles.vertexBufferMemoryCleanUp[vkState.currentFrame] = null;
+    }
+    if (verticeData.triangles.verticeCount + increaseBy * 3 > verticeData.triangles.vertices.len) {
+        verticeData.triangles.vertexBufferCleanUp[vkState.currentFrame] = verticeData.triangles.vertexBuffer;
+        verticeData.triangles.vertexBufferMemoryCleanUp[vkState.currentFrame] = verticeData.triangles.vertexBufferMemory;
+        try initVulkanZig.createVertexBufferColored(vkState, &verticeData.triangles, verticeData.triangles.vertices.len + increaseBy * 3, state.allocator);
+    }
+    verticeData.triangles.verticeCount = 0;
+
+    if (verticeData.lines.vertexBufferCleanUp[vkState.currentFrame] != null) {
+        vk.vkDestroyBuffer.?(vkState.logicalDevice, verticeData.lines.vertexBufferCleanUp[vkState.currentFrame].?, null);
+        vk.vkFreeMemory.?(vkState.logicalDevice, verticeData.lines.vertexBufferMemoryCleanUp[vkState.currentFrame].?, null);
+        verticeData.lines.vertexBufferCleanUp[vkState.currentFrame] = null;
+        verticeData.lines.vertexBufferMemoryCleanUp[vkState.currentFrame] = null;
+    }
+    if (verticeData.lines.verticeCount + increaseBy * 2 > verticeData.lines.vertices.len) {
+        verticeData.lines.vertexBufferCleanUp[vkState.currentFrame] = verticeData.lines.vertexBuffer;
+        verticeData.lines.vertexBufferMemoryCleanUp[vkState.currentFrame] = verticeData.lines.vertexBufferMemory;
+        try initVulkanZig.createVertexBufferColored(vkState, &verticeData.lines, verticeData.lines.vertices.len + increaseBy * 2, state.allocator);
+    }
+    verticeData.lines.verticeCount = 0;
+
+    if (verticeData.sprites.vertexBufferCleanUp[vkState.currentFrame] != null) {
+        vk.vkDestroyBuffer.?(vkState.logicalDevice, verticeData.sprites.vertexBufferCleanUp[vkState.currentFrame].?, null);
+        vk.vkFreeMemory.?(vkState.logicalDevice, verticeData.sprites.vertexBufferMemoryCleanUp[vkState.currentFrame].?, null);
+        verticeData.sprites.vertexBufferCleanUp[vkState.currentFrame] = null;
+        verticeData.sprites.vertexBufferMemoryCleanUp[vkState.currentFrame] = null;
+    }
+    if (verticeData.sprites.verticeCount + increaseBy > verticeData.sprites.vertices.len) {
+        verticeData.sprites.vertexBufferCleanUp[vkState.currentFrame] = verticeData.v.vertexBuffer;
+        verticeData.sprites.vertexBufferMemoryCleanUp[vkState.currentFrame] = verticeData.sprites.vertexBufferMemory;
+        try initVulkanZig.createVertexBufferSprites(vkState, &verticeData.sprites, verticeData.sprites.vertices.len + increaseBy, state.allocator);
+    }
+    verticeData.sprites.verticeCount = 0;
+
+    if (verticeData.spritesComplex.vertexBufferCleanUp[vkState.currentFrame] != null) {
+        vk.vkDestroyBuffer.?(vkState.logicalDevice, verticeData.spritesComplex.vertexBufferCleanUp[vkState.currentFrame].?, null);
+        vk.vkFreeMemory.?(vkState.logicalDevice, verticeData.spritesComplex.vertexBufferMemoryCleanUp[vkState.currentFrame].?, null);
+        verticeData.spritesComplex.vertexBufferCleanUp[vkState.currentFrame] = null;
+        verticeData.spritesComplex.vertexBufferMemoryCleanUp[vkState.currentFrame] = null;
+    }
+    if (verticeData.spritesComplex.verticeCount + increaseBy * 6 > verticeData.spritesComplex.vertices.len) {
+        verticeData.spritesComplex.vertexBufferCleanUp[vkState.currentFrame] = verticeData.v.vertexBuffer;
+        verticeData.spritesComplex.vertexBufferMemoryCleanUp[vkState.currentFrame] = verticeData.spritesComplex.vertexBufferMemory;
+        try initVulkanZig.createVertexBufferSpritesComplex(vkState, &verticeData.spritesComplex, verticeData.spritesComplex.vertices.len + increaseBy * 6, state.allocator);
+    }
+    verticeData.spritesComplex.verticeCount = 0;
+
+    if (verticeData.font.vertexBufferCleanUp[vkState.currentFrame] != null) {
+        vk.vkDestroyBuffer.?(vkState.logicalDevice, verticeData.font.vertexBufferCleanUp[vkState.currentFrame].?, null);
+        vk.vkFreeMemory.?(vkState.logicalDevice, verticeData.font.vertexBufferMemoryCleanUp[vkState.currentFrame].?, null);
+        verticeData.font.vertexBufferCleanUp[vkState.currentFrame] = null;
+        verticeData.font.vertexBufferMemoryCleanUp[vkState.currentFrame] = null;
+    }
+    if (verticeData.font.verticeCount + increaseBy > verticeData.font.vertices.len) {
+        verticeData.font.vertexBufferCleanUp[vkState.currentFrame] = verticeData.v.vertexBuffer;
+        verticeData.font.vertexBufferMemoryCleanUp[vkState.currentFrame] = verticeData.font.vertexBufferMemory;
+        try initVulkanZig.createVertexBufferSpritesFont(vkState, &verticeData.font, verticeData.font.vertices.len + increaseBy, state.allocator);
+    }
+    verticeData.font.verticeCount = 0;
+}
+
 fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state: *main.GameState) !void {
     const vkState = &state.vkState;
     var beginInfo = vk.VkCommandBufferBeginInfo{
@@ -249,18 +319,6 @@ pub fn destroy(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) vo
     vk.vkDestroyBuffer.?(vkState.logicalDevice, vkState.spriteData.vertexBuffer, null);
     vk.vkFreeMemory.?(vkState.logicalDevice, vkState.spriteData.vertexBufferMemory, null);
     allocator.free(vkState.spriteData.vertices);
-}
-
-pub fn createVertexBuffer(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
-    vkState.spriteData.vertices = try allocator.alloc(dataVulkanZig.SpriteComplexVertex, 50);
-    try initVulkanZig.createBuffer(
-        @sizeOf(dataVulkanZig.SpriteComplexVertex) * vkState.spriteData.vertices.len,
-        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &vkState.spriteData.vertexBuffer,
-        &vkState.spriteData.vertexBufferMemory,
-        vkState,
-    );
 }
 
 pub fn rotateAroundPoint(point: main.Position, pivot: main.Position, angle: f32) main.Position {

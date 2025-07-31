@@ -12,30 +12,30 @@ pub const LAYER1_INDEX_GROUND = 0;
 pub const LAYER2_INDEX = 1;
 pub const LAYER3_INDEX_UX = 2;
 
-pub const VkLayers = struct {
-    layers: [3]VkLayer = [_]VkLayer{ .{}, .{}, .{} },
+pub const VkVerticeDataCut = struct {
+    triangle: usize,
+    lines: usize,
+    sprites: usize,
+    spritesComplex: usize,
+    font: usize,
 };
 
-pub const VkLayer = struct {
-    triangles: VkTriangles = .{},
-    lines: VkLines = .{},
+pub const VkVerticeData = struct {
+    dataDrawCut: std.ArrayList(VkVerticeDataCut) = undefined,
+    triangles: VkColoredVertexes = .{},
+    lines: VkColoredVertexes = .{},
     sprites: VkSprites = .{},
     spritesComplex: VkSpriteComplex = .{},
     font: VkFont = .{},
 };
 
-pub const VkTriangles = struct {
+pub const VkColoredVertexes = struct {
     vertexBuffer: vk.VkBuffer = undefined,
     vertexBufferMemory: vk.VkDeviceMemory = undefined,
     vertices: []ColoredVertex = undefined,
     verticeCount: usize = 0,
-};
-
-pub const VkLines = struct {
-    vertexBuffer: vk.VkBuffer = undefined,
-    vertexBufferMemory: vk.VkDeviceMemory = undefined,
-    vertices: []ColoredVertex = undefined,
-    verticeCount: usize = 0,
+    vertexBufferCleanUp: []?vk.VkBuffer = undefined,
+    vertexBufferMemoryCleanUp: []?vk.VkDeviceMemory = undefined,
 };
 
 pub const VkSprites = struct {
@@ -43,6 +43,8 @@ pub const VkSprites = struct {
     vertexBufferMemory: vk.VkDeviceMemory = undefined,
     vertices: []SpriteVertex = undefined,
     verticeCount: usize = 0,
+    vertexBufferCleanUp: []?vk.VkBuffer = undefined,
+    vertexBufferMemoryCleanUp: []?vk.VkDeviceMemory = undefined,
 };
 
 pub const VkSpriteComplex = struct {
@@ -50,6 +52,8 @@ pub const VkSpriteComplex = struct {
     vertexBufferMemory: vk.VkDeviceMemory = undefined,
     vertices: []SpriteComplexVertex = undefined,
     verticeCount: usize = 0,
+    vertexBufferCleanUp: []?vk.VkBuffer = undefined,
+    vertexBufferMemoryCleanUp: []?vk.VkDeviceMemory = undefined,
 };
 
 pub const VkFont = struct {
@@ -57,6 +61,8 @@ pub const VkFont = struct {
     vertexBufferMemory: vk.VkDeviceMemory = undefined,
     vertices: []FontVertex = undefined,
     verticeCount: usize = 0,
+    vertexBufferCleanUp: []?vk.VkBuffer = undefined,
+    vertexBufferMemoryCleanUp: []?vk.VkDeviceMemory = undefined,
 };
 
 pub const SpriteVertex = struct {

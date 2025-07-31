@@ -18,6 +18,7 @@ pub const vk = @cImport({
     @cInclude("Volk/volk.h");
 });
 
+const DEFAULT_VERTEX_BUFFER_INITIAL_SIZE = 1000;
 const ENABLE_VALIDATION_LAYER = true;
 pub const VALIDATION_LAYERS = [_][*c]const u8{"VK_LAYER_KHRONOS_validation"};
 
@@ -72,7 +73,7 @@ pub const VkState = struct {
     inFlightFence: []vk.VkFence = undefined,
     currentFrame: u16 = 0,
 
-    layers: dataVulkanZig.VkLayers = .{},
+    verticeData: dataVulkanZig.VkVerticeData = .{},
     font: fontVulkanZig.VkFontData = .{},
     mapGrid: mapGridVulkanZig.VkMapGridUx = .{},
     spriteData: dataVulkanZig.VkSpriteComplex = .{},
@@ -125,7 +126,8 @@ pub fn initVulkan(state: *main.GameState) !void {
     try createCommandPool(vkState, state.allocator);
     try imageZig.createVulkanTextureSprites(vkState, state.allocator);
     try createTextureSampler(vkState);
-    try paintVulkanZig.createVertexBuffer(vkState, state.allocator);
+    try createVertexBuffer(vkState, state.allocator);
+    try createVertexBufferSpritesComplex(vkState, &vkState.spriteData, 200, state.allocator);
     try fontVulkanZig.initFont(state);
     try movePieceUxVulkanZig.create(state);
     try mapGridVulkanZig.create(state);
@@ -153,7 +155,7 @@ pub fn destroyPaintVulkan(vkState: *VkState, allocator: std.mem.Allocator) !void
     enemyVulkanZig.destroy(vkState, allocator);
     shopVulkanZig.destroy(vkState, allocator);
     choosenMovePieceVulkanZig.destroy(vkState, allocator);
-
+    destroyVerticeData(vkState, allocator);
     cleanupSwapChain(vkState, allocator);
 
     for (0..VkState.MAX_FRAMES_IN_FLIGHT) |i| {
@@ -197,6 +199,67 @@ pub fn destroyPaintVulkan(vkState: *VkState, allocator: std.mem.Allocator) !void
     allocator.free(vkState.spriteImages.textureImage);
     allocator.free(vkState.spriteImages.textureImageMemory);
     allocator.free(vkState.spriteImages.mipLevels);
+}
+
+fn destroyVerticeData(vkState: *VkState, allocator: std.mem.Allocator) void {
+    const verticeData = &vkState.verticeData;
+    for (0..VkState.MAX_FRAMES_IN_FLIGHT) |i| {
+        if (verticeData.triangles.vertexBufferCleanUp[i] != null) {
+            vk.vkDestroyBuffer.?(vkState.logicalDevice, verticeData.triangles.vertexBufferCleanUp[i].?, null);
+            vk.vkFreeMemory.?(vkState.logicalDevice, verticeData.triangles.vertexBufferMemoryCleanUp[i].?, null);
+            verticeData.triangles.vertexBufferCleanUp[i] = null;
+            verticeData.triangles.vertexBufferMemoryCleanUp[i] = null;
+        }
+        if (verticeData.lines.vertexBufferCleanUp[i] != null) {
+            vk.vkDestroyBuffer.?(vkState.logicalDevice, verticeData.lines.vertexBufferCleanUp[i].?, null);
+            vk.vkFreeMemory.?(vkState.logicalDevice, verticeData.lines.vertexBufferMemoryCleanUp[i].?, null);
+            verticeData.lines.vertexBufferCleanUp[i] = null;
+            verticeData.lines.vertexBufferMemoryCleanUp[i] = null;
+        }
+        if (verticeData.sprites.vertexBufferCleanUp[i] != null) {
+            vk.vkDestroyBuffer.?(vkState.logicalDevice, verticeData.sprites.vertexBufferCleanUp[i].?, null);
+            vk.vkFreeMemory.?(vkState.logicalDevice, verticeData.sprites.vertexBufferMemoryCleanUp[i].?, null);
+            verticeData.sprites.vertexBufferCleanUp[i] = null;
+            verticeData.sprites.vertexBufferMemoryCleanUp[i] = null;
+        }
+        if (verticeData.spritesComplex.vertexBufferCleanUp[i] != null) {
+            vk.vkDestroyBuffer.?(vkState.logicalDevice, verticeData.spritesComplex.vertexBufferCleanUp[i].?, null);
+            vk.vkFreeMemory.?(vkState.logicalDevice, verticeData.spritesComplex.vertexBufferMemoryCleanUp[i].?, null);
+            verticeData.spritesComplex.vertexBufferCleanUp[i] = null;
+            verticeData.spritesComplex.vertexBufferMemoryCleanUp[i] = null;
+        }
+        if (verticeData.font.vertexBufferCleanUp[i] != null) {
+            vk.vkDestroyBuffer.?(vkState.logicalDevice, verticeData.font.vertexBufferCleanUp[i].?, null);
+            vk.vkFreeMemory.?(vkState.logicalDevice, verticeData.font.vertexBufferMemoryCleanUp[i].?, null);
+            verticeData.font.vertexBufferCleanUp[i] = null;
+            verticeData.font.vertexBufferMemoryCleanUp[i] = null;
+        }
+    }
+    vk.vkDestroyBuffer.?(vkState.logicalDevice, verticeData.triangles.vertexBuffer, null);
+    vk.vkDestroyBuffer.?(vkState.logicalDevice, verticeData.lines.vertexBuffer, null);
+    vk.vkDestroyBuffer.?(vkState.logicalDevice, verticeData.sprites.vertexBuffer, null);
+    vk.vkDestroyBuffer.?(vkState.logicalDevice, verticeData.spritesComplex.vertexBuffer, null);
+    vk.vkDestroyBuffer.?(vkState.logicalDevice, verticeData.font.vertexBuffer, null);
+    vk.vkFreeMemory.?(vkState.logicalDevice, verticeData.triangles.vertexBufferMemory, null);
+    vk.vkFreeMemory.?(vkState.logicalDevice, verticeData.lines.vertexBufferMemory, null);
+    vk.vkFreeMemory.?(vkState.logicalDevice, verticeData.sprites.vertexBufferMemory, null);
+    vk.vkFreeMemory.?(vkState.logicalDevice, verticeData.spritesComplex.vertexBufferMemory, null);
+    vk.vkFreeMemory.?(vkState.logicalDevice, verticeData.font.vertexBufferMemory, null);
+    allocator.free(verticeData.triangles.vertices);
+    allocator.free(verticeData.triangles.vertexBufferCleanUp);
+    allocator.free(verticeData.triangles.vertexBufferMemoryCleanUp);
+    allocator.free(verticeData.lines.vertices);
+    allocator.free(verticeData.lines.vertexBufferCleanUp);
+    allocator.free(verticeData.lines.vertexBufferMemoryCleanUp);
+    allocator.free(verticeData.sprites.vertices);
+    allocator.free(verticeData.sprites.vertexBufferCleanUp);
+    allocator.free(verticeData.sprites.vertexBufferMemoryCleanUp);
+    allocator.free(verticeData.spritesComplex.vertices);
+    allocator.free(verticeData.spritesComplex.vertexBufferCleanUp);
+    allocator.free(verticeData.spritesComplex.vertexBufferMemoryCleanUp);
+    allocator.free(verticeData.font.vertices);
+    allocator.free(verticeData.font.vertexBufferCleanUp);
+    allocator.free(verticeData.font.vertexBufferMemoryCleanUp);
 }
 
 fn cleanupSwapChain(vkState: *VkState, allocator: std.mem.Allocator) void {
@@ -610,6 +673,86 @@ fn createTextureSampler(vkState: *VkState) !void {
         .maxLod = vk.VK_LOD_CLAMP_NONE,
     };
     try vkcheck(vk.vkCreateSampler.?(vkState.logicalDevice, &samplerInfo, null, &vkState.textureSampler), "failed vkCreateSampler");
+}
+
+fn createVertexBuffer(vkState: *VkState, allocator: std.mem.Allocator) !void {
+    const verticeData = &vkState.verticeData;
+    verticeData.triangles.vertexBufferCleanUp = try allocator.alloc(?vk.VkBuffer, VkState.MAX_FRAMES_IN_FLIGHT);
+    verticeData.triangles.vertexBufferMemoryCleanUp = try allocator.alloc(?vk.VkDeviceMemory, VkState.MAX_FRAMES_IN_FLIGHT);
+    verticeData.lines.vertexBufferCleanUp = try allocator.alloc(?vk.VkBuffer, VkState.MAX_FRAMES_IN_FLIGHT);
+    verticeData.lines.vertexBufferMemoryCleanUp = try allocator.alloc(?vk.VkDeviceMemory, VkState.MAX_FRAMES_IN_FLIGHT);
+    verticeData.sprites.vertexBufferCleanUp = try allocator.alloc(?vk.VkBuffer, VkState.MAX_FRAMES_IN_FLIGHT);
+    verticeData.sprites.vertexBufferMemoryCleanUp = try allocator.alloc(?vk.VkDeviceMemory, VkState.MAX_FRAMES_IN_FLIGHT);
+    verticeData.spritesComplex.vertexBufferCleanUp = try allocator.alloc(?vk.VkBuffer, VkState.MAX_FRAMES_IN_FLIGHT);
+    verticeData.spritesComplex.vertexBufferMemoryCleanUp = try allocator.alloc(?vk.VkDeviceMemory, VkState.MAX_FRAMES_IN_FLIGHT);
+    verticeData.font.vertexBufferCleanUp = try allocator.alloc(?vk.VkBuffer, VkState.MAX_FRAMES_IN_FLIGHT);
+    verticeData.font.vertexBufferMemoryCleanUp = try allocator.alloc(?vk.VkDeviceMemory, VkState.MAX_FRAMES_IN_FLIGHT);
+    for (0..VkState.MAX_FRAMES_IN_FLIGHT) |i| {
+        verticeData.triangles.vertexBufferCleanUp[i] = null;
+        verticeData.triangles.vertexBufferMemoryCleanUp[i] = null;
+        verticeData.lines.vertexBufferCleanUp[i] = null;
+        verticeData.lines.vertexBufferMemoryCleanUp[i] = null;
+        verticeData.sprites.vertexBufferCleanUp[i] = null;
+        verticeData.sprites.vertexBufferMemoryCleanUp[i] = null;
+        verticeData.spritesComplex.vertexBufferCleanUp[i] = null;
+        verticeData.spritesComplex.vertexBufferMemoryCleanUp[i] = null;
+        verticeData.font.vertexBufferCleanUp[i] = null;
+        verticeData.font.vertexBufferMemoryCleanUp[i] = null;
+    }
+
+    try createVertexBufferColored(vkState, &verticeData.triangles, DEFAULT_VERTEX_BUFFER_INITIAL_SIZE * 3, allocator);
+    try createVertexBufferColored(vkState, &verticeData.lines, DEFAULT_VERTEX_BUFFER_INITIAL_SIZE * 2, allocator);
+    try createVertexBufferSprites(vkState, &verticeData.sprites, DEFAULT_VERTEX_BUFFER_INITIAL_SIZE, allocator);
+    try createVertexBufferSpritesComplex(vkState, &verticeData.spritesComplex, DEFAULT_VERTEX_BUFFER_INITIAL_SIZE * 6, allocator);
+    try createVertexBufferSpritesFont(vkState, &verticeData.font, DEFAULT_VERTEX_BUFFER_INITIAL_SIZE, allocator);
+}
+
+pub fn createVertexBufferColored(vkState: *VkState, triangles: *dataVulkanZig.VkColoredVertexes, size: usize, allocator: std.mem.Allocator) !void {
+    triangles.vertices = try allocator.alloc(dataVulkanZig.ColoredVertex, size);
+    try createBuffer(
+        @sizeOf(dataVulkanZig.ColoredVertex) * triangles.vertices.len,
+        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        &triangles.vertexBuffer,
+        &triangles.vertexBufferMemory,
+        vkState,
+    );
+}
+
+pub fn createVertexBufferSprites(vkState: *VkState, sprites: *dataVulkanZig.VkSprites, size: usize, allocator: std.mem.Allocator) !void {
+    sprites.vertices = try allocator.alloc(dataVulkanZig.SpriteVertex, size);
+    try createBuffer(
+        @sizeOf(dataVulkanZig.SpriteVertex) * sprites.vertices.len,
+        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        &sprites.vertexBuffer,
+        &sprites.vertexBufferMemory,
+        vkState,
+    );
+}
+
+pub fn createVertexBufferSpritesComplex(vkState: *VkState, sprites: *dataVulkanZig.VkSpriteComplex, size: usize, allocator: std.mem.Allocator) !void {
+    sprites.vertices = try allocator.alloc(dataVulkanZig.SpriteComplexVertex, size);
+    try createBuffer(
+        @sizeOf(dataVulkanZig.SpriteComplexVertex) * sprites.vertices.len,
+        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        &sprites.vertexBuffer,
+        &sprites.vertexBufferMemory,
+        vkState,
+    );
+}
+
+pub fn createVertexBufferSpritesFont(vkState: *VkState, sprites: *dataVulkanZig.VkFont, size: usize, allocator: std.mem.Allocator) !void {
+    sprites.vertices = try allocator.alloc(dataVulkanZig.FontVertex, size);
+    try createBuffer(
+        @sizeOf(dataVulkanZig.FontVertex) * sprites.vertices.len,
+        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        &sprites.vertexBuffer,
+        &sprites.vertexBufferMemory,
+        vkState,
+    );
 }
 
 fn createUniformBuffers(vkState: *VkState, allocator: std.mem.Allocator) !void {

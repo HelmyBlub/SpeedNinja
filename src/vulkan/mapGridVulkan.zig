@@ -7,7 +7,7 @@ const imageZig = @import("../image.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 
 pub const VkMapGridUx = struct {
-    lines: dataVulkanZig.VkLines = undefined,
+    lines: dataVulkanZig.VkColoredVertexes = undefined,
     pub const MAX_VERTICES_LINES = 200;
 };
 

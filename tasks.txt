@@ -1,9 +1,10 @@
 Tasks:
 - redesign code
+    - make buffer/vertice sizes to adjust automatically
     - each vertex type only once
         - needs to be able to change size on runtime
-    - have a system for "layers". number of layers fix on build time?
-        - 
+    - arbitrary "layer" count
+        - want to be able to paint triangles and lines in very specific order
 
 
     - enemise behind player. boss above player, but with alpha if overlap? boss shadow ?
