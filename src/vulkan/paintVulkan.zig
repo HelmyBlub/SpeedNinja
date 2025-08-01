@@ -13,6 +13,7 @@ const ninjaDogVulkanZig = @import("ninjaDogVulkan.zig");
 const enemyVulkanZig = @import("enemyVulkan.zig");
 const shopVulkanZig = @import("shopVulkan.zig");
 const choosenMovePieceVulkanZig = @import("choosenMovePieceVisualizationVulkan.zig");
+const gameInfoUxZig = @import("gameInfoUxVulkan.zig");
 
 pub fn drawFrame(state: *main.GameState) !void {
     const vkState = &state.vkState;
@@ -25,7 +26,7 @@ pub fn drawFrame(state: *main.GameState) !void {
     try ninjaDogVulkanZig.setupVertices(state);
     enemyVulkanZig.setupVerticesForBosses(state);
     try movePieceUxVulkanZig.setupVertices(state);
-    try fontVulkanZig.setupVertices(state);
+    try gameInfoUxZig.setupVertices(state);
     try setupVertexDataForGPU(vkState);
 
     if (!try initVulkanZig.createSwapChainRelatedStuffAndCheckWindowSize(state, state.allocator)) return;
@@ -441,4 +442,31 @@ pub fn rotateAroundPoint(point: main.Position, pivot: main.Position, angle: f32)
     const rotatedY = s * translatedX + c * translatedY;
 
     return main.Position{ .x = rotatedX + pivot.x, .y = rotatedY + pivot.y };
+}
+
+pub fn verticesForRectangle(x: f32, y: f32, width: f32, height: f32, fillColor: [3]f32, optLines: ?*dataVulkanZig.VkColoredVertexes, optTriangles: ?*dataVulkanZig.VkColoredVertexes) void {
+    if (optTriangles) |triangles| {
+        if (triangles.verticeCount + 6 >= triangles.vertices.len) return;
+        triangles.vertices[triangles.verticeCount] = .{ .pos = .{ x, y }, .color = fillColor };
+        triangles.vertices[triangles.verticeCount + 1] = .{ .pos = .{ x + width, y + height }, .color = fillColor };
+        triangles.vertices[triangles.verticeCount + 2] = .{ .pos = .{ x, y + height }, .color = fillColor };
+        triangles.vertices[triangles.verticeCount + 3] = .{ .pos = .{ x, y }, .color = fillColor };
+        triangles.vertices[triangles.verticeCount + 4] = .{ .pos = .{ x + width, y }, .color = fillColor };
+        triangles.vertices[triangles.verticeCount + 5] = .{ .pos = .{ x + width, y + height }, .color = fillColor };
+        triangles.verticeCount += 6;
+    }
+
+    if (optLines) |lines| {
+        if (lines.verticeCount + 8 >= lines.vertices.len) return;
+        const borderColor: [3]f32 = .{ 0, 0, 0 };
+        lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ x, y }, .color = borderColor };
+        lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ x + width, y }, .color = borderColor };
+        lines.vertices[lines.verticeCount + 2] = .{ .pos = .{ x, y }, .color = borderColor };
+        lines.vertices[lines.verticeCount + 3] = .{ .pos = .{ x, y + height }, .color = borderColor };
+        lines.vertices[lines.verticeCount + 4] = .{ .pos = .{ x + width, y }, .color = borderColor };
+        lines.vertices[lines.verticeCount + 5] = .{ .pos = .{ x + width, y + height }, .color = borderColor };
+        lines.vertices[lines.verticeCount + 6] = .{ .pos = .{ x, y + height }, .color = borderColor };
+        lines.vertices[lines.verticeCount + 7] = .{ .pos = .{ x + width, y + height }, .color = borderColor };
+        lines.verticeCount += 8;
+    }
 }

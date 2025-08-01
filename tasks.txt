@@ -1,4 +1,15 @@
 Tasks:
+- game  UX info
+    - 2 modes
+        - boss
+            - display boss name
+            - display level
+            - display hp bar top center
+        - normal
+            - timer
+            - level
+            - round
+            - money
 - boss round
     - visualization:
         - tileWarnings before player

@@ -61,7 +61,7 @@ fn verticesForEarlyShopTrigger(state: *main.GameState) void {
     const fontSize = 26;
     _ = fontVulkanZig.paintText("early", .{ .x = left, .y = top }, fontSize, &verticeData.font);
     _ = fontVulkanZig.paintText("shop", .{ .x = left, .y = top + fontSize * onePixelYInVulkan }, fontSize, &verticeData.font);
-    movePieceUxVulkanZig.verticesForRectangle(left, top, width, height, .{ 1, 1, 1 }, &verticeData.lines, &verticeData.triangles);
+    paintVulkanZig.verticesForRectangle(left, top, width, height, .{ 1, 1, 1 }, &verticeData.lines, &verticeData.triangles);
 }
 
 fn paintGrid(player: *main.Player, state: *main.GameState) void {

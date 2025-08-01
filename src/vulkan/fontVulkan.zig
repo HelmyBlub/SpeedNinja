@@ -13,34 +13,6 @@ pub const VkFontData = struct {
     textureImageView: vk.VkImageView = undefined,
 };
 
-pub fn setupVertices(state: *main.GameState) !void {
-    const fontSize = 30;
-    var textWidthRound: f32 = -0.2;
-    const fontVertices = &state.vkState.verticeData.font;
-    textWidthRound += paintText("Round: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
-    textWidthRound += try paintNumber(state.round, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
-    textWidthRound += paintText(" Level: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
-    textWidthRound += try paintNumber(state.level, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
-    textWidthRound += paintText(" Money: $", .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
-    _ = try paintNumber(state.players.items[0].money, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
-
-    if (state.round > 1) {
-        if (state.gamePhase == .combat) {
-            const textWidthTime = paintText("Time: ", .{ .x = 0, .y = -0.9 }, fontSize, fontVertices);
-            const remainingTime: i64 = @max(0, @divFloor(state.roundEndTimeMS - state.gameTime, 1000));
-            _ = try paintNumber(remainingTime, .{ .x = textWidthTime, .y = -0.9 }, fontSize, fontVertices);
-        }
-    }
-    if (state.highscore > 0) {
-        const textWidthTime = paintText("Highscore: ", .{ .x = 0.5, .y = -0.99 }, fontSize, fontVertices);
-        _ = try paintNumber(state.highscore, .{ .x = 0.5 + textWidthTime, .y = -0.99 }, fontSize, fontVertices);
-    }
-    if (state.lastScore > 0) {
-        const textWidthTime = paintText("last score: ", .{ .x = -0.65, .y = -0.99 }, fontSize, fontVertices);
-        _ = try paintNumber(state.lastScore, .{ .x = -0.65 + textWidthTime, .y = -0.99 }, fontSize, fontVertices);
-    }
-}
-
 /// returns vulkan surface width of text
 pub fn paintText(chars: []const u8, vulkanSurfacePosition: main.Position, fontSize: f32, vkFont: *dataVulkanZig.VkFont) f32 {
     var texX: f32 = 0;
@@ -134,7 +106,7 @@ pub fn destroyFont(vkState: *initVulkanZig.VkState) void {
 
 pub fn charToTexCoords(char: u8, texX: *f32, texWidth: *f32) void {
     const fontImageWidth = 1600.0;
-    const imageCharSeperatePixels = [_]f32{ 0, 50, 88, 117, 142, 170, 198, 232, 262, 277, 307, 338, 365, 413, 445, 481, 508, 541, 569, 603, 638, 674, 711, 760, 801, 837, 873, 902, 931, 968, 1003, 1037, 1072, 1104, 1142, 1175, 1205, 1238, 1282, 1302, 1322, 1367, 1410, 1448 };
+    const imageCharSeperatePixels = [_]f32{ 0, 50, 88, 117, 142, 170, 198, 232, 262, 277, 307, 338, 365, 413, 445, 481, 508, 541, 569, 603, 638, 674, 711, 760, 801, 837, 873, 902, 931, 968, 1003, 1037, 1072, 1104, 1142, 1175, 1205, 1238, 1282, 1302, 1322, 1367, 1410, 1448, 1477 };
     var index: usize = 0;
     switch (char) {
         'a', 'A' => {
@@ -265,6 +237,9 @@ pub fn charToTexCoords(char: u8, texX: *f32, texWidth: *f32) void {
         },
         '$' => {
             index = 42;
+        },
+        '/' => {
+            index = 43;
         },
         else => {
             texX.* = 0;

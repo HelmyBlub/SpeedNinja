@@ -29,6 +29,7 @@ pub const Boss = struct {
     attackChargeTime: i64 = 2000,
     idleAfterAttackTime: i64 = 3000,
     attackTileRadius: i8 = 1,
+    name: []const u8,
 };
 
 const LEVEL_BOSS_DATA = [_]LevelBossData{
@@ -61,6 +62,7 @@ fn startBossStomp(state: *main.GameState) !void {
         .maxHp = 10,
         .imageIndex = imageZig.IMAGE_EVIL_TREE,
         .position = .{ .x = 0, .y = 0 },
+        .name = LEVEL_BOSS_DATA[0].name,
     });
     state.mapTileRadius = 6;
     main.adjustZoom(state);

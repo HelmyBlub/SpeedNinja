@@ -35,8 +35,6 @@ pub const GameState = struct {
     enemyDeath: std.ArrayList(enemyZig.EnemyDeathAnimation) = undefined,
     enemySpawnData: enemyZig.EnemySpawnData = undefined,
     players: std.ArrayList(Player),
-    highscore: u32 = 0,
-    lastScore: u32 = 0,
     soundMixer: ?soundMixerZig.SoundMixer = null,
     gameEnded: bool = false,
     gamePhase: GamePhase = .combat,
@@ -207,8 +205,6 @@ fn allPlayerOutOfMoveOptions(state: *GameState) bool {
 }
 
 pub fn restart(state: *GameState) !void {
-    state.lastScore = state.round;
-    if (state.round > state.highscore) state.highscore = state.round;
     state.level = 0;
     state.round = 0;
     state.mapTileRadius = BASE_MAP_TILE_RADIUS;

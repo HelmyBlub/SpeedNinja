@@ -4,6 +4,7 @@ const dataVulkanZig = @import("dataVulkan.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 const movePieceZig = @import("../movePiece.zig");
 const fontVulkanZig = @import("fontVulkan.zig");
+const paintVulkanZig = @import("paintVulkan.zig");
 
 const INITIAL_PIECE_COLOR: [3]f32 = .{ 0.0, 0.0, 1 };
 
@@ -62,7 +63,7 @@ pub fn verticesForMovePiece(
     var y: f32 = vulkanY;
     var sizeFactor: f32 = 1;
     const factor = 0.9;
-    if (!skipInitialRect) verticesForRectangle(x, y, vulkanTileWidth, vulkanTileHeight, INITIAL_PIECE_COLOR, lines, triangles);
+    if (!skipInitialRect) paintVulkanZig.verticesForRectangle(x, y, vulkanTileWidth, vulkanTileHeight, INITIAL_PIECE_COLOR, lines, triangles);
     for (movePiece.steps) |step| {
         const modStepDirection = @mod(step.direction + direction, 4);
         const stepDirection = movePieceZig.getStepDirection(modStepDirection);
@@ -119,31 +120,8 @@ pub fn verticesForMovePiece(
                 },
             }
 
-            verticesForRectangle(tempX, tempY, modWidth, modHeight, fillColor, lines, triangles);
+            paintVulkanZig.verticesForRectangle(tempX, tempY, modWidth, modHeight, fillColor, lines, triangles);
         }
     }
     return .{ .x = x, .y = y };
-}
-
-pub fn verticesForRectangle(x: f32, y: f32, width: f32, height: f32, fillColor: [3]f32, lines: *dataVulkanZig.VkColoredVertexes, triangles: *dataVulkanZig.VkColoredVertexes) void {
-    if (triangles.verticeCount + 6 >= triangles.vertices.len) return;
-    triangles.vertices[triangles.verticeCount] = .{ .pos = .{ x, y }, .color = fillColor };
-    triangles.vertices[triangles.verticeCount + 1] = .{ .pos = .{ x + width, y + height }, .color = fillColor };
-    triangles.vertices[triangles.verticeCount + 2] = .{ .pos = .{ x, y + height }, .color = fillColor };
-    triangles.vertices[triangles.verticeCount + 3] = .{ .pos = .{ x, y }, .color = fillColor };
-    triangles.vertices[triangles.verticeCount + 4] = .{ .pos = .{ x + width, y }, .color = fillColor };
-    triangles.vertices[triangles.verticeCount + 5] = .{ .pos = .{ x + width, y + height }, .color = fillColor };
-    triangles.verticeCount += 6;
-
-    if (lines.verticeCount + 8 >= lines.vertices.len) return;
-    const borderColor: [3]f32 = .{ 0, 0, 0 };
-    lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ x, y }, .color = borderColor };
-    lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ x + width, y }, .color = borderColor };
-    lines.vertices[lines.verticeCount + 2] = .{ .pos = .{ x, y }, .color = borderColor };
-    lines.vertices[lines.verticeCount + 3] = .{ .pos = .{ x, y + height }, .color = borderColor };
-    lines.vertices[lines.verticeCount + 4] = .{ .pos = .{ x + width, y }, .color = borderColor };
-    lines.vertices[lines.verticeCount + 5] = .{ .pos = .{ x + width, y + height }, .color = borderColor };
-    lines.vertices[lines.verticeCount + 6] = .{ .pos = .{ x, y + height }, .color = borderColor };
-    lines.vertices[lines.verticeCount + 7] = .{ .pos = .{ x + width, y + height }, .color = borderColor };
-    lines.verticeCount += 8;
 }

@@ -158,6 +158,8 @@ pub fn startShoppingPhase(state: *main.GameState) !void {
         player.shop.gridDisplayPiece = null;
         player.shop.selectedOption = .none;
     }
+    state.mapTileRadius = 5;
+    main.adjustZoom(state);
 }
 
 pub fn randomizeShop(state: *main.GameState) !void {
