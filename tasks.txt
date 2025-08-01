@@ -1,6 +1,4 @@
 Tasks:
-- shop: prevent same piece from being sold
-    - prevent same piece to be sold again
 - bug: dog animation independent from time skips
     - when time stops or leaps forward ear flap alot
 - check: vulkan vertice limits checked when adding

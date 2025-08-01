@@ -129,6 +129,9 @@ fn mainLoop(state: *GameState) !void {
         lastTime = currentTime;
         currentTime = std.time.milliTimestamp();
         passedTime = currentTime - lastTime;
+        if (passedTime > 16) {
+            passedTime = 16;
+        }
         state.gameTime += passedTime;
     }
 }
