@@ -7,44 +7,38 @@ const windowSdlZig = @import("../windowSdl.zig");
 const dataVulkanZig = @import("dataVulkan.zig");
 
 pub const VkFontData = struct {
-    vkFont: dataVulkanZig.VkFont = undefined,
-    graphicsPipeline: vk.VkPipeline = undefined,
-    graphicsPipelineSubpass0: vk.VkPipeline = undefined,
     mipLevels: u32 = undefined,
     textureImage: vk.VkImage = undefined,
     textureImageMemory: vk.VkDeviceMemory = undefined,
     textureImageView: vk.VkImageView = undefined,
 };
 
-const MAX_VERTICES = 100;
-
-fn setupVertices(state: *main.GameState) !void {
-    state.vkState.font.vkFont.verticeCount = 0;
+pub fn setupVertices(state: *main.GameState) !void {
     const fontSize = 30;
     var textWidthRound: f32 = -0.2;
-    textWidthRound += paintText("Round: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
-    textWidthRound += try paintNumber(state.round, .{ .x = textWidthRound, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
-    textWidthRound += paintText(" Level: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
-    textWidthRound += try paintNumber(state.level, .{ .x = textWidthRound, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
-    textWidthRound += paintText(" Money: $", .{ .x = textWidthRound, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
-    _ = try paintNumber(state.players.items[0].money, .{ .x = textWidthRound, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
+    const fontVertices = &state.vkState.verticeData.font;
+    textWidthRound += paintText("Round: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
+    textWidthRound += try paintNumber(state.round, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
+    textWidthRound += paintText(" Level: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
+    textWidthRound += try paintNumber(state.level, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
+    textWidthRound += paintText(" Money: $", .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
+    _ = try paintNumber(state.players.items[0].money, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
 
     if (state.round > 1) {
         if (state.gamePhase == .combat) {
-            const textWidthTime = paintText("Time: ", .{ .x = 0, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
+            const textWidthTime = paintText("Time: ", .{ .x = 0, .y = -0.9 }, fontSize, fontVertices);
             const remainingTime: i64 = @max(0, @divFloor(state.roundEndTimeMS - state.gameTime, 1000));
-            _ = try paintNumber(remainingTime, .{ .x = textWidthTime, .y = -0.9 }, fontSize, &state.vkState.font.vkFont);
+            _ = try paintNumber(remainingTime, .{ .x = textWidthTime, .y = -0.9 }, fontSize, fontVertices);
         }
     }
     if (state.highscore > 0) {
-        const textWidthTime = paintText("Highscore: ", .{ .x = 0.5, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
-        _ = try paintNumber(state.highscore, .{ .x = 0.5 + textWidthTime, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
+        const textWidthTime = paintText("Highscore: ", .{ .x = 0.5, .y = -0.99 }, fontSize, fontVertices);
+        _ = try paintNumber(state.highscore, .{ .x = 0.5 + textWidthTime, .y = -0.99 }, fontSize, fontVertices);
     }
     if (state.lastScore > 0) {
-        const textWidthTime = paintText("last score: ", .{ .x = -0.65, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
-        _ = try paintNumber(state.lastScore, .{ .x = -0.65 + textWidthTime, .y = -0.99 }, fontSize, &state.vkState.font.vkFont);
+        const textWidthTime = paintText("last score: ", .{ .x = -0.65, .y = -0.99 }, fontSize, fontVertices);
+        _ = try paintNumber(state.lastScore, .{ .x = -0.65 + textWidthTime, .y = -0.99 }, fontSize, fontVertices);
     }
-    try setupVertexDataForGPU(&state.vkState);
 }
 
 /// returns vulkan surface width of text
@@ -114,8 +108,6 @@ pub fn paintNumber(number: anytype, vulkanSurfacePosition: main.Position, fontSi
 }
 
 pub fn initFont(state: *main.GameState) !void {
-    try createGraphicsPipeline(&state.vkState, state.allocator);
-    try createVertexBuffer(&state.vkState, state.allocator);
     try imageZig.createVulkanTextureImage(
         &state.vkState,
         state.allocator,
@@ -134,34 +126,10 @@ pub fn initFont(state: *main.GameState) !void {
     );
 }
 
-pub fn destroyFont(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) void {
+pub fn destroyFont(vkState: *initVulkanZig.VkState) void {
     vk.vkDestroyImageView.?(vkState.logicalDevice, vkState.font.textureImageView, null);
     vk.vkDestroyImage.?(vkState.logicalDevice, vkState.font.textureImage, null);
     vk.vkFreeMemory.?(vkState.logicalDevice, vkState.font.textureImageMemory, null);
-    vk.vkDestroyBuffer.?(vkState.logicalDevice, vkState.font.vkFont.vertexBuffer, null);
-    vk.vkFreeMemory.?(vkState.logicalDevice, vkState.font.vkFont.vertexBufferMemory, null);
-    vk.vkDestroyPipeline.?(vkState.logicalDevice, vkState.font.graphicsPipeline, null);
-    vk.vkDestroyPipeline.?(vkState.logicalDevice, vkState.font.graphicsPipelineSubpass0, null);
-    allocator.free(vkState.font.vkFont.vertices);
-}
-
-fn setupVertexDataForGPU(vkState: *initVulkanZig.VkState) !void {
-    var data: ?*anyopaque = undefined;
-    if (vk.vkMapMemory.?(vkState.logicalDevice, vkState.font.vkFont.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.FontVertex) * vkState.font.vkFont.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
-    const gpu_vertices: [*]dataVulkanZig.FontVertex = @ptrCast(@alignCast(data));
-    @memcpy(gpu_vertices, vkState.font.vkFont.vertices[0..]);
-    vk.vkUnmapMemory.?(vkState.logicalDevice, vkState.font.vkFont.vertexBufferMemory);
-}
-
-pub fn recordFontCommandBuffer(commandBuffer: vk.VkCommandBuffer, state: *main.GameState) !void {
-    try setupVertices(state);
-    const vkState = &state.vkState;
-
-    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.font.graphicsPipeline);
-    const vertexBuffers: [1]vk.VkBuffer = .{vkState.font.vkFont.vertexBuffer};
-    const offsets: [1]vk.VkDeviceSize = .{0};
-    vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
-    vk.vkCmdDraw.?(commandBuffer, @intCast(vkState.font.vkFont.verticeCount), 1, 0, 0);
 }
 
 pub fn charToTexCoords(char: u8, texX: *f32, texWidth: *f32) void {
@@ -305,169 +273,4 @@ pub fn charToTexCoords(char: u8, texX: *f32, texWidth: *f32) void {
     }
     texX.* = imageCharSeperatePixels[index] / fontImageWidth;
     texWidth.* = (imageCharSeperatePixels[index + 1] - imageCharSeperatePixels[index]) / fontImageWidth;
-}
-
-fn createVertexBuffer(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
-    vkState.font.vkFont.vertices = try allocator.alloc(dataVulkanZig.FontVertex, MAX_VERTICES);
-    try initVulkanZig.createBuffer(
-        @sizeOf(dataVulkanZig.FontVertex) * vkState.font.vkFont.vertices.len,
-        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &vkState.font.vkFont.vertexBuffer,
-        &vkState.font.vkFont.vertexBufferMemory,
-        vkState,
-    );
-}
-
-fn createGraphicsPipeline(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
-    const vertShaderCode = try initVulkanZig.readShaderFile("shaders/fontVert.spv", allocator);
-    defer allocator.free(vertShaderCode);
-    const vertShaderModule = try initVulkanZig.createShaderModule(vertShaderCode, vkState);
-    defer vk.vkDestroyShaderModule.?(vkState.logicalDevice, vertShaderModule, null);
-    const vertShaderStageInfo = vk.VkPipelineShaderStageCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        .stage = vk.VK_SHADER_STAGE_VERTEX_BIT,
-        .module = vertShaderModule,
-        .pName = "main",
-    };
-
-    const fragShaderCode = try initVulkanZig.readShaderFile("shaders/fontFrag.spv", allocator);
-    defer allocator.free(fragShaderCode);
-    const fragShaderModule = try initVulkanZig.createShaderModule(fragShaderCode, vkState);
-    defer vk.vkDestroyShaderModule.?(vkState.logicalDevice, fragShaderModule, null);
-    const fragShaderStageInfo = vk.VkPipelineShaderStageCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        .stage = vk.VK_SHADER_STAGE_FRAGMENT_BIT,
-        .module = fragShaderModule,
-        .pName = "main",
-    };
-
-    const geomShaderCode = try initVulkanZig.readShaderFile("shaders/fontGeom.spv", allocator);
-    defer allocator.free(geomShaderCode);
-    const geomShaderModule = try initVulkanZig.createShaderModule(geomShaderCode, vkState);
-    defer vk.vkDestroyShaderModule.?(vkState.logicalDevice, geomShaderModule, null);
-    const geomShaderStageInfo = vk.VkPipelineShaderStageCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        .stage = vk.VK_SHADER_STAGE_GEOMETRY_BIT,
-        .module = geomShaderModule,
-        .pName = "main",
-    };
-
-    const shaderStages = [_]vk.VkPipelineShaderStageCreateInfo{ vertShaderStageInfo, fragShaderStageInfo, geomShaderStageInfo };
-    const bindingDescription = dataVulkanZig.FontVertex.getBindingDescription();
-    const attributeDescriptions = dataVulkanZig.FontVertex.getAttributeDescriptions();
-    var vertexInputInfo = vk.VkPipelineVertexInputStateCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-        .vertexBindingDescriptionCount = 1,
-        .pVertexBindingDescriptions = &bindingDescription,
-        .vertexAttributeDescriptionCount = attributeDescriptions.len,
-        .pVertexAttributeDescriptions = &attributeDescriptions,
-    };
-
-    var inputAssembly = vk.VkPipelineInputAssemblyStateCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-        .topology = vk.VK_PRIMITIVE_TOPOLOGY_POINT_LIST,
-        .primitiveRestartEnable = vk.VK_FALSE,
-    };
-
-    var viewportState = vk.VkPipelineViewportStateCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-        .viewportCount = 1,
-        .pViewports = null,
-        .scissorCount = 1,
-        .pScissors = null,
-    };
-
-    var rasterizer = vk.VkPipelineRasterizationStateCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-        .depthClampEnable = vk.VK_FALSE,
-        .rasterizerDiscardEnable = vk.VK_FALSE,
-        .polygonMode = vk.VK_POLYGON_MODE_FILL,
-        .lineWidth = 1.0,
-        .cullMode = vk.VK_CULL_MODE_BACK_BIT,
-        .frontFace = vk.VK_FRONT_FACE_CLOCKWISE,
-        .depthBiasEnable = vk.VK_FALSE,
-        .depthBiasConstantFactor = 0.0,
-        .depthBiasClamp = 0.0,
-        .depthBiasSlopeFactor = 0.0,
-    };
-
-    var multisampling = vk.VkPipelineMultisampleStateCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-        .sampleShadingEnable = vk.VK_FALSE,
-        .rasterizationSamples = vkState.msaaSamples,
-        .minSampleShading = 1.0,
-        .pSampleMask = null,
-        .alphaToCoverageEnable = vk.VK_FALSE,
-        .alphaToOneEnable = vk.VK_FALSE,
-    };
-
-    var colorBlendAttachment = vk.VkPipelineColorBlendAttachmentState{
-        .colorWriteMask = vk.VK_COLOR_COMPONENT_R_BIT | vk.VK_COLOR_COMPONENT_G_BIT | vk.VK_COLOR_COMPONENT_B_BIT | vk.VK_COLOR_COMPONENT_A_BIT,
-        .blendEnable = vk.VK_TRUE,
-        .srcColorBlendFactor = vk.VK_BLEND_FACTOR_SRC_ALPHA,
-        .dstColorBlendFactor = vk.VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-        .colorBlendOp = vk.VK_BLEND_OP_ADD,
-        .srcAlphaBlendFactor = vk.VK_BLEND_FACTOR_ONE,
-        .dstAlphaBlendFactor = vk.VK_BLEND_FACTOR_ZERO,
-        .alphaBlendOp = vk.VK_BLEND_OP_ADD,
-    };
-
-    var colorBlending = vk.VkPipelineColorBlendStateCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-        .logicOpEnable = vk.VK_FALSE,
-        .logicOp = vk.VK_LOGIC_OP_COPY,
-        .attachmentCount = 1,
-        .pAttachments = &colorBlendAttachment,
-        .blendConstants = [_]f32{ 0.0, 0.0, 0.0, 0.0 },
-    };
-
-    const dynamicStates = [_]vk.VkDynamicState{
-        vk.VK_DYNAMIC_STATE_VIEWPORT,
-        vk.VK_DYNAMIC_STATE_SCISSOR,
-    };
-
-    var dynamicState = vk.VkPipelineDynamicStateCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-        .dynamicStateCount = dynamicStates.len,
-        .pDynamicStates = &dynamicStates,
-    };
-
-    var pipelineInfo = vk.VkGraphicsPipelineCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-        .stageCount = shaderStages.len,
-        .pStages = &shaderStages,
-        .pVertexInputState = &vertexInputInfo,
-        .pInputAssemblyState = &inputAssembly,
-        .pViewportState = &viewportState,
-        .pRasterizationState = &rasterizer,
-        .pMultisampleState = &multisampling,
-        .pColorBlendState = &colorBlending,
-        .pDynamicState = &dynamicState,
-        .layout = vkState.pipelineLayout,
-        .renderPass = vkState.renderPass,
-        .subpass = 0,
-        .basePipelineHandle = null,
-        .pNext = null,
-    };
-    if (vk.vkCreateGraphicsPipelines.?(vkState.logicalDevice, null, 1, &pipelineInfo, null, &vkState.font.graphicsPipeline) != vk.VK_SUCCESS) return error.createGraphicsPipeline;
-
-    var pipelineInfoSubpass0 = vk.VkGraphicsPipelineCreateInfo{
-        .sType = vk.VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-        .stageCount = shaderStages.len,
-        .pStages = &shaderStages,
-        .pVertexInputState = &vertexInputInfo,
-        .pInputAssemblyState = &inputAssembly,
-        .pViewportState = &viewportState,
-        .pRasterizationState = &rasterizer,
-        .pMultisampleState = &multisampling,
-        .pColorBlendState = &colorBlending,
-        .pDynamicState = &dynamicState,
-        .layout = vkState.pipelineLayout,
-        .renderPass = vkState.renderPass,
-        .subpass = 0,
-        .basePipelineHandle = null,
-        .pNext = null,
-    };
-    if (vk.vkCreateGraphicsPipelines.?(vkState.logicalDevice, null, 1, &pipelineInfoSubpass0, null, &vkState.font.graphicsPipelineSubpass0) != vk.VK_SUCCESS) return error.createGraphicsPipeline;
 }

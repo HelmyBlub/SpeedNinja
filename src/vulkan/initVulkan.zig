@@ -5,10 +5,8 @@ const sdl = windowSdlZig.sdl;
 const imageZig = @import("../image.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 const dataVulkanZig = @import("dataVulkan.zig");
-const movePieceUxVulkanZig = @import("movePieceUxVulkan.zig");
 const pipelinesVulkanZig = @import("pipelinesVulkan.zig");
 const fontVulkanZig = @import("fontVulkan.zig");
-const ninjaDogVulkanZig = @import("ninjaDogVulkan.zig");
 pub const vk = @cImport({
     @cInclude("Volk/volk.h");
 });
@@ -70,9 +68,6 @@ pub const VkState = struct {
 
     verticeData: dataVulkanZig.VkVerticeData = .{},
     font: fontVulkanZig.VkFontData = .{},
-    movePieceUx: movePieceUxVulkanZig.VkMovePiecesUx = .{},
-    ninjaDogData: dataVulkanZig.VkSpriteComplex = .{},
-
     pub const MAX_FRAMES_IN_FLIGHT: u16 = 2;
     pub const BUFFER_ADDITIOAL_SIZE: u16 = 50;
 };
@@ -117,8 +112,6 @@ pub fn initVulkan(state: *main.GameState) !void {
     try createTextureSampler(vkState);
     try createVertexBuffer(vkState, state.allocator);
     try fontVulkanZig.initFont(state);
-    try movePieceUxVulkanZig.create(state);
-    try ninjaDogVulkanZig.create(state);
     try createUniformBuffers(vkState, state.allocator);
     try createDescriptorPool(vkState);
     try createDescriptorSets(vkState, state.allocator);
@@ -129,9 +122,7 @@ pub fn initVulkan(state: *main.GameState) !void {
 
 pub fn destroyPaintVulkan(vkState: *VkState, allocator: std.mem.Allocator) !void {
     if (vk.vkDeviceWaitIdle.?(vkState.logicalDevice) != vk.VK_SUCCESS) return error.vkDeviceWaitIdleDestroyPaintVulkan;
-    fontVulkanZig.destroyFont(vkState, allocator);
-    movePieceUxVulkanZig.destroy(vkState, allocator);
-    ninjaDogVulkanZig.destroy(vkState, allocator);
+    fontVulkanZig.destroyFont(vkState);
     destroyVerticeData(vkState, allocator);
     cleanupSwapChain(vkState, allocator);
 

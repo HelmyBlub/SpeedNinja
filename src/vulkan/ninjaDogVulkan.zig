@@ -1,7 +1,5 @@
 const std = @import("std");
 const main = @import("../main.zig");
-const initVulkanZig = @import("initVulkan.zig");
-const vk = initVulkanZig.vk;
 const imageZig = @import("../image.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 const dataVulkanZig = @import("dataVulkan.zig");
@@ -9,7 +7,6 @@ const paintVulkanZig = @import("paintVulkan.zig");
 const soundMixerZig = @import("../soundMixer.zig");
 
 const DEATH_DURATION = 3000;
-const MAX_VERTICES = 8000; //TODO not checked limit
 
 pub const NinjaDogPaintData = struct {
     bladeDrawn: bool = false,
@@ -260,14 +257,13 @@ fn tickNinjaDogPawAnimation(player: *main.Player, timePassed: i64, state: *main.
     }
 }
 
-fn setupVertices(state: *main.GameState) !void {
-    const ninjaDogData = &state.vkState.ninjaDogData;
-    ninjaDogData.verticeCount = 0;
+pub fn setupVertices(state: *main.GameState) !void {
+    const verticeData = &state.vkState.verticeData;
 
     for (state.players.items) |*player| {
         var currentAfterImageIndex: usize = 0;
         while (currentAfterImageIndex < player.afterImages.items.len) {
-            if (ninjaDogData.verticeCount + 1 >= ninjaDogData.vertices.len) break;
+            if (verticeData.spritesComplex.verticeCount + 1 >= verticeData.spritesComplex.vertices.len) break;
             const afterImage = player.afterImages.items[currentAfterImageIndex];
             if (afterImage.deleteTime < state.gameTime) {
                 _ = player.afterImages.swapRemove(currentAfterImageIndex);
@@ -279,8 +275,6 @@ fn setupVertices(state: *main.GameState) !void {
 
         drawNinjaDog(player.position, player.paintData, state);
     }
-
-    try setupVertexDataForGPU(&state.vkState);
 }
 
 pub fn drawNinjaDog(position: main.Position, paintData: NinjaDogPaintData, state: *main.GameState) void {
@@ -560,7 +554,7 @@ fn angleAtB(a: main.Position, b: main.Position, c: main.Position) f32 {
 /// rotatePoint = image coordinates
 pub fn addTiranglesForSprite(gamePosition: main.Position, imageAnkerPosition: main.Position, imageIndex: u8, rotateAngle: f32, rotatePoint: ?main.Position, optScale: ?main.Position, state: *main.GameState) void {
     const scale: main.Position = if (optScale) |s| s else .{ .x = 1, .y = 1 };
-    const ninjaDogData = &state.vkState.ninjaDogData;
+    const verticeData = &state.vkState.verticeData;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const imageData = imageZig.IMAGE_DATA[imageIndex];
@@ -590,19 +584,19 @@ pub fn addTiranglesForSprite(gamePosition: main.Position, imageAnkerPosition: ma
             if (cornerPosOffset.x < 0) 0 else 1,
             if (cornerPosOffset.y < 0) 0 else 1,
         };
-        ninjaDogData.vertices[ninjaDogData.verticeCount] = dataVulkanZig.SpriteComplexVertex{
+        verticeData.spritesComplex.vertices[verticeData.spritesComplex.verticeCount] = dataVulkanZig.SpriteComplexVertex{
             .pos = .{ vulkan.x, vulkan.y },
             .imageIndex = imageIndex,
             .alpha = 1,
             .tex = texPos,
         };
-        ninjaDogData.verticeCount += 1;
+        verticeData.spritesComplex.verticeCount += 1;
     }
 }
 
 fn addTiranglesForSpriteWithWaveAnimation(gamePosition: main.Position, imageAnkerPosition: main.Position, imageIndex: u8, rotateAngle: f32, rotatePoint: ?main.Position, optScale: ?main.Position, waveOffset: f32, state: *main.GameState) void {
     const scale: main.Position = if (optScale) |s| s else .{ .x = 1, .y = 1 };
-    const ninjaDogData = &state.vkState.ninjaDogData;
+    const verticeData = &state.vkState.verticeData;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const imageData = imageZig.IMAGE_DATA[imageIndex];
@@ -644,20 +638,20 @@ fn addTiranglesForSpriteWithWaveAnimation(gamePosition: main.Position, imageAnke
                 .x = (rotatedOffset.x - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
                 .y = (rotatedOffset.y - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
             };
-            ninjaDogData.vertices[ninjaDogData.verticeCount] = dataVulkanZig.SpriteComplexVertex{
+            verticeData.spritesComplex.vertices[verticeData.spritesComplex.verticeCount] = dataVulkanZig.SpriteComplexVertex{
                 .pos = .{ vulkan.x, vulkan.y },
                 .imageIndex = imageIndex,
                 .alpha = 1,
                 .tex = texPos,
             };
-            ninjaDogData.verticeCount += 1;
+            verticeData.spritesComplex.verticeCount += 1;
         }
     }
 }
 
 fn addTiranglesForSpriteWithBend(gamePosition: main.Position, imageAnkerPosition: main.Position, imageIndex: u8, rotateAngle: f32, rotatePoint: ?main.Position, optScale: ?main.Position, bend: f32, state: *main.GameState) void {
     const scale: main.Position = if (optScale) |s| s else .{ .x = 1, .y = 1 };
-    const ninjaDogData = &state.vkState.ninjaDogData;
+    const verticeData = &state.vkState.verticeData;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const imageData = imageZig.IMAGE_DATA[imageIndex];
@@ -696,56 +690,13 @@ fn addTiranglesForSpriteWithBend(gamePosition: main.Position, imageAnkerPosition
                 .x = (rotatedOffset.x - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
                 .y = (rotatedOffset.y - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
             };
-            ninjaDogData.vertices[ninjaDogData.verticeCount] = dataVulkanZig.SpriteComplexVertex{
+            verticeData.spritesComplex.vertices[verticeData.spritesComplex.verticeCount] = dataVulkanZig.SpriteComplexVertex{
                 .pos = .{ vulkan.x, vulkan.y },
                 .imageIndex = imageIndex,
                 .alpha = 1,
                 .tex = texPos,
             };
-            ninjaDogData.verticeCount += 1;
+            verticeData.spritesComplex.verticeCount += 1;
         }
     }
-}
-
-pub fn create(state: *main.GameState) !void {
-    try createVertexBuffer(&state.vkState, state.allocator);
-}
-
-pub fn destroy(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) void {
-    const ninjaDog = vkState.ninjaDogData;
-    vk.vkDestroyBuffer.?(vkState.logicalDevice, ninjaDog.vertexBuffer, null);
-    vk.vkFreeMemory.?(vkState.logicalDevice, ninjaDog.vertexBufferMemory, null);
-    allocator.free(ninjaDog.vertices);
-}
-
-fn setupVertexDataForGPU(vkState: *initVulkanZig.VkState) !void {
-    const ninjaDog = vkState.ninjaDogData;
-    var data: ?*anyopaque = undefined;
-    if (vk.vkMapMemory.?(vkState.logicalDevice, ninjaDog.vertexBufferMemory, 0, @sizeOf(dataVulkanZig.SpriteComplexVertex) * ninjaDog.vertices.len, 0, &data) != vk.VK_SUCCESS) return error.MapMemory;
-    const gpu_vertices: [*]dataVulkanZig.SpriteComplexVertex = @ptrCast(@alignCast(data));
-    @memcpy(gpu_vertices, ninjaDog.vertices[0..]);
-    vk.vkUnmapMemory.?(vkState.logicalDevice, ninjaDog.vertexBufferMemory);
-}
-
-pub fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, state: *main.GameState) !void {
-    try setupVertices(state);
-    const vkState = &state.vkState;
-
-    vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.spriteComplex);
-    const vertexBuffers: [1]vk.VkBuffer = .{vkState.ninjaDogData.vertexBuffer};
-    const offsets: [1]vk.VkDeviceSize = .{0};
-    vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
-    vk.vkCmdDraw.?(commandBuffer, @intCast(vkState.ninjaDogData.verticeCount), 1, 0, 0);
-}
-
-fn createVertexBuffer(vkState: *initVulkanZig.VkState, allocator: std.mem.Allocator) !void {
-    vkState.ninjaDogData.vertices = try allocator.alloc(dataVulkanZig.SpriteComplexVertex, MAX_VERTICES);
-    try initVulkanZig.createBuffer(
-        @sizeOf(dataVulkanZig.SpriteComplexVertex) * vkState.ninjaDogData.vertices.len,
-        vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &vkState.ninjaDogData.vertexBuffer,
-        &vkState.ninjaDogData.vertexBufferMemory,
-        vkState,
-    );
 }

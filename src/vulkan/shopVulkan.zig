@@ -8,7 +8,7 @@ const windowSdlZig = @import("../windowSdl.zig");
 const movePieceZig = @import("../movePiece.zig");
 const fontVulkanZig = @import("fontVulkan.zig");
 const shopZig = @import("../shop.zig");
-const movePieceVulkanZig = @import("movePieceUxVulkan.zig");
+const movePieceUxVulkanZig = @import("movePieceUxVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 
 pub fn setupVertices(state: *main.GameState) !void {
@@ -61,7 +61,7 @@ fn verticesForEarlyShopTrigger(state: *main.GameState) void {
     const fontSize = 26;
     _ = fontVulkanZig.paintText("early", .{ .x = left, .y = top }, fontSize, &verticeData.font);
     _ = fontVulkanZig.paintText("shop", .{ .x = left, .y = top + fontSize * onePixelYInVulkan }, fontSize, &verticeData.font);
-    movePieceVulkanZig.verticesForRectangle(left, top, width, height, .{ 1, 1, 1 }, &verticeData.lines, &verticeData.triangles);
+    movePieceUxVulkanZig.verticesForRectangle(left, top, width, height, .{ 1, 1, 1 }, &verticeData.lines, &verticeData.triangles);
 }
 
 fn paintGrid(player: *main.Player, state: *main.GameState) void {
@@ -131,7 +131,7 @@ fn paintMovePieceInGrid(player: *main.Player, gridGameTopLeft: main.Position, st
     var left = vulkan.x - width / 2;
     var top = vulkan.y - height / 2;
 
-    const endPos = movePieceVulkanZig.verticesForMovePiece(
+    const endPos = movePieceUxVulkanZig.verticesForMovePiece(
         gridDisplayPiece,
         .{ 0.25, 0.25, 0.25 },
         left,
@@ -149,7 +149,7 @@ fn paintMovePieceInGrid(player: *main.Player, gridGameTopLeft: main.Position, st
     if (player.shop.selectedOption == .combine and player.shop.selectedOption.combine.pieceIndex2 != null) {
         const displayPiece2 = player.totalMovePieces.items[player.shop.selectedOption.combine.pieceIndex2.?];
         const directionChange = player.shop.selectedOption.combine.direction;
-        _ = movePieceVulkanZig.verticesForMovePiece(
+        _ = movePieceUxVulkanZig.verticesForMovePiece(
             displayPiece2,
             .{ 0.25, 0.25, 0.25 },
             left,

@@ -22,9 +22,11 @@ pub fn drawFrame(state: *main.GameState) !void {
     try choosenMovePieceVulkanZig.setupVertices(state);
     try enemyVulkanZig.setupVertices(state);
     try cutSpriteVulkanZig.setupVertices(state);
+    try ninjaDogVulkanZig.setupVertices(state);
+    try movePieceUxVulkanZig.setupVertices(state);
+    try fontVulkanZig.setupVertices(state);
     try setupVertexDataForGPU(vkState);
 
-    try movePieceUxVulkanZig.setupVertices(state);
     if (!try initVulkanZig.createSwapChainRelatedStuffAndCheckWindowSize(state, state.allocator)) return;
     try updateUniformBuffer(state);
     if (vk.vkWaitForFences.?(vkState.logicalDevice, 1, &vkState.inFlightFence[vkState.currentFrame], vk.VK_TRUE, std.math.maxInt(u64)) != vk.VK_SUCCESS) return;
@@ -221,6 +223,7 @@ fn resetVerticeData(state: *main.GameState) !void {
         try initVulkanZig.createVertexBufferSpritesFont(vkState, &verticeData.font, verticeData.font.vertices.len + increaseBy, state.allocator);
     }
     verticeData.font.verticeCount = 0;
+    verticeData.dataDrawCut.clearRetainingCapacity();
 }
 
 fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state: *main.GameState) !void {
@@ -335,7 +338,7 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
             fontVerticeCount = verticeData.dataDrawCut.items[i].font - fontIndex;
         }
         if (fontVerticeCount > 0) {
-            vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.font.graphicsPipeline);
+            vk.vkCmdBindPipeline.?(commandBuffer, vk.VK_PIPELINE_BIND_POINT_GRAPHICS, vkState.graphicsPipelines.font);
             const vertexBuffers: [1]vk.VkBuffer = .{verticeData.font.vertexBuffer};
             const offsets: [1]vk.VkDeviceSize = .{0};
             vk.vkCmdBindVertexBuffers.?(commandBuffer, 0, 1, &vertexBuffers[0], &offsets[0]);
@@ -343,11 +346,6 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
             fontIndex += fontVerticeCount;
         }
     }
-
-    try ninjaDogVulkanZig.recordCommandBuffer(commandBuffer, state);
-    try movePieceUxVulkanZig.recordCommandBuffer(commandBuffer, state);
-    try fontVulkanZig.recordFontCommandBuffer(commandBuffer, state);
-
     vk.vkCmdEndRenderPass.?(commandBuffer);
     try initVulkanZig.vkcheck(vk.vkEndCommandBuffer.?(commandBuffer), "Failed to End Command Buffer.");
 }

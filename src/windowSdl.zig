@@ -8,7 +8,6 @@ pub const sdl = @cImport({
 });
 const main = @import("main.zig");
 const movePieceZig = @import("movePiece.zig");
-const ninjaDogVulkanZig = @import("vulkan/ninjaDogVulkan.zig");
 const shopZig = @import("shop.zig");
 
 pub const WindowData = struct {

@@ -1,13 +1,6 @@
 Tasks:
-- shop combine bug:
-    - piece combine did not do direction correct
-    - what i remember doing
-        - combined seconds time
-        - first combined was "down" to "left left" tile
-        - second combine was "up" to "left up"?
-        - bug: first attach was "up" instead of "left"
-        - seconds attach was up, but if first connect was already up, this would be wrong
 - redesign code
+    - clean up pipelines
     - make buffer/vertice sizes to adjust automatically
     - each vertex type only once
         - needs to be able to change size on runtime
@@ -20,6 +13,15 @@ Tasks:
         - less work to set up new stuff if there is a layer already
         - with some redesign could also care for ordered draw
     - performance loss
+
+- shop combine bug:
+    - piece combine did not do direction correct
+    - what i remember doing
+        - combined seconds time
+        - first combined was "down" to "left left" tile
+        - second combine was "up" to "left up"?
+        - bug: first attach was "up" instead of "left"
+        - seconds attach was up, but if first connect was already up, this would be wrong
 
 - boss round
     - visualization:
