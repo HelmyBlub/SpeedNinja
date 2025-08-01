@@ -2,7 +2,7 @@ const std = @import("std");
 const main = @import("../main.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 
-pub fn setupVertices(state: *main.GameState) !void {
+pub fn setupVertices(state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
 
     const lines = &verticeData.lines;

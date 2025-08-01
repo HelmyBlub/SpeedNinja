@@ -9,6 +9,12 @@ const movePieceZig = @import("../movePiece.zig");
 pub fn setupVertices(state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
     for (state.enemies.items) |enemy| {
+        paintVulkanZig.verticesForComplexSpriteDefault(enemy.position, enemy.imageIndex, &verticeData.spritesComplex, state);
+    }
+}
+
+pub fn setupVerticesGround(state: *main.GameState) void {
+    for (state.enemies.items) |enemy| {
         switch (enemy.enemyTypeData) {
             .nothing => {},
             .attack => |data| {
@@ -24,8 +30,21 @@ pub fn setupVertices(state: *main.GameState) void {
             },
         }
     }
-    for (state.enemies.items) |enemy| {
-        paintVulkanZig.verticesForComplexSpriteDefault(enemy.position, enemy.imageIndex, &verticeData.spritesComplex, state);
+    for (state.bosses.items) |boss| {
+        if (boss.state == .chargeStomp) {
+            const fillPerCent: f32 = @min(1, @max(0, @as(f32, @floatFromInt(boss.attackChargeTime + state.gameTime - boss.nextStateTime)) / @as(f32, @floatFromInt(boss.attackChargeTime))));
+            const size: usize = @intCast(boss.attackTileRadius * 2 + 1);
+            for (0..size) |i| {
+                const offsetX: f32 = @as(f32, @floatFromInt(@as(i32, @intCast(i)) - boss.attackTileRadius)) * main.TILESIZE;
+                for (0..size) |j| {
+                    const offsetY: f32 = @as(f32, @floatFromInt(@as(i32, @intCast(j)) - boss.attackTileRadius)) * main.TILESIZE;
+                    addWarningTileSprites(.{
+                        .x = boss.position.x + offsetX,
+                        .y = boss.position.y + offsetY,
+                    }, fillPerCent, state);
+                }
+            }
+        }
     }
 }
 
@@ -39,20 +58,6 @@ pub fn setupVerticesForBosses(state: *main.GameState) void {
             if (boss.nextStateTime < state.gameTime + 750) {
                 const perCent = @max(0, @as(f32, @floatFromInt(boss.nextStateTime - state.gameTime)) / 750.0);
                 bossPosition.y -= main.TILESIZE / 2 * (1 - perCent);
-            }
-        }
-        if (boss.state == .chargeStomp) {
-            const fillPerCent: f32 = @min(1, @max(0, @as(f32, @floatFromInt(boss.attackChargeTime + state.gameTime - boss.nextStateTime)) / @as(f32, @floatFromInt(boss.attackChargeTime))));
-            const size: usize = @intCast(boss.attackTileRadius * 2 + 1);
-            for (0..size) |i| {
-                const offsetX: f32 = @as(f32, @floatFromInt(@as(i32, @intCast(i)) - boss.attackTileRadius)) * main.TILESIZE;
-                for (0..size) |j| {
-                    const offsetY: f32 = @as(f32, @floatFromInt(@as(i32, @intCast(j)) - boss.attackTileRadius)) * main.TILESIZE;
-                    addWarningTileSprites(.{
-                        .x = boss.position.x + offsetX,
-                        .y = boss.position.y + offsetY,
-                    }, fillPerCent, state);
-                }
             }
         }
         if (bossPosition.y != boss.position.y) {

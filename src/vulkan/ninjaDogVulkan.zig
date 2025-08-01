@@ -257,7 +257,7 @@ fn tickNinjaDogPawAnimation(player: *main.Player, timePassed: i64, state: *main.
     }
 }
 
-pub fn setupVertices(state: *main.GameState) !void {
+pub fn setupVertices(state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
 
     for (state.players.items) |*player| {

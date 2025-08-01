@@ -11,7 +11,7 @@ const shopZig = @import("../shop.zig");
 const movePieceUxVulkanZig = @import("movePieceUxVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 
-pub fn setupVertices(state: *main.GameState) !void {
+pub fn setupVertices(state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
     if (state.gamePhase != .shopping) {
         verticesForEarlyShopTrigger(state);

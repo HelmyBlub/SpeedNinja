@@ -14,7 +14,7 @@ const UX_RECTANGLES = 200; //TODO size
 const MAX_VERTICES_TRIANGLES = 6 * UX_RECTANGLES;
 const MAX_VERTICES_LINES = 8 * UX_RECTANGLES;
 
-pub fn setupVertices(state: *main.GameState) !void {
+pub fn setupVertices(state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
     for (state.players.items) |*player| {
         verticesForChoosenMoveOptionVisualization(player, &verticeData.lines, &verticeData.triangles, state);

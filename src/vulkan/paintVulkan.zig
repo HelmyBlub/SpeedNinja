@@ -18,12 +18,14 @@ const gameInfoUxZig = @import("gameInfoUxVulkan.zig");
 pub fn drawFrame(state: *main.GameState) !void {
     const vkState = &state.vkState;
     try resetVerticeData(state);
-    try mapGridVulkanZig.setupVertices(state);
-    try shopVulkanZig.setupVertices(state);
-    try choosenMovePieceVulkanZig.setupVertices(state);
+    mapGridVulkanZig.setupVertices(state);
+    shopVulkanZig.setupVertices(state);
+    enemyVulkanZig.setupVerticesGround(state);
+    try addDataVerticeDrawCut(&state.vkState.verticeData);
+    choosenMovePieceVulkanZig.setupVertices(state);
     enemyVulkanZig.setupVertices(state);
     cutSpriteVulkanZig.setupVertices(state);
-    try ninjaDogVulkanZig.setupVertices(state);
+    ninjaDogVulkanZig.setupVertices(state);
     enemyVulkanZig.setupVerticesForBosses(state);
     try movePieceUxVulkanZig.setupVertices(state);
     try gameInfoUxZig.setupVertices(state);
@@ -469,4 +471,14 @@ pub fn verticesForRectangle(x: f32, y: f32, width: f32, height: f32, fillColor: 
         lines.vertices[lines.verticeCount + 7] = .{ .pos = .{ x + width, y + height }, .color = borderColor };
         lines.verticeCount += 8;
     }
+}
+
+pub fn addDataVerticeDrawCut(verticeData: *dataVulkanZig.VkVerticeData) !void {
+    try verticeData.dataDrawCut.append(.{
+        .font = verticeData.font.verticeCount,
+        .lines = verticeData.lines.verticeCount,
+        .sprites = verticeData.sprites.verticeCount,
+        .spritesComplex = verticeData.spritesComplex.verticeCount,
+        .triangle = verticeData.triangles.verticeCount,
+    });
 }
