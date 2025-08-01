@@ -43,11 +43,16 @@ var SOUND_FILE_PATHES = [_][]const u8{
     "sounds/bladeCut3.mp3",
     "sounds/bladeCut4.mp3",
     "sounds/bladeDraw.mp3",
+    "sounds/stomp1.mp3",
+    "sounds/stomp2.mp3",
+    "sounds/stomp3.mp3",
+    "sounds/stomp4.mp3",
 };
 
 pub const SOUND_NINJA_MOVE_INDICIES = [_]usize{ 0, 1, 2 };
 pub const SOUND_BLADE_CUT_INDICIES = [_]usize{ 3, 4, 5, 6 };
 pub const SOUND_BLADE_DRAW = 7;
+pub const SOUND_STOMP_INDICIES = [_]usize{ 8, 9, 10, 11 };
 
 pub fn createSoundMixer(state: *main.GameState, allocator: std.mem.Allocator) !void {
     state.soundMixer = .{

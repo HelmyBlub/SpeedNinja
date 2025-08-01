@@ -123,7 +123,7 @@ fn mainLoop(state: *GameState) !void {
             try ninjaDogVulkanZig.tickNinjaDogAnimation(player, passedTime, state);
         }
         try enemyZig.tickEnemies(state);
-        bossZig.tickBosses(state, passedTime);
+        try bossZig.tickBosses(state, passedTime);
         try paintVulkanZig.drawFrame(state);
         std.Thread.sleep(5_000_000);
         lastTime = currentTime;

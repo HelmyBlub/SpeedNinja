@@ -1,7 +1,7 @@
 Tasks:
 - boss round
-    - prevent boss from leaving grid
     - sounds
+        - boss stomp sound
     - image
 
     - retries for money?

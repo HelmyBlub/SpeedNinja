@@ -2,6 +2,7 @@ const std = @import("std");
 const main = @import("main.zig");
 const imageZig = @import("image.zig");
 const movePieceZig = @import("movePiece.zig");
+const soundMixerZig = @import("soundMixer.zig");
 
 pub const LevelBossData = struct {
     name: []const u8,
@@ -68,9 +69,9 @@ fn startBossStomp(state: *main.GameState) !void {
     main.adjustZoom(state);
 }
 
-pub fn tickBosses(state: *main.GameState, passedTime: i64) void {
+pub fn tickBosses(state: *main.GameState, passedTime: i64) !void {
     for (state.bosses.items) |*boss| {
-        tickBoss(boss, passedTime, state);
+        try tickBoss(boss, passedTime, state);
     }
 }
 
@@ -104,7 +105,7 @@ pub fn isBossHit(hitArea: main.TileRectangle, playerBladeRotation: f32, state: *
     return aBossHit;
 }
 
-fn tickBoss(boss: *Boss, passedTime: i64, state: *main.GameState) void {
+fn tickBoss(boss: *Boss, passedTime: i64, state: *main.GameState) !void {
     switch (boss.state) {
         .searchTarget => {
             boss.inAir = true;
@@ -144,6 +145,7 @@ fn tickBoss(boss: *Boss, passedTime: i64, state: *main.GameState) void {
                 boss.inAir = false;
                 boss.nextStateTime = state.gameTime + boss.idleAfterAttackTime;
                 boss.state = .wait;
+                try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_STOMP_INDICIES[0..], 0);
                 const damageTileRectangle: main.TileRectangle = .{
                     .pos = .{ .x = boss.attackTilePosition.x - boss.attackTileRadius, .y = boss.attackTilePosition.y - boss.attackTileRadius },
                     .height = boss.attackTileRadius * 2 + 1,
