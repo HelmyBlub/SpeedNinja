@@ -643,19 +643,21 @@ fn createVertexBuffer(vkState: *VkState, allocator: std.mem.Allocator) !void {
     verticeData.dataDrawCut = std.ArrayList(dataVulkanZig.VkVerticeDataCut).init(allocator);
 }
 
-pub fn createVertexBufferColored(vkState: *VkState, triangles: *dataVulkanZig.VkColoredVertexes, size: usize, allocator: std.mem.Allocator) !void {
-    triangles.vertices = try allocator.alloc(dataVulkanZig.ColoredVertex, size);
+pub fn createVertexBufferColored(vkState: *VkState, colored: *dataVulkanZig.VkColoredVertexes, size: usize, allocator: std.mem.Allocator) !void {
+    if (colored.verticeCount != 0) allocator.free(colored.vertices);
+    colored.vertices = try allocator.alloc(dataVulkanZig.ColoredVertex, size);
     try createBuffer(
-        @sizeOf(dataVulkanZig.ColoredVertex) * triangles.vertices.len,
+        @sizeOf(dataVulkanZig.ColoredVertex) * colored.vertices.len,
         vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &triangles.vertexBuffer,
-        &triangles.vertexBufferMemory,
+        &colored.vertexBuffer,
+        &colored.vertexBufferMemory,
         vkState,
     );
 }
 
 pub fn createVertexBufferSprites(vkState: *VkState, sprites: *dataVulkanZig.VkSprites, size: usize, allocator: std.mem.Allocator) !void {
+    if (sprites.verticeCount != 0) allocator.free(sprites.vertices);
     sprites.vertices = try allocator.alloc(dataVulkanZig.SpriteVertex, size);
     try createBuffer(
         @sizeOf(dataVulkanZig.SpriteVertex) * sprites.vertices.len,
@@ -667,26 +669,28 @@ pub fn createVertexBufferSprites(vkState: *VkState, sprites: *dataVulkanZig.VkSp
     );
 }
 
-pub fn createVertexBufferSpritesComplex(vkState: *VkState, sprites: *dataVulkanZig.VkSpriteComplex, size: usize, allocator: std.mem.Allocator) !void {
-    sprites.vertices = try allocator.alloc(dataVulkanZig.SpriteComplexVertex, size);
+pub fn createVertexBufferSpritesComplex(vkState: *VkState, spritesComplex: *dataVulkanZig.VkSpriteComplex, size: usize, allocator: std.mem.Allocator) !void {
+    if (spritesComplex.verticeCount != 0) allocator.free(spritesComplex.vertices);
+    spritesComplex.vertices = try allocator.alloc(dataVulkanZig.SpriteComplexVertex, size);
     try createBuffer(
-        @sizeOf(dataVulkanZig.SpriteComplexVertex) * sprites.vertices.len,
+        @sizeOf(dataVulkanZig.SpriteComplexVertex) * spritesComplex.vertices.len,
         vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &sprites.vertexBuffer,
-        &sprites.vertexBufferMemory,
+        &spritesComplex.vertexBuffer,
+        &spritesComplex.vertexBufferMemory,
         vkState,
     );
 }
 
-pub fn createVertexBufferSpritesFont(vkState: *VkState, sprites: *dataVulkanZig.VkFont, size: usize, allocator: std.mem.Allocator) !void {
-    sprites.vertices = try allocator.alloc(dataVulkanZig.FontVertex, size);
+pub fn createVertexBufferSpritesFont(vkState: *VkState, font: *dataVulkanZig.VkFont, size: usize, allocator: std.mem.Allocator) !void {
+    if (font.verticeCount != 0) allocator.free(font.vertices);
+    font.vertices = try allocator.alloc(dataVulkanZig.FontVertex, size);
     try createBuffer(
-        @sizeOf(dataVulkanZig.FontVertex) * sprites.vertices.len,
+        @sizeOf(dataVulkanZig.FontVertex) * font.vertices.len,
         vk.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         vk.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | vk.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &sprites.vertexBuffer,
-        &sprites.vertexBufferMemory,
+        &font.vertexBuffer,
+        &font.vertexBufferMemory,
         vkState,
     );
 }

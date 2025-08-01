@@ -135,7 +135,8 @@ fn mainLoop(state: *GameState) !void {
     }
 }
 
-fn startNextRound(state: *GameState) !void {
+pub fn startNextRound(state: *GameState) !void {
+    state.enemies.clearRetainingCapacity();
     if (state.round == 1) {
         state.roundEndTimeMS = state.gameTime + state.levelInitialTime;
     } else {
@@ -159,9 +160,12 @@ pub fn endShoppingPhase(state: *GameState) !void {
     try startNextLevel(state);
 }
 
-fn startNextLevel(state: *GameState) !void {
+pub fn startNextLevel(state: *GameState) !void {
+    state.enemies.clearRetainingCapacity();
+    state.gamePhase = .combat;
     state.level += 1;
     state.round = 0;
+    state.bosses.clearRetainingCapacity();
     for (state.players.items) |*player| {
         try movePieceZig.resetPieces(player);
     }

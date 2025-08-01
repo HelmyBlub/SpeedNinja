@@ -106,12 +106,13 @@ pub fn handleEvents(state: *main.GameState) !void {
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_3) {
                     movePieceZig.setMoveOptionIndex(player, 2, state);
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_F1) {
-                    state.gameTime += 29_000;
+                    try main.startNextLevel(state);
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_F2) {
-                    if (player.shop.selectedOption == .add) {
-                        const data = player.shop.selectedOption.add;
-                        if (player.shop.gridDisplayPiece) |gridPiece| std.debug.print("{} {}\n", .{ gridPiece, player.shop.piecesToBuy[data.selectedIndex].? });
+                    if (state.gamePhase == .combat) {
+                        try main.startNextRound(state);
                     }
+                } else if (event.key.scancode == sdl.SDL_SCANCODE_F3) {
+                    if (state.gamePhase != .shopping) try shopZig.startShoppingPhase(state);
                 }
             }
         }

@@ -8,7 +8,7 @@ const enemyZig = @import("../enemy.zig");
 
 const DEATH_DURATION = 3000;
 
-pub fn setupVertices(state: *main.GameState) !void {
+pub fn setupVertices(state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
     var enemyDeathIndex: usize = 0;
 

@@ -6,7 +6,7 @@ const dataVulkanZig = @import("dataVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 const movePieceZig = @import("../movePiece.zig");
 
-pub fn setupVertices(state: *main.GameState) !void {
+pub fn setupVertices(state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
     for (state.enemies.items) |enemy| {
         switch (enemy.enemyTypeData) {
@@ -27,12 +27,14 @@ pub fn setupVertices(state: *main.GameState) !void {
     for (state.enemies.items) |enemy| {
         paintVulkanZig.verticesForComplexSprite(enemy.position, enemy.imageIndex, &verticeData.spritesComplex, state);
     }
-    verticesForBosses(state);
 }
 
-fn verticesForBosses(state: *main.GameState) void {
+pub fn setupVerticesForBosses(state: *main.GameState) void {
     for (state.bosses.items) |boss| {
-        paintVulkanZig.verticesForComplexSprite(boss.position, boss.imageIndex, &state.vkState.verticeData.spritesComplex, state);
+        var bossPosition = boss.position;
+        if (boss.inAir) {
+            bossPosition.y -= main.TILESIZE / 2;
+        }
         if (boss.state == .chargeStomp) {
             const fillPerCent: f32 = @min(1, @max(0, @as(f32, @floatFromInt(boss.attackChargeTime + state.gameTime - boss.nextStateTime)) / @as(f32, @floatFromInt(boss.attackChargeTime))));
             const size: usize = @intCast(boss.attackTileRadius * 2 + 1);
@@ -47,6 +49,7 @@ fn verticesForBosses(state: *main.GameState) void {
                 }
             }
         }
+        paintVulkanZig.verticesForComplexSprite(bossPosition, boss.imageIndex, &state.vkState.verticeData.spritesComplex, state);
     }
 }
 

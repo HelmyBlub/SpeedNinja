@@ -20,9 +20,10 @@ pub fn drawFrame(state: *main.GameState) !void {
     try mapGridVulkanZig.setupVertices(state);
     try shopVulkanZig.setupVertices(state);
     try choosenMovePieceVulkanZig.setupVertices(state);
-    try enemyVulkanZig.setupVertices(state);
-    try cutSpriteVulkanZig.setupVertices(state);
+    enemyVulkanZig.setupVertices(state);
+    cutSpriteVulkanZig.setupVertices(state);
     try ninjaDogVulkanZig.setupVertices(state);
+    enemyVulkanZig.setupVerticesForBosses(state);
     try movePieceUxVulkanZig.setupVertices(state);
     try fontVulkanZig.setupVertices(state);
     try setupVertexDataForGPU(vkState);
@@ -208,6 +209,7 @@ fn resetVerticeData(state: *main.GameState) !void {
         verticeData.spritesComplex.vertexBufferCleanUp[vkState.currentFrame] = verticeData.spritesComplex.vertexBuffer;
         verticeData.spritesComplex.vertexBufferMemoryCleanUp[vkState.currentFrame] = verticeData.spritesComplex.vertexBufferMemory;
         try initVulkanZig.createVertexBufferSpritesComplex(vkState, &verticeData.spritesComplex, verticeData.spritesComplex.vertices.len + increaseBy * 6, state.allocator);
+        std.debug.print("complex sprites buffer increased\n", .{});
     }
     verticeData.spritesComplex.verticeCount = 0;
 

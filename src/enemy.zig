@@ -17,7 +17,7 @@ pub const EnemyTypeAttackData = struct {
 const EnemyTypeSpawnLevelData = struct {
     enemyType: EnemyType,
     startingLevel: u32,
-    leavingLevel: u32,
+    leavingLevel: ?u32,
     baseProbability: f32,
 };
 
@@ -52,7 +52,7 @@ pub const EnemyDeathAnimation = struct {
 
 const ENEMY_TYPE_SPAWN_LEVEL_DATA = [_]EnemyTypeSpawnLevelData{
     .{ .baseProbability = 0.1, .enemyType = .nothing, .startingLevel = 1, .leavingLevel = 3 },
-    .{ .baseProbability = 1, .enemyType = .attack, .startingLevel = 2, .leavingLevel = 40 },
+    .{ .baseProbability = 1, .enemyType = .attack, .startingLevel = 2, .leavingLevel = null },
 };
 
 pub fn tickEnemies(state: *main.GameState) !void {
@@ -161,11 +161,11 @@ fn checkPlayerHit(position: main.Position, state: *main.GameState) void {
 pub fn setupEnemies(state: *main.GameState) !void {
     const enemies = &state.enemies;
     enemies.clearRetainingCapacity();
+    if (state.enemySpawnData.enemyEntries.items.len == 0) return;
     const rand = std.crypto.random;
     const enemyCount = state.round + @min(10, state.level - 1);
     state.mapTileRadius = main.BASE_MAP_TILE_RADIUS + @as(u32, @intFromFloat(@sqrt(@as(f32, @floatFromInt(enemyCount)))));
     const length: f32 = @floatFromInt(state.mapTileRadius * 2 + 1);
-
     while (enemies.items.len < enemyCount) {
         const randomTileX: i16 = @as(i16, @intFromFloat(rand.float(f32) * length - length / 2));
         const randomTileY: i16 = @as(i16, @intFromFloat(rand.float(f32) * length - length / 2));
@@ -197,7 +197,9 @@ fn calcAndSetEnemySpawnProbabilities(enemySpawnData: *EnemySpawnData) void {
         currentProbability += entry.probability / totalProbability;
         entry.calcedProbabilityEnd = currentProbability;
     }
-    enemySpawnData.enemyEntries.items[enemySpawnData.enemyEntries.items.len - 1].calcedProbabilityEnd = 1;
+    if (enemySpawnData.enemyEntries.items.len > 0) {
+        enemySpawnData.enemyEntries.items[enemySpawnData.enemyEntries.items.len - 1].calcedProbabilityEnd = 1;
+    }
 }
 
 fn canSpawnEnemyOnTile(position: main.Position, state: *main.GameState) bool {

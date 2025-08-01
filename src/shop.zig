@@ -152,6 +152,7 @@ pub fn isPlayerInEarlyShopTrigger(player: *main.Player, state: *main.GameState) 
 pub fn startShoppingPhase(state: *main.GameState) !void {
     state.gamePhase = .shopping;
     state.enemies.clearRetainingCapacity();
+    state.bosses.clearRetainingCapacity();
     try randomizeShop(state);
     for (state.players.items) |*player| {
         player.shop.gridDisplayPiece = null;
