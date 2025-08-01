@@ -101,10 +101,11 @@ fn calculateOffsetY(enemyDeath: enemyZig.EnemyDeathAnimation, state: *main.GameS
 }
 
 fn addTriangle(points: [3]main.Position, enemyDeath: enemyZig.EnemyDeathAnimation, offsetX: f32, offsetY: f32, rotateCenter: main.Position, imageIndex: u8, state: *main.GameState) void {
+    const verticeData = &state.vkState.verticeData;
+    if (verticeData.spritesComplex.vertices.len <= verticeData.spritesComplex.verticeCount + 3) return;
     const alpha = 1 - @as(f32, @floatFromInt(state.gameTime - enemyDeath.deathTime)) / DEATH_DURATION;
     const rotate: f32 = @as(f32, @floatFromInt(state.gameTime - enemyDeath.deathTime)) / 512 * enemyDeath.force;
     const halfSize = main.TILESIZE / 2;
-    const verticeData = &state.vkState.verticeData;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
 

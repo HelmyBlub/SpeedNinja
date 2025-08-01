@@ -555,6 +555,7 @@ fn angleAtB(a: main.Position, b: main.Position, c: main.Position) f32 {
 pub fn addTiranglesForSprite(gamePosition: main.Position, imageAnkerPosition: main.Position, imageIndex: u8, rotateAngle: f32, rotatePoint: ?main.Position, optScale: ?main.Position, state: *main.GameState) void {
     const scale: main.Position = if (optScale) |s| s else .{ .x = 1, .y = 1 };
     const verticeData = &state.vkState.verticeData;
+    if (verticeData.spritesComplex.vertices.len <= verticeData.spritesComplex.verticeCount + 6) return;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const imageData = imageZig.IMAGE_DATA[imageIndex];
@@ -597,6 +598,7 @@ pub fn addTiranglesForSprite(gamePosition: main.Position, imageAnkerPosition: ma
 fn addTiranglesForSpriteWithWaveAnimation(gamePosition: main.Position, imageAnkerPosition: main.Position, imageIndex: u8, rotateAngle: f32, rotatePoint: ?main.Position, optScale: ?main.Position, waveOffset: f32, state: *main.GameState) void {
     const scale: main.Position = if (optScale) |s| s else .{ .x = 1, .y = 1 };
     const verticeData = &state.vkState.verticeData;
+    if (verticeData.spritesComplex.vertices.len <= verticeData.spritesComplex.verticeCount + 24) return;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const imageData = imageZig.IMAGE_DATA[imageIndex];
@@ -652,6 +654,7 @@ fn addTiranglesForSpriteWithWaveAnimation(gamePosition: main.Position, imageAnke
 fn addTiranglesForSpriteWithBend(gamePosition: main.Position, imageAnkerPosition: main.Position, imageIndex: u8, rotateAngle: f32, rotatePoint: ?main.Position, optScale: ?main.Position, bend: f32, state: *main.GameState) void {
     const scale: main.Position = if (optScale) |s| s else .{ .x = 1, .y = 1 };
     const verticeData = &state.vkState.verticeData;
+    if (verticeData.spritesComplex.vertices.len <= verticeData.spritesComplex.verticeCount + 24) return;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const imageData = imageZig.IMAGE_DATA[imageIndex];

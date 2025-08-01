@@ -88,14 +88,16 @@ fn paintGrid(player: *main.Player, state: *main.GameState) void {
     const top = vulkan.y - halveVulkanTileSizeY;
 
     const triangles = &verticeData.triangles;
-    const fillColor: [3]f32 = .{ 1, 1, 1 };
-    triangles.vertices[triangles.verticeCount] = .{ .pos = .{ left, top }, .color = fillColor };
-    triangles.vertices[triangles.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = fillColor };
-    triangles.vertices[triangles.verticeCount + 2] = .{ .pos = .{ left, top + height }, .color = fillColor };
-    triangles.vertices[triangles.verticeCount + 3] = .{ .pos = .{ left, top }, .color = fillColor };
-    triangles.vertices[triangles.verticeCount + 4] = .{ .pos = .{ left + width, top }, .color = fillColor };
-    triangles.vertices[triangles.verticeCount + 5] = .{ .pos = .{ left + width, top + height }, .color = fillColor };
-    triangles.verticeCount += 6;
+    if (triangles.verticeCount + 6 < triangles.vertices.len) {
+        const fillColor: [3]f32 = .{ 1, 1, 1 };
+        triangles.vertices[triangles.verticeCount] = .{ .pos = .{ left, top }, .color = fillColor };
+        triangles.vertices[triangles.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = fillColor };
+        triangles.vertices[triangles.verticeCount + 2] = .{ .pos = .{ left, top + height }, .color = fillColor };
+        triangles.vertices[triangles.verticeCount + 3] = .{ .pos = .{ left, top }, .color = fillColor };
+        triangles.vertices[triangles.verticeCount + 4] = .{ .pos = .{ left + width, top }, .color = fillColor };
+        triangles.vertices[triangles.verticeCount + 5] = .{ .pos = .{ left + width, top + height }, .color = fillColor };
+        triangles.verticeCount += 6;
+    }
 
     paintMovePieceInGrid(player, gridGameTopLeft, state);
     if (player.shop.selectedOption == .cut) {
@@ -190,6 +192,7 @@ fn rectangleForTile(gamePosition: main.Position, fillColor: [3]f32, verticeData:
     if (withOutline) {
         const borderColor: [3]f32 = .{ 0, 0, 0 };
         const lines = &verticeData.lines;
+        if (lines.verticeCount + 8 >= lines.vertices.len) return;
         lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = borderColor };
         lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ left + width, top }, .color = borderColor };
         lines.vertices[lines.verticeCount + 2] = .{ .pos = .{ left, top }, .color = borderColor };

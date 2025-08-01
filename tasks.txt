@@ -1,5 +1,4 @@
 Tasks:
-- font has weird lines?
 - check: vulkan vertice limits checked when adding
 - retries for money?
     - each retry gets more expensive
