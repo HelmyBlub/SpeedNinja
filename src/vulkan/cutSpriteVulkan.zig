@@ -85,10 +85,10 @@ fn setupVerticesForEnemyDeath(enemyDeath: enemyZig.EnemyDeathAnimation, state: *
         .x = (positionsNegative[0].x + positionsNegative[1].x + positionsNegative[2].x + positionsNegative[3].x) / 4,
         .y = (positionsNegative[0].y + positionsNegative[1].y + positionsNegative[2].y + positionsNegative[3].y) / 4,
     };
-    addTriangle(.{ positionsPositive[0], positionsPositive[1], positionsPositive[2] }, enemyDeath, -offsetX, offsetY, centerOfRotatePositive, state);
-    addTriangle(.{ positionsPositive[0], positionsPositive[2], positionsPositive[3] }, enemyDeath, -offsetX, offsetY, centerOfRotatePositive, state);
-    addTriangle(.{ positionsNegative[0], positionsNegative[1], positionsNegative[2] }, enemyDeath, offsetX, offsetY, centerOfRotateNegative, state);
-    addTriangle(.{ positionsNegative[0], positionsNegative[2], positionsNegative[3] }, enemyDeath, offsetX, offsetY, centerOfRotateNegative, state);
+    addTriangle(.{ positionsPositive[0], positionsPositive[1], positionsPositive[2] }, enemyDeath, -offsetX, offsetY, centerOfRotatePositive, enemyDeath.imageIndex, state);
+    addTriangle(.{ positionsPositive[0], positionsPositive[2], positionsPositive[3] }, enemyDeath, -offsetX, offsetY, centerOfRotatePositive, enemyDeath.imageIndex, state);
+    addTriangle(.{ positionsNegative[0], positionsNegative[1], positionsNegative[2] }, enemyDeath, offsetX, offsetY, centerOfRotateNegative, enemyDeath.imageIndex, state);
+    addTriangle(.{ positionsNegative[0], positionsNegative[2], positionsNegative[3] }, enemyDeath, offsetX, offsetY, centerOfRotateNegative, enemyDeath.imageIndex, state);
 }
 
 fn calculateOffsetY(enemyDeath: enemyZig.EnemyDeathAnimation, state: *main.GameState) f32 {
@@ -100,7 +100,7 @@ fn calculateOffsetY(enemyDeath: enemyZig.EnemyDeathAnimation, state: *main.GameS
     return -avgVelocity * iterations / 2;
 }
 
-fn addTriangle(points: [3]main.Position, enemyDeath: enemyZig.EnemyDeathAnimation, offsetX: f32, offsetY: f32, rotateCenter: main.Position, state: *main.GameState) void {
+fn addTriangle(points: [3]main.Position, enemyDeath: enemyZig.EnemyDeathAnimation, offsetX: f32, offsetY: f32, rotateCenter: main.Position, imageIndex: u8, state: *main.GameState) void {
     const alpha = 1 - @as(f32, @floatFromInt(state.gameTime - enemyDeath.deathTime)) / DEATH_DURATION;
     const rotate: f32 = @as(f32, @floatFromInt(state.gameTime - enemyDeath.deathTime)) / 512 * enemyDeath.force;
     const halfSize = main.TILESIZE / 2;
@@ -121,7 +121,7 @@ fn addTriangle(points: [3]main.Position, enemyDeath: enemyZig.EnemyDeathAnimatio
         verticeData.spritesComplex.vertices[verticeData.spritesComplex.verticeCount] = dataVulkanZig.SpriteComplexVertex{
             .pos = .{ vulkan.x, vulkan.y },
             .tex = .{ texPos.x, texPos.y },
-            .imageIndex = imageZig.IMAGE_EVIL_TREE,
+            .imageIndex = imageIndex,
             .alpha = alpha,
         };
         verticeData.spritesComplex.verticeCount += 1;

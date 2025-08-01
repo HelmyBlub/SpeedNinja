@@ -25,6 +25,7 @@ pub const IMAGE_ARROW_RIGHT = 17;
 pub const IMAGE_BORDER_TILE = 18;
 pub const IMAGE_COMBINE = 19;
 pub const IMAGE_SHADOW = 20;
+pub const IMAGE_EVIL_TOWER = 21;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaDog.png" },
@@ -48,6 +49,7 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/borderTile.png" },
     .{ .path = "images/combine.png" },
     .{ .path = "images/shadow.png", .scale = 0.1 },
+    .{ .path = "images/evilTower.png" },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 

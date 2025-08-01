@@ -1,7 +1,5 @@
 Tasks:
 - boss round
-    - sounds
-        - boss stomp sound
     - image
 
     - retries for money?

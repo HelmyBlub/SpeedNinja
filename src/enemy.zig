@@ -48,6 +48,7 @@ pub const EnemyDeathAnimation = struct {
     deathTime: i64,
     cutAngle: f32,
     force: f32,
+    imageIndex: u8,
 };
 
 const ENEMY_TYPE_SPAWN_LEVEL_DATA = [_]EnemyTypeSpawnLevelData{

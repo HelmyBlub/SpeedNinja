@@ -61,7 +61,7 @@ fn startBossStomp(state: *main.GameState) !void {
     try state.bosses.append(.{
         .hp = 10,
         .maxHp = 10,
-        .imageIndex = imageZig.IMAGE_EVIL_TREE,
+        .imageIndex = imageZig.IMAGE_EVIL_TOWER,
         .position = .{ .x = 0, .y = 0 },
         .name = LEVEL_BOSS_DATA[0].name,
     });
@@ -94,6 +94,7 @@ pub fn isBossHit(hitArea: main.TileRectangle, playerBladeRotation: f32, state: *
                             .position = deadBoss.position,
                             .cutAngle = cutAngle,
                             .force = std.crypto.random.float(f32) + 0.2,
+                            .imageIndex = boss.imageIndex,
                         },
                     );
                     continue;
