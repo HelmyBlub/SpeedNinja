@@ -1,5 +1,4 @@
 Tasks:
-- memory leak on complex sprites
 - boss round
     - visualization:
         - boss in air

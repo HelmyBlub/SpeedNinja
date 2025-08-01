@@ -25,7 +25,7 @@ pub fn setupVertices(state: *main.GameState) void {
         }
     }
     for (state.enemies.items) |enemy| {
-        paintVulkanZig.verticesForComplexSprite(enemy.position, enemy.imageIndex, &verticeData.spritesComplex, state);
+        paintVulkanZig.verticesForComplexSpriteDefault(enemy.position, enemy.imageIndex, &verticeData.spritesComplex, state);
     }
 }
 
@@ -34,6 +34,12 @@ pub fn setupVerticesForBosses(state: *main.GameState) void {
         var bossPosition = boss.position;
         if (boss.inAir) {
             bossPosition.y -= main.TILESIZE / 2;
+        }
+        if (boss.state == .wait) {
+            if (boss.nextStateTime < state.gameTime + 750) {
+                const perCent = @max(0, @as(f32, @floatFromInt(boss.nextStateTime - state.gameTime)) / 750.0);
+                bossPosition.y -= main.TILESIZE / 2 * (1 - perCent);
+            }
         }
         if (boss.state == .chargeStomp) {
             const fillPerCent: f32 = @min(1, @max(0, @as(f32, @floatFromInt(boss.attackChargeTime + state.gameTime - boss.nextStateTime)) / @as(f32, @floatFromInt(boss.attackChargeTime))));
@@ -49,7 +55,13 @@ pub fn setupVerticesForBosses(state: *main.GameState) void {
                 }
             }
         }
-        paintVulkanZig.verticesForComplexSprite(bossPosition, boss.imageIndex, &state.vkState.verticeData.spritesComplex, state);
+        if (bossPosition.y != boss.position.y) {
+            paintVulkanZig.verticesForComplexSpriteScale(.{
+                .x = boss.position.x,
+                .y = boss.position.y + 5,
+            }, imageZig.IMAGE_SHADOW, &state.vkState.verticeData.spritesComplex, 0.75, state);
+        }
+        paintVulkanZig.verticesForComplexSpriteDefault(bossPosition, boss.imageIndex, &state.vkState.verticeData.spritesComplex, state);
     }
 }
 

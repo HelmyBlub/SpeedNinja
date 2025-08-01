@@ -31,7 +31,7 @@ pub fn setupVertices(state: *main.GameState) !void {
             if (shopButton.imageRotate != 0) {
                 paintVulkanZig.verticesForComplexSpriteWithRotate(shopButtonGamePosition, shopButton.imageIndex, shopButton.imageRotate, &verticeData.spritesComplex, state);
             } else {
-                paintVulkanZig.verticesForComplexSprite(shopButtonGamePosition, shopButton.imageIndex, &verticeData.spritesComplex, state);
+                paintVulkanZig.verticesForComplexSpriteDefault(shopButtonGamePosition, shopButton.imageIndex, &verticeData.spritesComplex, state);
             }
         }
     }
@@ -105,7 +105,7 @@ fn paintGrid(player: *main.Player, state: *main.GameState) void {
                 .x = gridGameTopLeft.x + @as(f32, @floatFromInt(gridCutOffset.x * main.TILESIZE)),
                 .y = gridGameTopLeft.y + @as(f32, @floatFromInt(gridCutOffset.y * main.TILESIZE)),
             };
-            paintVulkanZig.verticesForComplexSprite(gamePositionCut, imageZig.IMAGE_CUT, &verticeData.spritesComplex, state);
+            paintVulkanZig.verticesForComplexSpriteDefault(gamePositionCut, imageZig.IMAGE_CUT, &verticeData.spritesComplex, state);
         }
     }
 }

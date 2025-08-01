@@ -83,12 +83,37 @@ pub fn drawFrame(state: *main.GameState) !void {
     vkState.currentFrame = (vkState.currentFrame + 1) % initVulkanZig.VkState.MAX_FRAMES_IN_FLIGHT;
 }
 
-pub fn verticesForComplexSprite(gamePosition: main.Position, imageIndex: u8, vkSpriteComplex: *dataVulkanZig.VkSpriteComplex, state: *main.GameState) void {
+pub fn verticesForComplexSpriteDefault(gamePosition: main.Position, imageIndex: u8, vkSpriteComplex: *dataVulkanZig.VkSpriteComplex, state: *main.GameState) void {
+    verticesForComplexSprite(
+        gamePosition,
+        imageIndex,
+        vkSpriteComplex,
+        main.TILESIZE,
+        main.TILESIZE,
+        1,
+        state,
+    );
+}
+
+pub fn verticesForComplexSpriteScale(gamePosition: main.Position, imageIndex: u8, vkSpriteComplex: *dataVulkanZig.VkSpriteComplex, alpha: f32, state: *main.GameState) void {
+    const imageData = imageZig.IMAGE_DATA[imageIndex];
+    verticesForComplexSprite(
+        gamePosition,
+        imageIndex,
+        vkSpriteComplex,
+        @as(f32, @floatFromInt(imageData.width)) * imageData.scale * state.camera.zoom,
+        @as(f32, @floatFromInt(imageData.height)) * imageData.scale * state.camera.zoom,
+        alpha,
+        state,
+    );
+}
+
+pub fn verticesForComplexSprite(gamePosition: main.Position, imageIndex: u8, vkSpriteComplex: *dataVulkanZig.VkSpriteComplex, gameWidth: f32, gameHeight: f32, alpha: f32, state: *main.GameState) void {
     if (vkSpriteComplex.verticeCount + 6 >= vkSpriteComplex.vertices.len) return;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-    const halfSizeWidth: f32 = main.TILESIZE / 2;
-    const halfSizeHeigh: f32 = main.TILESIZE / 2;
+    const halfSizeWidth: f32 = gameWidth / 2;
+    const halfSizeHeigh: f32 = gameHeight / 2;
     const points = [_]main.Position{
         main.Position{ .x = -halfSizeWidth, .y = halfSizeHeigh },
         main.Position{ .x = -halfSizeWidth, .y = -halfSizeHeigh },
@@ -111,7 +136,7 @@ pub fn verticesForComplexSprite(gamePosition: main.Position, imageIndex: u8, vkS
             vkSpriteComplex.vertices[vkSpriteComplex.verticeCount] = dataVulkanZig.SpriteComplexVertex{
                 .pos = .{ vulkan.x, vulkan.y },
                 .imageIndex = imageIndex,
-                .alpha = 1,
+                .alpha = alpha,
                 .tex = texPos,
             };
             vkSpriteComplex.verticeCount += 1;

@@ -34,7 +34,7 @@ pub const Boss = struct {
 const LEVEL_BOSS_DATA = [_]LevelBossData{
     LevelBossData{
         .name = "Stomp",
-        .appearsOnLevel = 2,
+        .appearsOnLevel = 5,
         .startLevel = startBossStomp,
     },
 };
