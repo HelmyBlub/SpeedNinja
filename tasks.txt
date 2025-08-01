@@ -1,14 +1,12 @@
 Tasks:
 - boss round
     - visualization:
-        - boss in air
-            - paint him higher
-            - paint shadow
-        - tileWarnings paint before boss
+        - tileWarnings before player
     - boss round ux
         - hp bar for boss
         - boss name?
     - sounds
+    - image
     - prevent boss from leaving grid
 
     - retries for money?
