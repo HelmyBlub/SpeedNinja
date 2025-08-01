@@ -1,6 +1,5 @@
 Tasks:
-- bug: dog animation independent from time skips
-    - when time stops or leaps forward ear flap alot
+- font has weird lines?
 - check: vulkan vertice limits checked when adding
 - retries for money?
     - each retry gets more expensive

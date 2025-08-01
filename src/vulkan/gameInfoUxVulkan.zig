@@ -15,7 +15,7 @@ pub fn setupVertices(state: *main.GameState) !void {
     if (state.gamePhase == .boss) {
         if (state.bosses.items.len > 0) {
             const boss = state.bosses.items[0];
-            textWidthRound += fontVulkanZig.paintText(" Level: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
+            textWidthRound += fontVulkanZig.paintText("Level: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
             textWidthRound += try fontVulkanZig.paintNumber(state.level, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices) + onePixelXInVulkan * 20;
             textWidthRound += fontVulkanZig.paintText(boss.name, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices) + onePixelXInVulkan * 20;
             textWidthRound += try fontVulkanZig.paintNumber(boss.hp, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices) - onePixelXInVulkan * 7;
