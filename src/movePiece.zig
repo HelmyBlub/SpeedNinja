@@ -146,10 +146,10 @@ pub fn combineMovePieces(player: *main.Player, movePieceIndex1: usize, movePiece
     }
     const movePiece1 = player.totalMovePieces.items[movePieceIndex1];
     const movePiece2 = player.totalMovePieces.items[movePieceIndex2];
-    const combineLastFirst = movePiece1.steps[movePiece1.steps.len - 1].direction == movePiece2.steps[0].direction;
+    const combineLastFirst = movePiece1.steps[movePiece1.steps.len - 1].direction == @mod(movePiece2.steps[0].direction + combineDirection, 4);
     const combinedLength = if (combineLastFirst) movePiece1.steps.len + movePiece2.steps.len - 1 else movePiece1.steps.len + movePiece2.steps.len;
-    const steps = try state.allocator.alloc(MoveStep, combinedLength);
-    const newMovePiece: MovePiece = .{ .steps = steps };
+    const newSteps = try state.allocator.alloc(MoveStep, combinedLength);
+    const newMovePiece: MovePiece = .{ .steps = newSteps };
     var newPieceIndex: usize = 0;
     for (movePiece1.steps) |*step| {
         newMovePiece.steps[newPieceIndex].direction = step.direction;
