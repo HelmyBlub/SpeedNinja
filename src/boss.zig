@@ -111,6 +111,16 @@ fn tickBoss(boss: *Boss, passedTime: i64, state: *main.GameState) void {
             const randomPlayerIndex: usize = @intFromFloat(std.crypto.random.float(f32) * @as(f32, @floatFromInt(state.players.items.len)));
             const playerTile = main.gamePositionToTilePosition(state.players.items[randomPlayerIndex].position);
             boss.attackTilePosition = playerTile;
+            if (boss.attackTilePosition.x > state.mapTileRadius) {
+                boss.attackTilePosition.x = @intCast(state.mapTileRadius);
+            } else if (boss.attackTilePosition.x < -@as(i32, @intCast(state.mapTileRadius))) {
+                boss.attackTilePosition.x = -@as(i32, @intCast(state.mapTileRadius));
+            }
+            if (boss.attackTilePosition.y > state.mapTileRadius) {
+                boss.attackTilePosition.y = @intCast(state.mapTileRadius);
+            } else if (boss.attackTilePosition.y < -@as(i32, @intCast(state.mapTileRadius))) {
+                boss.attackTilePosition.y = -@as(i32, @intCast(state.mapTileRadius));
+            }
             boss.state = .moveToTarget;
         },
         .moveToTarget => {
