@@ -245,6 +245,9 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
                 }
                 setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
             }
+            if (player.moveOptions.items.len == 0) {
+                try movePieceZig.resetPieces(player);
+            }
         },
         .add => |*data| {
             const cost = state.level * 1;
@@ -277,6 +280,9 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
                 setGridDisplayPiece(player, player.totalMovePieces.items[data.pieceIndex1]);
                 data.pieceIndex2 = null;
                 data.combineStep = .selectPiece1;
+                if (player.moveOptions.items.len == 0) {
+                    try movePieceZig.resetPieces(player);
+                }
             }
         },
         else => {},
