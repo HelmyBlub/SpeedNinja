@@ -4,7 +4,7 @@ const ninjaDogVulkanZig = @import("vulkan/ninjaDogVulkan.zig");
 const soundMixerZig = @import("soundMixer.zig");
 const shopZig = @import("shop.zig");
 const choosenMovePieceVisualizationVulkanZig = @import("vulkan/choosenMovePieceVisualizationVulkan.zig");
-const bossZig = @import("boss.zig");
+const bossZig = @import("boss/boss.zig");
 
 pub const MovePiece = struct {
     steps: []MoveStep,

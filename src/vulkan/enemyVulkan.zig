@@ -5,6 +5,7 @@ const windowSdlZig = @import("../windowSdl.zig");
 const dataVulkanZig = @import("dataVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 const movePieceZig = @import("../movePiece.zig");
+const bossZig = @import("../boss/boss.zig");
 
 pub fn setupVertices(state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
@@ -30,47 +31,18 @@ pub fn setupVerticesGround(state: *main.GameState) void {
             },
         }
     }
-    for (state.bosses.items) |boss| {
-        if (boss.state == .chargeStomp) {
-            const fillPerCent: f32 = @min(1, @max(0, @as(f32, @floatFromInt(boss.attackChargeTime + state.gameTime - boss.nextStateTime)) / @as(f32, @floatFromInt(boss.attackChargeTime))));
-            const size: usize = @intCast(boss.attackTileRadius * 2 + 1);
-            for (0..size) |i| {
-                const offsetX: f32 = @as(f32, @floatFromInt(@as(i32, @intCast(i)) - boss.attackTileRadius)) * main.TILESIZE;
-                for (0..size) |j| {
-                    const offsetY: f32 = @as(f32, @floatFromInt(@as(i32, @intCast(j)) - boss.attackTileRadius)) * main.TILESIZE;
-                    addWarningTileSprites(.{
-                        .x = boss.position.x + offsetX,
-                        .y = boss.position.y + offsetY,
-                    }, fillPerCent, state);
-                }
-            }
-        }
+    for (state.bosses.items) |*boss| {
+        bossZig.LEVEL_BOSS_DATA[boss.dataIndex].setupVerticesGround(boss, state);
     }
 }
 
 pub fn setupVerticesForBosses(state: *main.GameState) void {
-    for (state.bosses.items) |boss| {
-        var bossPosition = boss.position;
-        if (boss.inAir) {
-            bossPosition.y -= main.TILESIZE / 2;
-        }
-        if (boss.state == .wait) {
-            if (boss.nextStateTime < state.gameTime + 750) {
-                const perCent = @max(0, @as(f32, @floatFromInt(boss.nextStateTime - state.gameTime)) / 750.0);
-                bossPosition.y -= main.TILESIZE / 2 * (1 - perCent);
-            }
-        }
-        if (bossPosition.y != boss.position.y) {
-            paintVulkanZig.verticesForComplexSpriteScale(.{
-                .x = boss.position.x,
-                .y = boss.position.y + 5,
-            }, imageZig.IMAGE_SHADOW, &state.vkState.verticeData.spritesComplex, 0.75, state);
-        }
-        paintVulkanZig.verticesForComplexSpriteDefault(bossPosition, boss.imageIndex, &state.vkState.verticeData.spritesComplex, state);
+    for (state.bosses.items) |*boss| {
+        bossZig.LEVEL_BOSS_DATA[boss.dataIndex].setupVertices(boss, state);
     }
 }
 
-fn addWarningTileSprites(gamePosition: main.Position, fillPerCent: f32, state: *main.GameState) void {
+pub fn addWarningTileSprites(gamePosition: main.Position, fillPerCent: f32, state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
     if (verticeData.spritesComplex.verticeCount + 12 >= verticeData.spritesComplex.vertices.len) return;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;

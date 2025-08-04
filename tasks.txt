@@ -1,34 +1,30 @@
 Tasks:
-- check: vulkan vertice limits checked when adding
-- retries for money?
-    - each retry gets more expensive
+- think what next?
+    - next bosses to better code setup for bosses
+        - boss idea1:
+            - boss immun to damage, as long as pillars at the side active
+            - when pillars destroyed, boss can be damaged for some time, boss losing hp reduces timer
+            - rotating line which needs to be avoided
+        - based on next boss, create new enemies
 
 Next ideas:
 - something which makes player stronger over time, but better player get stronger faster
-    - round = spawn enemies and increases once all enemies are defeated
-    - level = start level 1, once time is up, shop phase starts, level goes up by 1
-        - 100 levels, each 10 levels a boss
-            - boss needs more than 1 hit
-    - give player 1 minute after first kill
-        - 5 rounds have to be completed to be allowed to reach next level
-        - if timer < 30 and round < 5, set timer to 30seconds
-        - if timer runs out and round 5 not reached, player loses
-        - else next level
-
-    - money can be spent after times up
-        - buy equippment which is visualized on character
-            - only certan slots: feet slot, weapong slot, head slot, chest slot
-            - e.g: chest which gives more hp
-            - weapon: for damage
-        - heal? or auto heal?
+    - 9 more bosses
+    - boss abilities shown by enemies before for easier learning
+    - buy equippment which is visualized on character
+        - only certan slots: feet slot, weapong slot, head slot, chest slot
+        - weapon: for damage
     - difficulty rises
         - enemies gain new abilities 
         - new enemy types
         - boss rounds
     - player has HP
-    - player can die
+
+- retries for money?
+    - each retry gets more expensive
 
 - enemy ideas
+    - enemy moves one tile which is also attack move
     - enemy which attacks on time intervals
     - enemy which attacks after player moved x-times
     - enemy which attacks when player adjacent
@@ -36,7 +32,6 @@ Next ideas:
         - projectiles moves in intervals one tile
         - player can deflect projectile, which than damages enemies (weapon upgrade?)
     - enemy places damaging tile and moves one tile
-    - enemy moves one tile which is also attack move
     - enemy moves with always the same move piece which is also an attack (like player) 
     - enemy throws piece aoe
 - player upgrades

@@ -7,7 +7,7 @@ const ninjaDogVulkanZig = @import("vulkan/ninjaDogVulkan.zig");
 const soundMixerZig = @import("soundMixer.zig");
 const enemyZig = @import("enemy.zig");
 const shopZig = @import("shop.zig");
-const bossZig = @import("boss.zig");
+const bossZig = @import("boss/boss.zig");
 
 pub const GamePhase = enum {
     combat,
