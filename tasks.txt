@@ -1,13 +1,6 @@
 Tasks:
 - think what next?
     - rotate boss:
-        - visualize boss immune
-            - second boss image for immune
-                - circle around boss image
-        - visualize vulnerable timer
-            -  circle grows back slowly and is thinner
-        - visualize target to destroy to remove immunity
-            - image and line between boss and target
         - visualize boss shooting
             - laster from boss canon
         - sound for shooting

@@ -5,6 +5,8 @@ const bossZig = @import("boss.zig");
 const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
 const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const windowSdlZig = @import("../windowSdl.zig");
+const ninjaDogVulkanZig = @import("../vulkan/ninjaDogVulkan.zig");
+const soundMixerZig = @import("../soundMixer.zig");
 
 const RotateState = enum {
     spawnPillars,
@@ -19,6 +21,7 @@ pub const BossRotateData = struct {
     rebuildTime: i64 = 10_000,
     attackInterval: i64 = 3_000,
     attackTime: ?i64 = null,
+    visualizeAttackUntil: ?i64 = null,
     attackAngle: f32 = 0,
     attackTiles: std.ArrayList(main.TilePosition),
 };
@@ -61,10 +64,14 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     _ = passedTime;
     const rotateData = &boss.typeData.rotate;
     if (rotateData.attackTime == null) {
-        rotateData.attackTime = state.gameTime + rotateData.attackInterval;
-        try spawnAttackTiles(boss);
+        if (rotateData.visualizeAttackUntil == null or rotateData.visualizeAttackUntil.? <= state.gameTime) {
+            rotateData.attackTime = state.gameTime + rotateData.attackInterval;
+            try spawnAttackTiles(boss);
+        }
     } else if (state.gameTime >= rotateData.attackTime.?) {
+        // try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_PEW_INDICIES[0..], 0);
         rotateData.attackTime = null;
+        rotateData.visualizeAttackUntil = state.gameTime + 250;
         for (state.players.items) |*player| {
             const playerTile = main.gamePositionToTilePosition(player.position);
             for (rotateData.attackTiles.items) |tile| {
@@ -193,4 +200,42 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
         paintVulkanZig.verticesForComplexSpriteWithCut(boss.position, imageZig.IMAGE_CIRCLE, alpha, @max(alpha, 0.5), state);
     }
     paintVulkanZig.verticesForComplexSpriteWithRotate(bossPosition, boss.imageIndex, rotate.attackAngle, &state.vkState.verticeData.spritesComplex, state);
+
+    if (rotate.visualizeAttackUntil != null and rotate.visualizeAttackUntil.? >= state.gameTime) {
+        const imageData = imageZig.IMAGE_DATA[imageZig.IMAGE_LASER];
+        const moveX = @cos(rotate.attackAngle);
+        const moveY = @sin(rotate.attackAngle);
+        const scale: f32 = @as(f32, @floatFromInt(main.TILESIZE * imageZig.IMAGE_TO_GAME_SIZE)) / @as(f32, @floatFromInt(imageData.width)) * 1.03;
+        var offset: main.Position = .{ .x = 0, .y = 0 };
+        for (0..8) |_| {
+            offset.x += moveX * main.TILESIZE;
+            offset.y += moveY * main.TILESIZE;
+            var laserPosition: main.Position = .{
+                .x = boss.position.x + offset.x,
+                .y = boss.position.y + offset.y,
+            };
+            ninjaDogVulkanZig.addTiranglesForSprite(
+                laserPosition,
+                imageZig.getImageCenter(imageZig.IMAGE_LASER),
+                imageZig.IMAGE_LASER,
+                rotate.attackAngle,
+                null,
+                .{ .x = scale, .y = scale },
+                state,
+            );
+            laserPosition = .{
+                .x = boss.position.x - offset.x,
+                .y = boss.position.y - offset.y,
+            };
+            ninjaDogVulkanZig.addTiranglesForSprite(
+                laserPosition,
+                imageZig.getImageCenter(imageZig.IMAGE_LASER),
+                imageZig.IMAGE_LASER,
+                rotate.attackAngle,
+                null,
+                .{ .x = scale, .y = scale },
+                state,
+            );
+        }
+    }
 }
