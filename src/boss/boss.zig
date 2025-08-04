@@ -14,6 +14,7 @@ pub const LevelBossData = struct {
     isBossHit: *const fn (boss: *Boss, hitArea: main.TileRectangle, state: *main.GameState) bool,
     setupVerticesGround: *const fn (boss: *Boss, state: *main.GameState) void,
     setupVertices: *const fn (boss: *Boss, state: *main.GameState) void,
+    deinit: ?*const fn (boss: *Boss) void = null,
 };
 
 const BossTypes = enum {
@@ -62,7 +63,8 @@ pub fn isBossHit(hitArea: main.TileRectangle, playerBladeRotation: f32, state: *
     var bossIndex: usize = 0;
     while (bossIndex < state.bosses.items.len) {
         const boss = &state.bosses.items[bossIndex];
-        if (LEVEL_BOSS_DATA[boss.dataIndex].isBossHit(boss, hitArea, state)) aBossHit = true;
+        const levelBossData = LEVEL_BOSS_DATA[boss.dataIndex];
+        if (levelBossData.isBossHit(boss, hitArea, state)) aBossHit = true;
         if (boss.hp == 0) {
             const deadBoss = state.bosses.swapRemove(bossIndex);
             const cutAngle = playerBladeRotation + std.math.pi / 2.0;
@@ -75,6 +77,7 @@ pub fn isBossHit(hitArea: main.TileRectangle, playerBladeRotation: f32, state: *
                     .imageIndex = boss.imageIndex,
                 },
             );
+            if (levelBossData.deinit) |deinit| deinit(boss);
         } else {
             bossIndex += 1;
         }

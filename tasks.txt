@@ -1,11 +1,12 @@
 Tasks:
 - think what next?
-    - next bosses to better code setup for bosses
-        - boss idea1:
-            - boss immun to damage, as long as pillars at the side active
-            - when pillars destroyed, boss can be damaged for some time, boss losing hp reduces timer
-            - rotating line which needs to be avoided
-        - based on next boss, create new enemies
+    - rotate boss:
+        - boss immun to damage, as long as pillars at the side active
+        - when pillars destroyed, boss can be damaged for some time, boss losing hp reduces timer
+        - rotating line which needs to be avoided
+            - fix some memory leak
+            - spawn tiles as line rotating around arena
+    - based on next boss, create new enemies
 
 Next ideas:
 - something which makes player stronger over time, but better player get stronger faster
