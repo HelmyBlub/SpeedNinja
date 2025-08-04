@@ -184,6 +184,45 @@ pub fn verticesForComplexSpriteWithRotate(gamePosition: main.Position, imageInde
     }
 }
 
+pub fn verticesForComplexSpriteWithCut(gamePosition: main.Position, imageIndex: u8, cutPerCent: f32, alpha: f32, state: *main.GameState) void {
+    const verticeData = &state.vkState.verticeData;
+    if (verticeData.spritesComplex.verticeCount + 12 >= verticeData.spritesComplex.vertices.len) return;
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const imageData = imageZig.IMAGE_DATA[imageZig.IMAGE_WARNING_TILE];
+    const scaling = 2;
+    const halfSizeWidth: f32 = @as(f32, @floatFromInt(imageData.width)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scaling;
+    const halfSizeHeigh: f32 = @as(f32, @floatFromInt(imageData.height)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scaling;
+    const points = [_]main.Position{
+        main.Position{ .x = -halfSizeWidth, .y = halfSizeHeigh },
+        main.Position{ .x = -halfSizeWidth, .y = -halfSizeHeigh },
+        main.Position{ .x = -halfSizeWidth + halfSizeWidth * 2 * cutPerCent, .y = halfSizeHeigh },
+        main.Position{ .x = -halfSizeWidth + halfSizeWidth * 2 * cutPerCent, .y = -halfSizeHeigh },
+    };
+
+    for (0..points.len - 2) |i| {
+        const pointsIndexes = [_]usize{ i, i + 1 + @mod(i, 2), i + 2 - @mod(i, 2) };
+        for (pointsIndexes) |verticeIndex| {
+            const cornerPosOffset = points[verticeIndex];
+            const vulkan: main.Position = .{
+                .x = (cornerPosOffset.x - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
+                .y = (cornerPosOffset.y - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
+            };
+            const texPos: [2]f32 = .{
+                (cornerPosOffset.x / halfSizeWidth + 1) / 2,
+                (cornerPosOffset.y / halfSizeHeigh + 1) / 2,
+            };
+            verticeData.spritesComplex.vertices[verticeData.spritesComplex.verticeCount] = dataVulkanZig.SpriteComplexVertex{
+                .pos = .{ vulkan.x, vulkan.y },
+                .imageIndex = imageIndex,
+                .alpha = alpha,
+                .tex = texPos,
+            };
+            verticeData.spritesComplex.verticeCount += 1;
+        }
+    }
+}
+
 fn resetVerticeData(state: *main.GameState) !void {
     const vkState = &state.vkState;
     const verticeData = &vkState.verticeData;

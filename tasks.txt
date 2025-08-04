@@ -1,10 +1,17 @@
 Tasks:
 - think what next?
     - rotate boss:
-        - boss immun to damage, as long as pillars at the side active
-        - when pillars destroyed, boss can be damaged for some time, boss losing hp reduces timer
-        - rotating line which needs to be avoided
-            - spawn tiles as line rotating around arena
+        - visualize boss immune
+            - second boss image for immune
+                - circle around boss image
+        - visualize vulnerable timer
+            -  circle grows back slowly and is thinner
+        - visualize target to destroy to remove immunity
+            - image and line between boss and target
+        - visualize boss shooting
+            - laster from boss canon
+        - sound for shooting
+        - sound for losing/gaining immunity
     - based on next boss, create new enemies
 
 Next ideas:

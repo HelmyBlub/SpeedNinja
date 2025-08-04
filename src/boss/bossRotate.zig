@@ -4,6 +4,7 @@ const imageZig = @import("../image.zig");
 const bossZig = @import("boss.zig");
 const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
 const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
+const windowSdlZig = @import("../windowSdl.zig");
 
 const RotateState = enum {
     spawnPillars,
@@ -44,7 +45,7 @@ fn startBoss(state: *main.GameState) !void {
     try state.bosses.append(.{
         .hp = 10,
         .maxHp = 10,
-        .imageIndex = imageZig.IMAGE_EVIL_TOWER,
+        .imageIndex = imageZig.IMAGE_BOSS_ROTATE,
         .position = .{ .x = 0, .y = 0 },
         .name = bossZig.LEVEL_BOSS_DATA[1].name,
         .dataIndex = 1,
@@ -80,19 +81,19 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             rotateData.immune = true;
             rotateData.state = .immune;
             const spawnDistance = main.TILESIZE * 3;
-            try state.enemies.append(.{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_EVIL_TREE, .position = .{
+            try state.enemies.append(.{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_BOSS_ROTATE_PILLAR, .position = .{
                 .x = -spawnDistance,
                 .y = -spawnDistance,
             } });
-            try state.enemies.append(.{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_EVIL_TREE, .position = .{
+            try state.enemies.append(.{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_BOSS_ROTATE_PILLAR, .position = .{
                 .x = spawnDistance,
                 .y = -spawnDistance,
             } });
-            try state.enemies.append(.{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_EVIL_TREE, .position = .{
+            try state.enemies.append(.{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_BOSS_ROTATE_PILLAR, .position = .{
                 .x = spawnDistance,
                 .y = spawnDistance,
             } });
-            try state.enemies.append(.{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_EVIL_TREE, .position = .{
+            try state.enemies.append(.{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_BOSS_ROTATE_PILLAR, .position = .{
                 .x = -spawnDistance,
                 .y = spawnDistance,
             } });
@@ -158,15 +159,38 @@ fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) void {
             }, fillPerCent, state);
         }
     }
+
+    const lines = &state.vkState.verticeData.lines;
+    const color: [3]f32 = .{ 0.0, 0.0, 0.0 };
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const fromVulkan: main.Position = .{
+        .x = boss.position.x * state.camera.zoom * onePixelXInVulkan,
+        .y = boss.position.y * state.camera.zoom * onePixelYInVulkan,
+    };
+    for (state.enemies.items) |enemy| {
+        if (lines.verticeCount + 2 >= lines.vertices.len) break;
+        const toVulkan: main.Position = .{
+            .x = enemy.position.x * state.camera.zoom * onePixelXInVulkan,
+            .y = enemy.position.y * state.camera.zoom * onePixelYInVulkan,
+        };
+        lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ fromVulkan.x, fromVulkan.y }, .color = color };
+        lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ toVulkan.x, toVulkan.y }, .color = color };
+        lines.verticeCount += 2;
+    }
 }
 
 fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
     const bossPosition = boss.position;
-    if (bossPosition.y != boss.position.y) {
-        paintVulkanZig.verticesForComplexSpriteScale(.{
-            .x = boss.position.x,
-            .y = boss.position.y + 5,
-        }, imageZig.IMAGE_SHADOW, &state.vkState.verticeData.spritesComplex, 0.75, state);
+    const rotate = boss.typeData.rotate;
+
+    var alpha: f32 = 1;
+    if (rotate.state == .rebuildPillars) {
+        const timePerCent = @min(1, @max(0, 1 - @as(f32, @floatFromInt(rotate.nextStateTime - state.gameTime)) / @as(f32, @floatFromInt(rotate.rebuildTime))));
+        alpha = timePerCent;
     }
-    paintVulkanZig.verticesForComplexSpriteDefault(bossPosition, boss.imageIndex, &state.vkState.verticeData.spritesComplex, state);
+    if (alpha > 0) {
+        paintVulkanZig.verticesForComplexSpriteWithCut(boss.position, imageZig.IMAGE_CIRCLE, alpha, @max(alpha, 0.5), state);
+    }
+    paintVulkanZig.verticesForComplexSpriteWithRotate(bossPosition, boss.imageIndex, rotate.attackAngle, &state.vkState.verticeData.spritesComplex, state);
 }
