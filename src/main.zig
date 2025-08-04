@@ -166,7 +166,7 @@ pub fn startNextLevel(state: *GameState) !void {
     state.gamePhase = .combat;
     state.level += 1;
     state.round = 0;
-    state.bosses.clearRetainingCapacity();
+    bossZig.clearBosses(state);
     for (state.players.items) |*player| {
         try movePieceZig.resetPieces(player);
     }
@@ -227,7 +227,7 @@ pub fn restart(state: *GameState) !void {
 
         try movePieceZig.setupMovePieces(player, state);
     }
-    state.bosses.clearAndFree();
+    bossZig.clearBosses(state);
     state.enemyDeath.clearRetainingCapacity();
     try startNextLevel(state);
 }

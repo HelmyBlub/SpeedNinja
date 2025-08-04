@@ -42,8 +42,8 @@ fn deinit(boss: *bossZig.Boss) void {
 
 fn startBoss(state: *main.GameState) !void {
     try state.bosses.append(.{
-        .hp = 20,
-        .maxHp = 20,
+        .hp = 10,
+        .maxHp = 10,
         .imageIndex = imageZig.IMAGE_EVIL_TOWER,
         .position = .{ .x = 0, .y = 0 },
         .name = bossZig.LEVEL_BOSS_DATA[1].name,
@@ -61,8 +61,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     const rotateData = &boss.typeData.rotate;
     if (rotateData.attackTime == null) {
         rotateData.attackTime = state.gameTime + rotateData.attackInterval;
-        try rotateData.attackTiles.append(.{ .x = 1, .y = 1 });
-        try rotateData.attackTiles.append(.{ .x = 2, .y = 2 });
+        try spawnAttackTiles(boss);
     } else if (state.gameTime >= rotateData.attackTime.?) {
         rotateData.attackTime = null;
         for (state.players.items) |*player| {
@@ -110,6 +109,28 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                 rotateData.state = .spawnPillars;
             }
         },
+    }
+}
+
+fn spawnAttackTiles(boss: *bossZig.Boss) !void {
+    const rotateData = &boss.typeData.rotate;
+    rotateData.attackAngle = @mod(rotateData.attackAngle + 0.3, std.math.pi * 2.0);
+    const moveX = @cos(rotateData.attackAngle);
+    const moveY = @sin(rotateData.attackAngle);
+    var offset: main.Position = .{ .x = 0, .y = 0 };
+    for (0..8) |_| {
+        offset.x += moveX * main.TILESIZE;
+        offset.y += moveY * main.TILESIZE;
+        const tilePos = main.gamePositionToTilePosition(.{
+            .x = offset.x + boss.position.x,
+            .y = offset.y + boss.position.y,
+        });
+        try rotateData.attackTiles.append(tilePos);
+        const tilePos2 = main.gamePositionToTilePosition(.{
+            .x = -offset.x + boss.position.x,
+            .y = -offset.y + boss.position.y,
+        });
+        try rotateData.attackTiles.append(tilePos2);
     }
 }
 

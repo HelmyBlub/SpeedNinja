@@ -42,6 +42,14 @@ pub const LEVEL_BOSS_DATA = [_]LevelBossData{
     bossRotateZig.createBoss(),
 };
 
+pub fn clearBosses(state: *main.GameState) void {
+    for (state.bosses.items) |*boss| {
+        const levelBossData = LEVEL_BOSS_DATA[boss.dataIndex];
+        if (levelBossData.deinit) |deinit| deinit(boss);
+    }
+    state.bosses.clearRetainingCapacity();
+}
+
 pub fn isBossLevel(level: u32) bool {
     for (LEVEL_BOSS_DATA) |bossData| {
         if (bossData.appearsOnLevel == level) return true;
@@ -66,7 +74,7 @@ pub fn isBossHit(hitArea: main.TileRectangle, playerBladeRotation: f32, state: *
         const levelBossData = LEVEL_BOSS_DATA[boss.dataIndex];
         if (levelBossData.isBossHit(boss, hitArea, state)) aBossHit = true;
         if (boss.hp == 0) {
-            const deadBoss = state.bosses.swapRemove(bossIndex);
+            var deadBoss = state.bosses.swapRemove(bossIndex);
             const cutAngle = playerBladeRotation + std.math.pi / 2.0;
             try state.enemyDeath.append(
                 .{
@@ -77,7 +85,7 @@ pub fn isBossHit(hitArea: main.TileRectangle, playerBladeRotation: f32, state: *
                     .imageIndex = boss.imageIndex,
                 },
             );
-            if (levelBossData.deinit) |deinit| deinit(boss);
+            if (levelBossData.deinit) |deinit| deinit(&deadBoss);
         } else {
             bossIndex += 1;
         }

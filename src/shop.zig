@@ -2,6 +2,7 @@ const std = @import("std");
 const main = @import("main.zig");
 const imageZig = @import("image.zig");
 const movePieceZig = @import("movePiece.zig");
+const bossZig = @import("boss/boss.zig");
 
 const ShopOption = enum {
     none,
@@ -152,7 +153,7 @@ pub fn isPlayerInEarlyShopTrigger(player: *main.Player, state: *main.GameState) 
 pub fn startShoppingPhase(state: *main.GameState) !void {
     state.gamePhase = .shopping;
     state.enemies.clearRetainingCapacity();
-    state.bosses.clearRetainingCapacity();
+    bossZig.clearBosses(state);
     try randomizeShop(state);
     for (state.players.items) |*player| {
         player.shop.gridDisplayPiece = null;

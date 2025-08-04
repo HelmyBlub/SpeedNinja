@@ -4,7 +4,6 @@ Tasks:
         - boss immun to damage, as long as pillars at the side active
         - when pillars destroyed, boss can be damaged for some time, boss losing hp reduces timer
         - rotating line which needs to be avoided
-            - fix some memory leak
             - spawn tiles as line rotating around arena
     - based on next boss, create new enemies
 
