@@ -6,6 +6,7 @@ const movePieceZig = @import("movePiece.zig");
 pub const EnemyType = enum {
     nothing,
     attack,
+    move,
 };
 
 pub const EnemyTypeAttackData = struct {
@@ -24,6 +25,7 @@ const EnemyTypeSpawnLevelData = struct {
 pub const EnemyTypeData = union(EnemyType) {
     nothing,
     attack: EnemyTypeAttackData,
+    move: EnemyTypeAttackData,
 };
 
 pub const Enemy = struct {
@@ -54,6 +56,7 @@ pub const EnemyDeathAnimation = struct {
 const ENEMY_TYPE_SPAWN_LEVEL_DATA = [_]EnemyTypeSpawnLevelData{
     .{ .baseProbability = 0.1, .enemyType = .nothing, .startingLevel = 1, .leavingLevel = 3 },
     .{ .baseProbability = 1, .enemyType = .attack, .startingLevel = 2, .leavingLevel = null },
+    .{ .baseProbability = 1, .enemyType = .move, .startingLevel = 5, .leavingLevel = null },
 };
 
 pub fn tickEnemies(state: *main.GameState) !void {
@@ -75,6 +78,31 @@ pub fn tickEnemies(state: *main.GameState) !void {
                 } else {
                     data.startTime = state.gameTime;
                     data.direction = std.crypto.random.int(u2);
+                }
+            },
+            .move => |*data| {
+                if (data.startTime) |startTime| {
+                    if (startTime + data.delay < state.gameTime) {
+                        const stepDirection = movePieceZig.getStepDirection(data.direction);
+                        const hitPosition: main.Position = .{
+                            .x = enemy.position.x + stepDirection.x * main.TILESIZE,
+                            .y = enemy.position.y + stepDirection.y * main.TILESIZE,
+                        };
+                        checkPlayerHit(hitPosition, state);
+                        enemy.position = hitPosition;
+                        data.startTime = null;
+                    }
+                } else {
+                    data.direction = std.crypto.random.int(u2);
+                    const stepDirection = movePieceZig.getStepDirection(data.direction);
+                    const border: f32 = @floatFromInt(state.mapTileRadius * main.TILESIZE);
+                    if (stepDirection.x < 0 and enemy.position.x > -border or
+                        stepDirection.x > 0 and enemy.position.x < border or
+                        stepDirection.y < 0 and enemy.position.y > -border or
+                        stepDirection.y > 0 and enemy.position.y < border)
+                    {
+                        data.startTime = state.gameTime;
+                    }
                 }
             },
         }
@@ -100,6 +128,18 @@ fn createSpawnEnemyEntryEnemy(enemyType: EnemyType) Enemy {
                 .enemyTypeData = .{
                     .attack = .{
                         .delay = 5000,
+                        .direction = std.crypto.random.int(u2),
+                    },
+                },
+            };
+        },
+        .move => {
+            return .{
+                .imageIndex = imageZig.IMAGE_ENEMY_MOVING,
+                .position = .{ .x = 0, .y = 0 },
+                .enemyTypeData = .{
+                    .move = .{
+                        .delay = 4000,
                         .direction = std.crypto.random.int(u2),
                     },
                 },

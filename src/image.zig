@@ -30,6 +30,9 @@ pub const IMAGE_BOSS_ROTATE = 22;
 pub const IMAGE_CIRCLE = 23;
 pub const IMAGE_BOSS_ROTATE_PILLAR = 24;
 pub const IMAGE_LASER = 25;
+pub const IMAGE_RED_ARROW = 26;
+pub const IMAGE_RED_ARROW_FILLED = 27;
+pub const IMAGE_ENEMY_MOVING = 28;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaDog.png" },
@@ -58,6 +61,9 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/circle.png", .scale = 0.1 },
     .{ .path = "images/bossRotatePillar.png" },
     .{ .path = "images/laser.png", .scale = 0.1 },
+    .{ .path = "images/redArrow.png" },
+    .{ .path = "images/redArrowFilled.png" },
+    .{ .path = "images/enemyMoving.png" },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 

@@ -1,11 +1,8 @@
 Tasks:
 - think what next?
-    - rotate boss:
-        - sound for shooting
-            - somehow sounds off
-            - somehow audiocity saved as 41hz instead of 48k hz
-        - sound for losing/gaining immunity
     - based on next boss, create new enemies
+        - moving enemies
+            - 
 
 Next ideas:
 - something which makes player stronger over time, but better player get stronger faster
