@@ -69,7 +69,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             try spawnAttackTiles(boss);
         }
     } else if (state.gameTime >= rotateData.attackTime.?) {
-        // try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_PEW_INDICIES[0..], 0);
+        try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_PEW_INDICIES[0..], 0);
         rotateData.attackTime = null;
         rotateData.visualizeAttackUntil = state.gameTime + 250;
         for (state.players.items) |*player| {
@@ -86,6 +86,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     switch (rotateData.state) {
         .spawnPillars => {
             rotateData.immune = true;
+            try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_IMMUNITY_UP, 0);
             rotateData.state = .immune;
             const spawnDistance = main.TILESIZE * 3;
             try state.enemies.append(.{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_BOSS_ROTATE_PILLAR, .position = .{
@@ -108,6 +109,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
         .immune => {
             if (state.enemies.items.len == 0) {
                 rotateData.immune = false;
+                try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_IMMUNITY_DOWN, 0);
                 rotateData.state = .rebuildPillars;
                 rotateData.nextStateTime = state.gameTime + rotateData.rebuildTime;
             }

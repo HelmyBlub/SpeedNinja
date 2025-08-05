@@ -1,9 +1,9 @@
 Tasks:
 - think what next?
     - rotate boss:
-        - visualize boss shooting
-            - laster from boss canon
         - sound for shooting
+            - somehow sounds off
+            - somehow audiocity saved as 41hz instead of 48k hz
         - sound for losing/gaining immunity
     - based on next boss, create new enemies
 

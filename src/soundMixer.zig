@@ -50,14 +50,17 @@ var SOUND_FILE_PATHES = [_][]const u8{
     "sounds/pew1.mp3",
     "sounds/pew2.mp3",
     "sounds/pew3.mp3",
-    "sounds/pew4.mp3",
+    "sounds/immunityUp.mp3",
+    "sounds/immunityDown.mp3",
 };
 
 pub const SOUND_NINJA_MOVE_INDICIES = [_]usize{ 0, 1, 2 };
 pub const SOUND_BLADE_CUT_INDICIES = [_]usize{ 3, 4, 5, 6 };
 pub const SOUND_BLADE_DRAW = 7;
 pub const SOUND_STOMP_INDICIES = [_]usize{ 8, 9, 10, 11 };
-pub const SOUND_PEW_INDICIES = [_]usize{ 12, 13, 14, 15 };
+pub const SOUND_PEW_INDICIES = [_]usize{ 12, 13, 14 };
+pub const SOUND_IMMUNITY_UP = 15;
+pub const SOUND_IMMUNITY_DOWN = 16;
 
 pub fn createSoundMixer(state: *main.GameState, allocator: std.mem.Allocator) !void {
     state.soundMixer = .{
