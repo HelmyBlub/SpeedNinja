@@ -26,9 +26,10 @@ pub const BossRotateData = struct {
     attackTiles: std.ArrayList(main.TilePosition),
 };
 
+const BOSS_NAME = "Rotate";
+
 pub fn createBoss() bossZig.LevelBossData {
     return bossZig.LevelBossData{
-        .name = "Rotate",
         .appearsOnLevel = 10,
         .startLevel = startBoss,
         .tickBoss = tickBoss,
@@ -39,19 +40,20 @@ pub fn createBoss() bossZig.LevelBossData {
     };
 }
 
-fn deinit(boss: *bossZig.Boss) void {
+fn deinit(boss: *bossZig.Boss, allocator: std.mem.Allocator) void {
+    _ = allocator;
     const rotateData = &boss.typeData.rotate;
     rotateData.attackTiles.deinit();
 }
 
-fn startBoss(state: *main.GameState) !void {
+fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
     try state.bosses.append(.{
         .hp = 10,
         .maxHp = 10,
         .imageIndex = imageZig.IMAGE_BOSS_ROTATE,
         .position = .{ .x = 0, .y = 0 },
-        .name = bossZig.LEVEL_BOSS_DATA[1].name,
-        .dataIndex = 1,
+        .name = BOSS_NAME,
+        .dataIndex = bossDataIndex,
         .typeData = .{ .rotate = .{
             .attackTiles = std.ArrayList(main.TilePosition).init(state.allocator),
         } },

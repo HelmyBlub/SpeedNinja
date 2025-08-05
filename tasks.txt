@@ -1,12 +1,26 @@
 Tasks:
-- think what next?
-    - based on next boss, create new enemies
-        - moving enemies
-            - 
+- next boss:
+    - shoot projectile at player position
+        - projectile has constant delay, falls from the top
+        - forces player to constanty move
+    - boss rolls around randomly
+        - has 2 random simple move pieces
+- next enemy
+    - change enemy code like boss code?
+    - enemy which moves when player moves (in multiplayer stuck to one specific player, to not move like crazy)
+
+    
+
+
+
 
 Next ideas:
 - something which makes player stronger over time, but better player get stronger faster
-    - 9 more bosses
+    - 2 new enemies all 5 levels
+    - 1 boss all 5 levels
+    - until level 50
+    - after level 50 start new game+, repeat bosses but stuff gets harder, faster
+
     - boss abilities shown by enemies before for easier learning
     - buy equippment which is visualized on character
         - only certan slots: feet slot, weapong slot, head slot, chest slot

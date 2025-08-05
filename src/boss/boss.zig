@@ -5,26 +5,28 @@ const movePieceZig = @import("../movePiece.zig");
 const soundMixerZig = @import("../soundMixer.zig");
 const bossStompZig = @import("bossStomp.zig");
 const bossRotateZig = @import("bossRotate.zig");
+const bossRollZig = @import("bossRoll.zig");
 
 pub const LevelBossData = struct {
-    name: []const u8,
     appearsOnLevel: usize,
-    startLevel: *const fn (state: *main.GameState) anyerror!void,
+    startLevel: *const fn (state: *main.GameState, bossDataIndex: usize) anyerror!void,
     tickBoss: *const fn (boss: *Boss, passedTime: i64, state: *main.GameState) anyerror!void,
     isBossHit: *const fn (boss: *Boss, hitArea: main.TileRectangle, state: *main.GameState) bool,
     setupVerticesGround: *const fn (boss: *Boss, state: *main.GameState) void,
     setupVertices: *const fn (boss: *Boss, state: *main.GameState) void,
-    deinit: ?*const fn (boss: *Boss) void = null,
+    deinit: ?*const fn (boss: *Boss, allocator: std.mem.Allocator) void = null,
 };
 
 const BossTypes = enum {
     stomp,
     rotate,
+    roll,
 };
 
 const BossTypeData = union(BossTypes) {
     stomp: bossStompZig.BossStompData,
     rotate: bossRotateZig.BossRotateData,
+    roll: bossRollZig.BossStompData,
 };
 
 pub const Boss = struct {
@@ -40,12 +42,13 @@ pub const Boss = struct {
 pub const LEVEL_BOSS_DATA = [_]LevelBossData{
     bossStompZig.createBoss(),
     bossRotateZig.createBoss(),
+    bossRollZig.createBoss(),
 };
 
 pub fn clearBosses(state: *main.GameState) void {
     for (state.bosses.items) |*boss| {
         const levelBossData = LEVEL_BOSS_DATA[boss.dataIndex];
-        if (levelBossData.deinit) |deinit| deinit(boss);
+        if (levelBossData.deinit) |deinit| deinit(boss, state.allocator);
     }
     state.bosses.clearRetainingCapacity();
 }
@@ -58,9 +61,9 @@ pub fn isBossLevel(level: u32) bool {
 }
 
 pub fn startBossLevel(state: *main.GameState) !void {
-    for (LEVEL_BOSS_DATA) |bossData| {
+    for (LEVEL_BOSS_DATA, 0..) |bossData, index| {
         if (bossData.appearsOnLevel == state.level) {
-            try bossData.startLevel(state);
+            try bossData.startLevel(state, index);
             state.gamePhase = .boss;
         }
     }
@@ -85,7 +88,7 @@ pub fn isBossHit(hitArea: main.TileRectangle, playerBladeRotation: f32, state: *
                     .imageIndex = boss.imageIndex,
                 },
             );
-            if (levelBossData.deinit) |deinit| deinit(&deadBoss);
+            if (levelBossData.deinit) |deinit| deinit(&deadBoss, state.allocator);
         } else {
             bossIndex += 1;
         }

@@ -24,9 +24,10 @@ pub const BossStompData = struct {
     attackTileRadius: i8 = 1,
 };
 
+const BOSS_NAME = "Stomp";
+
 pub fn createBoss() bossZig.LevelBossData {
     return bossZig.LevelBossData{
-        .name = "Stomp",
         .appearsOnLevel = 5,
         .startLevel = startBoss,
         .tickBoss = tickBoss,
@@ -36,14 +37,14 @@ pub fn createBoss() bossZig.LevelBossData {
     };
 }
 
-fn startBoss(state: *main.GameState) !void {
+fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
     try state.bosses.append(.{
         .hp = 10,
         .maxHp = 10,
         .imageIndex = imageZig.IMAGE_EVIL_TOWER,
         .position = .{ .x = 0, .y = 0 },
-        .name = bossZig.LEVEL_BOSS_DATA[0].name,
-        .dataIndex = 0,
+        .name = BOSS_NAME,
+        .dataIndex = bossDataIndex,
         .typeData = .{ .stomp = .{} },
     });
     state.mapTileRadius = 6;

@@ -289,7 +289,7 @@ fn destroyGameState(state: *GameState) void {
     state.players.deinit();
     for (state.bosses.items) |*boss| {
         const levelBossData = bossZig.LEVEL_BOSS_DATA[boss.dataIndex];
-        if (levelBossData.deinit) |deinit| deinit(boss);
+        if (levelBossData.deinit) |deinit| deinit(boss, state.allocator);
     }
     state.bosses.deinit();
     enemyZig.destroyEnemy(state);
