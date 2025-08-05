@@ -87,8 +87,8 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     }
     switch (rotateData.state) {
         .spawnPillars => {
+            if (!rotateData.immune) try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_IMMUNITY_UP, 0);
             rotateData.immune = true;
-            try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_IMMUNITY_UP, 0);
             rotateData.state = .immune;
             const spawnDistance = main.TILESIZE * 3;
             try state.enemies.append(.{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_BOSS_ROTATE_PILLAR, .position = .{

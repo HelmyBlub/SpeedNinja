@@ -14,6 +14,7 @@ pub const LevelBossData = struct {
     isBossHit: *const fn (boss: *Boss, hitArea: main.TileRectangle, state: *main.GameState) bool,
     setupVerticesGround: *const fn (boss: *Boss, state: *main.GameState) void,
     setupVertices: *const fn (boss: *Boss, state: *main.GameState) void,
+    onPlayerMoved: ?*const fn (boss: *Boss, player: *main.Player, state: *main.GameState) anyerror!void = null,
     deinit: ?*const fn (boss: *Boss, allocator: std.mem.Allocator) void = null,
 };
 
@@ -26,7 +27,7 @@ const BossTypes = enum {
 const BossTypeData = union(BossTypes) {
     stomp: bossStompZig.BossStompData,
     rotate: bossRotateZig.BossRotateData,
-    roll: bossRollZig.BossStompData,
+    roll: bossRollZig.BossRollData,
 };
 
 pub const Boss = struct {
@@ -44,6 +45,13 @@ pub const LEVEL_BOSS_DATA = [_]LevelBossData{
     bossRotateZig.createBoss(),
     bossRollZig.createBoss(),
 };
+
+pub fn onPlayerMoved(player: *main.Player, state: *main.GameState) !void {
+    for (state.bosses.items) |*boss| {
+        const levelBossData = LEVEL_BOSS_DATA[boss.dataIndex];
+        if (levelBossData.onPlayerMoved) |opm| try opm(boss, player, state);
+    }
+}
 
 pub fn clearBosses(state: *main.GameState) void {
     for (state.bosses.items) |*boss| {

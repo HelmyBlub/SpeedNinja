@@ -2,6 +2,7 @@ const std = @import("std");
 const main = @import("../main.zig");
 const imageZig = @import("../image.zig");
 const bossZig = @import("boss.zig");
+const enemyZig = @import("../enemy.zig");
 const soundMixerZig = @import("../soundMixer.zig");
 const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
@@ -12,13 +13,22 @@ const RollState = enum {
     executeMovePiece,
 };
 
-pub const BossStompData = struct {
+const AttackDelayed = struct {
+    position: main.TilePosition,
+    hitTime: i64,
+};
+
+pub const BossRollData = struct {
     nextStateTime: i64 = 0,
     state: RollState = .chooseRandomMovePiece,
-    attackTilePosition: main.TilePosition = .{ .x = 0, .y = 0 },
-    attackChargeTime: i64 = 3000,
+    attackTilePositions: std.ArrayList(AttackDelayed),
+    moveChargeTime: i64 = 3000,
+    attackDelay: i64 = 4000,
     attackHitTime: ?i64 = null,
     movePieces: [2]movePieceZig.MovePiece,
+    movePieceIndex: usize = 0,
+    moveDirection: u8 = 0,
+    moveAttackTiles: std.ArrayList(enemyZig.MoveAttackWarningTile),
 };
 
 const BOSS_NAME = "Roll";
@@ -32,6 +42,7 @@ pub fn createBoss() bossZig.LevelBossData {
         .setupVertices = setupVertices,
         .setupVerticesGround = setupVerticesGround,
         .deinit = deinit,
+        .onPlayerMoved = onPlayerMoved,
     };
 }
 
@@ -40,6 +51,16 @@ fn deinit(boss: *bossZig.Boss, allocator: std.mem.Allocator) void {
     for (rollData.movePieces) |movePiece| {
         allocator.free(movePiece.steps);
     }
+    rollData.moveAttackTiles.deinit();
+    rollData.attackTilePositions.deinit();
+}
+
+fn onPlayerMoved(boss: *bossZig.Boss, player: *main.Player, state: *main.GameState) !void {
+    const rollData = &boss.typeData.roll;
+    try rollData.attackTilePositions.append(AttackDelayed{
+        .hitTime = state.gameTime + rollData.attackDelay,
+        .position = main.gamePositionToTilePosition(player.position),
+    });
 }
 
 fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
@@ -50,10 +71,14 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
         .dataIndex = bossDataIndex,
-        .typeData = .{ .roll = .{ .movePieces = .{
-            try movePieceZig.createRandomMovePiece(state.allocator),
-            try movePieceZig.createRandomMovePiece(state.allocator),
-        } } },
+        .typeData = .{ .roll = .{
+            .movePieces = .{
+                try movePieceZig.createRandomMovePiece(state.allocator),
+                try movePieceZig.createRandomMovePiece(state.allocator),
+            },
+            .moveAttackTiles = std.ArrayList(enemyZig.MoveAttackWarningTile).init(state.allocator),
+            .attackTilePositions = std.ArrayList(AttackDelayed).init(state.allocator),
+        } },
     });
     state.mapTileRadius = 6;
     main.adjustZoom(state);
@@ -62,28 +87,46 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
 fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
     const rollData = &boss.typeData.roll;
     _ = passedTime;
-    if (rollData.attackHitTime) |attackHitTime| {
-        if (attackHitTime <= state.gameTime) {
+
+    var attackTileIndex: usize = 0;
+    while (rollData.attackTilePositions.items.len > attackTileIndex) {
+        const attackTile = rollData.attackTilePositions.items[attackTileIndex];
+        if (attackTile.hitTime <= state.gameTime) {
             for (state.players.items) |*player| {
                 const playerTile = main.gamePositionToTilePosition(player.position);
-                if (playerTile.x == rollData.attackTilePosition.x and playerTile.y == rollData.attackTilePosition.y) {
+                if (playerTile.x == attackTile.position.x and playerTile.y == attackTile.position.y) {
                     player.hp -|= 1;
                 }
             }
-            rollData.attackHitTime = null;
+            _ = rollData.attackTilePositions.swapRemove(attackTileIndex);
+        } else {
+            attackTileIndex += 1;
         }
-    } else {
-        rollData.attackHitTime = state.gameTime + rollData.attackChargeTime;
-        const randomPlayerIndex: usize = @as(usize, @intFromFloat(std.crypto.random.float(f32) * @as(f32, @floatFromInt(state.players.items.len))));
-        rollData.attackTilePosition = main.gamePositionToTilePosition(state.players.items[randomPlayerIndex].position);
     }
 
     switch (rollData.state) {
         .chooseRandomMovePiece => {
-            //
+            rollData.movePieceIndex = std.crypto.random.intRangeLessThan(usize, 0, rollData.movePieces.len);
+            rollData.state = .executeMovePiece;
+            rollData.nextStateTime = state.gameTime + rollData.moveChargeTime;
+            const movePiece = rollData.movePieces[rollData.movePieceIndex];
+            const gridBorder: f32 = @floatFromInt(state.mapTileRadius * main.TILESIZE);
+            var validMovePosition = false;
+            while (!validMovePosition) {
+                var bossPositionAfterPiece = boss.position;
+                rollData.moveDirection = std.crypto.random.intRangeLessThan(u8, 0, 4);
+                movePieceZig.movePositionByPiece(&bossPositionAfterPiece, movePiece, rollData.moveDirection);
+                validMovePosition = bossPositionAfterPiece.x > -gridBorder and bossPositionAfterPiece.x < gridBorder and bossPositionAfterPiece.y > -gridBorder and bossPositionAfterPiece.y < gridBorder;
+            }
+
+            try enemyZig.fillMoveAttackWarningTiles(boss.position, &rollData.moveAttackTiles, movePiece, rollData.moveDirection);
         },
         .executeMovePiece => {
-            //
+            if (rollData.nextStateTime <= state.gameTime) {
+                movePieceZig.attackMoveCheckPlayerHit(&boss.position, rollData.movePieces[rollData.movePieceIndex], rollData.moveDirection, state);
+                rollData.state = .chooseRandomMovePiece;
+                rollData.moveAttackTiles.clearRetainingCapacity();
+            }
         },
     }
 }
@@ -100,12 +143,24 @@ fn isBossHit(boss: *bossZig.Boss, hitArea: main.TileRectangle, state: *main.Game
 
 fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) void {
     const rollData = boss.typeData.roll;
-    if (rollData.attackHitTime) |attackHitTime| {
-        const fillPerCent: f32 = @min(1, @max(0, 1 - @as(f32, @floatFromInt(attackHitTime - state.gameTime)) / @as(f32, @floatFromInt(rollData.attackChargeTime))));
+    for (rollData.attackTilePositions.items) |attackTile| {
+        const fillPerCent: f32 = @min(1, @max(0, 1 - @as(f32, @floatFromInt(attackTile.hitTime - state.gameTime)) / @as(f32, @floatFromInt(rollData.attackDelay))));
         enemyVulkanZig.addWarningTileSprites(.{
-            .x = @as(f32, @floatFromInt(rollData.attackTilePosition.x)) * main.TILESIZE,
-            .y = @as(f32, @floatFromInt(rollData.attackTilePosition.y)) * main.TILESIZE,
+            .x = @as(f32, @floatFromInt(attackTile.position.x)) * main.TILESIZE,
+            .y = @as(f32, @floatFromInt(attackTile.position.y)) * main.TILESIZE,
         }, fillPerCent, state);
+    }
+
+    if (rollData.state == .executeMovePiece) {
+        const fillPerCent: f32 = @min(1, @max(0, 1 - @as(f32, @floatFromInt(rollData.nextStateTime - state.gameTime)) / @as(f32, @floatFromInt(rollData.moveChargeTime))));
+        for (rollData.moveAttackTiles.items) |moveAttack| {
+            const attackPosition: main.Position = .{
+                .x = @as(f32, @floatFromInt(moveAttack.position.x)) * main.TILESIZE,
+                .y = @as(f32, @floatFromInt(moveAttack.position.y)) * main.TILESIZE,
+            };
+            const rotation: f32 = @as(f32, @floatFromInt(moveAttack.direction)) * std.math.pi / 2.0;
+            enemyVulkanZig.addRedArrowTileSprites(attackPosition, fillPerCent, rotation, state);
+        }
     }
 }
 

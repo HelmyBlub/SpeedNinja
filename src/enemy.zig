@@ -53,6 +53,11 @@ pub const EnemyDeathAnimation = struct {
     imageIndex: u8,
 };
 
+pub const MoveAttackWarningTile = struct {
+    position: main.TilePosition,
+    direction: u8,
+};
+
 const ENEMY_TYPE_SPAWN_LEVEL_DATA = [_]EnemyTypeSpawnLevelData{
     .{ .baseProbability = 0.1, .enemyType = .nothing, .startingLevel = 1, .leavingLevel = 3 },
     .{ .baseProbability = 1, .enemyType = .attack, .startingLevel = 2, .leavingLevel = null },
@@ -105,6 +110,23 @@ pub fn tickEnemies(state: *main.GameState) !void {
                     }
                 }
             },
+        }
+    }
+}
+
+pub fn fillMoveAttackWarningTiles(startPosition: main.Position, tileList: *std.ArrayList(MoveAttackWarningTile), movePiece: movePieceZig.MovePiece, direction: u8) !void {
+    var curTilePos = main.gamePositionToTilePosition(startPosition);
+    for (movePiece.steps, 0..) |step, stepIndex| {
+        const currDirection = @mod(step.direction + direction + 1, 4);
+        const stepDirection = movePieceZig.getStepDirectionTile(currDirection);
+        for (0..step.stepCount) |stepCountIndex| {
+            curTilePos.x += stepDirection.x;
+            curTilePos.y += stepDirection.y;
+            var visualizedDirection = currDirection;
+            if (stepCountIndex == step.stepCount - 1 and movePiece.steps.len > stepIndex + 1) {
+                visualizedDirection = @mod(movePiece.steps[stepIndex + 1].direction + direction + 1, 4);
+            }
+            try tileList.append(.{ .direction = visualizedDirection, .position = curTilePos });
         }
     }
 }
