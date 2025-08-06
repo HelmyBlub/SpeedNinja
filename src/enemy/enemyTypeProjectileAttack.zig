@@ -8,7 +8,7 @@ const enemyProjectileZig = @import("enemyProjectile.zig");
 
 pub fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
     return .{
-        .imageIndex = imageZig.IMAGE_EVIL_TOWER,
+        .imageIndex = imageZig.IMAGE_ENEMY_SHURIKEN_THROWER,
         .position = .{ .x = 0, .y = 0 },
         .enemyTypeData = .{
             .projectileAttack = .{
@@ -28,7 +28,7 @@ pub fn tick(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
                 .x = enemy.position.x + stepDirection.x * main.TILESIZE,
                 .y = enemy.position.y + stepDirection.y * main.TILESIZE,
             };
-            try enemyProjectileZig.spawnProjectile(spawnPosition, data.direction, imageZig.IMAGE_BLADE, 1000, state);
+            try enemyProjectileZig.spawnProjectile(spawnPosition, data.direction, imageZig.IMAGE_SHURIKEN, 1000, state);
             data.startTime = null;
         }
     } else {
@@ -46,6 +46,6 @@ pub fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) void 
             .y = enemy.position.y + moveStep.y * main.TILESIZE,
         };
         const fillPerCent: f32 = @min(1, @max(0, @as(f32, @floatFromInt(state.gameTime - startTime)) / @as(f32, @floatFromInt(data.delay))));
-        enemyVulkanZig.addWarningTileSprites(attackPosition, fillPerCent, state);
+        enemyVulkanZig.addWarningShurikenSprites(attackPosition, fillPerCent, state);
     }
 }

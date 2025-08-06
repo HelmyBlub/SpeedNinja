@@ -1,13 +1,19 @@
 Tasks:
-- next enemy    
-    - throw projectile in direction
-        - moving through projectile damages player
-        - projectiles move in intervals until few cells over grid border
+- next enemy throw projectile
+    - image:
+        - projectile
+        - enemy
+        - warningProjectileSpawn
+    - warning tile projectile move like move enemy
+    - rotate projectile
 - player immunity frames
     - don't instant(few frames) die in projectile
 
 - next boss
-    - 2 target boss
+    - idea:
+        - 2 bosses 
+        - or boss splits when hit, becommes smaller
+            - destroying small bosses first is more secure as less projectiles
     - throw projectiles in all 4 direction in intervals
     - move around in a circle pattern
 

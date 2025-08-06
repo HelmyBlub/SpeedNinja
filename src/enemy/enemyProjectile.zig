@@ -25,13 +25,23 @@ pub fn spawnProjectile(position: main.Position, direction: u8, imageIndex: u8, m
 
 pub fn setupVertices(state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
+    const rotation: f32 = @mod(@as(f32, @floatFromInt(state.gameTime)) / 150, std.math.pi * 2);
     for (state.enemyProjectiles.items) |projectile| {
-        paintVulkanZig.verticesForComplexSpriteDefault(projectile.position, projectile.imageIndex, &verticeData.spritesComplex, state);
+        paintVulkanZig.verticesForComplexSpriteWithRotate(
+            projectile.position,
+            projectile.imageIndex,
+            rotation,
+            &verticeData.spritesComplex,
+            state,
+        );
     }
 }
 
 pub fn tickProjectiles(state: *main.GameState) !void {
-    for (state.enemyProjectiles.items) |*projectile| {
+    var currentIndex: usize = 0;
+    const despawnRange: f32 = @as(f32, @floatFromInt(state.mapTileRadius + 4)) * main.TILESIZE;
+    while (currentIndex < state.enemyProjectiles.items.len) {
+        const projectile = &state.enemyProjectiles.items[currentIndex];
         if (projectile.nextMoveTime <= state.gameTime) {
             projectile.nextMoveTime = state.gameTime + projectile.moveInterval;
             const stepDirection = movePieceZig.getStepDirection(projectile.direction);
@@ -41,6 +51,13 @@ pub fn tickProjectiles(state: *main.GameState) !void {
             };
         }
         try enemyZig.checkPlayerHit(projectile.position, state);
+        if (projectile.position.x < -despawnRange or projectile.position.x > despawnRange or
+            projectile.position.y < -despawnRange or projectile.position.y > despawnRange)
+        {
+            _ = state.enemyProjectiles.swapRemove(currentIndex);
+        } else {
+            currentIndex += 1;
+        }
     }
 }
 

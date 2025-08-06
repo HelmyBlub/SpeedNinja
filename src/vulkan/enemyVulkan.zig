@@ -47,7 +47,15 @@ pub fn setupVerticesForBosses(state: *main.GameState) void {
     }
 }
 
+pub fn addWarningShurikenSprites(gamePosition: main.Position, fillPerCent: f32, state: *main.GameState) void {
+    addWarningTileSpritesWithImageIndex(gamePosition, fillPerCent, imageZig.IMAGE_WARNING_SHURIKEN, imageZig.IMAGE_WARNING_SHURIKEN_FILLED, state);
+}
+
 pub fn addWarningTileSprites(gamePosition: main.Position, fillPerCent: f32, state: *main.GameState) void {
+    addWarningTileSpritesWithImageIndex(gamePosition, fillPerCent, imageZig.IMAGE_WARNING_TILE, imageZig.IMAGE_WARNING_TILE_FILLED, state);
+}
+
+fn addWarningTileSpritesWithImageIndex(gamePosition: main.Position, fillPerCent: f32, imageIndex: u8, imageIndexFilled: u8, state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
     if (verticeData.spritesComplex.verticeCount + 12 >= verticeData.spritesComplex.vertices.len) return;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
@@ -79,7 +87,7 @@ pub fn addWarningTileSprites(gamePosition: main.Position, fillPerCent: f32, stat
             };
             verticeData.spritesComplex.vertices[verticeData.spritesComplex.verticeCount] = dataVulkanZig.SpriteComplexVertex{
                 .pos = .{ vulkan.x, vulkan.y },
-                .imageIndex = if (i < 2) imageZig.IMAGE_WARNING_TILE_FILLED else imageZig.IMAGE_WARNING_TILE,
+                .imageIndex = if (i < 2) imageIndexFilled else imageIndex,
                 .alpha = 1,
                 .tex = texPos,
             };
