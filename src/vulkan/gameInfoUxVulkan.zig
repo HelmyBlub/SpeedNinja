@@ -31,6 +31,7 @@ pub fn setupVertices(state: *main.GameState) !void {
             paintVulkanZig.verticesForRectangle(left, top, width, height, .{ 1, 0, 0 }, &verticeData.lines, null);
         }
     } else {
+        textWidthRound -= 0.2;
         if (state.gamePhase == .combat) {
             textWidthRound += fontVulkanZig.paintText("Round: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
             textWidthRound += try fontVulkanZig.paintNumber(state.round, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
@@ -38,7 +39,9 @@ pub fn setupVertices(state: *main.GameState) !void {
         textWidthRound += fontVulkanZig.paintText(" Level: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
         textWidthRound += try fontVulkanZig.paintNumber(state.level, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
         textWidthRound += fontVulkanZig.paintText(" Money: $", .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
-        _ = try fontVulkanZig.paintNumber(state.players.items[0].money, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
+        textWidthRound += try fontVulkanZig.paintNumber(state.players.items[0].money, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
+        textWidthRound += fontVulkanZig.paintText(" Play Time: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
+        _ = try fontVulkanZig.paintNumber(@divFloor(state.gameTime, 1000), .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
 
         if (state.round > 1) {
             if (state.gamePhase == .combat) {
