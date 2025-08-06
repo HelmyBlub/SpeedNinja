@@ -4,11 +4,13 @@ const imageZig = @import("../image.zig");
 const movePieceZig = @import("../movePiece.zig");
 const enemyTypeAttackZig = @import("enemyTypeAttack.zig");
 const enemyTypeMoveZig = @import("enemyTypeMove.zig");
+const enemyTypeMoveWithPlayerZig = @import("enemyTypeMoveWithPlayer.zig");
 
 pub const EnemyType = enum {
     nothing,
     attack,
     move,
+    moveWithPlayer,
 };
 
 const EnemyTypeSpawnLevelData = struct {
@@ -22,6 +24,7 @@ pub const EnemyTypeData = union(EnemyType) {
     nothing,
     attack: enemyTypeAttackZig.EnemyTypeAttackData,
     move: enemyTypeAttackZig.EnemyTypeAttackData,
+    moveWithPlayer: enemyTypeMoveWithPlayerZig.EnemyTypeMoveWithPlayerData,
 };
 
 pub const Enemy = struct {
@@ -56,23 +59,50 @@ pub const MoveAttackWarningTile = struct {
 
 const ENEMY_TYPE_SPAWN_LEVEL_DATA = [_]EnemyTypeSpawnLevelData{
     .{ .baseProbability = 0.1, .enemyType = .nothing, .startingLevel = 1, .leavingLevel = 3 },
-    .{ .baseProbability = 1, .enemyType = .attack, .startingLevel = 2, .leavingLevel = null },
+    .{ .baseProbability = 1, .enemyType = .attack, .startingLevel = 2, .leavingLevel = 10 },
     .{ .baseProbability = 1, .enemyType = .move, .startingLevel = 5, .leavingLevel = null },
+    .{ .baseProbability = 1, .enemyType = .moveWithPlayer, .startingLevel = 10, .leavingLevel = null },
 };
 
 pub fn tickEnemies(state: *main.GameState) !void {
-    const enemies = &state.enemies;
-
-    for (enemies.items) |*enemy| {
+    for (state.enemies.items) |*enemy| {
         switch (enemy.enemyTypeData) {
-            .nothing => {},
             .attack => {
                 try enemyTypeAttackZig.tick(enemy, state);
             },
             .move => {
                 try enemyTypeMoveZig.tick(enemy, state);
             },
+            else => {},
         }
+    }
+}
+
+pub fn onPlayerMoved(player: *main.Player, state: *main.GameState) !void {
+    for (state.enemies.items) |*enemy| {
+        switch (enemy.enemyTypeData) {
+            .moveWithPlayer => {
+                try enemyTypeMoveWithPlayerZig.onPlayerMoved(enemy, player, state);
+            },
+            else => {},
+        }
+    }
+}
+
+fn createSpawnEnemyEntryEnemy(enemyType: EnemyType) Enemy {
+    switch (enemyType) {
+        .nothing => {
+            return .{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_EVIL_TREE, .position = .{ .x = 0, .y = 0 } };
+        },
+        .attack => {
+            return enemyTypeAttackZig.createSpawnEnemyEntryEnemy();
+        },
+        .move => {
+            return enemyTypeMoveZig.createSpawnEnemyEntryEnemy();
+        },
+        .moveWithPlayer => {
+            return enemyTypeMoveWithPlayerZig.createSpawnEnemyEntryEnemy();
+        },
     }
 }
 
@@ -98,20 +128,6 @@ pub fn initEnemy(state: *main.GameState) !void {
     state.enemies = std.ArrayList(Enemy).init(state.allocator);
     state.enemySpawnData.enemyEntries = std.ArrayList(EnemySpawnEntry).init(state.allocator);
     try setupSpawnEnemiesOnLevelChange(state);
-}
-
-fn createSpawnEnemyEntryEnemy(enemyType: EnemyType) Enemy {
-    switch (enemyType) {
-        .nothing => {
-            return .{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_EVIL_TREE, .position = .{ .x = 0, .y = 0 } };
-        },
-        .attack => {
-            return enemyTypeAttackZig.createSpawnEnemyEntryEnemy();
-        },
-        .move => {
-            return enemyTypeMoveZig.createSpawnEnemyEntryEnemy();
-        },
-    }
 }
 
 pub fn setupSpawnEnemiesOnLevelChange(state: *main.GameState) !void {

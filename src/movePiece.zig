@@ -5,6 +5,7 @@ const soundMixerZig = @import("soundMixer.zig");
 const shopZig = @import("shop.zig");
 const choosenMovePieceVisualizationVulkanZig = @import("vulkan/choosenMovePieceVisualizationVulkan.zig");
 const bossZig = @import("boss/boss.zig");
+const enemyZig = @import("enemy/enemy.zig");
 
 pub const MovePiece = struct {
     steps: []MoveStep,
@@ -132,6 +133,7 @@ pub fn tickPlayerMovePiece(player: *main.Player, state: *main.GameState) !void {
                 try shopZig.executeShopActionForPlayer(player, state);
             } else {
                 try bossZig.onPlayerMoved(player, state);
+                try enemyZig.onPlayerMoved(player, state);
                 if (shopZig.isPlayerInEarlyShopTrigger(player, state)) {
                     try shopZig.startShoppingPhase(state);
                 }

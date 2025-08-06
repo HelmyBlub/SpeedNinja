@@ -35,6 +35,7 @@ pub const IMAGE_RED_ARROW_FILLED = 27;
 pub const IMAGE_ENEMY_MOVING = 28;
 pub const IMAGE_BOSS_ROLL = 29;
 pub const IMAGE_CANNON_BALL = 30;
+pub const IMAGE_ENEMY_EYE = 31;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaDog.png" },
@@ -68,6 +69,7 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/enemyMoving.png" },
     .{ .path = "images/bossRoll.png" },
     .{ .path = "images/cannonBall.png" },
+    .{ .path = "images/enemyEye.png" },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 
