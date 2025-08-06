@@ -6,6 +6,7 @@ const movePieceZig = @import("movePiece.zig");
 const ninjaDogVulkanZig = @import("vulkan/ninjaDogVulkan.zig");
 const soundMixerZig = @import("soundMixer.zig");
 const enemyZig = @import("enemy/enemy.zig");
+const enemyProjectileZig = @import("enemy/enemyProjectile.zig");
 const shopZig = @import("shop.zig");
 const bossZig = @import("boss/boss.zig");
 
@@ -30,10 +31,11 @@ pub const GameState = struct {
     levelInitialTime: i32 = 60_000,
     roundEndTimeMS: i64 = 0,
     mapTileRadius: u32 = BASE_MAP_TILE_RADIUS,
-    enemies: std.ArrayList(enemyZig.Enemy) = undefined,
     bosses: std.ArrayList(bossZig.Boss) = undefined,
+    enemies: std.ArrayList(enemyZig.Enemy) = undefined,
     enemyDeath: std.ArrayList(enemyZig.EnemyDeathAnimation) = undefined,
     enemySpawnData: enemyZig.EnemySpawnData = undefined,
+    enemyProjectiles: std.ArrayList(enemyProjectileZig.EnemyProjectile) = undefined,
     players: std.ArrayList(Player),
     soundMixer: ?soundMixerZig.SoundMixer = null,
     gameEnded: bool = false,
@@ -168,6 +170,7 @@ pub fn endShoppingPhase(state: *GameState) !void {
 
 pub fn startNextLevel(state: *GameState) !void {
     state.enemies.clearRetainingCapacity();
+    state.enemyProjectiles.clearRetainingCapacity();
     state.gamePhase = .combat;
     state.level += 1;
     state.round = 0;

@@ -2,15 +2,18 @@ const std = @import("std");
 const main = @import("../main.zig");
 const imageZig = @import("../image.zig");
 const movePieceZig = @import("../movePiece.zig");
+const enemyProjectileZig = @import("enemyProjectile.zig");
 const enemyTypeAttackZig = @import("enemyTypeAttack.zig");
 const enemyTypeMoveZig = @import("enemyTypeMove.zig");
 const enemyTypeMoveWithPlayerZig = @import("enemyTypeMoveWithPlayer.zig");
+const enemyTypeProjectileAttackZig = @import("enemyTypeProjectileAttack.zig");
 
 pub const EnemyType = enum {
     nothing,
     attack,
     move,
     moveWithPlayer,
+    projectileAttack,
 };
 
 const EnemyTypeSpawnLevelData = struct {
@@ -25,6 +28,7 @@ pub const EnemyTypeData = union(EnemyType) {
     attack: enemyTypeAttackZig.EnemyTypeAttackData,
     move: enemyTypeAttackZig.EnemyTypeAttackData,
     moveWithPlayer: enemyTypeMoveWithPlayerZig.EnemyTypeMoveWithPlayerData,
+    projectileAttack: enemyTypeAttackZig.EnemyTypeAttackData,
 };
 
 pub const Enemy = struct {
@@ -60,8 +64,9 @@ pub const MoveAttackWarningTile = struct {
 const ENEMY_TYPE_SPAWN_LEVEL_DATA = [_]EnemyTypeSpawnLevelData{
     .{ .baseProbability = 0.1, .enemyType = .nothing, .startingLevel = 1, .leavingLevel = 3 },
     .{ .baseProbability = 1, .enemyType = .attack, .startingLevel = 2, .leavingLevel = 10 },
-    .{ .baseProbability = 1, .enemyType = .move, .startingLevel = 5, .leavingLevel = null },
+    .{ .baseProbability = 1, .enemyType = .move, .startingLevel = 5, .leavingLevel = 15 },
     .{ .baseProbability = 1, .enemyType = .moveWithPlayer, .startingLevel = 10, .leavingLevel = null },
+    .{ .baseProbability = 1, .enemyType = .projectileAttack, .startingLevel = 15, .leavingLevel = null },
 };
 
 pub fn tickEnemies(state: *main.GameState) !void {
@@ -73,9 +78,13 @@ pub fn tickEnemies(state: *main.GameState) !void {
             .move => {
                 try enemyTypeMoveZig.tick(enemy, state);
             },
+            .projectileAttack => {
+                try enemyTypeProjectileAttackZig.tick(enemy, state);
+            },
             else => {},
         }
     }
+    try enemyProjectileZig.tickProjectiles(state);
 }
 
 pub fn onPlayerMoved(player: *main.Player, state: *main.GameState) !void {
@@ -103,6 +112,9 @@ fn createSpawnEnemyEntryEnemy(enemyType: EnemyType) Enemy {
         .moveWithPlayer => {
             return enemyTypeMoveWithPlayerZig.createSpawnEnemyEntryEnemy();
         },
+        .projectileAttack => {
+            return enemyTypeProjectileAttackZig.createSpawnEnemyEntryEnemy();
+        },
     }
 }
 
@@ -127,6 +139,7 @@ pub fn initEnemy(state: *main.GameState) !void {
     state.enemyDeath = std.ArrayList(EnemyDeathAnimation).init(state.allocator);
     state.enemies = std.ArrayList(Enemy).init(state.allocator);
     state.enemySpawnData.enemyEntries = std.ArrayList(EnemySpawnEntry).init(state.allocator);
+    state.enemyProjectiles = std.ArrayList(enemyProjectileZig.EnemyProjectile).init(state.allocator);
     try setupSpawnEnemiesOnLevelChange(state);
 }
 
@@ -169,6 +182,7 @@ pub fn destroyEnemy(state: *main.GameState) void {
     state.enemySpawnData.enemyEntries.deinit();
     state.enemyDeath.deinit();
     state.enemies.deinit();
+    state.enemyProjectiles.deinit();
 }
 
 pub fn checkPlayerHit(position: main.Position, state: *main.GameState) !void {

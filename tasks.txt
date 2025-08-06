@@ -1,7 +1,15 @@
 Tasks:
-- timer
-    - know how long a round took
-    
+- next enemy    
+    - throw projectile in direction
+        - moving through projectile damages player
+        - projectiles move in intervals until few cells over grid border
+- player immunity frames
+    - don't instant(few frames) die in projectile
+
+- next boss
+    - 2 target boss
+    - throw projectiles in all 4 direction in intervals
+    - move around in a circle pattern
 
 Next ideas:
 - something which makes player stronger over time, but better player get stronger faster

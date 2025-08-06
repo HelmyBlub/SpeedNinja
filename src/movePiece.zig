@@ -6,6 +6,7 @@ const shopZig = @import("shop.zig");
 const choosenMovePieceVisualizationVulkanZig = @import("vulkan/choosenMovePieceVisualizationVulkan.zig");
 const bossZig = @import("boss/boss.zig");
 const enemyZig = @import("enemy/enemy.zig");
+const enemyProjectileZig = @import("enemy/enemyProjectile.zig");
 
 pub const MovePiece = struct {
     steps: []MoveStep,
@@ -126,7 +127,7 @@ pub fn tickPlayerMovePiece(player: *main.Player, state: *main.GameState) !void {
         }
         const direction = @mod(step.direction + player.executeDirection + 1, 4);
         if (!player.slashedLastMoveTile) ninjaDogVulkanZig.movedAnimate(player, direction);
-        try stepAndCheckEnemyHit(player, step.stepCount, getStepDirection(direction), state);
+        try stepAndCheckEnemyHitAndProjectileHit(player, step.stepCount, getStepDirection(direction), state);
         if (player.executeMovePiece == null) {
             ninjaDogVulkanZig.moveHandToCenter(player, state);
             if (state.gamePhase == .shopping) {
@@ -298,7 +299,7 @@ pub fn isTilePositionOnMovePiece(checkTile: main.TilePosition, movePieceStartTil
     return false;
 }
 
-fn stepAndCheckEnemyHit(player: *main.Player, stepCount: u8, stepDirection: main.Position, state: *main.GameState) !void {
+fn stepAndCheckEnemyHitAndProjectileHit(player: *main.Player, stepCount: u8, stepDirection: main.Position, state: *main.GameState) !void {
     for (0..stepCount) |i| {
         player.slashedLastMoveTile = false;
         try ninjaDogVulkanZig.addAfterImages(1, stepDirection, player, state);
@@ -309,6 +310,9 @@ fn stepAndCheckEnemyHit(player: *main.Player, stepCount: u8, stepDirection: main
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BLADE_CUT_INDICIES[0..], i * 25);
             try resetPieces(player);
             player.slashedLastMoveTile = true;
+        }
+        if (enemyProjectileZig.isHitByProjectile(player.position, state)) {
+            try main.playerHit(player, state);
         }
     }
 }
