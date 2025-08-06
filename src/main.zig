@@ -26,7 +26,7 @@ pub const GameState = struct {
     level: u32 = 1,
     roundToReachForNextLevel: usize = 5,
     bonusTimePerRoundFinished: i32 = 5000,
-    minimalTimePerRequiredRounds: i32 = 30_000,
+    minimalTimePerRequiredRounds: i32 = 35_000,
     levelInitialTime: i32 = 60_000,
     roundEndTimeMS: i64 = 0,
     mapTileRadius: u32 = BASE_MAP_TILE_RADIUS,
@@ -214,7 +214,7 @@ pub fn restart(state: *GameState) !void {
     state.gamePhase = .combat;
     state.gameTime = 0;
     for (state.players.items) |*player| {
-        player.hp = 1;
+        player.hp = 3;
         player.money = 0;
         player.position.x = 0;
         player.position.y = 0;

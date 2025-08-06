@@ -1,18 +1,17 @@
 Tasks:
 - next boss:
-    - shoot projectile at player position
-        - projectile has constant delay, falls from the top
-        - forces player to constanty move
-    - boss rolls around randomly
-        - has 2 random simple move pieces
+    - visualize
+        - shoot projectile in air when player moves
+        - projectiles hits ground when timer up
+    - image
+    - sound when projectile shot
+    - sound when projectile hits ground
+    
 - next enemy
     - change enemy code like boss code?
     - enemy which moves when player moves (in multiplayer stuck to one specific player, to not move like crazy)
 
     
-
-
-
 
 Next ideas:
 - something which makes player stronger over time, but better player get stronger faster

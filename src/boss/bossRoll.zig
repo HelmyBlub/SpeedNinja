@@ -14,7 +14,8 @@ const RollState = enum {
 };
 
 const AttackDelayed = struct {
-    position: main.TilePosition,
+    firedFromPosition: main.TilePosition,
+    targetPosition: main.TilePosition,
     hitTime: i64,
 };
 
@@ -24,7 +25,6 @@ pub const BossRollData = struct {
     attackTilePositions: std.ArrayList(AttackDelayed),
     moveChargeTime: i64 = 3000,
     attackDelay: i64 = 4000,
-    attackHitTime: ?i64 = null,
     movePieces: [2]movePieceZig.MovePiece,
     movePieceIndex: usize = 0,
     moveDirection: u8 = 0,
@@ -59,7 +59,8 @@ fn onPlayerMoved(boss: *bossZig.Boss, player: *main.Player, state: *main.GameSta
     const rollData = &boss.typeData.roll;
     try rollData.attackTilePositions.append(AttackDelayed{
         .hitTime = state.gameTime + rollData.attackDelay,
-        .position = main.gamePositionToTilePosition(player.position),
+        .targetPosition = main.gamePositionToTilePosition(player.position),
+        .firedFromPosition = main.gamePositionToTilePosition(boss.position),
     });
 }
 
@@ -67,7 +68,7 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
     try state.bosses.append(.{
         .hp = 10,
         .maxHp = 10,
-        .imageIndex = imageZig.IMAGE_EVIL_TOWER,
+        .imageIndex = imageZig.IMAGE_BOSS_ROLL,
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
         .dataIndex = bossDataIndex,
@@ -94,7 +95,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
         if (attackTile.hitTime <= state.gameTime) {
             for (state.players.items) |*player| {
                 const playerTile = main.gamePositionToTilePosition(player.position);
-                if (playerTile.x == attackTile.position.x and playerTile.y == attackTile.position.y) {
+                if (playerTile.x == attackTile.targetPosition.x and playerTile.y == attackTile.targetPosition.y) {
                     player.hp -|= 1;
                 }
             }
@@ -146,8 +147,8 @@ fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) void {
     for (rollData.attackTilePositions.items) |attackTile| {
         const fillPerCent: f32 = @min(1, @max(0, 1 - @as(f32, @floatFromInt(attackTile.hitTime - state.gameTime)) / @as(f32, @floatFromInt(rollData.attackDelay))));
         enemyVulkanZig.addWarningTileSprites(.{
-            .x = @as(f32, @floatFromInt(attackTile.position.x)) * main.TILESIZE,
-            .y = @as(f32, @floatFromInt(attackTile.position.y)) * main.TILESIZE,
+            .x = @as(f32, @floatFromInt(attackTile.targetPosition.x)) * main.TILESIZE,
+            .y = @as(f32, @floatFromInt(attackTile.targetPosition.y)) * main.TILESIZE,
         }, fillPerCent, state);
     }
 
@@ -165,5 +166,24 @@ fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) void {
 }
 
 fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
+    const rollData = boss.typeData.roll;
     paintVulkanZig.verticesForComplexSpriteDefault(boss.position, boss.imageIndex, &state.vkState.verticeData.spritesComplex, state);
+    for (rollData.attackTilePositions.items) |attack| {
+        if (attack.hitTime > state.gameTime + @divFloor(rollData.attackDelay * 3, 4)) {
+            const timePassed: f32 = @floatFromInt(rollData.attackDelay - (attack.hitTime - state.gameTime));
+            const cannonBallPosiion: main.Position = .{
+                .x = boss.position.x,
+                .y = boss.position.y - timePassed / 2,
+            };
+            paintVulkanZig.verticesForComplexSpriteDefault(cannonBallPosiion, imageZig.IMAGE_CANNON_BALL, &state.vkState.verticeData.spritesComplex, state);
+        } else if (attack.hitTime >= state.gameTime - @divFloor(rollData.attackDelay * 3, 4)) {
+            const timeUntilHit: f32 = @floatFromInt(attack.hitTime - state.gameTime);
+            const targetPosition = main.tilePositionToGamePosition(attack.targetPosition);
+            const cannonBallPosiion: main.Position = .{
+                .x = targetPosition.x,
+                .y = targetPosition.y - timeUntilHit / 2,
+            };
+            paintVulkanZig.verticesForComplexSpriteDefault(cannonBallPosiion, imageZig.IMAGE_CANNON_BALL, &state.vkState.verticeData.spritesComplex, state);
+        }
+    }
 }
