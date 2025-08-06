@@ -92,6 +92,11 @@ pub fn main() !void {
     try startGame(allocator);
 }
 
+pub fn playerHit(player: *Player, state: *GameState) !void {
+    player.hp -|= 1;
+    try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_PLAYER_HIT, 0);
+}
+
 fn startGame(allocator: std.mem.Allocator) !void {
     std.debug.print("game run start\n", .{});
     var state: GameState = undefined;

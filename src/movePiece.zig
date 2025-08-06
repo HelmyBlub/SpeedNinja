@@ -151,10 +151,10 @@ pub fn movePositionByPiece(position: *main.Position, movePiece: MovePiece, execu
     }
 }
 
-pub fn attackMoveCheckPlayerHit(position: *main.Position, movePiece: MovePiece, executeDirection: u8, state: *main.GameState) void {
+pub fn attackMoveCheckPlayerHit(position: *main.Position, movePiece: MovePiece, executeDirection: u8, state: *main.GameState) !void {
     for (movePiece.steps) |step| {
         const direction = @mod(step.direction + executeDirection + 1, 4);
-        stepAndCheckPlayerHit(position, step.stepCount, getStepDirection(direction), state);
+        try stepAndCheckPlayerHit(position, step.stepCount, getStepDirection(direction), state);
     }
 }
 
@@ -311,11 +311,11 @@ fn stepAndCheckEnemyHit(player: *main.Player, stepCount: u8, stepDirection: main
     }
 }
 
-fn stepAndCheckPlayerHit(position: *main.Position, stepCount: u8, stepDirection: main.Position, state: *main.GameState) void {
+fn stepAndCheckPlayerHit(position: *main.Position, stepCount: u8, stepDirection: main.Position, state: *main.GameState) !void {
     for (0..stepCount) |_| {
         position.x += stepDirection.x * main.TILESIZE;
         position.y += stepDirection.y * main.TILESIZE;
-        checkPlayerHitOnMoveStep(position, state);
+        try checkPlayerHitOnMoveStep(position, state);
     }
 }
 
@@ -464,7 +464,7 @@ fn checkEnemyHitOnMoveStep(player: *main.Player, state: *main.GameState) !bool {
     return hitSomething;
 }
 
-fn checkPlayerHitOnMoveStep(position: *main.Position, state: *main.GameState) void {
+fn checkPlayerHitOnMoveStep(position: *main.Position, state: *main.GameState) !void {
     const left: f32 = position.x - main.TILESIZE / 2;
     const top: f32 = position.y - main.TILESIZE / 2;
     const width: f32 = main.TILESIZE;
@@ -472,7 +472,7 @@ fn checkPlayerHitOnMoveStep(position: *main.Position, state: *main.GameState) vo
 
     for (state.players.items) |*player| {
         if (player.position.x > left and player.position.x < left + width and player.position.y > top and player.position.y < top + height) {
-            player.hp -|= 1;
+            try main.playerHit(player, state);
         }
     }
 }

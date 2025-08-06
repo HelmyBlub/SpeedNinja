@@ -60,6 +60,7 @@ var SOUND_FILE_PATHES = [_][]const u8{
     "sounds/rollShoot2.mp3",
     "sounds/rollShoot3.mp3",
     "sounds/rollShoot4.mp3",
+    "sounds/playerHit.mp3",
 };
 
 pub const SOUND_NINJA_MOVE_INDICIES = [_]usize{ 0, 1, 2 };
@@ -71,6 +72,7 @@ pub const SOUND_IMMUNITY_UP = 15;
 pub const SOUND_IMMUNITY_DOWN = 16;
 pub const SOUND_BALL_GROUND_INDICIES = [_]usize{ 17, 18, 19, 20 };
 pub const SOUND_BOSS_ROOL_SHOOT_INDICIES = [_]usize{ 21, 22, 23, 24 };
+pub const SOUND_PLAYER_HIT = 25;
 
 pub fn createSoundMixer(state: *main.GameState, allocator: std.mem.Allocator) !void {
     state.soundMixer = .{

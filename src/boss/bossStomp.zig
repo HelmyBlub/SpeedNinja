@@ -101,7 +101,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                 for (state.players.items) |*player| {
                     const playerTile = main.gamePositionToTilePosition(player.position);
                     if (main.isTilePositionInTileRectangle(playerTile, damageTileRectangle)) {
-                        player.hp -|= 1;
+                        try main.playerHit(player, state);
                     }
                 }
             }

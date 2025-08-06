@@ -1,8 +1,4 @@
 Tasks:
-- next boss:
-    - sound when projectile shot
-    - sound when projectile hits ground
-    - sound for boss move?
 - sound for player hit
 
 - next enemy

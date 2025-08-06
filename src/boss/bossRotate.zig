@@ -78,7 +78,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             const playerTile = main.gamePositionToTilePosition(player.position);
             for (rotateData.attackTiles.items) |tile| {
                 if (playerTile.x == tile.x and playerTile.y == tile.y) {
-                    player.hp -|= 1;
+                    try main.playerHit(player, state);
                     break;
                 }
             }

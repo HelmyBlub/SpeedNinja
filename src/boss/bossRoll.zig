@@ -97,7 +97,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             for (state.players.items) |*player| {
                 const playerTile = main.gamePositionToTilePosition(player.position);
                 if (playerTile.x == attackTile.targetPosition.x and playerTile.y == attackTile.targetPosition.y) {
-                    player.hp -|= 1;
+                    try main.playerHit(player, state);
                 }
             }
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BALL_GROUND_INDICIES[0..], 0);
@@ -126,7 +126,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
         },
         .executeMovePiece => {
             if (rollData.nextStateTime <= state.gameTime) {
-                movePieceZig.attackMoveCheckPlayerHit(&boss.position, rollData.movePieces[rollData.movePieceIndex], rollData.moveDirection, state);
+                try movePieceZig.attackMoveCheckPlayerHit(&boss.position, rollData.movePieces[rollData.movePieceIndex], rollData.moveDirection, state);
                 rollData.state = .chooseRandomMovePiece;
                 rollData.moveAttackTiles.clearRetainingCapacity();
             }

@@ -77,7 +77,7 @@ pub fn tickEnemies(state: *main.GameState) !void {
                             .x = enemy.position.x + stepDirection.x * main.TILESIZE,
                             .y = enemy.position.y + stepDirection.y * main.TILESIZE,
                         };
-                        checkPlayerHit(hitPosition, state);
+                        try checkPlayerHit(hitPosition, state);
                         data.startTime = null;
                     }
                 } else {
@@ -93,7 +93,7 @@ pub fn tickEnemies(state: *main.GameState) !void {
                             .x = enemy.position.x + stepDirection.x * main.TILESIZE,
                             .y = enemy.position.y + stepDirection.y * main.TILESIZE,
                         };
-                        checkPlayerHit(hitPosition, state);
+                        try checkPlayerHit(hitPosition, state);
                         enemy.position = hitPosition;
                         data.startTime = null;
                     }
@@ -211,12 +211,12 @@ pub fn destroyEnemy(state: *main.GameState) void {
     state.enemies.deinit();
 }
 
-fn checkPlayerHit(position: main.Position, state: *main.GameState) void {
+fn checkPlayerHit(position: main.Position, state: *main.GameState) !void {
     for (state.players.items) |*player| {
         if (player.position.x > position.x - main.TILESIZE / 2 and player.position.x < position.x + main.TILESIZE / 2 and
             player.position.y > position.y - main.TILESIZE / 2 and player.position.y < position.y + main.TILESIZE / 2)
         {
-            player.hp -|= 1;
+            try main.playerHit(player, state);
         }
     }
 }
