@@ -1,6 +1,4 @@
 Tasks:
-- sound for player hit
-
 - next enemy
     - change enemy code like boss code?
     - enemy which moves when player moves (in multiplayer stuck to one specific player, to not move like crazy)

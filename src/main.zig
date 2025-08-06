@@ -5,7 +5,7 @@ const paintVulkanZig = @import("vulkan/paintVulkan.zig");
 const movePieceZig = @import("movePiece.zig");
 const ninjaDogVulkanZig = @import("vulkan/ninjaDogVulkan.zig");
 const soundMixerZig = @import("soundMixer.zig");
-const enemyZig = @import("enemy.zig");
+const enemyZig = @import("enemy/enemy.zig");
 const shopZig = @import("shop.zig");
 const bossZig = @import("boss/boss.zig");
 

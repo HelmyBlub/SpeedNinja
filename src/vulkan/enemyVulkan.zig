@@ -6,6 +6,8 @@ const dataVulkanZig = @import("dataVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 const movePieceZig = @import("../movePiece.zig");
 const bossZig = @import("../boss/boss.zig");
+const enemyTypeAttackZig = @import("../enemy/enemyTypeAttack.zig");
+const enemyTypeMoveZig = @import("../enemy/enemyTypeMove.zig");
 
 pub fn setupVertices(state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
@@ -15,31 +17,14 @@ pub fn setupVertices(state: *main.GameState) void {
 }
 
 pub fn setupVerticesGround(state: *main.GameState) void {
-    for (state.enemies.items) |enemy| {
+    for (state.enemies.items) |*enemy| {
         switch (enemy.enemyTypeData) {
             .nothing => {},
-            .attack => |data| {
-                if (data.startTime) |startTime| {
-                    const moveStep = movePieceZig.getStepDirection(data.direction);
-                    const attackPosition: main.Position = .{
-                        .x = enemy.position.x + moveStep.x * main.TILESIZE,
-                        .y = enemy.position.y + moveStep.y * main.TILESIZE,
-                    };
-                    const fillPerCent: f32 = @min(1, @max(0, @as(f32, @floatFromInt(state.gameTime - startTime)) / @as(f32, @floatFromInt(data.delay))));
-                    addWarningTileSprites(attackPosition, fillPerCent, state);
-                }
+            .attack => {
+                enemyTypeAttackZig.setupVerticesGround(enemy, state);
             },
-            .move => |data| {
-                if (data.startTime) |startTime| {
-                    const moveStep = movePieceZig.getStepDirection(data.direction);
-                    const attackPosition: main.Position = .{
-                        .x = enemy.position.x + moveStep.x * main.TILESIZE,
-                        .y = enemy.position.y + moveStep.y * main.TILESIZE,
-                    };
-                    const fillPerCent: f32 = @min(1, @max(0, @as(f32, @floatFromInt(state.gameTime - startTime)) / @as(f32, @floatFromInt(data.delay))));
-                    const rotation: f32 = @as(f32, @floatFromInt(data.direction)) * std.math.pi / 2.0;
-                    addRedArrowTileSprites(attackPosition, fillPerCent, rotation, state);
-                }
+            .move => {
+                enemyTypeMoveZig.setupVerticesGround(enemy, state);
             },
         }
     }

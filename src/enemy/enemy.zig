@@ -1,18 +1,14 @@
 const std = @import("std");
-const main = @import("main.zig");
-const imageZig = @import("image.zig");
-const movePieceZig = @import("movePiece.zig");
+const main = @import("../main.zig");
+const imageZig = @import("../image.zig");
+const movePieceZig = @import("../movePiece.zig");
+const enemyTypeAttackZig = @import("enemyTypeAttack.zig");
+const enemyTypeMoveZig = @import("enemyTypeMove.zig");
 
 pub const EnemyType = enum {
     nothing,
     attack,
     move,
-};
-
-pub const EnemyTypeAttackData = struct {
-    delay: i64,
-    direction: u8,
-    startTime: ?i64 = null,
 };
 
 const EnemyTypeSpawnLevelData = struct {
@@ -24,8 +20,8 @@ const EnemyTypeSpawnLevelData = struct {
 
 pub const EnemyTypeData = union(EnemyType) {
     nothing,
-    attack: EnemyTypeAttackData,
-    move: EnemyTypeAttackData,
+    attack: enemyTypeAttackZig.EnemyTypeAttackData,
+    move: enemyTypeAttackZig.EnemyTypeAttackData,
 };
 
 pub const Enemy = struct {
@@ -66,49 +62,15 @@ const ENEMY_TYPE_SPAWN_LEVEL_DATA = [_]EnemyTypeSpawnLevelData{
 
 pub fn tickEnemies(state: *main.GameState) !void {
     const enemies = &state.enemies;
+
     for (enemies.items) |*enemy| {
         switch (enemy.enemyTypeData) {
             .nothing => {},
-            .attack => |*data| {
-                if (data.startTime) |startTime| {
-                    if (startTime + data.delay < state.gameTime) {
-                        const stepDirection = movePieceZig.getStepDirection(data.direction);
-                        const hitPosition: main.Position = .{
-                            .x = enemy.position.x + stepDirection.x * main.TILESIZE,
-                            .y = enemy.position.y + stepDirection.y * main.TILESIZE,
-                        };
-                        try checkPlayerHit(hitPosition, state);
-                        data.startTime = null;
-                    }
-                } else {
-                    data.startTime = state.gameTime;
-                    data.direction = std.crypto.random.int(u2);
-                }
+            .attack => {
+                try enemyTypeAttackZig.tick(enemy, state);
             },
-            .move => |*data| {
-                if (data.startTime) |startTime| {
-                    if (startTime + data.delay < state.gameTime) {
-                        const stepDirection = movePieceZig.getStepDirection(data.direction);
-                        const hitPosition: main.Position = .{
-                            .x = enemy.position.x + stepDirection.x * main.TILESIZE,
-                            .y = enemy.position.y + stepDirection.y * main.TILESIZE,
-                        };
-                        try checkPlayerHit(hitPosition, state);
-                        enemy.position = hitPosition;
-                        data.startTime = null;
-                    }
-                } else {
-                    data.direction = std.crypto.random.int(u2);
-                    const stepDirection = movePieceZig.getStepDirection(data.direction);
-                    const border: f32 = @floatFromInt(state.mapTileRadius * main.TILESIZE);
-                    if (stepDirection.x < 0 and enemy.position.x > -border or
-                        stepDirection.x > 0 and enemy.position.x < border or
-                        stepDirection.y < 0 and enemy.position.y > -border or
-                        stepDirection.y > 0 and enemy.position.y < border)
-                    {
-                        data.startTime = state.gameTime;
-                    }
-                }
+            .move => {
+                try enemyTypeMoveZig.tick(enemy, state);
             },
         }
     }
@@ -144,28 +106,10 @@ fn createSpawnEnemyEntryEnemy(enemyType: EnemyType) Enemy {
             return .{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_EVIL_TREE, .position = .{ .x = 0, .y = 0 } };
         },
         .attack => {
-            return .{
-                .imageIndex = imageZig.IMAGE_EVIL_TREE,
-                .position = .{ .x = 0, .y = 0 },
-                .enemyTypeData = .{
-                    .attack = .{
-                        .delay = 5000,
-                        .direction = std.crypto.random.int(u2),
-                    },
-                },
-            };
+            return enemyTypeAttackZig.createSpawnEnemyEntryEnemy();
         },
         .move => {
-            return .{
-                .imageIndex = imageZig.IMAGE_ENEMY_MOVING,
-                .position = .{ .x = 0, .y = 0 },
-                .enemyTypeData = .{
-                    .move = .{
-                        .delay = 4000,
-                        .direction = std.crypto.random.int(u2),
-                    },
-                },
-            };
+            return enemyTypeMoveZig.createSpawnEnemyEntryEnemy();
         },
     }
 }
@@ -211,7 +155,7 @@ pub fn destroyEnemy(state: *main.GameState) void {
     state.enemies.deinit();
 }
 
-fn checkPlayerHit(position: main.Position, state: *main.GameState) !void {
+pub fn checkPlayerHit(position: main.Position, state: *main.GameState) !void {
     for (state.players.items) |*player| {
         if (player.position.x > position.x - main.TILESIZE / 2 and player.position.x < position.x + main.TILESIZE / 2 and
             player.position.y > position.y - main.TILESIZE / 2 and player.position.y < position.y + main.TILESIZE / 2)

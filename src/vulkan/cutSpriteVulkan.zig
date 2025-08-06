@@ -4,7 +4,7 @@ const imageZig = @import("../image.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 const dataVulkanZig = @import("dataVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
-const enemyZig = @import("../enemy.zig");
+const enemyZig = @import("../enemy/enemy.zig");
 
 const DEATH_DURATION = 3000;
 
