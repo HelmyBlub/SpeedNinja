@@ -114,7 +114,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     }
 }
 
-fn isBossHit(boss: *bossZig.Boss, hitArea: main.TileRectangle, state: *main.GameState) bool {
+fn isBossHit(boss: *bossZig.Boss, hitArea: main.TileRectangle, state: *main.GameState) !bool {
     _ = state;
     const stompData = &boss.typeData.stomp;
     if (!stompData.inAir) {

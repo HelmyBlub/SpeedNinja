@@ -1,11 +1,11 @@
 Tasks:
-- timer minutes
-
 - next boss
-    - idea:
-        - 2 bosses 
-        - or boss splits when hit, becommes smaller
-            - destroying small bosses first is more secure as less projectiles
+    - continue: boss split in air move parts
+    - boss splits when cut into two smaller pieces
+        - destroying small bosses first is more secure as less projectiles
+        - how do weapons with more damage work?
+            - boss splits based on health
+               - split total 3 tiems 1 -> 2 -> 4 -> 8 
     - throw projectiles in all 4 direction in intervals
     - move around in a circle pattern
 
