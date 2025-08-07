@@ -1,6 +1,4 @@
 Tasks:
-- player immunity frames
-    - don't instant(few frames) die in projectile
 - timer minutes
 
 - next boss

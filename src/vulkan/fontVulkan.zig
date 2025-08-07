@@ -48,21 +48,27 @@ pub fn getCharFontVertex(char: u8, vulkanSurfacePosition: main.Position, fontSiz
 }
 
 pub fn paintNumber(number: anytype, vulkanSurfacePosition: main.Position, fontSize: f32, vkFont: *dataVulkanZig.VkFont) !f32 {
+    return paintNumberWithZeroPrefix(number, vulkanSurfacePosition, fontSize, vkFont, false);
+}
+
+pub fn paintNumberWithZeroPrefix(number: anytype, vulkanSurfacePosition: main.Position, fontSize: f32, vkFont: *dataVulkanZig.VkFont, singleZeroPrefixWhenSmallerTen: bool) !f32 {
     const max_len = 20;
     var buf: [max_len]u8 = undefined;
     var numberAsString: []u8 = undefined;
     if (@TypeOf(number) == f32) {
         numberAsString = try std.fmt.bufPrint(&buf, "{d:.1}", .{number});
     } else {
-        numberAsString = try std.fmt.bufPrint(&buf, "{d}", .{number});
+        if (singleZeroPrefixWhenSmallerTen and number < 10) {
+            numberAsString = try std.fmt.bufPrint(&buf, "0{d}", .{number});
+        } else {
+            numberAsString = try std.fmt.bufPrint(&buf, "{d}", .{number});
+        }
     }
 
     var texX: f32 = 0;
     var texWidth: f32 = 0;
     var xOffset: f32 = 0;
-    const spacingPosition = (numberAsString.len + 2) % 3;
-    const spacing = 20 / windowSdlZig.windowData.widthFloat * 2 / 40 * fontSize * 0.8;
-    for (numberAsString, 0..) |char, i| {
+    for (numberAsString) |char| {
         if (vkFont.verticeCount >= vkFont.vertices.len) break;
         charToTexCoords(char, &texX, &texWidth);
         vkFont.vertices[vkFont.verticeCount] = .{
@@ -73,7 +79,6 @@ pub fn paintNumber(number: anytype, vulkanSurfacePosition: main.Position, fontSi
             .size = fontSize,
         };
         xOffset += texWidth * 1600 / windowSdlZig.windowData.widthFloat * 2 / 40 * fontSize * 0.8;
-        if (i % 3 == spacingPosition) xOffset += spacing;
         vkFont.verticeCount += 1;
     }
     return xOffset;

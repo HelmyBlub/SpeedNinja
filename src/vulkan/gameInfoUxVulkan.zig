@@ -41,7 +41,14 @@ pub fn setupVertices(state: *main.GameState) !void {
         textWidthRound += fontVulkanZig.paintText(" Money: $", .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
         textWidthRound += try fontVulkanZig.paintNumber(state.players.items[0].money, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
         textWidthRound += fontVulkanZig.paintText(" Play Time: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
-        _ = try fontVulkanZig.paintNumber(@divFloor(state.gameTime, 1000), .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
+        var zeroPrefix = false;
+        if (state.gameTime >= 60 * 1000) {
+            const minutes = @divFloor(state.gameTime, 1000 * 60);
+            textWidthRound += try fontVulkanZig.paintNumber(minutes, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
+            textWidthRound += fontVulkanZig.paintText(":", .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
+            zeroPrefix = true;
+        }
+        _ = try fontVulkanZig.paintNumberWithZeroPrefix(@mod(@divFloor(state.gameTime, 1000), 60), .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices, zeroPrefix);
 
         if (state.round > 1) {
             if (state.gamePhase == .combat) {
