@@ -1,9 +1,7 @@
 Tasks:
-- next boss
-    - images:
-        - boss
-    - change boss size based on splits left to know how often it can still split
 - game endless loop on wave ?11? why?
+- change eye enemy color be different
+    - enemy looking to similar on floor 11-14
 
 Next ideas:
 - something which makes player stronger over time, but better player get stronger faster
