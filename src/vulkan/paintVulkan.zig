@@ -22,6 +22,7 @@ pub fn drawFrame(state: *main.GameState) !void {
     mapGridVulkanZig.setupVertices(state);
     shopVulkanZig.setupVertices(state);
     enemyVulkanZig.setupVerticesGround(state);
+    enemyProjectilesZig.setupVerticesGround(state);
     try addDataVerticeDrawCut(&state.vkState.verticeData);
     choosenMovePieceVulkanZig.setupVertices(state);
     enemyVulkanZig.setupVertices(state);

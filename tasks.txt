@@ -1,13 +1,9 @@
 Tasks:
 - next enemy throw projectile
-    - image:
-        - projectile
-        - enemy
-        - warningProjectileSpawn
     - warning tile projectile move like move enemy
-    - rotate projectile
 - player immunity frames
     - don't instant(few frames) die in projectile
+- timer minutes
 
 - next boss
     - idea:

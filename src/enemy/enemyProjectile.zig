@@ -3,6 +3,7 @@ const main = @import("../main.zig");
 const imageZig = @import("../image.zig");
 const movePieceZig = @import("../movePiece.zig");
 const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
+const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const enemyZig = @import("enemy.zig");
 
 pub const EnemyProjectile = struct {
@@ -21,6 +22,19 @@ pub fn spawnProjectile(position: main.Position, direction: u8, imageIndex: u8, m
         .nextMoveTime = moveInterval + state.gameTime,
         .position = position,
     });
+}
+
+pub fn setupVerticesGround(state: *main.GameState) void {
+    for (state.enemyProjectiles.items) |projectile| {
+        const moveStep = movePieceZig.getStepDirection(projectile.direction);
+        const attackPosition: main.Position = .{
+            .x = projectile.position.x + moveStep.x * main.TILESIZE,
+            .y = projectile.position.y + moveStep.y * main.TILESIZE,
+        };
+        const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(projectile.nextMoveTime - state.gameTime)) / @as(f32, @floatFromInt(projectile.moveInterval))));
+        const rotation: f32 = @as(f32, @floatFromInt(projectile.direction)) * std.math.pi / 2.0;
+        enemyVulkanZig.addRedArrowTileSprites(attackPosition, fillPerCent, rotation, state);
+    }
 }
 
 pub fn setupVertices(state: *main.GameState) void {
