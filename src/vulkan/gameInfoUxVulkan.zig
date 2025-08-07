@@ -18,7 +18,7 @@ pub fn setupVertices(state: *main.GameState) !void {
             textWidthRound += fontVulkanZig.paintText("Level: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
             textWidthRound += try fontVulkanZig.paintNumber(state.level, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices) + onePixelXInVulkan * 20;
             textWidthRound += fontVulkanZig.paintText(boss.name, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices) + onePixelXInVulkan * 20;
-            textWidthRound += try fontVulkanZig.paintNumber(boss.hp, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices) - onePixelXInVulkan * 7;
+            textWidthRound += try fontVulkanZig.paintNumber(boss.hp, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
             textWidthRound += fontVulkanZig.paintText("/", .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
             textWidthRound += try fontVulkanZig.paintNumber(boss.maxHp, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
 

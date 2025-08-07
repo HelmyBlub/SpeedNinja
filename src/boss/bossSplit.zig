@@ -15,8 +15,10 @@ pub const BossSplitData = struct {
 const BossSplitPartData = struct {
     inAir: bool = false,
     position: main.Position,
-    attackChargeTime: i64 = 6000,
-    attackVisualizeTime: i64 = 2000,
+    attackChargeTime: i16 = 3000,
+    attackVisualizeTime: i16 = 2000,
+    waitAfterAttackTime: i16 = 3000,
+    waitUntilTime: ?i64 = null,
     nextAttackTime: ?i64 = null,
     flyToPosition: ?main.Position = null,
     cutAtPosition: ?main.Position = null,
@@ -87,16 +89,34 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                     try enemyProjectileZig.spawnProjectile(spawnPosition, @intCast(direction), imageZig.IMAGE_SHURIKEN, 1000, state);
                 }
                 bossSplit.nextAttackTime = null;
+                bossSplit.waitUntilTime = state.gameTime + bossSplit.waitAfterAttackTime;
             }
         } else {
             if (!bossSplit.inAir) {
-                bossSplit.nextAttackTime = state.gameTime + bossSplit.attackChargeTime;
+                if (bossSplit.waitUntilTime) |waitTime| {
+                    if (waitTime <= state.gameTime) {
+                        bossSplit.waitUntilTime = null;
+                    }
+                } else {
+                    bossSplit.nextAttackTime = state.gameTime + bossSplit.attackChargeTime;
+                }
+            } else {
+                if (bossSplit.flyCutStart + bossSplit.flyCutDuration <= state.gameTime) {
+                    bossSplit.inAir = false;
+                    bossSplit.position = bossSplit.flyToPosition.?;
+                } else {
+                    const flyPerCent: f32 = @as(f32, @floatFromInt(state.gameTime - bossSplit.flyCutStart)) / @as(f32, @floatFromInt(bossSplit.flyCutDuration));
+                    bossSplit.position = .{
+                        .x = bossSplit.cutAtPosition.?.x + (bossSplit.flyToPosition.?.x - bossSplit.cutAtPosition.?.x) * flyPerCent,
+                        .y = bossSplit.cutAtPosition.?.y + (bossSplit.flyToPosition.?.y - bossSplit.cutAtPosition.?.y) * flyPerCent,
+                    };
+                }
             }
         }
     }
 }
 
-fn isBossHit(boss: *bossZig.Boss, hitArea: main.TileRectangle, state: *main.GameState) !bool {
+fn isBossHit(boss: *bossZig.Boss, hitArea: main.TileRectangle, cutRotation: f32, state: *main.GameState) !bool {
     var somethingHit = false;
     const splitData = &boss.typeData.split;
     var currentIndex: usize = 0;
@@ -113,7 +133,19 @@ fn isBossHit(boss: *bossZig.Boss, hitArea: main.TileRectangle, state: *main.Game
             }
         }
         if (bossSplit.hp == 0) {
-            _ = splitData.splits.swapRemove(currentIndex);
+            const removed = splitData.splits.swapRemove(currentIndex);
+            if (boss.hp > 0) {
+                const cutAngle = cutRotation + std.math.pi / 2.0;
+                try state.enemyDeath.append(
+                    .{
+                        .deathTime = state.gameTime,
+                        .position = removed.position,
+                        .cutAngle = cutAngle,
+                        .force = std.crypto.random.float(f32) + 0.2,
+                        .imageIndex = boss.imageIndex,
+                    },
+                );
+            }
         } else {
             try checkAndSplitBoss(splitData, bossSplit, state);
             currentIndex += 1;
@@ -123,24 +155,27 @@ fn isBossHit(boss: *bossZig.Boss, hitArea: main.TileRectangle, state: *main.Game
 }
 
 fn checkAndSplitBoss(splitData: *BossSplitData, bossSplit: *BossSplitPartData, state: *main.GameState) !void {
-    if (bossSplit.hp <= bossSplit.splitOnHp) {
+    if (bossSplit.hp <= bossSplit.splitOnHp and bossSplit.hp >= 2) {
+        bossSplit.flyToPosition = getRandomFlyToPosition(splitData, state);
+        var secondRandomFlyTo = getRandomFlyToPosition(splitData, state);
+        while (secondRandomFlyTo.x == bossSplit.flyToPosition.?.x and secondRandomFlyTo.y == bossSplit.flyToPosition.?.y) {
+            secondRandomFlyTo = getRandomFlyToPosition(splitData, state);
+        }
         bossSplit.inAir = true;
         bossSplit.nextAttackTime = null;
-        bossSplit.flyToPosition = bossSplit.position;
-        bossSplit.flyToPosition.?.x += main.TILESIZE * 2;
         bossSplit.remainingSpltits -|= 1;
         bossSplit.cutAtPosition = bossSplit.position;
         bossSplit.flyCutStart = state.gameTime;
         const distance = main.calculateDistance(bossSplit.position, bossSplit.flyToPosition.?);
-        const distancePerTime = 5.0;
-        bossSplit.flyCutDuration = @intFromFloat(distance * distancePerTime);
+        const timePerDistance = 15.0;
+        bossSplit.flyCutDuration = @intFromFloat(distance * timePerDistance);
         const hp = @divFloor(bossSplit.hp, 2);
-        const splitEachXHealth = @divFloor(hp, std.math.pow(u32, 2, bossSplit.remainingSpltits));
+        const splitEachXHealth = @max(1, @divFloor(hp, std.math.pow(u32, 2, bossSplit.remainingSpltits)));
         bossSplit.hp -= hp;
         bossSplit.splitOnHp = bossSplit.hp - splitEachXHealth;
         var bossSplit2: BossSplitPartData = .{
             .position = bossSplit.position,
-            .flyToPosition = .{ .x = bossSplit.position.x, .y = bossSplit.position.y + main.TILESIZE },
+            .flyToPosition = secondRandomFlyTo,
             .cutAtPosition = bossSplit.position,
             .inAir = true,
             .hp = hp,
@@ -149,9 +184,30 @@ fn checkAndSplitBoss(splitData: *BossSplitData, bossSplit: *BossSplitPartData, s
             .flyCutStart = state.gameTime,
         };
         const distance2 = main.calculateDistance(bossSplit.position, bossSplit2.flyToPosition.?);
-        bossSplit2.flyCutDuration = @intFromFloat(distance2 * distancePerTime);
+        bossSplit2.flyCutDuration = @intFromFloat(distance2 * timePerDistance);
         try splitData.splits.append(bossSplit2);
     }
+}
+
+fn getRandomFlyToPosition(splitData: *BossSplitData, state: *main.GameState) main.Position {
+    var randomPos: main.Position = .{ .x = 0, .y = 0 };
+    var validPosition = false;
+    searchPos: while (!validPosition) {
+        const mapTileRadiusI32 = @as(i32, @intCast(state.mapTileRadius));
+        randomPos.x = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusI32, mapTileRadiusI32) * main.TILESIZE);
+        randomPos.y = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusI32, mapTileRadiusI32) * main.TILESIZE);
+        for (splitData.splits.items) |bossSplit| {
+            var splitPosition = bossSplit.position;
+            if (bossSplit.inAir) {
+                splitPosition = bossSplit.flyToPosition.?;
+            }
+            if (main.calculateDistance(randomPos, splitPosition) < main.TILESIZE * 3) {
+                continue :searchPos;
+            }
+        }
+        validPosition = true;
+    }
+    return randomPos;
 }
 
 fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) void {
@@ -178,7 +234,9 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
     for (splitData.splits.items) |bossSplit| {
         var bossPosition = bossSplit.position;
         if (bossSplit.inAir) {
-            bossPosition.y -= main.TILESIZE / 2;
+            const flyPerCent: f32 = @as(f32, @floatFromInt(state.gameTime - bossSplit.flyCutStart)) / @as(f32, @floatFromInt(bossSplit.flyCutDuration));
+            const hightPerCent = @sin(flyPerCent * std.math.pi);
+            bossPosition.y -= hightPerCent * @as(f32, @floatFromInt(bossSplit.flyCutDuration)) / 50;
         }
         if (bossPosition.y != bossSplit.position.y) {
             paintVulkanZig.verticesForComplexSpriteScale(.{

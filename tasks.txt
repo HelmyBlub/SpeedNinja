@@ -1,6 +1,5 @@
 Tasks:
 - next boss
-    - continue: boss split in air move parts
     - boss splits when cut into two smaller pieces
         - destroying small bosses first is more secure as less projectiles
         - how do weapons with more damage work?

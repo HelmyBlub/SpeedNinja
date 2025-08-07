@@ -134,8 +134,9 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     }
 }
 
-fn isBossHit(boss: *bossZig.Boss, hitArea: main.TileRectangle, state: *main.GameState) !bool {
+fn isBossHit(boss: *bossZig.Boss, hitArea: main.TileRectangle, cutRotation: f32, state: *main.GameState) !bool {
     _ = state;
+    _ = cutRotation;
     const bossTile = main.gamePositionToTilePosition(boss.position);
     if (main.isTilePositionInTileRectangle(bossTile, hitArea)) {
         boss.hp -|= 1;
