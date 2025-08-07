@@ -10,6 +10,7 @@ const enemyProjectileZig = @import("../enemy/enemyProjectile.zig");
 
 pub const BossSplitData = struct {
     splits: std.ArrayList(BossSplitPartData),
+    maxSplits: u8,
 };
 
 const BossSplitPartData = struct {
@@ -44,9 +45,12 @@ pub fn createBoss() bossZig.LevelBossData {
 }
 
 fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
-    var bossTypeData: BossSplitData = .{ .splits = std.ArrayList(BossSplitPartData).init(state.allocator) };
-    const bossHp = 10;
     const maxSplits = 3;
+    var bossTypeData: BossSplitData = .{
+        .splits = std.ArrayList(BossSplitPartData).init(state.allocator),
+        .maxSplits = maxSplits,
+    };
+    const bossHp = 10;
     const splitEachXHealth = @divFloor(bossHp, std.math.pow(u32, 2, maxSplits));
     try bossTypeData.splits.append(.{
         .hp = bossHp,
@@ -58,7 +62,7 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
     try state.bosses.append(.{
         .hp = bossHp,
         .maxHp = bossHp,
-        .imageIndex = imageZig.IMAGE_EVIL_TOWER,
+        .imageIndex = imageZig.IMAGE_BOSS_SLIME,
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
         .dataIndex = bossDataIndex,
@@ -136,6 +140,7 @@ fn isBossHit(boss: *bossZig.Boss, hitArea: main.TileRectangle, cutRotation: f32,
             const removed = splitData.splits.swapRemove(currentIndex);
             if (boss.hp > 0) {
                 const cutAngle = cutRotation + std.math.pi / 2.0;
+                const sizeFactor: f32 = @as(f32, @floatFromInt(bossSplit.remainingSpltits)) / @as(f32, @floatFromInt(splitData.maxSplits));
                 try state.enemyDeath.append(
                     .{
                         .deathTime = state.gameTime,
@@ -143,6 +148,7 @@ fn isBossHit(boss: *bossZig.Boss, hitArea: main.TileRectangle, cutRotation: f32,
                         .cutAngle = cutAngle,
                         .force = std.crypto.random.float(f32) + 0.2,
                         .imageIndex = boss.imageIndex,
+                        .sizeFactor = sizeFactor,
                     },
                 );
             }
@@ -244,6 +250,16 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
                 .y = bossSplit.position.y + 5,
             }, imageZig.IMAGE_SHADOW, &state.vkState.verticeData.spritesComplex, 0.75, state);
         }
-        paintVulkanZig.verticesForComplexSpriteDefault(bossPosition, boss.imageIndex, &state.vkState.verticeData.spritesComplex, state);
+        const sizeFactor: f32 = @as(f32, @floatFromInt(bossSplit.remainingSpltits)) / @as(f32, @floatFromInt(splitData.maxSplits));
+        const size: f32 = main.TILESIZE * sizeFactor;
+        paintVulkanZig.verticesForComplexSprite(
+            bossPosition,
+            boss.imageIndex,
+            &state.vkState.verticeData.spritesComplex,
+            size,
+            size,
+            1,
+            state,
+        );
     }
 }

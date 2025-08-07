@@ -54,6 +54,7 @@ pub const EnemyDeathAnimation = struct {
     cutAngle: f32,
     force: f32,
     imageIndex: u8,
+    sizeFactor: f32 = 1,
 };
 
 pub const MoveAttackWarningTile = struct {

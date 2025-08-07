@@ -25,7 +25,7 @@ pub fn setupVertices(state: *main.GameState) void {
 }
 
 fn setupVerticesForEnemyDeath(enemyDeath: enemyZig.EnemyDeathAnimation, state: *main.GameState) void {
-    const halfSize = main.TILESIZE / 2;
+    const halfSize: f32 = main.TILESIZE / 2.0;
     const normal: main.Position = .{ .x = @cos(enemyDeath.cutAngle), .y = @sin(enemyDeath.cutAngle) };
     const corners: [4]main.Position = [4]main.Position{
         main.Position{ .x = -halfSize, .y = -halfSize },
@@ -85,10 +85,10 @@ fn setupVerticesForEnemyDeath(enemyDeath: enemyZig.EnemyDeathAnimation, state: *
         .x = (positionsNegative[0].x + positionsNegative[1].x + positionsNegative[2].x + positionsNegative[3].x) / 4,
         .y = (positionsNegative[0].y + positionsNegative[1].y + positionsNegative[2].y + positionsNegative[3].y) / 4,
     };
-    addTriangle(.{ positionsPositive[0], positionsPositive[1], positionsPositive[2] }, enemyDeath, -offsetX, offsetY, centerOfRotatePositive, enemyDeath.imageIndex, state);
-    addTriangle(.{ positionsPositive[0], positionsPositive[2], positionsPositive[3] }, enemyDeath, -offsetX, offsetY, centerOfRotatePositive, enemyDeath.imageIndex, state);
-    addTriangle(.{ positionsNegative[0], positionsNegative[1], positionsNegative[2] }, enemyDeath, offsetX, offsetY, centerOfRotateNegative, enemyDeath.imageIndex, state);
-    addTriangle(.{ positionsNegative[0], positionsNegative[2], positionsNegative[3] }, enemyDeath, offsetX, offsetY, centerOfRotateNegative, enemyDeath.imageIndex, state);
+    addTriangle(.{ positionsPositive[0], positionsPositive[1], positionsPositive[2] }, enemyDeath, -offsetX, offsetY, centerOfRotatePositive, enemyDeath.imageIndex, enemyDeath.sizeFactor, state);
+    addTriangle(.{ positionsPositive[0], positionsPositive[2], positionsPositive[3] }, enemyDeath, -offsetX, offsetY, centerOfRotatePositive, enemyDeath.imageIndex, enemyDeath.sizeFactor, state);
+    addTriangle(.{ positionsNegative[0], positionsNegative[1], positionsNegative[2] }, enemyDeath, offsetX, offsetY, centerOfRotateNegative, enemyDeath.imageIndex, enemyDeath.sizeFactor, state);
+    addTriangle(.{ positionsNegative[0], positionsNegative[2], positionsNegative[3] }, enemyDeath, offsetX, offsetY, centerOfRotateNegative, enemyDeath.imageIndex, enemyDeath.sizeFactor, state);
 }
 
 fn calculateOffsetY(enemyDeath: enemyZig.EnemyDeathAnimation, state: *main.GameState) f32 {
@@ -100,7 +100,7 @@ fn calculateOffsetY(enemyDeath: enemyZig.EnemyDeathAnimation, state: *main.GameS
     return -avgVelocity * iterations / 2;
 }
 
-fn addTriangle(points: [3]main.Position, enemyDeath: enemyZig.EnemyDeathAnimation, offsetX: f32, offsetY: f32, rotateCenter: main.Position, imageIndex: u8, state: *main.GameState) void {
+fn addTriangle(points: [3]main.Position, enemyDeath: enemyZig.EnemyDeathAnimation, offsetX: f32, offsetY: f32, rotateCenter: main.Position, imageIndex: u8, scale: f32, state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
     if (verticeData.spritesComplex.vertices.len <= verticeData.spritesComplex.verticeCount + 3) return;
     const alpha = 1 - @as(f32, @floatFromInt(state.gameTime - enemyDeath.deathTime)) / DEATH_DURATION;
@@ -112,8 +112,8 @@ fn addTriangle(points: [3]main.Position, enemyDeath: enemyZig.EnemyDeathAnimatio
     for (points) |point| {
         const rotatedPoint = paintVulkanZig.rotateAroundPoint(point, rotateCenter, rotate);
         const vulkan: main.Position = .{
-            .x = (rotatedPoint.x - state.camera.position.x + enemyDeath.position.x + offsetX) * state.camera.zoom * onePixelXInVulkan,
-            .y = (rotatedPoint.y - state.camera.position.y + enemyDeath.position.y + offsetY) * state.camera.zoom * onePixelYInVulkan,
+            .x = (rotatedPoint.x * scale - state.camera.position.x + enemyDeath.position.x + offsetX) * state.camera.zoom * onePixelXInVulkan,
+            .y = (rotatedPoint.y * scale - state.camera.position.y + enemyDeath.position.y + offsetY) * state.camera.zoom * onePixelYInVulkan,
         };
         const texPos: main.Position = .{
             .x = (point.x / halfSize + 1) / 2,

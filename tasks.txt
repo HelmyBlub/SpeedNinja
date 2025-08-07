@@ -1,12 +1,9 @@
 Tasks:
 - next boss
-    - boss splits when cut into two smaller pieces
-        - destroying small bosses first is more secure as less projectiles
-        - how do weapons with more damage work?
-            - boss splits based on health
-               - split total 3 tiems 1 -> 2 -> 4 -> 8 
-    - throw projectiles in all 4 direction in intervals
-    - move around in a circle pattern
+    - images:
+        - boss
+    - change boss size based on splits left to know how often it can still split
+- game endless loop on wave ?11? why?
 
 Next ideas:
 - something which makes player stronger over time, but better player get stronger faster

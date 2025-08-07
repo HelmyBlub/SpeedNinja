@@ -40,6 +40,7 @@ pub const IMAGE_SHURIKEN = 32;
 pub const IMAGE_ENEMY_SHURIKEN_THROWER = 33;
 pub const IMAGE_WARNING_SHURIKEN = 34;
 pub const IMAGE_WARNING_SHURIKEN_FILLED = 35;
+pub const IMAGE_BOSS_SLIME = 36;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaDog.png" },
@@ -78,6 +79,7 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/enemyShurikenThrower.png" },
     .{ .path = "images/warningShuriken.png" },
     .{ .path = "images/warningShurikenFilled.png" },
+    .{ .path = "images/bossSlime.png" },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 
