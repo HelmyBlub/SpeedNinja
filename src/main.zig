@@ -30,6 +30,7 @@ pub const GameState = struct {
     minimalTimePerRequiredRounds: i32 = 35_000,
     levelInitialTime: i32 = 60_000,
     roundEndTimeMS: i64 = 0,
+    playerImmunityFrames: i64 = 750,
     mapTileRadius: u32 = BASE_MAP_TILE_RADIUS,
     bosses: std.ArrayList(bossZig.Boss) = undefined,
     enemies: std.ArrayList(enemyZig.Enemy) = undefined,
@@ -44,6 +45,7 @@ pub const GameState = struct {
 
 pub const Player = struct {
     position: Position = .{ .x = 0, .y = 0 },
+    immunUntilTime: i64 = 0,
     executeMovePiece: ?movePieceZig.MovePiece = null,
     executeDirection: u8 = 0,
     afterImages: std.ArrayList(AfterImage),
@@ -95,7 +97,9 @@ pub fn main() !void {
 }
 
 pub fn playerHit(player: *Player, state: *GameState) !void {
+    if (player.immunUntilTime >= state.gameTime) return;
     player.hp -|= 1;
+    player.immunUntilTime = state.gameTime + state.playerImmunityFrames;
     try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_PLAYER_HIT, 0);
 }
 

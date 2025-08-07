@@ -1,6 +1,4 @@
 Tasks:
-- next enemy throw projectile
-    - warning tile projectile move like move enemy
 - player immunity frames
     - don't instant(few frames) die in projectile
 - timer minutes
