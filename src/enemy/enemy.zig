@@ -48,13 +48,13 @@ const EnemySpawnEntry = struct {
     calcedProbabilityEnd: f32 = 0,
 };
 
-pub const EnemyDeathAnimation = struct {
+pub const CutSpriteAnimation = struct {
     position: main.Position,
     deathTime: i64,
     cutAngle: f32,
     force: f32,
     imageIndex: u8,
-    sizeFactor: f32 = 1,
+    imageToGameScaleFactor: f32 = 1.0 / @as(f32, @floatFromInt(imageZig.IMAGE_TO_GAME_SIZE)) / 2.0,
 };
 
 pub const MoveAttackWarningTile = struct {
@@ -137,7 +137,7 @@ pub fn fillMoveAttackWarningTiles(startPosition: main.Position, tileList: *std.A
 }
 
 pub fn initEnemy(state: *main.GameState) !void {
-    state.enemyDeath = std.ArrayList(EnemyDeathAnimation).init(state.allocator);
+    state.spriteCutAnimations = std.ArrayList(CutSpriteAnimation).init(state.allocator);
     state.enemies = std.ArrayList(Enemy).init(state.allocator);
     state.enemySpawnData.enemyEntries = std.ArrayList(EnemySpawnEntry).init(state.allocator);
     state.enemyProjectiles = std.ArrayList(enemyProjectileZig.EnemyProjectile).init(state.allocator);
@@ -181,7 +181,7 @@ fn scaleEnemiesToLevel(state: *main.GameState) void {
 
 pub fn destroyEnemy(state: *main.GameState) void {
     state.enemySpawnData.enemyEntries.deinit();
-    state.enemyDeath.deinit();
+    state.spriteCutAnimations.deinit();
     state.enemies.deinit();
     state.enemyProjectiles.deinit();
 }

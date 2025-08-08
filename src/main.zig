@@ -9,6 +9,7 @@ const enemyZig = @import("enemy/enemy.zig");
 const enemyProjectileZig = @import("enemy/enemyProjectile.zig");
 const shopZig = @import("shop.zig");
 const bossZig = @import("boss/boss.zig");
+const imageZig = @import("image.zig");
 
 pub const GamePhase = enum {
     combat,
@@ -34,7 +35,7 @@ pub const GameState = struct {
     mapTileRadius: u32 = BASE_MAP_TILE_RADIUS,
     bosses: std.ArrayList(bossZig.Boss) = undefined,
     enemies: std.ArrayList(enemyZig.Enemy) = undefined,
-    enemyDeath: std.ArrayList(enemyZig.EnemyDeathAnimation) = undefined,
+    spriteCutAnimations: std.ArrayList(enemyZig.CutSpriteAnimation) = undefined,
     enemySpawnData: enemyZig.EnemySpawnData = undefined,
     enemyProjectiles: std.ArrayList(enemyProjectileZig.EnemyProjectile) = undefined,
     players: std.ArrayList(Player),
@@ -58,7 +59,7 @@ pub const Player = struct {
     animateData: ninjaDogVulkanZig.NinjaDogAnimationStateData = .{},
     slashedLastMoveTile: bool = false,
     money: u32 = 0,
-    hp: u32 = 1,
+    hp: u32 = 0,
     shop: shopZig.ShopPlayerData = .{},
 };
 
@@ -99,6 +100,18 @@ pub fn main() !void {
 pub fn playerHit(player: *Player, state: *GameState) !void {
     if (player.immunUntilTime >= state.gameTime) return;
     player.hp -|= 1;
+    if (player.hp == 1) {
+        try state.spriteCutAnimations.append(
+            .{
+                .deathTime = state.gameTime,
+                .position = player.position,
+                .cutAngle = 0,
+                .force = 1.2,
+                .imageIndex = player.paintData.chestArmorImageIndex,
+            },
+        );
+        player.paintData.chestArmorImageIndex = imageZig.IMAGE_NINJA_BODY_NO_ARMOR;
+    }
     player.immunUntilTime = state.gameTime + state.playerImmunityFrames;
     try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_PLAYER_HIT, 0);
 }
@@ -226,7 +239,7 @@ pub fn restart(state: *GameState) !void {
     state.gamePhase = .combat;
     state.gameTime = 0;
     for (state.players.items) |*player| {
-        player.hp = 3;
+        player.hp = 2;
         player.money = 0;
         player.position.x = 0;
         player.position.y = 0;
@@ -241,7 +254,7 @@ pub fn restart(state: *GameState) !void {
         try movePieceZig.setupMovePieces(player, state);
     }
     bossZig.clearBosses(state);
-    state.enemyDeath.clearRetainingCapacity();
+    state.spriteCutAnimations.clearRetainingCapacity();
     try startNextLevel(state);
 }
 

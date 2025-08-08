@@ -91,7 +91,7 @@ pub fn isBossHit(hitArea: main.TileRectangle, playerBladeRotation: f32, state: *
         if (boss.hp == 0) {
             var deadBoss = state.bosses.swapRemove(bossIndex);
             const cutAngle = playerBladeRotation + std.math.pi / 2.0;
-            try state.enemyDeath.append(
+            try state.spriteCutAnimations.append(
                 .{
                     .deathTime = state.gameTime,
                     .position = deadBoss.position,

@@ -141,14 +141,15 @@ fn isBossHit(boss: *bossZig.Boss, hitArea: main.TileRectangle, cutRotation: f32,
             if (boss.hp > 0) {
                 const cutAngle = cutRotation + std.math.pi / 2.0;
                 const sizeFactor: f32 = @as(f32, @floatFromInt(bossSplit.remainingSpltits)) / @as(f32, @floatFromInt(splitData.maxSplits));
-                try state.enemyDeath.append(
+                const defaultSizeFactor: f32 = 1.0 / @as(f32, @floatFromInt(imageZig.IMAGE_TO_GAME_SIZE)) / 2.0;
+                try state.spriteCutAnimations.append(
                     .{
                         .deathTime = state.gameTime,
                         .position = removed.position,
                         .cutAngle = cutAngle,
                         .force = std.crypto.random.float(f32) + 0.2,
                         .imageIndex = boss.imageIndex,
-                        .sizeFactor = sizeFactor,
+                        .imageToGameScaleFactor = sizeFactor * defaultSizeFactor,
                     },
                 );
             }

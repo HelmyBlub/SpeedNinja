@@ -455,7 +455,7 @@ fn checkEnemyHitOnMoveStep(player: *main.Player, state: *main.GameState) !bool {
         if (enemy.position.x > left and enemy.position.x < left + width and enemy.position.y > top and enemy.position.y < top + height) {
             const deadEnemy = state.enemies.swapRemove(enemyIndex);
             const cutAngle = player.paintData.bladeRotation + std.math.pi / 2.0;
-            try state.enemyDeath.append(.{ .deathTime = state.gameTime, .position = deadEnemy.position, .cutAngle = cutAngle, .force = rand.float(f32) + 0.2, .imageIndex = enemy.imageIndex });
+            try state.spriteCutAnimations.append(.{ .deathTime = state.gameTime, .position = deadEnemy.position, .cutAngle = cutAngle, .force = rand.float(f32) + 0.2, .imageIndex = enemy.imageIndex });
             hitSomething = true;
         } else {
             enemyIndex += 1;

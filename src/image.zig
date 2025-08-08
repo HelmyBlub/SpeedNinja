@@ -41,6 +41,8 @@ pub const IMAGE_ENEMY_SHURIKEN_THROWER = 33;
 pub const IMAGE_WARNING_SHURIKEN = 34;
 pub const IMAGE_WARNING_SHURIKEN_FILLED = 35;
 pub const IMAGE_BOSS_SLIME = 36;
+pub const IMAGE_NINJA_BODY = 37;
+pub const IMAGE_NINJA_BODY_NO_ARMOR = 38;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaDog.png" },
@@ -80,8 +82,11 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/warningShuriken.png" },
     .{ .path = "images/warningShurikenFilled.png" },
     .{ .path = "images/bossSlime.png" },
+    .{ .path = "images/ninjaBody.png" },
+    .{ .path = "images/ninjaBodyNoArmor.png" },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
+pub const IMAGE_DOG__CENTER_BODY: main.Position = .{ .x = 99, .y = 128 };
 
 pub const IMAGE_DOG__EAR_LEFT: main.Position = .{ .x = 68, .y = 31 };
 pub const IMAGE_DOG__EAR_RIGHT: main.Position = .{ .x = 132, .y = 31 };

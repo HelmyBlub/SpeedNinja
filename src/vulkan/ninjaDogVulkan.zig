@@ -25,6 +25,7 @@ pub const NinjaDogPaintData = struct {
     bandana2WaveOffset: f32 = 0,
     tailRotation: f32 = 0,
     tailBend: f32 = 0,
+    chestArmorImageIndex: u8 = imageZig.IMAGE_NINJA_BODY,
 };
 
 const NinjaDogAnimationStatePaw = enum {
@@ -290,6 +291,12 @@ pub fn drawNinjaDog(position: main.Position, paintData: NinjaDogPaintData, state
     drawBandana(position, paintData, state);
     drawEars(position, paintData, state);
     addTiranglesForSprite(position, imageZig.IMAGE_DOG__CENTER, imageZig.IMAGE_DOG, 0, null, null, state);
+
+    const chestSpritePosition: main.Position = .{
+        .x = position.x + (imageZig.IMAGE_DOG__CENTER_BODY.x - @as(f32, @floatFromInt(imageDataDog.width)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
+        .y = position.y + (imageZig.IMAGE_DOG__CENTER_BODY.y - @as(f32, @floatFromInt(imageDataDog.height)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
+    };
+    addTiranglesForSprite(chestSpritePosition, imageZig.getImageCenter(paintData.chestArmorImageIndex), paintData.chestArmorImageIndex, 0, null, null, state);
     drawEyes(position, paintData, state);
     const leftArmSpritePosition: main.Position = .{
         .x = position.x + (imageZig.IMAGE_DOG__LEFT_ARM_ROTATE_POINT.x - @as(f32, @floatFromInt(imageDataDog.width)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
