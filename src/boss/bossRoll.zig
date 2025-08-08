@@ -119,7 +119,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                 var bossPositionAfterPiece = boss.position;
                 rollData.moveDirection = std.crypto.random.intRangeLessThan(u8, 0, 4);
                 movePieceZig.movePositionByPiece(&bossPositionAfterPiece, movePiece, rollData.moveDirection);
-                validMovePosition = bossPositionAfterPiece.x > -gridBorder and bossPositionAfterPiece.x < gridBorder and bossPositionAfterPiece.y > -gridBorder and bossPositionAfterPiece.y < gridBorder;
+                validMovePosition = bossPositionAfterPiece.x >= -gridBorder and bossPositionAfterPiece.x <= gridBorder and bossPositionAfterPiece.y >= -gridBorder and bossPositionAfterPiece.y <= gridBorder;
             }
 
             try enemyZig.fillMoveAttackWarningTiles(boss.position, &rollData.moveAttackTiles, movePiece, rollData.moveDirection);

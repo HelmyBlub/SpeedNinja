@@ -1,7 +1,11 @@
 Tasks:
-- game endless loop on wave ?11? why?
+- game endless loop on wave 14 switch to 15? why?
 - change eye enemy color be different
     - enemy looking to similar on floor 11-14
+- hp in shop?
+    - currently i die a lot
+        - no way to see hp and or gain hp
+    - armor slot?
 
 Next ideas:
 - something which makes player stronger over time, but better player get stronger faster

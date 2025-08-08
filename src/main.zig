@@ -236,6 +236,7 @@ pub fn restart(state: *GameState) !void {
         player.executeMovePiece = null;
         player.shop.gridDisplayPiece = null;
         player.shop.selectedOption = .none;
+        player.immunUntilTime = 0;
 
         try movePieceZig.setupMovePieces(player, state);
     }
