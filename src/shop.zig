@@ -39,7 +39,7 @@ const ShopOptionData = union(ShopOption) {
     },
 };
 
-pub const ShopButton = struct {
+pub const PlayerShopButton = struct {
     tileOffset: main.TilePosition,
     imageIndex: u8,
     imageRotate: f32 = 0,
@@ -60,7 +60,18 @@ pub const ShopPlayerData = struct {
     gridDisplayPieceOffset: main.TilePosition = .{ .x = 4, .y = 4 },
 };
 
-pub const SHOP_BUTTONS = [_]ShopButton{
+pub const ShopBuyOption = struct {
+    tilePosition: main.TilePosition,
+    imageIndex: u8,
+    price: u32,
+    hpAmount: u32,
+};
+
+pub const ShopData = struct {
+    buyOptions: std.ArrayList(ShopBuyOption),
+};
+
+pub const SHOP_BUTTONS = [_]PlayerShopButton{
     .{
         .execute = executeShopPhaseEnd,
         .imageIndex = 0,
@@ -130,6 +141,18 @@ pub fn executeShopActionForPlayer(player: *main.Player, state: *main.GameState) 
         try executeGridTile(player, state);
         return;
     }
+
+    for (state.shop.buyOptions.items, 0..) |buyOption, buyIndex| {
+        if (buyOption.tilePosition.x == playerTile.x and buyOption.tilePosition.y == playerTile.y) {
+            if (player.money >= buyOption.price) {
+                player.hp = buyOption.hpAmount + 1;
+                player.money -= buyOption.price;
+                player.paintData.chestArmorImageIndex = buyOption.imageIndex;
+                _ = state.shop.buyOptions.swapRemove(buyIndex);
+            }
+            return;
+        }
+    }
 }
 
 pub fn getShopEarlyTriggerPosition(state: *main.GameState) ?main.TilePosition {
@@ -188,6 +211,14 @@ pub fn randomizeShop(state: *main.GameState) !void {
             pieceToBuyIndex += 1;
         }
     }
+
+    state.shop.buyOptions.clearRetainingCapacity();
+    try state.shop.buyOptions.append(.{
+        .hpAmount = 2,
+        .imageIndex = imageZig.IMAGE_NINJA_BODY,
+        .price = state.level,
+        .tilePosition = .{ .x = 6, .y = 3 },
+    });
 }
 
 pub fn executeGridTile(player: *main.Player, state: *main.GameState) !void {

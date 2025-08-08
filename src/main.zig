@@ -42,6 +42,7 @@ pub const GameState = struct {
     soundMixer: ?soundMixerZig.SoundMixer = null,
     gameEnded: bool = false,
     gamePhase: GamePhase = .combat,
+    shop: shopZig.ShopData,
 };
 
 pub const Player = struct {
@@ -271,6 +272,7 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
     state.* = .{
         .players = std.ArrayList(Player).init(allocator),
         .bosses = std.ArrayList(bossZig.Boss).init(allocator),
+        .shop = .{ .buyOptions = std.ArrayList(shopZig.ShopBuyOption).init(allocator) },
     };
     state.allocator = allocator;
     try windowSdlZig.initWindowSdl();
@@ -318,6 +320,7 @@ fn destroyGameState(state: *GameState) void {
         if (levelBossData.deinit) |deinit| deinit(boss, state.allocator);
     }
     state.bosses.deinit();
+    state.shop.buyOptions.deinit();
     enemyZig.destroyEnemy(state);
 }
 

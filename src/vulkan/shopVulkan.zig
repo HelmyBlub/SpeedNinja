@@ -34,6 +34,23 @@ pub fn setupVertices(state: *main.GameState) void {
                 paintVulkanZig.verticesForComplexSpriteDefault(shopButtonGamePosition, shopButton.imageIndex, &verticeData.spritesComplex, state);
             }
         }
+
+        for (state.shop.buyOptions.items) |buyOption| {
+            const buyOptionGamePosition: main.Position = .{
+                .x = @floatFromInt(buyOption.tilePosition.x * main.TILESIZE),
+                .y = @floatFromInt(buyOption.tilePosition.y * main.TILESIZE),
+            };
+            const imageData = imageZig.IMAGE_DATA[buyOption.imageIndex];
+            paintVulkanZig.verticesForComplexSprite(
+                buyOptionGamePosition,
+                buyOption.imageIndex,
+                &verticeData.spritesComplex,
+                @as(f32, @floatFromInt(imageData.width)) * 0.05 * state.camera.zoom,
+                @as(f32, @floatFromInt(imageData.height)) * 0.05 * state.camera.zoom,
+                1,
+                state,
+            );
+        }
     }
 }
 

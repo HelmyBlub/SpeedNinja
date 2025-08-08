@@ -1,14 +1,15 @@
 Tasks:
 - hp in shop?
-    - start with 2 hp
-        - when going from 2 hp to 1 loose ninja outfit, visualizing 1 hp left
-    - when hp goes to 1 make cut anymation like enemies for armor piece
-
     - in shop can buy new chest armor giving certain amount of hp
+        - display armor piece at some location, moving onto it buys it
+            - display information below it?
+                - hp value
+
         - create different images for armor with different amount of hp
         - can only carry one type of chest piece
         - armor piece looks broken when damaged
-
+- think about redesign sprite paint
+    - currently mix of two cases which are confusing
 
 Next ideas:
 - something which makes player stronger over time, but better player get stronger faster
