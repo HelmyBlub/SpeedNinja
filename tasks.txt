@@ -1,13 +1,11 @@
 Tasks:
 - hp in shop?
     - in shop can buy new chest armor giving certain amount of hp
-        - display armor piece at some location, moving onto it buys it
-            - display information below it?
-                - hp value
-
         - create different images for armor with different amount of hp
         - can only carry one type of chest piece
         - armor piece looks broken when damaged
+        - display information below it?
+            - hp value
 - think about redesign sprite paint
     - currently mix of two cases which are confusing
 

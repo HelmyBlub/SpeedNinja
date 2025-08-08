@@ -25,7 +25,7 @@ pub const NinjaDogPaintData = struct {
     bandana2WaveOffset: f32 = 0,
     tailRotation: f32 = 0,
     tailBend: f32 = 0,
-    chestArmorImageIndex: u8 = imageZig.IMAGE_NINJA_BODY,
+    chestArmorImageIndex: u8 = imageZig.IMAGE_NINJA_CHEST_ARMOR_1,
 };
 
 const NinjaDogAnimationStatePaw = enum {

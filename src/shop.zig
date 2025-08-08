@@ -215,9 +215,15 @@ pub fn randomizeShop(state: *main.GameState) !void {
     state.shop.buyOptions.clearRetainingCapacity();
     try state.shop.buyOptions.append(.{
         .hpAmount = 2,
-        .imageIndex = imageZig.IMAGE_NINJA_BODY,
+        .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_1,
         .price = state.level,
         .tilePosition = .{ .x = 6, .y = 3 },
+    });
+    try state.shop.buyOptions.append(.{
+        .hpAmount = 3,
+        .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_2,
+        .price = state.level * 2,
+        .tilePosition = .{ .x = 6, .y = 4 },
     });
 }
 
