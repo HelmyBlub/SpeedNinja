@@ -7,6 +7,7 @@ const enemyTypeAttackZig = @import("enemyTypeAttack.zig");
 const enemyTypeMoveZig = @import("enemyTypeMove.zig");
 const enemyTypeMoveWithPlayerZig = @import("enemyTypeMoveWithPlayer.zig");
 const enemyTypeProjectileAttackZig = @import("enemyTypeProjectileAttack.zig");
+const enemyTypePutFireZig = @import("enemyTypePutFire.zig");
 
 pub const EnemyType = enum {
     nothing,
@@ -14,6 +15,7 @@ pub const EnemyType = enum {
     move,
     moveWithPlayer,
     projectileAttack,
+    putFire,
 };
 
 const EnemyTypeSpawnLevelData = struct {
@@ -23,12 +25,19 @@ const EnemyTypeSpawnLevelData = struct {
     baseProbability: f32,
 };
 
+pub const EnemyTypeDelayedActionData = struct {
+    delay: i64,
+    direction: u8,
+    startTime: ?i64 = null,
+};
+
 pub const EnemyTypeData = union(EnemyType) {
     nothing,
-    attack: enemyTypeAttackZig.EnemyTypeAttackData,
-    move: enemyTypeAttackZig.EnemyTypeAttackData,
+    attack: EnemyTypeDelayedActionData,
+    move: EnemyTypeDelayedActionData,
     moveWithPlayer: enemyTypeMoveWithPlayerZig.EnemyTypeMoveWithPlayerData,
-    projectileAttack: enemyTypeAttackZig.EnemyTypeAttackData,
+    projectileAttack: EnemyTypeDelayedActionData,
+    putFire: enemyTypePutFireZig.EnemyTypePutFireData,
 };
 
 pub const Enemy = struct {
@@ -66,8 +75,9 @@ const ENEMY_TYPE_SPAWN_LEVEL_DATA = [_]EnemyTypeSpawnLevelData{
     .{ .baseProbability = 0.1, .enemyType = .nothing, .startingLevel = 1, .leavingLevel = 3 },
     .{ .baseProbability = 1, .enemyType = .attack, .startingLevel = 2, .leavingLevel = 10 },
     .{ .baseProbability = 1, .enemyType = .move, .startingLevel = 5, .leavingLevel = 15 },
-    .{ .baseProbability = 1, .enemyType = .moveWithPlayer, .startingLevel = 10, .leavingLevel = null },
+    .{ .baseProbability = 1, .enemyType = .moveWithPlayer, .startingLevel = 10, .leavingLevel = 20 },
     .{ .baseProbability = 1, .enemyType = .projectileAttack, .startingLevel = 15, .leavingLevel = null },
+    .{ .baseProbability = 1, .enemyType = .putFire, .startingLevel = 20, .leavingLevel = null },
 };
 
 pub fn tickEnemies(state: *main.GameState) !void {
@@ -81,6 +91,9 @@ pub fn tickEnemies(state: *main.GameState) !void {
             },
             .projectileAttack => {
                 try enemyTypeProjectileAttackZig.tick(enemy, state);
+            },
+            .putFire => {
+                try enemyTypePutFireZig.tick(enemy, state);
             },
             else => {},
         }
@@ -115,6 +128,9 @@ fn createSpawnEnemyEntryEnemy(enemyType: EnemyType) Enemy {
         },
         .projectileAttack => {
             return enemyTypeProjectileAttackZig.createSpawnEnemyEntryEnemy();
+        },
+        .putFire => {
+            return enemyTypePutFireZig.createSpawnEnemyEntryEnemy();
         },
     }
 }

@@ -5,12 +5,6 @@ const movePieceZig = @import("../movePiece.zig");
 const imageZig = @import("../image.zig");
 const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 
-pub const EnemyTypeAttackData = struct {
-    delay: i64,
-    direction: u8,
-    startTime: ?i64 = null,
-};
-
 pub fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
     return .{
         .imageIndex = imageZig.IMAGE_EVIL_TREE,

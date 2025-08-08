@@ -1,21 +1,18 @@
 Tasks:
-- think about code redesign sprite paint
-    - currently mix of two cases which are confusing
-    - paint with game position and image original and game scaling
-    - paint with UX vulkan position and image original size
-    - problem: images can have different scalings
-        - make default scale and give every other image set scaling
-        - use image scaling all the time?
+- fire enemy
+    - continue:
+        - code to support shuriken and fire
+            - currently projectiles are just shuriken
+            - fire would be on same paint layer, so redsign code for more options?
+    - drop fire on tile for duration
+        - fire damages player standing on tile
+    - move after droping fire
 
 - next boss idea:
     - fire trail snake
         - boss moves around leaving a trail of fire
             - each time snake hit, it becommes shorter
                 - cut of snake piece with each hit
-- fire enemy
-    - drop fire on tile for duration
-        - fire damages player standing on tile
-    - move after droping fire
 
 
 Next ideas:
