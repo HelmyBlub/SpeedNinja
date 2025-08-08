@@ -1,13 +1,22 @@
 Tasks:
-- hp in shop?
-    - in shop can buy new chest armor giving certain amount of hp
-        - create different images for armor with different amount of hp
-        - can only carry one type of chest piece
-        - armor piece looks broken when damaged
-        - display information below it?
-            - hp value
-- think about redesign sprite paint
+- think about code redesign sprite paint
     - currently mix of two cases which are confusing
+    - paint with game position and image original and game scaling
+    - paint with UX vulkan position and image original size
+    - problem: images can have different scalings
+        - make default scale and give every other image set scaling
+        - use image scaling all the time?
+
+- next boss idea:
+    - fire trail snake
+        - boss moves around leaving a trail of fire
+            - each time snake hit, it becommes shorter
+                - cut of snake piece with each hit
+- fire enemy
+    - drop fire on tile for duration
+        - fire damages player standing on tile
+    - move after droping fire
+
 
 Next ideas:
 - something which makes player stronger over time, but better player get stronger faster

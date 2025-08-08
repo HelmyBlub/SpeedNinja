@@ -59,26 +59,26 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/dogEar.png" },
     .{ .path = "images/bandanaTail.png" },
     .{ .path = "images/dogTail.png" },
-    .{ .path = "images/warningTile.png" },
+    .{ .path = "images/warningTile.png", .scale = 2 },
     .{ .path = "images/warningTileFilled.png" },
-    .{ .path = "images/plus.png" },
-    .{ .path = "images/cut.png" },
-    .{ .path = "images/arrow.png" },
-    .{ .path = "images/borderTile.png" },
-    .{ .path = "images/combine.png" },
-    .{ .path = "images/shadow.png", .scale = 0.1 },
+    .{ .path = "images/plus.png", .scale = 2 },
+    .{ .path = "images/cut.png", .scale = 2 },
+    .{ .path = "images/arrow.png", .scale = 2 },
+    .{ .path = "images/borderTile.png", .scale = 2 },
+    .{ .path = "images/combine.png", .scale = 2 },
+    .{ .path = "images/shadow.png" },
     .{ .path = "images/evilTower.png" },
     .{ .path = "images/bossRotate.png" },
-    .{ .path = "images/circle.png", .scale = 0.1 },
+    .{ .path = "images/circle.png", .scale = 2 },
     .{ .path = "images/bossRotatePillar.png" },
-    .{ .path = "images/laser.png", .scale = 0.1 },
+    .{ .path = "images/laser.png" },
     .{ .path = "images/redArrow.png" },
     .{ .path = "images/redArrowFilled.png" },
     .{ .path = "images/enemyMoving.png" },
     .{ .path = "images/bossRoll.png" },
     .{ .path = "images/cannonBall.png" },
     .{ .path = "images/enemyEye.png" },
-    .{ .path = "images/shuriken.png" },
+    .{ .path = "images/shuriken.png", .scale = 2 },
     .{ .path = "images/enemyShurikenThrower.png" },
     .{ .path = "images/warningShuriken.png" },
     .{ .path = "images/warningShurikenFilled.png" },
@@ -111,7 +111,7 @@ pub const IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT: main.Position = .{ .x = 8, .y = 
 pub const IMAGE_DOG__BLADE_BACK: main.Position = .{ .x = 65, .y = 85 };
 pub const IMAGE_DOG__BLADE_CENTER_HOLD: main.Position = .{ .x = 97, .y = 149 };
 pub const IMAGE_BLADE__HAND_HOLD_POINT: main.Position = .{ .x = 13, .y = 12 };
-pub const IMAGE_TO_GAME_SIZE = 10;
+pub const IMAGE_TO_GAME_SIZE = 200 / main.TILESIZE;
 
 pub const ImageData = struct {
     path: []const u8,

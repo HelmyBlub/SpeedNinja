@@ -94,32 +94,31 @@ pub fn verticesForComplexSpriteDefault(gamePosition: main.Position, imageIndex: 
         gamePosition,
         imageIndex,
         vkSpriteComplex,
-        main.TILESIZE,
-        main.TILESIZE,
+        1,
         1,
         state,
     );
 }
 
-pub fn verticesForComplexSpriteScale(gamePosition: main.Position, imageIndex: u8, vkSpriteComplex: *dataVulkanZig.VkSpriteComplex, alpha: f32, state: *main.GameState) void {
-    const imageData = imageZig.IMAGE_DATA[imageIndex];
+pub fn verticesForComplexSpriteAlpha(gamePosition: main.Position, imageIndex: u8, vkSpriteComplex: *dataVulkanZig.VkSpriteComplex, alpha: f32, state: *main.GameState) void {
     verticesForComplexSprite(
         gamePosition,
         imageIndex,
         vkSpriteComplex,
-        @as(f32, @floatFromInt(imageData.width)) * imageData.scale * state.camera.zoom,
-        @as(f32, @floatFromInt(imageData.height)) * imageData.scale * state.camera.zoom,
+        1,
         alpha,
         state,
     );
 }
 
-pub fn verticesForComplexSprite(gamePosition: main.Position, imageIndex: u8, vkSpriteComplex: *dataVulkanZig.VkSpriteComplex, gameWidth: f32, gameHeight: f32, alpha: f32, state: *main.GameState) void {
+pub fn verticesForComplexSprite(gamePosition: main.Position, imageIndex: u8, vkSpriteComplex: *dataVulkanZig.VkSpriteComplex, scaling: f32, alpha: f32, state: *main.GameState) void {
     if (vkSpriteComplex.verticeCount + 6 >= vkSpriteComplex.vertices.len) return;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-    const halfSizeWidth: f32 = gameWidth / 2;
-    const halfSizeHeigh: f32 = gameHeight / 2;
+    const imageData = imageZig.IMAGE_DATA[imageIndex];
+    const imageToGameSizeFactor: f32 = imageData.scale / imageZig.IMAGE_TO_GAME_SIZE;
+    const halfSizeWidth: f32 = @as(f32, @floatFromInt(imageData.width)) * imageToGameSizeFactor / 2;
+    const halfSizeHeigh: f32 = @as(f32, @floatFromInt(imageData.height)) * imageToGameSizeFactor / 2;
     const points = [_]main.Position{
         main.Position{ .x = -halfSizeWidth, .y = halfSizeHeigh },
         main.Position{ .x = -halfSizeWidth, .y = -halfSizeHeigh },
@@ -132,8 +131,8 @@ pub fn verticesForComplexSprite(gamePosition: main.Position, imageIndex: u8, vkS
         for (pointsIndexes) |verticeIndex| {
             const cornerPosOffset = points[verticeIndex];
             const vulkan: main.Position = .{
-                .x = (cornerPosOffset.x - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
-                .y = (cornerPosOffset.y - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
+                .x = (cornerPosOffset.x * scaling - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
+                .y = (cornerPosOffset.y * scaling - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
             };
             const texPos: [2]f32 = .{
                 (cornerPosOffset.x / halfSizeWidth + 1) / 2,
@@ -154,8 +153,10 @@ pub fn verticesForComplexSpriteWithRotate(gamePosition: main.Position, imageInde
     if (vkSpriteComplex.verticeCount + 6 >= vkSpriteComplex.vertices.len) return;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-    const halfSizeWidth: f32 = main.TILESIZE / 2;
-    const halfSizeHeigh: f32 = main.TILESIZE / 2;
+    const imageData = imageZig.IMAGE_DATA[imageIndex];
+    const imageToGameSizeFactor: f32 = imageData.scale / imageZig.IMAGE_TO_GAME_SIZE;
+    const halfSizeWidth: f32 = @as(f32, @floatFromInt(imageData.width)) * imageToGameSizeFactor / 2;
+    const halfSizeHeigh: f32 = @as(f32, @floatFromInt(imageData.height)) * imageToGameSizeFactor / 2;
     const points = [_]main.Position{
         main.Position{ .x = -halfSizeWidth, .y = halfSizeHeigh },
         main.Position{ .x = -halfSizeWidth, .y = -halfSizeHeigh },
@@ -192,10 +193,10 @@ pub fn verticesForComplexSpriteWithCut(gamePosition: main.Position, imageIndex: 
     if (verticeData.spritesComplex.verticeCount + 12 >= verticeData.spritesComplex.vertices.len) return;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-    const imageData = imageZig.IMAGE_DATA[imageZig.IMAGE_WARNING_TILE];
-    const scaling = 2;
-    const halfSizeWidth: f32 = @as(f32, @floatFromInt(imageData.width)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scaling;
-    const halfSizeHeigh: f32 = @as(f32, @floatFromInt(imageData.height)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scaling;
+    const imageData = imageZig.IMAGE_DATA[imageIndex];
+    const imageToGameSizeFactor: f32 = imageData.scale / imageZig.IMAGE_TO_GAME_SIZE;
+    const halfSizeWidth: f32 = @as(f32, @floatFromInt(imageData.width)) * imageToGameSizeFactor / 2;
+    const halfSizeHeigh: f32 = @as(f32, @floatFromInt(imageData.height)) * imageToGameSizeFactor / 2;
     const points = [_]main.Position{
         main.Position{ .x = -halfSizeWidth, .y = halfSizeHeigh },
         main.Position{ .x = -halfSizeWidth, .y = -halfSizeHeigh },

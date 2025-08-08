@@ -201,10 +201,10 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
         const timePerCent = @min(1, @max(0, 1 - @as(f32, @floatFromInt(rotate.nextStateTime - state.gameTime)) / @as(f32, @floatFromInt(rotate.rebuildTime))));
         alpha = timePerCent;
     }
+    paintVulkanZig.verticesForComplexSpriteWithRotate(bossPosition, boss.imageIndex, rotate.attackAngle, &state.vkState.verticeData.spritesComplex, state);
     if (alpha > 0) {
         paintVulkanZig.verticesForComplexSpriteWithCut(boss.position, imageZig.IMAGE_CIRCLE, alpha, @max(alpha, 0.5), state);
     }
-    paintVulkanZig.verticesForComplexSpriteWithRotate(bossPosition, boss.imageIndex, rotate.attackAngle, &state.vkState.verticeData.spritesComplex, state);
 
     if (rotate.visualizeAttackUntil != null and rotate.visualizeAttackUntil.? >= state.gameTime) {
         const imageData = imageZig.IMAGE_DATA[imageZig.IMAGE_LASER];

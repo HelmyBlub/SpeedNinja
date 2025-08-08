@@ -159,7 +159,7 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
         }
     }
     if (bossPosition.y != boss.position.y) {
-        paintVulkanZig.verticesForComplexSpriteScale(.{
+        paintVulkanZig.verticesForComplexSpriteAlpha(.{
             .x = boss.position.x,
             .y = boss.position.y + 5,
         }, imageZig.IMAGE_SHADOW, &state.vkState.verticeData.spritesComplex, 0.75, state);
