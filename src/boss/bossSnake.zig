@@ -113,7 +113,7 @@ fn isBossHit(boss: *bossZig.Boss, hitArea: main.TileRectangle, cutRotation: f32,
 fn checkLooseBodyPart(boss: *bossZig.Boss, hitPosition: main.Position, cutRotation: f32, state: *main.GameState) !void {
     const snakeData = &boss.typeData.snake;
     const loosePartOnHp: usize = snakeData.snakeBodyParts.items.len * 2;
-    if (boss.hp <= loosePartOnHp) {
+    if (boss.hp <= loosePartOnHp and snakeData.snakeBodyParts.items.len > 1) {
         _ = snakeData.snakeBodyParts.orderedRemove(0);
         if (boss.hp > 0) {
             try state.spriteCutAnimations.append(

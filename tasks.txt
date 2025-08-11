@@ -1,13 +1,17 @@
 Tasks:
-- next boss idea:
-    - fire trail snake
-        - snake is 10 pieces long
-            - start in center all pieces on start location
-            - first piece hit gets cut out,
-              - immunity frame for boss
-            - boss moves single tiles but in quick succession
-        - boss moves around leaving a trail of fire
+- snake boss
+    - image
+        - head
+        - body part 
+    - sound
+        - move sound
 
+- next enemy
+    - shield enemy
+        - blocks damage from one direction
+            - always turns to closest player?
+- next boss idea:
+    -
 
 Next ideas:
 - something which makes player stronger over time, but better player get stronger faster
@@ -30,7 +34,6 @@ Next ideas:
     - each retry gets more expensive
 
 - enemy ideas
-    - enemy places damaging tile and moves one tile
     - enemy which attacks when player adjacent
     - enemy which trows projectile when player in view
         - projectiles moves in intervals one tile
