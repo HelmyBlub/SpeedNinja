@@ -25,7 +25,7 @@ pub fn spawnFire(position: main.Position, duration: i32, state: *main.GameState)
         .position = position,
         .functionsIndex = 1, //TODO
         .typeData = .{ .fire = .{
-            .imageIndex = imageZig.IMAGE_BLADE,
+            .imageIndex = imageZig.IMAGE_FIRE_ANIMATION,
             .removeTime = state.gameTime + duration,
         } },
     });
@@ -33,11 +33,12 @@ pub fn spawnFire(position: main.Position, duration: i32, state: *main.GameState)
 
 fn setupVertices(object: *enemyObjectZig.EnemyObject, state: *main.GameState) void {
     const fire = object.typeData.fire;
-    const rotation: f32 = @mod(@as(f32, @floatFromInt(state.gameTime)) / 150, std.math.pi * 2);
-    paintVulkanZig.verticesForComplexSpriteWithRotate(
+    const animatePerCent: f32 = @mod(@as(f32, @floatFromInt(state.gameTime)) / 500, 1);
+    paintVulkanZig.verticesForComplexSpriteAnimated(
         object.position,
         fire.imageIndex,
-        rotation,
+        animatePerCent,
+        2,
         &state.vkState.verticeData.spritesComplex,
         state,
     );

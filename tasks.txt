@@ -1,8 +1,6 @@
 Tasks:
 - fire enemy
-    - images
-        - fire enemy
-        - fire object
+    - fire object animation 
 
 - next boss idea:
     - fire trail snake

@@ -89,7 +89,7 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaBodyNoArmor.png" },
     .{ .path = "images/ninjaChestArmor2.png" },
     .{ .path = "images/enemyFire.png" },
-    .{ .path = "images/fireAnimation.png" },
+    .{ .path = "images/fireAnimation.png", .animated = true },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 pub const IMAGE_DOG__CENTER_BODY: main.Position = .{ .x = 99, .y = 128 };
@@ -122,6 +122,7 @@ pub const ImageData = struct {
     width: usize = undefined,
     height: usize = undefined,
     scale: f32 = 1,
+    animated: bool = false,
 };
 
 pub fn getImageCenter(imageIndex: usize) main.Position {
