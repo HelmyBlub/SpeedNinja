@@ -4,7 +4,7 @@ const enemyZig = @import("enemy.zig");
 const movePieceZig = @import("../movePiece.zig");
 const imageZig = @import("../image.zig");
 const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
-const enemyProjectileZig = @import("enemyProjectile.zig");
+const enemyObjectProjectileZig = @import("enemyObjectProjectile.zig");
 
 pub fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
     return .{
@@ -28,7 +28,7 @@ pub fn tick(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
                 .x = enemy.position.x + stepDirection.x * main.TILESIZE,
                 .y = enemy.position.y + stepDirection.y * main.TILESIZE,
             };
-            try enemyProjectileZig.spawnProjectile(spawnPosition, data.direction, imageZig.IMAGE_SHURIKEN, 1000, state);
+            try enemyObjectProjectileZig.spawnProjectile(spawnPosition, data.direction, imageZig.IMAGE_SHURIKEN, 1000, state);
             data.startTime = null;
         }
     } else {

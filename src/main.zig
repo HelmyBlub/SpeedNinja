@@ -6,7 +6,7 @@ const movePieceZig = @import("movePiece.zig");
 const ninjaDogVulkanZig = @import("vulkan/ninjaDogVulkan.zig");
 const soundMixerZig = @import("soundMixer.zig");
 const enemyZig = @import("enemy/enemy.zig");
-const enemyProjectileZig = @import("enemy/enemyProjectile.zig");
+const enemyObjectZig = @import("enemy/enemyObject.zig");
 const shopZig = @import("shop.zig");
 const bossZig = @import("boss/boss.zig");
 const imageZig = @import("image.zig");
@@ -37,7 +37,7 @@ pub const GameState = struct {
     enemies: std.ArrayList(enemyZig.Enemy) = undefined,
     spriteCutAnimations: std.ArrayList(enemyZig.CutSpriteAnimation) = undefined,
     enemySpawnData: enemyZig.EnemySpawnData = undefined,
-    enemyProjectiles: std.ArrayList(enemyProjectileZig.EnemyProjectile) = undefined,
+    enemyObjects: std.ArrayList(enemyObjectZig.EnemyObject) = undefined,
     players: std.ArrayList(Player),
     soundMixer: ?soundMixerZig.SoundMixer = null,
     gameEnded: bool = false,
@@ -147,7 +147,7 @@ fn mainLoop(state: *GameState) !void {
             try movePieceZig.tickPlayerMovePiece(player, state);
             try ninjaDogVulkanZig.tickNinjaDogAnimation(player, passedTime, state);
         }
-        try enemyZig.tickEnemies(state);
+        try enemyZig.tickEnemies(passedTime, state);
         try bossZig.tickBosses(state, passedTime);
         try paintVulkanZig.drawFrame(state);
         std.Thread.sleep(5_000_000);
@@ -188,7 +188,7 @@ pub fn endShoppingPhase(state: *GameState) !void {
 
 pub fn startNextLevel(state: *GameState) !void {
     state.enemies.clearRetainingCapacity();
-    state.enemyProjectiles.clearRetainingCapacity();
+    state.enemyObjects.clearRetainingCapacity();
     state.gamePhase = .combat;
     state.level += 1;
     state.round = 0;

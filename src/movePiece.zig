@@ -6,7 +6,7 @@ const shopZig = @import("shop.zig");
 const choosenMovePieceVisualizationVulkanZig = @import("vulkan/choosenMovePieceVisualizationVulkan.zig");
 const bossZig = @import("boss/boss.zig");
 const enemyZig = @import("enemy/enemy.zig");
-const enemyProjectileZig = @import("enemy/enemyProjectile.zig");
+const enemyObjectZig = @import("enemy/enemyObject.zig");
 
 pub const MovePiece = struct {
     steps: []MoveStep,
@@ -311,7 +311,7 @@ fn stepAndCheckEnemyHitAndProjectileHit(player: *main.Player, stepCount: u8, ste
             try resetPieces(player);
             player.slashedLastMoveTile = true;
         }
-        if (enemyProjectileZig.isHitByProjectile(player.position, state)) {
+        if (enemyObjectZig.checkHitMovingPlayer(player, state)) {
             try main.playerHit(player, state);
         }
     }

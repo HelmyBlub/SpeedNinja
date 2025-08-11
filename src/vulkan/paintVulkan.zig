@@ -14,7 +14,7 @@ const enemyVulkanZig = @import("enemyVulkan.zig");
 const shopVulkanZig = @import("shopVulkan.zig");
 const choosenMovePieceVulkanZig = @import("choosenMovePieceVisualizationVulkan.zig");
 const gameInfoUxZig = @import("gameInfoUxVulkan.zig");
-const enemyProjectilesZig = @import("../enemy/enemyProjectile.zig");
+const enemyObjectZig = @import("../enemy/enemyObject.zig");
 
 pub fn drawFrame(state: *main.GameState) !void {
     const vkState = &state.vkState;
@@ -22,14 +22,14 @@ pub fn drawFrame(state: *main.GameState) !void {
     mapGridVulkanZig.setupVertices(state);
     shopVulkanZig.setupVertices(state);
     enemyVulkanZig.setupVerticesGround(state);
-    enemyProjectilesZig.setupVerticesGround(state);
+    enemyObjectZig.setupVerticesGround(state);
     try addDataVerticeDrawCut(&state.vkState.verticeData);
     choosenMovePieceVulkanZig.setupVertices(state);
     enemyVulkanZig.setupVertices(state);
     cutSpriteVulkanZig.setupVertices(state);
     ninjaDogVulkanZig.setupVertices(state);
     enemyVulkanZig.setupVerticesForBosses(state);
-    enemyProjectilesZig.setupVertices(state);
+    enemyObjectZig.setupVertices(state);
     try movePieceUxVulkanZig.setupVertices(state);
     try gameInfoUxZig.setupVertices(state);
     try setupVertexDataForGPU(vkState);

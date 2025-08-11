@@ -4,17 +4,18 @@ const enemyZig = @import("enemy.zig");
 const movePieceZig = @import("../movePiece.zig");
 const imageZig = @import("../image.zig");
 const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
+const enemyObjectFireZig = @import("enemyObjectFire.zig");
 
 pub const EnemyTypePutFireData = struct {
     delay: i64 = 3000,
     moveDirection: u8,
     nextMoveTime: ?i64 = null,
-    fireDuration: u16 = 9000,
+    fireDuration: u16 = 12000,
 };
 
 pub fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
     return .{
-        .imageIndex = imageZig.IMAGE_BLADE,
+        .imageIndex = imageZig.IMAGE_ENEMY_FIRE,
         .position = .{ .x = 0, .y = 0 },
         .enemyTypeData = .{
             .putFire = .{
@@ -34,6 +35,7 @@ pub fn tick(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
                 .y = enemy.position.y + stepDirection.y * main.TILESIZE,
             };
             try enemyZig.checkPlayerHit(hitPosition, state);
+            try enemyObjectFireZig.spawnFire(hitPosition, data.fireDuration, state);
             enemy.position = hitPosition;
             data.nextMoveTime = null;
         }

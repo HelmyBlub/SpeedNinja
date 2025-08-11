@@ -2,7 +2,7 @@ const std = @import("std");
 const main = @import("../main.zig");
 const imageZig = @import("../image.zig");
 const movePieceZig = @import("../movePiece.zig");
-const enemyProjectileZig = @import("enemyProjectile.zig");
+const enemyObjectZig = @import("enemyObject.zig");
 const enemyTypeAttackZig = @import("enemyTypeAttack.zig");
 const enemyTypeMoveZig = @import("enemyTypeMove.zig");
 const enemyTypeMoveWithPlayerZig = @import("enemyTypeMoveWithPlayer.zig");
@@ -80,7 +80,7 @@ const ENEMY_TYPE_SPAWN_LEVEL_DATA = [_]EnemyTypeSpawnLevelData{
     .{ .baseProbability = 1, .enemyType = .putFire, .startingLevel = 20, .leavingLevel = null },
 };
 
-pub fn tickEnemies(state: *main.GameState) !void {
+pub fn tickEnemies(passedTime: i64, state: *main.GameState) !void {
     for (state.enemies.items) |*enemy| {
         switch (enemy.enemyTypeData) {
             .attack => {
@@ -98,7 +98,7 @@ pub fn tickEnemies(state: *main.GameState) !void {
             else => {},
         }
     }
-    try enemyProjectileZig.tickProjectiles(state);
+    try enemyObjectZig.tick(passedTime, state);
 }
 
 pub fn onPlayerMoved(player: *main.Player, state: *main.GameState) !void {
@@ -156,7 +156,7 @@ pub fn initEnemy(state: *main.GameState) !void {
     state.spriteCutAnimations = std.ArrayList(CutSpriteAnimation).init(state.allocator);
     state.enemies = std.ArrayList(Enemy).init(state.allocator);
     state.enemySpawnData.enemyEntries = std.ArrayList(EnemySpawnEntry).init(state.allocator);
-    state.enemyProjectiles = std.ArrayList(enemyProjectileZig.EnemyProjectile).init(state.allocator);
+    state.enemyObjects = std.ArrayList(enemyObjectZig.EnemyObject).init(state.allocator);
     try setupSpawnEnemiesOnLevelChange(state);
 }
 
@@ -199,7 +199,7 @@ pub fn destroyEnemy(state: *main.GameState) void {
     state.enemySpawnData.enemyEntries.deinit();
     state.spriteCutAnimations.deinit();
     state.enemies.deinit();
-    state.enemyProjectiles.deinit();
+    state.enemyObjects.deinit();
 }
 
 pub fn checkPlayerHit(position: main.Position, state: *main.GameState) !void {

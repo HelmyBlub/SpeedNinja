@@ -1,12 +1,8 @@
 Tasks:
 - fire enemy
-    - continue:
-        - code to support shuriken and fire
-            - currently projectiles are just shuriken
-            - fire would be on same paint layer, so redsign code for more options?
-    - drop fire on tile for duration
-        - fire damages player standing on tile
-    - move after droping fire
+    - images
+        - fire enemy
+        - fire object
 
 - next boss idea:
     - fire trail snake
@@ -36,14 +32,11 @@ Next ideas:
     - each retry gets more expensive
 
 - enemy ideas
-    - enemy moves one tile which is also attack move
-    - enemy which attacks on time intervals
-    - enemy which attacks after player moved x-times
+    - enemy places damaging tile and moves one tile
     - enemy which attacks when player adjacent
     - enemy which trows projectile when player in view
         - projectiles moves in intervals one tile
         - player can deflect projectile, which than damages enemies (weapon upgrade?)
-    - enemy places damaging tile and moves one tile
     - enemy moves with always the same move piece which is also an attack (like player) 
     - enemy throws piece aoe
 - player upgrades

@@ -6,7 +6,7 @@ const soundMixerZig = @import("../soundMixer.zig");
 const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
 const movePieceZig = @import("../movePiece.zig");
-const enemyProjectileZig = @import("../enemy/enemyProjectile.zig");
+const enemyObjectProjectileZig = @import("../enemy/enemyObjectProjectile.zig");
 
 pub const BossSplitData = struct {
     splits: std.ArrayList(BossSplitPartData),
@@ -90,7 +90,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                         .x = bossSplit.position.x + stepDirection.x * main.TILESIZE,
                         .y = bossSplit.position.y + stepDirection.y * main.TILESIZE,
                     };
-                    try enemyProjectileZig.spawnProjectile(spawnPosition, @intCast(direction), imageZig.IMAGE_SHURIKEN, 1000, state);
+                    try enemyObjectProjectileZig.spawnProjectile(spawnPosition, @intCast(direction), imageZig.IMAGE_SHURIKEN, 1000, state);
                 }
                 bossSplit.nextAttackTime = null;
                 bossSplit.waitUntilTime = state.gameTime + bossSplit.waitAfterAttackTime;
