@@ -7,6 +7,7 @@ const bossStompZig = @import("bossStomp.zig");
 const bossRotateZig = @import("bossRotate.zig");
 const bossRollZig = @import("bossRoll.zig");
 const bossSplitZig = @import("bossSplit.zig");
+const bossSnakeZig = @import("bossSnake.zig");
 
 pub const LevelBossData = struct {
     appearsOnLevel: usize,
@@ -24,6 +25,7 @@ const BossTypes = enum {
     rotate,
     roll,
     split,
+    snake,
 };
 
 const BossTypeData = union(BossTypes) {
@@ -31,6 +33,7 @@ const BossTypeData = union(BossTypes) {
     rotate: bossRotateZig.BossRotateData,
     roll: bossRollZig.BossRollData,
     split: bossSplitZig.BossSplitData,
+    snake: bossSnakeZig.BossSnakeData,
 };
 
 pub const Boss = struct {
@@ -48,6 +51,7 @@ pub const LEVEL_BOSS_DATA = [_]LevelBossData{
     bossRotateZig.createBoss(),
     bossRollZig.createBoss(),
     bossSplitZig.createBoss(),
+    bossSnakeZig.createBoss(),
 };
 
 pub fn onPlayerMoved(player: *main.Player, state: *main.GameState) !void {
