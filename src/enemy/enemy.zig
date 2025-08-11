@@ -202,6 +202,18 @@ pub fn destroyEnemy(state: *main.GameState) void {
     state.enemyObjects.deinit();
 }
 
+pub fn checkStationaryPlayerHit(position: main.Position, state: *main.GameState) !void {
+    for (state.players.items) |*player| {
+        if (player.executeMovePiece == null) {
+            if (player.position.x > position.x - main.TILESIZE / 2 and player.position.x < position.x + main.TILESIZE / 2 and
+                player.position.y > position.y - main.TILESIZE / 2 and player.position.y < position.y + main.TILESIZE / 2)
+            {
+                try main.playerHit(player, state);
+            }
+        }
+    }
+}
+
 pub fn checkPlayerHit(position: main.Position, state: *main.GameState) !void {
     for (state.players.items) |*player| {
         if (player.position.x > position.x - main.TILESIZE / 2 and player.position.x < position.x + main.TILESIZE / 2 and

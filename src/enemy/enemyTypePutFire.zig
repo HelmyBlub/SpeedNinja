@@ -30,13 +30,13 @@ pub fn tick(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
     if (data.nextMoveTime) |nextMoveTime| {
         if (nextMoveTime < state.gameTime) {
             const stepDirection = movePieceZig.getStepDirection(data.moveDirection);
-            const hitPosition: main.Position = .{
+            const moveToPosition: main.Position = .{
                 .x = enemy.position.x + stepDirection.x * main.TILESIZE,
                 .y = enemy.position.y + stepDirection.y * main.TILESIZE,
             };
-            try enemyZig.checkPlayerHit(hitPosition, state);
-            try enemyObjectFireZig.spawnFire(hitPosition, data.fireDuration, state);
-            enemy.position = hitPosition;
+            try enemyZig.checkPlayerHit(moveToPosition, state);
+            try enemyObjectFireZig.spawnFire(moveToPosition, data.fireDuration, state);
+            enemy.position = moveToPosition;
             data.nextMoveTime = null;
         }
     } else {

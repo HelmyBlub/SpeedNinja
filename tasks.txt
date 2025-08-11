@@ -1,12 +1,12 @@
 Tasks:
-- fire enemy
-    - fire object animation 
-
 - next boss idea:
     - fire trail snake
+        - snake is 10 pieces long
+            - start in center all pieces on start location
+            - first piece hit gets cut out,
+              - immunity frame for boss
+            - boss moves single tiles but in quick succession
         - boss moves around leaving a trail of fire
-            - each time snake hit, it becommes shorter
-                - cut of snake piece with each hit
 
 
 Next ideas:

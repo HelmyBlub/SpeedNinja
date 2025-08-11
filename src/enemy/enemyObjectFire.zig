@@ -46,7 +46,7 @@ fn setupVertices(object: *enemyObjectZig.EnemyObject, state: *main.GameState) vo
 
 fn tick(object: *enemyObjectZig.EnemyObject, passedTime: i64, state: *main.GameState) !void {
     _ = passedTime;
-    try enemyZig.checkPlayerHit(object.position, state);
+    try enemyZig.checkStationaryPlayerHit(object.position, state);
 }
 
 fn shouldBeRemoved(object: *enemyObjectZig.EnemyObject, state: *main.GameState) bool {
