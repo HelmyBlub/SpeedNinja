@@ -134,6 +134,7 @@ fn mainLoop(state: *GameState) !void {
             try startNextRound(state);
         } else if (shouldEndLevel(state)) {
             if (state.gamePhase == .boss) {
+                std.debug.print("lvl {d} finished in {d}\n", .{ state.level, @divFloor(state.gameTime, 1000) });
                 for (state.players.items) |*player| {
                     player.money += state.level * 10;
                 }
@@ -234,6 +235,7 @@ fn allPlayerOutOfMoveOptions(state: *GameState) bool {
 }
 
 pub fn restart(state: *GameState) !void {
+    if (state.gameTime > 1000) std.debug.print("ended on lvl {d} in time: {d}\n", .{ state.level, @divFloor(state.gameTime, 1000) });
     state.level = 0;
     state.round = 0;
     state.mapTileRadius = BASE_MAP_TILE_RADIUS;
