@@ -8,6 +8,7 @@ const enemyTypeMoveZig = @import("enemyTypeMove.zig");
 const enemyTypeMoveWithPlayerZig = @import("enemyTypeMoveWithPlayer.zig");
 const enemyTypeProjectileAttackZig = @import("enemyTypeProjectileAttack.zig");
 const enemyTypePutFireZig = @import("enemyTypePutFire.zig");
+const enemyTypeBlockZig = @import("enemyTypeBlock.zig");
 
 pub const EnemyType = enum {
     nothing,
@@ -16,6 +17,7 @@ pub const EnemyType = enum {
     moveWithPlayer,
     projectileAttack,
     putFire,
+    block,
 };
 
 const EnemyTypeSpawnLevelData = struct {
@@ -38,6 +40,7 @@ pub const EnemyTypeData = union(EnemyType) {
     moveWithPlayer: enemyTypeMoveWithPlayerZig.EnemyTypeMoveWithPlayerData,
     projectileAttack: EnemyTypeDelayedActionData,
     putFire: enemyTypePutFireZig.EnemyTypePutFireData,
+    block: enemyTypeBlockZig.EnemyTypeBlockData,
 };
 
 pub const Enemy = struct {
@@ -76,8 +79,9 @@ const ENEMY_TYPE_SPAWN_LEVEL_DATA = [_]EnemyTypeSpawnLevelData{
     .{ .baseProbability = 1, .enemyType = .attack, .startingLevel = 2, .leavingLevel = 10 },
     .{ .baseProbability = 1, .enemyType = .move, .startingLevel = 5, .leavingLevel = 15 },
     .{ .baseProbability = 1, .enemyType = .moveWithPlayer, .startingLevel = 10, .leavingLevel = 20 },
-    .{ .baseProbability = 1, .enemyType = .projectileAttack, .startingLevel = 15, .leavingLevel = null },
+    .{ .baseProbability = 1, .enemyType = .projectileAttack, .startingLevel = 15, .leavingLevel = 25 },
     .{ .baseProbability = 1, .enemyType = .putFire, .startingLevel = 20, .leavingLevel = null },
+    .{ .baseProbability = 1, .enemyType = .block, .startingLevel = 25, .leavingLevel = null },
 };
 
 pub fn tickEnemies(passedTime: i64, state: *main.GameState) !void {
@@ -94,6 +98,9 @@ pub fn tickEnemies(passedTime: i64, state: *main.GameState) !void {
             },
             .putFire => {
                 try enemyTypePutFireZig.tick(enemy, state);
+            },
+            .block => {
+                try enemyTypeBlockZig.tick(enemy, state);
             },
             else => {},
         }
@@ -131,6 +138,9 @@ fn createSpawnEnemyEntryEnemy(enemyType: EnemyType) Enemy {
         },
         .putFire => {
             return enemyTypePutFireZig.createSpawnEnemyEntryEnemy();
+        },
+        .block => {
+            return enemyTypeBlockZig.createSpawnEnemyEntryEnemy();
         },
     }
 }

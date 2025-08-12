@@ -1,14 +1,26 @@
 Tasks:
-- balance change:
-    - feels like it takes to long to reach later stages
-        - less enemies
-
 - next enemy
     - shield enemy
         - blocks damage from one direction
             - always turns to closest player?
+            - can not turn more than once every x seconds
+        - hitting shield triggers aoe attack
+
 - next boss idea:
-    -
+    - 3 bosses with one shield
+        - if one boss dies, other bosses gain one more shield
+            - each shield blocks damage from one direction
+        - hitting boss shield triggers
+            - shuriken throw
+            - fire
+            - air attack
+        - if boss dead give ability to others
+        - always shield towards closest player, can not change direction to frequently
+
+- next enemy
+    - ice enemy
+        - leave ice tiles which makes player slide
+            - changes move of movePiece if goes over this tile
 
 Next ideas:
 - something which makes player stronger over time, but better player get stronger faster

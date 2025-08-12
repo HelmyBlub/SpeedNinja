@@ -11,11 +11,19 @@ const enemyTypeMoveZig = @import("../enemy/enemyTypeMove.zig");
 const enemyTypeMoveWithPlayerZig = @import("../enemy/enemyTypeMoveWithPlayer.zig");
 const enemyTypeProjectileAttackZig = @import("../enemy/enemyTypeProjectileAttack.zig");
 const enemyTypePutFireZig = @import("../enemy/enemyTypePutFire.zig");
+const enemyTypeBlockZig = @import("../enemy/enemyTypeBlock.zig");
 
 pub fn setupVertices(state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
-    for (state.enemies.items) |enemy| {
-        paintVulkanZig.verticesForComplexSpriteDefault(enemy.position, enemy.imageIndex, &verticeData.spritesComplex, state);
+    for (state.enemies.items) |*enemy| {
+        switch (enemy.enemyTypeData) {
+            .block => {
+                enemyTypeBlockZig.setupVertices(enemy, state);
+            },
+            else => {
+                paintVulkanZig.verticesForComplexSpriteDefault(enemy.position, enemy.imageIndex, &verticeData.spritesComplex, state);
+            },
+        }
     }
 }
 
@@ -37,6 +45,9 @@ pub fn setupVerticesGround(state: *main.GameState) void {
             },
             .putFire => {
                 enemyTypePutFireZig.setupVerticesGround(enemy, state);
+            },
+            .block => {
+                enemyTypeBlockZig.setupVerticesGround(enemy, state);
             },
         }
     }
