@@ -48,6 +48,7 @@ pub const IMAGE_ENEMY_FIRE = 40;
 pub const IMAGE_FIRE_ANIMATION = 41;
 pub const IMAGE_BOSS_SNAKE_HEAD = 42;
 pub const IMAGE_BOSS_SNAKE_BODY = 43;
+pub const IMAGE_ENEMY_SHIELD = 44;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaDog.png" },
@@ -94,6 +95,7 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/fireAnimation.png", .animated = true },
     .{ .path = "images/bossSnakeHead.png", .scale = 1.1 },
     .{ .path = "images/bossSnakeBody.png", .scale = 2.2 },
+    .{ .path = "images/enemyShield.png" },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 pub const IMAGE_DOG__CENTER_BODY: main.Position = .{ .x = 99, .y = 128 };

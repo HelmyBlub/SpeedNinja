@@ -120,14 +120,14 @@ pub fn setMoveOptionIndex(player: *main.Player, index: usize, state: *main.GameS
 pub fn tickPlayerMovePiece(player: *main.Player, state: *main.GameState) !void {
     if (player.executeMovePiece) |executeMovePiece| {
         const step = executeMovePiece.steps[0];
+        const direction = @mod(step.direction + player.executeDirection + 1, 4);
+        if (!player.slashedLastMoveTile) ninjaDogVulkanZig.movedAnimate(player, direction);
+        try stepAndCheckEnemyHitAndProjectileHit(player, step.stepCount, direction, getStepDirection(direction), state);
         if (executeMovePiece.steps.len > 1) {
             player.executeMovePiece = .{ .steps = executeMovePiece.steps[1..] };
         } else {
             player.executeMovePiece = null;
         }
-        const direction = @mod(step.direction + player.executeDirection + 1, 4);
-        if (!player.slashedLastMoveTile) ninjaDogVulkanZig.movedAnimate(player, direction);
-        try stepAndCheckEnemyHitAndProjectileHit(player, step.stepCount, getStepDirection(direction), state);
         if (player.executeMovePiece == null) {
             ninjaDogVulkanZig.moveHandToCenter(player, state);
             if (state.gamePhase == .shopping) {
@@ -299,13 +299,13 @@ pub fn isTilePositionOnMovePiece(checkTile: main.TilePosition, movePieceStartTil
     return false;
 }
 
-fn stepAndCheckEnemyHitAndProjectileHit(player: *main.Player, stepCount: u8, stepDirection: main.Position, state: *main.GameState) !void {
+fn stepAndCheckEnemyHitAndProjectileHit(player: *main.Player, stepCount: u8, direction: u8, stepDirection: main.Position, state: *main.GameState) !void {
     for (0..stepCount) |i| {
         player.slashedLastMoveTile = false;
         try ninjaDogVulkanZig.addAfterImages(1, stepDirection, player, state);
         player.position.x += stepDirection.x * main.TILESIZE;
         player.position.y += stepDirection.y * main.TILESIZE;
-        if (try checkEnemyHitOnMoveStep(player, state)) {
+        if (try checkEnemyHitOnMoveStep(player, direction, state)) {
             ninjaDogVulkanZig.bladeSlashAnimate(player);
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BLADE_CUT_INDICIES[0..], i * 25, 1);
             try resetPieces(player);
@@ -440,30 +440,27 @@ pub fn createRandomMovePiece(allocator: std.mem.Allocator) !MovePiece {
     return movePiece;
 }
 
-fn checkEnemyHitOnMoveStep(player: *main.Player, state: *main.GameState) !bool {
+fn checkEnemyHitOnMoveStep(player: *main.Player, hitDirection: u8, state: *main.GameState) !bool {
     const position: main.Position = player.position;
     var enemyIndex: usize = 0;
-    const left: f32 = position.x - main.TILESIZE / 2;
-    const top: f32 = position.y - main.TILESIZE / 2;
-    const width: f32 = main.TILESIZE;
-    const height: f32 = main.TILESIZE;
+    const tilePosition = main.gamePositionToTilePosition(position);
+    const hitArea: main.TileRectangle = .{ .pos = tilePosition, .height = 1, .width = 1 };
 
     const rand = std.crypto.random;
     var hitSomething = false;
     while (enemyIndex < state.enemies.items.len) {
-        const enemy = state.enemies.items[enemyIndex];
-        if (enemy.position.x > left and enemy.position.x < left + width and enemy.position.y > top and enemy.position.y < top + height) {
+        const enemy = &state.enemies.items[enemyIndex];
+        if (enemyZig.isEnemyHit(enemy, hitArea, hitDirection)) {
             const deadEnemy = state.enemies.swapRemove(enemyIndex);
             const cutAngle = player.paintData.bladeRotation + std.math.pi / 2.0;
-            try state.spriteCutAnimations.append(.{ .deathTime = state.gameTime, .position = deadEnemy.position, .cutAngle = cutAngle, .force = rand.float(f32) + 0.2, .imageIndex = enemy.imageIndex });
+            try state.spriteCutAnimations.append(.{ .deathTime = state.gameTime, .position = deadEnemy.position, .cutAngle = cutAngle, .force = rand.float(f32) + 0.2, .imageIndex = deadEnemy.imageIndex });
             hitSomething = true;
         } else {
             enemyIndex += 1;
         }
     }
     if (state.bosses.items.len > 0) {
-        const tilePosition = main.gamePositionToTilePosition(position);
-        if (try bossZig.isBossHit(.{ .pos = tilePosition, .height = 1, .width = 1 }, player.paintData.bladeRotation, state)) {
+        if (try bossZig.isBossHit(hitArea, player.paintData.bladeRotation, state)) {
             hitSomething = true;
         }
     }

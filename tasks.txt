@@ -5,6 +5,7 @@ Tasks:
             - always turns to closest player?
             - can not turn more than once every x seconds
         - hitting shield triggers aoe attack
+        - sound if shield hit
 
 - next boss idea:
     - 3 bosses with one shield

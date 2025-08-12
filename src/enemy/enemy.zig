@@ -145,6 +145,18 @@ fn createSpawnEnemyEntryEnemy(enemyType: EnemyType) Enemy {
     }
 }
 
+pub fn isEnemyHit(enemy: *Enemy, hitArea: main.TileRectangle, hitDirection: u8) bool {
+    switch (enemy.enemyTypeData) {
+        .block => {
+            return enemyTypeBlockZig.isEnemyHit(enemy, hitArea, hitDirection);
+        },
+        else => {
+            const enemyTile = main.gamePositionToTilePosition(enemy.position);
+            return main.isTilePositionInTileRectangle(enemyTile, hitArea);
+        },
+    }
+}
+
 pub fn fillMoveAttackWarningTiles(startPosition: main.Position, tileList: *std.ArrayList(MoveAttackWarningTile), movePiece: movePieceZig.MovePiece, direction: u8) !void {
     var curTilePos = main.gamePositionToTilePosition(startPosition);
     for (movePiece.steps, 0..) |step, stepIndex| {

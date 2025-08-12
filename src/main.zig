@@ -205,6 +205,29 @@ pub fn startNextLevel(state: *GameState) !void {
     }
 }
 
+pub fn findClosestPlayer(position: Position, state: *GameState) *Player {
+    var shortestDistance: f32 = 0;
+    var closestPlayer: ?*Player = null;
+    for (state.players.items) |*player| {
+        const tempDistance = calculateDistance(position, player.position);
+        if (closestPlayer == null or tempDistance < shortestDistance) {
+            shortestDistance = tempDistance;
+            closestPlayer = player;
+        }
+    }
+    return closestPlayer.?;
+}
+
+pub fn getDirectionFromTo(fromPosition: Position, toPosition: Position) u8 {
+    const diffX = fromPosition.x - toPosition.x;
+    const diffY = fromPosition.y - toPosition.y;
+    if (@abs(diffX) > @abs(diffY)) {
+        return if (diffX > 0) movePieceZig.DIRECTION_LEFT else movePieceZig.DIRECTION_RIGHT;
+    } else {
+        return if (diffY > 0) movePieceZig.DIRECTION_UP else movePieceZig.DIRECTION_DOWN;
+    }
+}
+
 fn shouldEndLevel(state: *GameState) bool {
     if (state.gamePhase == .combat and state.round >= state.roundToReachForNextLevel and state.roundEndTimeMS < state.gameTime) return true;
     if (state.gamePhase == .boss and state.bosses.items.len == 0) return true;
