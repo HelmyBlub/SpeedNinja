@@ -307,7 +307,7 @@ fn stepAndCheckEnemyHitAndProjectileHit(player: *main.Player, stepCount: u8, ste
         player.position.y += stepDirection.y * main.TILESIZE;
         if (try checkEnemyHitOnMoveStep(player, state)) {
             ninjaDogVulkanZig.bladeSlashAnimate(player);
-            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BLADE_CUT_INDICIES[0..], i * 25);
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BLADE_CUT_INDICIES[0..], i * 25, 1);
             try resetPieces(player);
             player.slashedLastMoveTile = true;
         }
@@ -330,7 +330,7 @@ pub fn movePlayerByMovePiece(player: *main.Player, movePieceIndex: usize, direct
     player.executeMovePiece = player.moveOptions.items[movePieceIndex];
     player.executeDirection = directionInput;
     try setRandomMovePiece(player, movePieceIndex);
-    try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_NINJA_MOVE_INDICIES[0..], 0);
+    try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_NINJA_MOVE_INDICIES[0..], 0, 1);
     if (state.gamePhase == .shopping and player.availableMovePieces.items.len == 0 and player.moveOptions.items.len == 0) {
         try resetPieces(player);
     }

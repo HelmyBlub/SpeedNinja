@@ -114,7 +114,7 @@ pub fn playerHit(player: *Player, state: *GameState) !void {
         player.paintData.chestArmorImageIndex = imageZig.IMAGE_NINJA_BODY_NO_ARMOR;
     }
     player.immunUntilTime = state.gameTime + state.playerImmunityFrames;
-    try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_PLAYER_HIT, 0);
+    try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_PLAYER_HIT, 0, 1);
 }
 
 fn startGame(allocator: std.mem.Allocator) !void {

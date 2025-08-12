@@ -15,6 +15,7 @@ pub const SoundMixer = struct {
 const SoundToPlay = struct {
     soundIndex: usize,
     dataIndex: usize = 0,
+    volume: f32 = 1,
 };
 
 const FutureSoundToPlay = struct {
@@ -61,6 +62,10 @@ var SOUND_FILE_PATHES = [_][]const u8{
     "sounds/rollShoot3.mp3",
     "sounds/rollShoot4.mp3",
     "sounds/playerHit.mp3",
+    "sounds/snakeMove1.mp3",
+    "sounds/snakeMove2.mp3",
+    "sounds/snakeMove3.mp3",
+    "sounds/snakeMove4.mp3",
 };
 
 pub const SOUND_NINJA_MOVE_INDICIES = [_]usize{ 0, 1, 2 };
@@ -73,6 +78,7 @@ pub const SOUND_IMMUNITY_DOWN = 16;
 pub const SOUND_BALL_GROUND_INDICIES = [_]usize{ 17, 18, 19, 20 };
 pub const SOUND_BOSS_ROOL_SHOOT_INDICIES = [_]usize{ 21, 22, 23, 24 };
 pub const SOUND_PLAYER_HIT = 25;
+pub const SOUND_BOSS_SNAKE_MOVE_INDICIES = [_]usize{ 26, 27, 28, 29 };
 
 pub fn createSoundMixer(state: *main.GameState, allocator: std.mem.Allocator) !void {
     state.soundMixer = .{
@@ -123,7 +129,7 @@ fn audioCallback(userdata: ?*anyopaque, stream: ?*sdl.SDL_AudioStream, additiona
         var i: usize = 0;
         while (i < sampleCount and sound.dataIndex < soundMixer.soundData.sounds[sound.soundIndex].len) {
             const data: [*]Sample = @ptrCast(@alignCast(soundMixer.soundData.sounds[sound.soundIndex].data));
-            buffer[i] +|= @intFromFloat(@as(f64, @floatFromInt(data[@divFloor(sound.dataIndex, 2)])) * soundMixer.volume);
+            buffer[i] +|= @intFromFloat(@as(f64, @floatFromInt(data[@divFloor(sound.dataIndex, 2)])) * soundMixer.volume * sound.volume);
             i += 1;
             sound.dataIndex += 2;
         }
@@ -139,22 +145,24 @@ fn audioCallback(userdata: ?*anyopaque, stream: ?*sdl.SDL_AudioStream, additiona
     cleanUpFinishedSounds(soundMixer);
 }
 
-pub fn playRandomSound(optSoundMixer: *?SoundMixer, soundIndex: []const usize, offset: usize) !void {
+pub fn playRandomSound(optSoundMixer: *?SoundMixer, soundIndex: []const usize, offset: usize, volume: f32) !void {
     const rand = std.crypto.random;
     const randomIndex: usize = @as(usize, @intFromFloat(rand.float(f32) * @as(f32, @floatFromInt(soundIndex.len))));
     if (optSoundMixer.*) |*soundMixer| {
         try soundMixer.soundsToPlay.append(.{
             .soundIndex = soundIndex[randomIndex],
             .dataIndex = offset,
+            .volume = volume,
         });
     }
 }
 
-pub fn playSound(optSoundMixer: *?SoundMixer, soundIndex: usize, offset: usize) !void {
+pub fn playSound(optSoundMixer: *?SoundMixer, soundIndex: usize, offset: usize, volume: f32) !void {
     if (optSoundMixer.*) |*soundMixer| {
         try soundMixer.soundsToPlay.append(.{
             .soundIndex = soundIndex,
             .dataIndex = offset,
+            .volume = volume,
         });
     }
 }

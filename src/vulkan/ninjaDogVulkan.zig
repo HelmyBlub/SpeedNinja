@@ -210,7 +210,7 @@ fn tickNinjaDogPawAnimation(player: *main.Player, timePassed: i64, state: *main.
                     player.animateData.paws = .{
                         .bladeToFront = .{ .angle = player.paintData.bladeRotation, .duration = 1000, .startTime = state.gameTime },
                     };
-                    try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BLADE_DRAW, 0);
+                    try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BLADE_DRAW, 0, 1);
                 }
             },
             .bladeToFront => |data| {

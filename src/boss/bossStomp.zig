@@ -92,7 +92,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                 stompData.inAir = false;
                 stompData.nextStateTime = state.gameTime + stompData.idleAfterAttackTime;
                 stompData.state = .wait;
-                try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_STOMP_INDICIES[0..], 0);
+                try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_STOMP_INDICIES[0..], 0, 1);
                 const damageTileRectangle: main.TileRectangle = .{
                     .pos = .{ .x = stompData.attackTilePosition.x - stompData.attackTileRadius, .y = stompData.attackTilePosition.y - stompData.attackTileRadius },
                     .height = stompData.attackTileRadius * 2 + 1,

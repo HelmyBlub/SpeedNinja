@@ -68,6 +68,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     _ = passedTime;
     const snakeData = &boss.typeData.snake;
     if (snakeData.nextMoveTime <= state.gameTime) {
+        try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BOSS_SNAKE_MOVE_INDICIES[0..], 0, 0.5);
         const stepDirection = movePieceZig.getStepDirection(snakeData.nextMoveDirection);
         const movePosition: main.Position = .{
             .x = boss.position.x + stepDirection.x * main.TILESIZE,

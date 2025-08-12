@@ -62,7 +62,7 @@ fn onPlayerMoved(boss: *bossZig.Boss, player: *main.Player, state: *main.GameSta
         .targetPosition = main.gamePositionToTilePosition(player.position),
         .firedFromPosition = main.gamePositionToTilePosition(boss.position),
     });
-    try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BOSS_ROOL_SHOOT_INDICIES[0..], 0);
+    try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BOSS_ROOL_SHOOT_INDICIES[0..], 0, 1);
 }
 
 fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
@@ -100,7 +100,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                     try main.playerHit(player, state);
                 }
             }
-            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BALL_GROUND_INDICIES[0..], 0);
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BALL_GROUND_INDICIES[0..], 0, 1);
             _ = rollData.attackTilePositions.swapRemove(attackTileIndex);
         } else {
             attackTileIndex += 1;

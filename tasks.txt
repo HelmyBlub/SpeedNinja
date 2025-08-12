@@ -1,8 +1,5 @@
 Tasks:
 - snake boss
-    - image
-        - head
-        - body part 
     - sound
         - move sound
 
