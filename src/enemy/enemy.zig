@@ -229,7 +229,7 @@ pub fn setupEnemies(state: *main.GameState) !void {
     enemies.clearRetainingCapacity();
     if (state.enemySpawnData.enemyEntries.items.len == 0) return;
     const rand = std.crypto.random;
-    const enemyCount = state.round + @min(8, (@divFloor(state.level - 1, 2)));
+    const enemyCount = state.round + @min(5, (@divFloor(state.level - 1, 2)));
     state.mapTileRadius = main.BASE_MAP_TILE_RADIUS + @as(u32, @intFromFloat(@sqrt(@as(f32, @floatFromInt(enemyCount)))));
     const length: f32 = @floatFromInt(state.mapTileRadius * 2 + 1);
     while (enemies.items.len < enemyCount) {

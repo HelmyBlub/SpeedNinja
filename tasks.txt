@@ -1,7 +1,7 @@
 Tasks:
-- snake boss
-    - sound
-        - move sound
+- balance change:
+    - feels like it takes to long to reach later stages
+        - less enemies
 
 - next enemy
     - shield enemy
