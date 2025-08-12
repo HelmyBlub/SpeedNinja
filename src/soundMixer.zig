@@ -66,6 +66,10 @@ var SOUND_FILE_PATHES = [_][]const u8{
     "sounds/snakeMove2.mp3",
     "sounds/snakeMove3.mp3",
     "sounds/snakeMove4.mp3",
+    "sounds/enemyBlock1.mp3",
+    "sounds/enemyBlock2.mp3",
+    "sounds/enemyBlock3.mp3",
+    "sounds/enemyBlock4.mp3",
 };
 
 pub const SOUND_NINJA_MOVE_INDICIES = [_]usize{ 0, 1, 2 };
@@ -79,6 +83,7 @@ pub const SOUND_BALL_GROUND_INDICIES = [_]usize{ 17, 18, 19, 20 };
 pub const SOUND_BOSS_ROOL_SHOOT_INDICIES = [_]usize{ 21, 22, 23, 24 };
 pub const SOUND_PLAYER_HIT = 25;
 pub const SOUND_BOSS_SNAKE_MOVE_INDICIES = [_]usize{ 26, 27, 28, 29 };
+pub const SOUND_ENEMY_BLOCK_INDICIES = [_]usize{ 30, 31, 32, 33 };
 
 pub fn createSoundMixer(state: *main.GameState, allocator: std.mem.Allocator) !void {
     state.soundMixer = .{

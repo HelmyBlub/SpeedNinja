@@ -145,10 +145,10 @@ fn createSpawnEnemyEntryEnemy(enemyType: EnemyType) Enemy {
     }
 }
 
-pub fn isEnemyHit(enemy: *Enemy, hitArea: main.TileRectangle, hitDirection: u8) bool {
+pub fn isEnemyHit(enemy: *Enemy, hitArea: main.TileRectangle, hitDirection: u8, state: *main.GameState) !bool {
     switch (enemy.enemyTypeData) {
         .block => {
-            return enemyTypeBlockZig.isEnemyHit(enemy, hitArea, hitDirection);
+            return try enemyTypeBlockZig.isEnemyHit(enemy, hitArea, hitDirection, state);
         },
         else => {
             const enemyTile = main.gamePositionToTilePosition(enemy.position);

@@ -5,11 +5,15 @@ const movePieceZig = @import("../movePiece.zig");
 const imageZig = @import("../image.zig");
 const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
+const shoundMixerZig = @import("../soundMixer.zig");
 
 pub const EnemyTypeBlockData = struct {
     direction: u8,
     lastTurnTime: i64 = 0,
     minTurnInterval: i32 = 4000,
+    aoeAttackDelay: i32 = 2000,
+    aoeAttackTime: ?i64 = null,
+    attackTileRadius: i8 = 1,
 };
 
 pub fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
@@ -36,13 +40,33 @@ pub fn tick(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
             }
         }
     }
+    if (data.aoeAttackTime != null and data.aoeAttackTime.? <= state.gameTime) {
+        data.aoeAttackTime = null;
+        const enemyTile = main.gamePositionToTilePosition(enemy.position);
+        const attackRadius = data.attackTileRadius;
+        const damageTileRectangle: main.TileRectangle = .{
+            .pos = .{ .x = enemyTile.x - attackRadius, .y = enemyTile.y - attackRadius },
+            .height = attackRadius * 2 + 1,
+            .width = attackRadius * 2 + 1,
+        };
+        for (state.players.items) |*player| {
+            const playerTile = main.gamePositionToTilePosition(player.position);
+            if (main.isTilePositionInTileRectangle(playerTile, damageTileRectangle)) {
+                try main.playerHit(player, state);
+            }
+        }
+    }
 }
 
-pub fn isEnemyHit(enemy: *enemyZig.Enemy, hitArea: main.TileRectangle, hitDirection: u8) bool {
+pub fn isEnemyHit(enemy: *enemyZig.Enemy, hitArea: main.TileRectangle, hitDirection: u8, state: *main.GameState) !bool {
     const data = &enemy.enemyTypeData.block;
     const enemyTile = main.gamePositionToTilePosition(enemy.position);
     if (main.isTilePositionInTileRectangle(enemyTile, hitArea)) {
-        if (@mod(hitDirection + 2, 4) == data.direction) return false;
+        if (@mod(hitDirection + 2, 4) == data.direction) {
+            try shoundMixerZig.playRandomSound(&state.soundMixer, shoundMixerZig.SOUND_ENEMY_BLOCK_INDICIES[0..], 0, 1);
+            if (data.aoeAttackTime == null) data.aoeAttackTime = state.gameTime + data.aoeAttackDelay;
+            return false;
+        }
         return true;
     }
     return false;
@@ -50,8 +74,20 @@ pub fn isEnemyHit(enemy: *enemyZig.Enemy, hitArea: main.TileRectangle, hitDirect
 
 pub fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) void {
     const data = enemy.enemyTypeData.block;
-    _ = data;
-    _ = state;
+    if (data.aoeAttackTime) |attackTime| {
+        const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(attackTime - state.gameTime)) / @as(f32, @floatFromInt(data.aoeAttackDelay))));
+        const size: usize = @intCast(data.attackTileRadius * 2 + 1);
+        for (0..size) |i| {
+            const offsetX: f32 = @as(f32, @floatFromInt(@as(i32, @intCast(i)) - data.attackTileRadius)) * main.TILESIZE;
+            for (0..size) |j| {
+                const offsetY: f32 = @as(f32, @floatFromInt(@as(i32, @intCast(j)) - data.attackTileRadius)) * main.TILESIZE;
+                enemyVulkanZig.addWarningTileSprites(.{
+                    .x = enemy.position.x + offsetX,
+                    .y = enemy.position.y + offsetY,
+                }, fillPerCent, state);
+            }
+        }
+    }
 }
 
 pub fn setupVertices(enemy: *enemyZig.Enemy, state: *main.GameState) void {
