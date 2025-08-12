@@ -14,7 +14,12 @@ pub const BossSnakeData = struct {
     fireDuration: i32 = 5200,
     moveInterval: i64 = 400,
     nextMoveDirection: u8,
-    snakeBodyParts: std.ArrayList(main.Position),
+    snakeBodyParts: std.ArrayList(BodyPart),
+};
+
+const BodyPart = struct {
+    pos: main.Position,
+    rotation: f32,
 };
 
 const BOSS_NAME = "Snake";
@@ -41,21 +46,21 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
     var snakeBoss: bossZig.Boss = .{
         .hp = 20,
         .maxHp = 20,
-        .imageIndex = imageZig.IMAGE_EVIL_TOWER,
+        .imageIndex = imageZig.IMAGE_BOSS_SNAKE_HEAD,
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
         .dataIndex = bossDataIndex,
         .typeData = .{ .snake = .{
             .nextMoveDirection = std.crypto.random.intRangeLessThan(u8, 0, 4),
-            .snakeBodyParts = std.ArrayList(main.Position).init(state.allocator),
+            .snakeBodyParts = std.ArrayList(BodyPart).init(state.allocator),
         } },
     };
     for (0..9) |_| {
-        try snakeBoss.typeData.snake.snakeBodyParts.append(.{ .x = 0, .y = 0 });
+        try snakeBoss.typeData.snake.snakeBodyParts.append(.{ .pos = .{ .x = 0, .y = 0 }, .rotation = 0 });
     }
     try enemyObjectFireZig.spawnFire(snakeBoss.position, snakeBoss.typeData.snake.fireDuration, state);
     try state.bosses.append(snakeBoss);
-    state.mapTileRadius = 7;
+    state.mapTileRadius = 6;
     main.adjustZoom(state);
 }
 
@@ -70,8 +75,19 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
         };
         try enemyZig.checkPlayerHit(movePosition, state);
         try enemyObjectFireZig.spawnFire(movePosition, snakeData.fireDuration, state);
+        var rotation: f32 = @as(f32, @floatFromInt(snakeData.nextMoveDirection)) * std.math.pi / 2.0;
+        if (snakeData.snakeBodyParts.items.len > 0) {
+            const beforePart = snakeData.snakeBodyParts.getLast();
+            if (beforePart.pos.x != movePosition.x and beforePart.pos.y != movePosition.y) {
+                if (@mod(rotation - beforePart.rotation, std.math.pi * 2.0) - std.math.pi < 0) {
+                    rotation -= std.math.pi / 4.0;
+                } else {
+                    rotation += std.math.pi / 4.0;
+                }
+            }
+        }
         _ = snakeData.snakeBodyParts.orderedRemove(0);
-        try snakeData.snakeBodyParts.append(boss.position);
+        try snakeData.snakeBodyParts.append(.{ .pos = boss.position, .rotation = rotation });
         boss.position = movePosition;
         snakeData.nextMoveTime = state.gameTime + snakeData.moveInterval;
         var isNextDirectionValied = false;
@@ -100,10 +116,10 @@ fn isBossHit(boss: *bossZig.Boss, hitArea: main.TileRectangle, cutRotation: f32,
         return true;
     }
     for (snakeData.snakeBodyParts.items) |snakeBodyPart| {
-        const partTile = main.gamePositionToTilePosition(snakeBodyPart);
+        const partTile = main.gamePositionToTilePosition(snakeBodyPart.pos);
         if (main.isTilePositionInTileRectangle(partTile, hitArea)) {
             boss.hp -|= 1;
-            try checkLooseBodyPart(boss, snakeBodyPart, cutRotation, state);
+            try checkLooseBodyPart(boss, snakeBodyPart.pos, cutRotation, state);
             return true;
         }
     }
@@ -117,22 +133,41 @@ fn checkLooseBodyPart(boss: *bossZig.Boss, hitPosition: main.Position, cutRotati
         _ = snakeData.snakeBodyParts.orderedRemove(0);
         if (boss.hp > 0) {
             try state.spriteCutAnimations.append(
-                .{ .deathTime = state.gameTime, .position = hitPosition, .cutAngle = cutRotation, .force = 1.2, .imageIndex = boss.imageIndex },
+                .{ .deathTime = state.gameTime, .position = hitPosition, .cutAngle = cutRotation, .force = 1.2, .imageIndex = imageZig.IMAGE_BOSS_SNAKE_BODY },
             );
         }
     }
 }
 
 fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) void {
-    _ = state;
     const snakeData = boss.typeData.snake;
-    _ = snakeData;
+    const moveStep = movePieceZig.getStepDirection(snakeData.nextMoveDirection);
+    const attackPosition: main.Position = .{
+        .x = boss.position.x + moveStep.x * main.TILESIZE,
+        .y = boss.position.y + moveStep.y * main.TILESIZE,
+    };
+    const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(snakeData.nextMoveTime - state.gameTime)) / @as(f32, @floatFromInt(snakeData.moveInterval))));
+    const rotation: f32 = @as(f32, @floatFromInt(snakeData.nextMoveDirection)) * std.math.pi / 2.0;
+    enemyVulkanZig.addRedArrowTileSprites(attackPosition, fillPerCent, rotation, state);
 }
 
 fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
     const snakeData = boss.typeData.snake;
     for (snakeData.snakeBodyParts.items) |bodyPart| {
-        paintVulkanZig.verticesForComplexSpriteDefault(bodyPart, boss.imageIndex, &state.vkState.verticeData.spritesComplex, state);
+        paintVulkanZig.verticesForComplexSpriteWithRotate(
+            bodyPart.pos,
+            imageZig.IMAGE_BOSS_SNAKE_BODY,
+            bodyPart.rotation,
+            &state.vkState.verticeData.spritesComplex,
+            state,
+        );
     }
-    paintVulkanZig.verticesForComplexSpriteDefault(boss.position, boss.imageIndex, &state.vkState.verticeData.spritesComplex, state);
+    const rotation: f32 = @as(f32, @floatFromInt(snakeData.nextMoveDirection)) * std.math.pi / 2.0;
+    paintVulkanZig.verticesForComplexSpriteWithRotate(
+        boss.position,
+        boss.imageIndex,
+        rotation,
+        &state.vkState.verticeData.spritesComplex,
+        state,
+    );
 }

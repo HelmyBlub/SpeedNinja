@@ -46,6 +46,8 @@ pub const IMAGE_NINJA_BODY_NO_ARMOR = 38;
 pub const IMAGE_NINJA_CHEST_ARMOR_2 = 39;
 pub const IMAGE_ENEMY_FIRE = 40;
 pub const IMAGE_FIRE_ANIMATION = 41;
+pub const IMAGE_BOSS_SNAKE_HEAD = 42;
+pub const IMAGE_BOSS_SNAKE_BODY = 43;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaDog.png" },
@@ -90,6 +92,8 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaChestArmor2.png" },
     .{ .path = "images/enemyFire.png" },
     .{ .path = "images/fireAnimation.png", .animated = true },
+    .{ .path = "images/bossSnakeHead.png", .scale = 1.1 },
+    .{ .path = "images/bossSnakeBody.png", .scale = 2.2 },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 pub const IMAGE_DOG__CENTER_BODY: main.Position = .{ .x = 99, .y = 128 };
