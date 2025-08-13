@@ -10,6 +10,7 @@ const enemyObjectProjectileZig = @import("../enemy/enemyObjectProjectile.zig");
 
 pub const BossSplitData = struct {
     splits: std.ArrayList(BossSplitPartData),
+    shurikenMoveInterval: i32 = 1000,
     maxSplits: u8,
 };
 
@@ -90,7 +91,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                         .x = bossSplit.position.x + stepDirection.x * main.TILESIZE,
                         .y = bossSplit.position.y + stepDirection.y * main.TILESIZE,
                     };
-                    try enemyObjectProjectileZig.spawnProjectile(spawnPosition, @intCast(direction), imageZig.IMAGE_SHURIKEN, 1000, state);
+                    try enemyObjectProjectileZig.spawnProjectile(spawnPosition, @intCast(direction), imageZig.IMAGE_SHURIKEN, splitData.shurikenMoveInterval, state);
                 }
                 bossSplit.nextAttackTime = null;
                 bossSplit.waitUntilTime = state.gameTime + bossSplit.waitAfterAttackTime;
@@ -120,8 +121,9 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     }
 }
 
-fn isBossHit(boss: *bossZig.Boss, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
+fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
     _ = hitDirection;
+    _ = player;
     var somethingHit = false;
     const splitData = &boss.typeData.split;
     var currentIndex: usize = 0;

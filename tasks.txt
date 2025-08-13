@@ -7,10 +7,12 @@ Tasks:
             - shuriken throw
             - fire
             - air attack
+        - if hit
             - change position
         - if boss dead give ability to others
         - always shield towards closest player, can not change direction to frequently
 - bug: eye enemy moves on round start, can hit player with it, should not happen
+- bug: shop sells same pieces after buying one
 
 - next enemy
     - ice enemy
@@ -19,11 +21,11 @@ Tasks:
 
 
 Play Times:
-    lvl  5 finished in  227
-    lvl 10 finished in  504
-    lvl 15 finished in  813
-    lvl 20 finished in 1283
-    lvl 25 finished in 1907
+    lvl  5 finished in  200
+    lvl 10 finished in  249
+    lvl 15 finished in  309
+    lvl 20 finished in  377
+    lvl 25 finished in  624
 
 
 Next ideas:

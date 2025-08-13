@@ -146,10 +146,11 @@ fn spawnAttackTiles(boss: *bossZig.Boss) !void {
     }
 }
 
-fn isBossHit(boss: *bossZig.Boss, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
+fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
     _ = hitDirection;
     _ = state;
     _ = cutRotation;
+    _ = player;
     const rotate = &boss.typeData.rotate;
     if (!rotate.immune) {
         const bossTile = main.gamePositionToTilePosition(boss.position);

@@ -7,14 +7,28 @@ const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
 const movePieceZig = @import("../movePiece.zig");
 const enemyObjectProjectileZig = @import("../enemy/enemyObjectProjectile.zig");
+const enemyObjectFireZig = @import("../enemy/enemyObjectFire.zig");
+
+const AttackDelayed = struct {
+    targetPosition: main.TilePosition,
+    hitTime: i64,
+};
 
 pub const BossTrippleData = struct {
     direction: u8,
     lastTurnTime: i64 = 0,
     minTurnInterval: i32 = 4000,
+    enabledShuriken: bool = false,
+    shurikenDelay: i32 = 2000,
+    shurikenMoveInterval: i32 = 1000,
+    shurikenThrowTime: ?i64 = null,
+    enabledFire: bool = false,
+    fireDuration: i32 = 12000,
+    enabledAirAttack: bool = false,
+    airAttackPosition: std.ArrayList(AttackDelayed),
+    airAttackPlayerOnStationary: ?*main.Player = null,
+    airAttackDelay: i32 = 2000,
 };
-
-const BOSS_NAME = "Tripple";
 
 pub fn createBoss() bossZig.LevelBossData {
     return bossZig.LevelBossData{
@@ -24,7 +38,14 @@ pub fn createBoss() bossZig.LevelBossData {
         .isBossHit = isBossHit,
         .setupVertices = setupVertices,
         .setupVerticesGround = setupVerticesGround,
+        .deinit = deinit,
     };
+}
+
+fn deinit(boss: *bossZig.Boss, allocator: std.mem.Allocator) void {
+    _ = allocator;
+    const trippleData = &boss.typeData.tripple;
+    trippleData.airAttackPosition.deinit();
 }
 
 fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
@@ -36,7 +57,11 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
         .position = .{ .x = -1 * main.TILESIZE, .y = -1 * main.TILESIZE },
         .name = "Trip",
         .dataIndex = bossDataIndex,
-        .typeData = .{ .tripple = .{ .direction = 0 } },
+        .typeData = .{ .tripple = .{
+            .direction = 0,
+            .airAttackPosition = std.ArrayList(AttackDelayed).init(state.allocator),
+            .enabledAirAttack = true,
+        } },
     });
     try state.bosses.append(.{
         .hp = bossHp,
@@ -45,7 +70,11 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
         .position = .{ .x = 3 * main.TILESIZE, .y = 0 },
         .name = "Ripp",
         .dataIndex = bossDataIndex,
-        .typeData = .{ .tripple = .{ .direction = 0 } },
+        .typeData = .{ .tripple = .{
+            .direction = 0,
+            .airAttackPosition = std.ArrayList(AttackDelayed).init(state.allocator),
+            .enabledFire = true,
+        } },
     });
     try state.bosses.append(.{
         .hp = bossHp,
@@ -54,7 +83,11 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
         .position = .{ .x = 0, .y = 3 * main.TILESIZE },
         .name = "Ipple",
         .dataIndex = bossDataIndex,
-        .typeData = .{ .tripple = .{ .direction = 0 } },
+        .typeData = .{ .tripple = .{
+            .direction = 0,
+            .airAttackPosition = std.ArrayList(AttackDelayed).init(state.allocator),
+            .enabledShuriken = true,
+        } },
     });
     state.mapTileRadius = 6;
     main.adjustZoom(state);
@@ -73,24 +106,97 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             }
         }
     }
+    if (trippleData.shurikenThrowTime) |throwTime| {
+        if (throwTime <= state.gameTime) {
+            for (0..4) |direction| {
+                const stepDirection = movePieceZig.getStepDirection(@intCast(direction));
+                const spawnPosition: main.Position = .{
+                    .x = boss.position.x + stepDirection.x * main.TILESIZE,
+                    .y = boss.position.y + stepDirection.y * main.TILESIZE,
+                };
+                try enemyObjectProjectileZig.spawnProjectile(spawnPosition, @intCast(direction), imageZig.IMAGE_SHURIKEN, trippleData.shurikenMoveInterval, state);
+            }
+            trippleData.shurikenThrowTime = null;
+        }
+    }
+
+    if (trippleData.airAttackPlayerOnStationary) |player| {
+        if (player.executeMovePiece == null) {
+            const targetTile = main.gamePositionToTilePosition(player.position);
+            try trippleData.airAttackPosition.append(.{ .hitTime = state.gameTime + trippleData.airAttackDelay, .targetPosition = targetTile });
+            trippleData.airAttackPlayerOnStationary = null;
+        }
+    }
+    var airAttackIndex: usize = 0;
+    while (trippleData.airAttackPosition.items.len > airAttackIndex) {
+        const attackTile = trippleData.airAttackPosition.items[airAttackIndex];
+        if (attackTile.hitTime <= state.gameTime) {
+            for (state.players.items) |*player| {
+                const playerTile = main.gamePositionToTilePosition(player.position);
+                if (playerTile.x == attackTile.targetPosition.x and playerTile.y == attackTile.targetPosition.y) {
+                    try main.playerHit(player, state);
+                }
+            }
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BALL_GROUND_INDICIES[0..], 0, 1);
+            _ = trippleData.airAttackPosition.swapRemove(airAttackIndex);
+        } else {
+            airAttackIndex += 1;
+        }
+    }
 }
 
-fn isBossHit(boss: *bossZig.Boss, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
+fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
     const trippleData = &boss.typeData.tripple;
     _ = cutRotation;
     const bossTile = main.gamePositionToTilePosition(boss.position);
     if (main.isTilePositionInTileRectangle(bossTile, hitArea)) {
-        if (@mod(hitDirection + 2, 4) == trippleData.direction) {
+        const shieldCount = getShieldCount(state);
+        const hitCompareDirection = @mod(hitDirection + 2, 4);
+        const shield1Direction = trippleData.direction;
+        const shield2Direction = @mod(trippleData.direction + 1, 4);
+        const shield3Direction = @mod(trippleData.direction + 3, 4);
+        const hitShield = shieldCount > 0 and hitCompareDirection == shield1Direction or shieldCount > 1 and hitCompareDirection == shield2Direction or shieldCount > 2 and hitCompareDirection == shield3Direction;
+        if (hitShield) {
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_ENEMY_BLOCK_INDICIES[0..], 0, 1);
+            try executeAttack(boss, player, hitDirection, state);
         } else {
             boss.hp -|= 1;
+            if (boss.hp == 0) {
+                for (state.bosses.items) |*otherBoss| {
+                    if (otherBoss.typeData == .tripple) {
+                        if (trippleData.enabledAirAttack) otherBoss.typeData.tripple.enabledAirAttack = true;
+                        if (trippleData.enabledShuriken) otherBoss.typeData.tripple.enabledShuriken = true;
+                        if (trippleData.enabledFire) otherBoss.typeData.tripple.enabledFire = true;
+                    }
+                }
+            } else {
+                boss.position = getRandomFreePosition(state);
+            }
             return true;
         }
     }
     return false;
 }
 
-fn getRandomFlyToPosition(state: *main.GameState) main.Position {
+fn executeAttack(boss: *bossZig.Boss, player: *main.Player, hitDirection: u8, state: *main.GameState) !void {
+    const trippleData = &boss.typeData.tripple;
+    if (trippleData.enabledAirAttack and trippleData.airAttackPlayerOnStationary == null) {
+        trippleData.airAttackPlayerOnStationary = player;
+    }
+    if (trippleData.enabledFire) {
+        const hitDirectionTurned = @mod(hitDirection + 2, 4);
+        const stepDirection = movePieceZig.getStepDirection(hitDirectionTurned);
+        try enemyObjectFireZig.spawnFire(.{
+            .x = boss.position.x + stepDirection.x * main.TILESIZE,
+            .y = boss.position.y + stepDirection.y * main.TILESIZE,
+        }, trippleData.fireDuration, state);
+    }
+    if (trippleData.enabledShuriken) {
+        trippleData.shurikenThrowTime = state.gameTime + trippleData.shurikenDelay;
+    }
+}
+
+fn getRandomFreePosition(state: *main.GameState) main.Position {
     var randomPos: main.Position = .{ .x = 0, .y = 0 };
     var validPosition = false;
     searchPos: while (!validPosition) {
@@ -102,6 +208,11 @@ fn getRandomFlyToPosition(state: *main.GameState) main.Position {
                 continue :searchPos;
             }
         }
+        for (state.players.items) |player| {
+            if (main.calculateDistance(randomPos, player.position) < main.TILESIZE) {
+                continue :searchPos;
+            }
+        }
         validPosition = true;
     }
     return randomPos;
@@ -109,8 +220,24 @@ fn getRandomFlyToPosition(state: *main.GameState) main.Position {
 
 fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) void {
     const trippleData = boss.typeData.tripple;
-    _ = state;
-    _ = trippleData;
+    if (trippleData.shurikenThrowTime) |throwTime| {
+        const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(throwTime - state.gameTime)) / @as(f32, @floatFromInt(trippleData.shurikenDelay))));
+        for (0..4) |direction| {
+            const moveStep = movePieceZig.getStepDirection(@intCast(direction));
+            const attackPosition: main.Position = .{
+                .x = boss.position.x + moveStep.x * main.TILESIZE,
+                .y = boss.position.y + moveStep.y * main.TILESIZE,
+            };
+            enemyVulkanZig.addWarningShurikenSprites(attackPosition, fillPerCent, state);
+        }
+    }
+    for (trippleData.airAttackPosition.items) |attackTile| {
+        const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(attackTile.hitTime - state.gameTime)) / @as(f32, @floatFromInt(trippleData.airAttackDelay))));
+        enemyVulkanZig.addWarningTileSprites(.{
+            .x = @as(f32, @floatFromInt(attackTile.targetPosition.x)) * main.TILESIZE,
+            .y = @as(f32, @floatFromInt(attackTile.targetPosition.y)) * main.TILESIZE,
+        }, fillPerCent, state);
+    }
 }
 
 fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
@@ -136,6 +263,15 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
             &state.vkState.verticeData.spritesComplex,
             state,
         );
+    }
+    for (trippleData.airAttackPosition.items) |airAttack| {
+        const timeUntilHit: f32 = @floatFromInt(airAttack.hitTime - state.gameTime);
+        const targetPosition = main.tilePositionToGamePosition(airAttack.targetPosition);
+        const cannonBallPosiion: main.Position = .{
+            .x = targetPosition.x,
+            .y = targetPosition.y - timeUntilHit / 2,
+        };
+        paintVulkanZig.verticesForComplexSpriteDefault(cannonBallPosiion, imageZig.IMAGE_CANNON_BALL, &state.vkState.verticeData.spritesComplex, state);
     }
 }
 
