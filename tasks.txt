@@ -1,9 +1,4 @@
 Tasks:
-- next enemy
-    - shield enemy
-        - hitting shield triggers aoe attack
-        - sound if shield hit
-
 - next boss idea:
     - 3 bosses with one shield
         - if one boss dies, other bosses gain one more shield
@@ -14,11 +9,21 @@ Tasks:
             - air attack
         - if boss dead give ability to others
         - always shield towards closest player, can not change direction to frequently
+- bug: eye enemy moves on round start, can hit player with it, should not happen
 
 - next enemy
     - ice enemy
         - leave ice tiles which makes player slide
             - changes move of movePiece if goes over this tile
+
+
+Play Times:
+    lvl  5 finished in  227
+    lvl 10 finished in  504
+    lvl 15 finished in  813
+    lvl 20 finished in 1283
+    lvl 25 finished in 1907
+
 
 Next ideas:
 - something which makes player stronger over time, but better player get stronger faster

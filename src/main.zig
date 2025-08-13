@@ -43,6 +43,7 @@ pub const GameState = struct {
     gameEnded: bool = false,
     gamePhase: GamePhase = .combat,
     shop: shopZig.ShopData,
+    lastBossDefeatedTime: i64 = 0,
 };
 
 pub const Player = struct {
@@ -134,7 +135,8 @@ fn mainLoop(state: *GameState) !void {
             try startNextRound(state);
         } else if (shouldEndLevel(state)) {
             if (state.gamePhase == .boss) {
-                std.debug.print("lvl {d} finished in {d}\n", .{ state.level, @divFloor(state.gameTime, 1000) });
+                std.debug.print("lvl {d} finished in {d} and total {d}\n", .{ state.level, @divFloor(state.gameTime - state.lastBossDefeatedTime, 1000), @divFloor(state.gameTime, 1000) });
+                state.lastBossDefeatedTime = state.gameTime;
                 for (state.players.items) |*player| {
                     player.money += state.level * 10;
                 }
@@ -264,6 +266,7 @@ pub fn restart(state: *GameState) !void {
     state.mapTileRadius = BASE_MAP_TILE_RADIUS;
     state.gamePhase = .combat;
     state.gameTime = 0;
+    state.lastBossDefeatedTime = 0;
     for (state.players.items) |*player| {
         player.hp = 2;
         player.money = 0;
