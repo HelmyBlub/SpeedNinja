@@ -299,12 +299,20 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
                     try movePieceZig.addMovePiece(player, buyPiece);
                     var isDifferentPiece = false;
                     while (!isDifferentPiece) {
+                        isDifferentPiece = true;
                         const newBuyPiece = try movePieceZig.createRandomMovePiece(state.allocator);
-                        if (!movePieceZig.areSameMovePieces(newBuyPiece, buyPiece)) {
-                            player.shop.piecesToBuy[data.selectedIndex] = newBuyPiece;
-                            isDifferentPiece = true;
-                        } else {
+                        for (player.shop.piecesToBuy) |pieceToBuy| {
+                            if (pieceToBuy) |piece| {
+                                if (movePieceZig.areSameMovePieces(piece, newBuyPiece)) {
+                                    isDifferentPiece = false;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!isDifferentPiece) {
                             state.allocator.free(newBuyPiece.steps);
+                        } else {
+                            player.shop.piecesToBuy[data.selectedIndex] = newBuyPiece;
                         }
                     }
                     setGridDisplayPiece(player, player.shop.piecesToBuy[data.selectedIndex]);

@@ -1,5 +1,4 @@
 Tasks:
-- bug: eye enemy moves on round start, can hit player with it, should not happen
 - bug: shop sells same pieces after buying one
 
 - next enemy
