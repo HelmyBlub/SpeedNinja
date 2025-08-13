@@ -5,7 +5,7 @@ const movePieceZig = @import("../movePiece.zig");
 const imageZig = @import("../image.zig");
 const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
-const shoundMixerZig = @import("../soundMixer.zig");
+const soundMixerZig = @import("../soundMixer.zig");
 
 pub const EnemyTypeBlockData = struct {
     direction: u8,
@@ -63,7 +63,7 @@ pub fn isEnemyHit(enemy: *enemyZig.Enemy, hitArea: main.TileRectangle, hitDirect
     const enemyTile = main.gamePositionToTilePosition(enemy.position);
     if (main.isTilePositionInTileRectangle(enemyTile, hitArea)) {
         if (@mod(hitDirection + 2, 4) == data.direction) {
-            try shoundMixerZig.playRandomSound(&state.soundMixer, shoundMixerZig.SOUND_ENEMY_BLOCK_INDICIES[0..], 0, 1);
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_ENEMY_BLOCK_INDICIES[0..], 0, 1);
             if (data.aoeAttackTime == null) data.aoeAttackTime = state.gameTime + data.aoeAttackDelay;
             return false;
         }

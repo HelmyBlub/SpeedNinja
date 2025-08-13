@@ -3,32 +3,27 @@ const main = @import("../main.zig");
 const fontVulkanZig = @import("fontVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 const windowSdlZig = @import("../windowSdl.zig");
+const bossZig = @import("../boss/boss.zig");
 
 pub fn setupVertices(state: *main.GameState) !void {
     const fontSize = 30;
     var textWidthRound: f32 = -0.2;
     const verticeData = &state.vkState.verticeData;
     const fontVertices = &verticeData.font;
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
 
     if (state.gamePhase == .boss) {
-        if (state.bosses.items.len > 0) {
-            const boss = state.bosses.items[0];
-            textWidthRound += fontVulkanZig.paintText("Level: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
-            textWidthRound += try fontVulkanZig.paintNumber(state.level, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices) + onePixelXInVulkan * 20;
-            textWidthRound += fontVulkanZig.paintText(boss.name, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices) + onePixelXInVulkan * 20;
-            textWidthRound += try fontVulkanZig.paintNumber(boss.hp, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
-            textWidthRound += fontVulkanZig.paintText("/", .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
-            textWidthRound += try fontVulkanZig.paintNumber(boss.maxHp, .{ .x = textWidthRound, .y = -0.99 }, fontSize, fontVertices);
-
-            const left = -0.5;
-            const top = -0.99;
-            const width = 1;
-            const height = onePixelYInVulkan * fontSize;
-            const fillPerCent = @as(f32, @floatFromInt(boss.hp)) / @as(f32, @floatFromInt(boss.maxHp));
-            paintVulkanZig.verticesForRectangle(left, top, width * fillPerCent, height, .{ 1, 0, 0 }, null, &verticeData.triangles);
-            paintVulkanZig.verticesForRectangle(left, top, width, height, .{ 1, 0, 0 }, &verticeData.lines, null);
+        if (state.bosses.items.len == 0) return;
+        const spacingX = onePixelXInVulkan * 5;
+        const top = -0.99;
+        const height = onePixelYInVulkan * fontSize;
+        const length = @as(f32, @floatFromInt(state.bosses.items.len));
+        const width: f32 = @min(1, 1.8 / length);
+        var currentLeft = -((width * length + spacingX * (length - 1)) / 2);
+        for (state.bosses.items) |*boss| {
+            try setupVerticesBossHpBar(boss, top, currentLeft, height, width, state);
+            currentLeft += width + spacingX;
         }
     } else {
         textWidthRound -= 0.2;
@@ -58,4 +53,21 @@ pub fn setupVertices(state: *main.GameState) !void {
             }
         }
     }
+}
+
+fn setupVerticesBossHpBar(boss: *bossZig.Boss, top: f32, left: f32, height: f32, width: f32, state: *main.GameState) !void {
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const fontSize = height / onePixelYInVulkan;
+    const verticeData = &state.vkState.verticeData;
+    const fontVertices = &verticeData.font;
+    var textWidthRound = left;
+    textWidthRound += fontVulkanZig.paintText(boss.name, .{ .x = textWidthRound, .y = top }, fontSize, fontVertices) + onePixelXInVulkan * 20;
+    textWidthRound += try fontVulkanZig.paintNumber(boss.hp, .{ .x = textWidthRound, .y = top }, fontSize, fontVertices);
+    textWidthRound += fontVulkanZig.paintText("/", .{ .x = textWidthRound, .y = top }, fontSize, fontVertices);
+    textWidthRound += try fontVulkanZig.paintNumber(boss.maxHp, .{ .x = textWidthRound, .y = top }, fontSize, fontVertices);
+
+    const fillPerCent = @as(f32, @floatFromInt(boss.hp)) / @as(f32, @floatFromInt(boss.maxHp));
+    paintVulkanZig.verticesForRectangle(left, top, width * fillPerCent, height, .{ 1, 0, 0 }, null, &verticeData.triangles);
+    paintVulkanZig.verticesForRectangle(left, top, width, height, .{ 1, 0, 0 }, &verticeData.lines, null);
 }

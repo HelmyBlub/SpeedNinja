@@ -460,7 +460,7 @@ fn checkEnemyHitOnMoveStep(player: *main.Player, hitDirection: u8, state: *main.
         }
     }
     if (state.bosses.items.len > 0) {
-        if (try bossZig.isBossHit(hitArea, player.paintData.bladeRotation, state)) {
+        if (try bossZig.isBossHit(hitArea, player.paintData.bladeRotation, hitDirection, state)) {
             hitSomething = true;
         }
     }

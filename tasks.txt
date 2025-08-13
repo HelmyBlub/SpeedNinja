@@ -7,6 +7,7 @@ Tasks:
             - shuriken throw
             - fire
             - air attack
+            - change position
         - if boss dead give ability to others
         - always shield towards closest player, can not change direction to frequently
 - bug: eye enemy moves on round start, can hit player with it, should not happen

@@ -8,12 +8,13 @@ const bossRotateZig = @import("bossRotate.zig");
 const bossRollZig = @import("bossRoll.zig");
 const bossSplitZig = @import("bossSplit.zig");
 const bossSnakeZig = @import("bossSnake.zig");
+const bossTrippleZig = @import("bossTripple.zig");
 
 pub const LevelBossData = struct {
     appearsOnLevel: usize,
     startLevel: *const fn (state: *main.GameState, bossDataIndex: usize) anyerror!void,
     tickBoss: *const fn (boss: *Boss, passedTime: i64, state: *main.GameState) anyerror!void,
-    isBossHit: *const fn (boss: *Boss, hitArea: main.TileRectangle, cutRotation: f32, state: *main.GameState) anyerror!bool,
+    isBossHit: *const fn (boss: *Boss, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) anyerror!bool,
     setupVerticesGround: *const fn (boss: *Boss, state: *main.GameState) void,
     setupVertices: *const fn (boss: *Boss, state: *main.GameState) void,
     onPlayerMoved: ?*const fn (boss: *Boss, player: *main.Player, state: *main.GameState) anyerror!void = null,
@@ -26,6 +27,7 @@ const BossTypes = enum {
     roll,
     split,
     snake,
+    tripple,
 };
 
 const BossTypeData = union(BossTypes) {
@@ -34,6 +36,7 @@ const BossTypeData = union(BossTypes) {
     roll: bossRollZig.BossRollData,
     split: bossSplitZig.BossSplitData,
     snake: bossSnakeZig.BossSnakeData,
+    tripple: bossTrippleZig.BossTrippleData,
 };
 
 pub const Boss = struct {
@@ -52,6 +55,7 @@ pub const LEVEL_BOSS_DATA = [_]LevelBossData{
     bossRollZig.createBoss(),
     bossSplitZig.createBoss(),
     bossSnakeZig.createBoss(),
+    bossTrippleZig.createBoss(),
 };
 
 pub fn onPlayerMoved(player: *main.Player, state: *main.GameState) !void {
@@ -85,13 +89,13 @@ pub fn startBossLevel(state: *main.GameState) !void {
     }
 }
 
-pub fn isBossHit(hitArea: main.TileRectangle, playerBladeRotation: f32, state: *main.GameState) !bool {
+pub fn isBossHit(hitArea: main.TileRectangle, playerBladeRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
     var aBossHit = false;
     var bossIndex: usize = 0;
     while (bossIndex < state.bosses.items.len) {
         const boss = &state.bosses.items[bossIndex];
         const levelBossData = LEVEL_BOSS_DATA[boss.dataIndex];
-        if (try levelBossData.isBossHit(boss, hitArea, playerBladeRotation, state)) aBossHit = true;
+        if (try levelBossData.isBossHit(boss, hitArea, playerBladeRotation, hitDirection, state)) aBossHit = true;
         if (boss.hp == 0) {
             var deadBoss = state.bosses.swapRemove(bossIndex);
             const cutAngle = playerBladeRotation + std.math.pi / 2.0;

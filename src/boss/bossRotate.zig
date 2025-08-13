@@ -146,7 +146,8 @@ fn spawnAttackTiles(boss: *bossZig.Boss) !void {
     }
 }
 
-fn isBossHit(boss: *bossZig.Boss, hitArea: main.TileRectangle, cutRotation: f32, state: *main.GameState) !bool {
+fn isBossHit(boss: *bossZig.Boss, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
+    _ = hitDirection;
     _ = state;
     _ = cutRotation;
     const rotate = &boss.typeData.rotate;
