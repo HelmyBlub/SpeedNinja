@@ -134,7 +134,8 @@ pub fn tickPlayerMovePiece(player: *main.Player, state: *main.GameState) !void {
                 try shopZig.executeShopActionForPlayer(player, state);
             } else {
                 try bossZig.onPlayerMoved(player, state);
-                try enemyZig.onPlayerMoved(player, state);
+                const attackDelayOnSpawn = 100;
+                if (state.gameTime - state.roundStartedTime > attackDelayOnSpawn) try enemyZig.onPlayerMoved(player, state);
                 if (shopZig.isPlayerInEarlyShopTrigger(player, state)) {
                     try shopZig.startShoppingPhase(state);
                 }

@@ -31,6 +31,7 @@ pub const GameState = struct {
     minimalTimePerRequiredRounds: i32 = 60_000,
     levelInitialTime: i32 = 60_000,
     roundEndTimeMS: i64 = 0,
+    roundStartedTime: i64 = 0,
     playerImmunityFrames: i64 = 1000,
     mapTileRadius: u32 = BASE_MAP_TILE_RADIUS,
     bosses: std.ArrayList(bossZig.Boss) = undefined,
@@ -174,6 +175,7 @@ pub fn startNextRound(state: *GameState) !void {
     if (state.roundEndTimeMS < state.gameTime + state.minimalTimePerRequiredRounds and state.round < state.roundToReachForNextLevel) {
         state.roundEndTimeMS = state.gameTime + state.minimalTimePerRequiredRounds;
     }
+    state.roundStartedTime = state.gameTime;
     state.round += 1;
     if (state.round > 1) {
         for (state.players.items) |*player| {
@@ -266,6 +268,7 @@ pub fn restart(state: *GameState) !void {
     state.mapTileRadius = BASE_MAP_TILE_RADIUS;
     state.gamePhase = .combat;
     state.gameTime = 0;
+    state.roundStartedTime = 0;
     state.lastBossDefeatedTime = 0;
     for (state.players.items) |*player| {
         player.hp = 2;

@@ -1,16 +1,4 @@
 Tasks:
-- next boss idea:
-    - 3 bosses with one shield
-        - if one boss dies, other bosses gain one more shield
-            - each shield blocks damage from one direction
-        - hitting boss shield triggers
-            - shuriken throw
-            - fire
-            - air attack
-        - if hit
-            - change position
-        - if boss dead give ability to others
-        - always shield towards closest player, can not change direction to frequently
 - bug: eye enemy moves on round start, can hit player with it, should not happen
 - bug: shop sells same pieces after buying one
 
