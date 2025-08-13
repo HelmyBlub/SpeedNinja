@@ -32,7 +32,7 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
     try state.bosses.append(.{
         .hp = bossHp,
         .maxHp = bossHp,
-        .imageIndex = imageZig.IMAGE_ENEMY_SHIELD,
+        .imageIndex = imageZig.IMAGE_BOSS_TRIPPLE,
         .position = .{ .x = -1 * main.TILESIZE, .y = -1 * main.TILESIZE },
         .name = "Trip",
         .dataIndex = bossDataIndex,
@@ -41,7 +41,7 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
     try state.bosses.append(.{
         .hp = bossHp,
         .maxHp = bossHp,
-        .imageIndex = imageZig.IMAGE_ENEMY_SHIELD,
+        .imageIndex = imageZig.IMAGE_BOSS_TRIPPLE,
         .position = .{ .x = 3 * main.TILESIZE, .y = 0 },
         .name = "Ripp",
         .dataIndex = bossDataIndex,
@@ -50,7 +50,7 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
     try state.bosses.append(.{
         .hp = bossHp,
         .maxHp = bossHp,
-        .imageIndex = imageZig.IMAGE_ENEMY_SHIELD,
+        .imageIndex = imageZig.IMAGE_BOSS_TRIPPLE,
         .position = .{ .x = 0, .y = 3 * main.TILESIZE },
         .name = "Ipple",
         .dataIndex = bossDataIndex,
@@ -123,4 +123,22 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
         &state.vkState.verticeData.spritesComplex,
         state,
     );
+    const shieldCount = getShieldCount(state);
+    const directionChange = [_]u8{ 0, 1, 3 };
+    for (0..shieldCount) |i| {
+        const shieldDirection: u8 = @mod(trippleData.direction + directionChange[i], 4);
+        const shieldRotation: f32 = @as(f32, @floatFromInt(shieldDirection)) * std.math.pi / 2.0;
+        const stepDirection = movePieceZig.getStepDirection(shieldDirection);
+        paintVulkanZig.verticesForComplexSpriteWithRotate(
+            .{ .x = boss.position.x + stepDirection.x * main.TILESIZE / 2, .y = boss.position.y + stepDirection.y * main.TILESIZE / 2 },
+            imageZig.IMAGE_SHIELD,
+            shieldRotation,
+            &state.vkState.verticeData.spritesComplex,
+            state,
+        );
+    }
+}
+
+fn getShieldCount(state: *main.GameState) usize {
+    return @max(1, @min(3, 4 - state.bosses.items.len));
 }
