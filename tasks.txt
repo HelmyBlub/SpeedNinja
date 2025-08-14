@@ -1,15 +1,19 @@
 Tasks:
-- next enemy
-    - ice enemy
-        - throws ice shuriken
-            - leave ice tiles which makes player slide
-            - changes move of movePiece if goes over this tile
-                - or can not change direction on this tile
-- next boss idea
+- ice enemy image
+- snowball boss idea
     - each time boss hit, rolls in hit direction
-        - rolling makes boss bigger?
-        - hitting boss splits it?
+        - rolling over ice tiles makes boss bigger?
         - rolling boss leaves behind ice tiles
+            - makes him smaller            
+        - boss lost all ice, ice collecting phase
+            - boss runs around pick up ice
+                - when reached x ice again, back to snowball phase
+            
+            
+
+- after play test: should ice tiles disappear after time?
+
+- next enemy
 
 
 Play Times:

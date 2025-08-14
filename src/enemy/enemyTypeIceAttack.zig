@@ -17,7 +17,7 @@ pub const DelayedAttackWithCooldown = struct {
 
 pub fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
     return .{
-        .imageIndex = imageZig.IMAGE_ENEMY_SHURIKEN_THROWER,
+        .imageIndex = imageZig.IMAGE_ENEMY_SNOWMAN,
         .position = .{ .x = 0, .y = 0 },
         .enemyTypeData = .{
             .ice = .{
@@ -39,7 +39,7 @@ pub fn tick(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
             try enemyObjectProjectileZig.spawnProjectile(
                 spawnPosition,
                 data.direction,
-                imageZig.IMAGE_SHURIKEN,
+                imageZig.IMAGE_SHURIKEN_WHITE,
                 data.attackMovementInterval,
                 true,
                 state,
