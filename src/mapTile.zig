@@ -32,7 +32,7 @@ pub fn deinit(state: *main.GameState) void {
 pub fn getMapTilePositionType(tile: main.TilePosition, mapData: *MapData) MapTileType {
     const index = tilePositionToTileIndex(tile, mapData.tileRadius);
     if (index == null or index.? >= mapData.tiles.len) return .normal;
-    return mapData.tiles[index];
+    return mapData.tiles[index.?];
 }
 
 pub fn setMapTilePositionType(tile: main.TilePosition, tileType: MapTileType, mapData: *MapData) void {
@@ -44,8 +44,8 @@ pub fn setMapTilePositionType(tile: main.TilePosition, tileType: MapTileType, ma
 fn tilePositionToTileIndex(tilePosition: main.TilePosition, tileRadius: u32) ?usize {
     const iTileRadius = @as(i32, @intCast(tileRadius));
     const tileLength = (tileRadius * 2 + 1);
-    if (tilePosition.x < -iTileRadius) return null;
-    if (tilePosition.y < -iTileRadius) return null;
+    if (@abs(tilePosition.x) > iTileRadius) return null;
+    if (@abs(tilePosition.y) > iTileRadius) return null;
     return @as(u32, @intCast(tilePosition.x + iTileRadius)) + @as(u32, @intCast(tilePosition.y + iTileRadius)) * tileLength;
 }
 

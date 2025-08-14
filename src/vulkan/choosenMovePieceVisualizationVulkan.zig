@@ -4,6 +4,7 @@ const dataVulkanZig = @import("dataVulkan.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 const movePieceZig = @import("../movePiece.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
+const mapTileZig = @import("../mapTile.zig");
 
 pub const VkChoosenMovePieceVisualization = struct {
     triangles: dataVulkanZig.VkColoredVertexes = undefined,
@@ -32,9 +33,9 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
         const pieceTotalSteps = movePieceZig.getMovePieceTotalStepes(movePiece);
         const highlightModLimit = @max(5, pieceTotalSteps + 1);
         for (0..4) |direction| {
-            var position: main.Position = .{
-                .x = player.position.x * state.camera.zoom,
-                .y = player.position.y * state.camera.zoom,
+            var gamePosition: main.Position = .{
+                .x = player.position.x,
+                .y = player.position.y,
             };
 
             const lineColorForDirection: [3]f32 = .{
@@ -44,25 +45,31 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
             };
             const highlightedLineColor: [3]f32 = .{ 1, 1, 1 };
 
-            var lastPosition: main.Position = position;
+            var lastGamePosition: main.Position = gamePosition;
             var lastMoveDirection: usize = 0;
             var moveDirection: usize = 0;
             var totalStepCount: usize = 0;
             for (movePiece.steps, 0..) |moveStep, moveStepIndex| {
                 lastMoveDirection = moveDirection;
                 moveDirection = @mod(moveStep.direction + direction, 4);
-                const moveX: f32 = if (moveDirection == 0) zoomedTileSize else if (moveDirection == 2) -zoomedTileSize else 0;
-                const moveY: f32 = if (moveDirection == 1) zoomedTileSize else if (moveDirection == 3) -zoomedTileSize else 0;
-                for (0..moveStep.stepCount) |stepCount| {
+                const moveX: f32 = if (moveDirection == 0) main.TILESIZE else if (moveDirection == 2) -main.TILESIZE else 0;
+                const moveY: f32 = if (moveDirection == 1) main.TILESIZE else if (moveDirection == 3) -main.TILESIZE else 0;
+                var stepCount: usize = 0;
+                while (stepCount < moveStep.stepCount) {
                     totalStepCount += 1;
                     const modColor = player.choosenMoveOptionVisualizationOverlapping and @mod(totalStepCount, highlightModLimit) == @mod(@as(usize, @intCast(@divFloor(state.gameTime, 100))), highlightModLimit);
                     const lineColor = if (modColor) highlightedLineColor else lineColorForDirection;
-                    lastPosition = position;
-                    position.x += moveX;
-                    position.y += moveY;
-                    var x = position.x * onePixelXInVulkan;
-                    var y = position.y * onePixelYInVulkan;
-                    if (stepCount == moveStep.stepCount - 1) {
+                    lastGamePosition = gamePosition;
+                    gamePosition.x += moveX;
+                    gamePosition.y += moveY;
+                    var x = gamePosition.x * onePixelXInVulkan * state.camera.zoom;
+                    var y = gamePosition.y * onePixelYInVulkan * state.camera.zoom;
+                    stepCount += 1;
+                    const tilePosition = main.gamePositionToTilePosition(gamePosition);
+                    if (stepCount == moveStep.stepCount and mapTileZig.getMapTilePositionType(tilePosition, &state.mapData) == .ice) {
+                        stepCount -= 1;
+                    }
+                    if (stepCount == moveStep.stepCount) {
                         if (moveStepIndex == movePiece.steps.len - 1) {
                             verticesForSquare(x, y, baseWidth, baseHeight, lineColor, lines);
                             verticesForFilledArrow(x, y, baseWidth * 0.9, baseHeight * 0.9, @intCast(@mod(direction + 3, 4)), lineColorForDirection, lines, triangles);

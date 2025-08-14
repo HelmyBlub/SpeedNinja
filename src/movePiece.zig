@@ -7,6 +7,7 @@ const choosenMovePieceVisualizationVulkanZig = @import("vulkan/choosenMovePieceV
 const bossZig = @import("boss/boss.zig");
 const enemyZig = @import("enemy/enemy.zig");
 const enemyObjectZig = @import("enemy/enemyObject.zig");
+const mapTileZig = @import("mapTile.zig");
 
 pub const MovePiece = struct {
     steps: []MoveStep,
@@ -122,7 +123,7 @@ pub fn tickPlayerMovePiece(player: *main.Player, state: *main.GameState) !void {
         const step = executeMovePiece.steps[0];
         const direction = @mod(step.direction + player.executeDirection + 1, 4);
         if (!player.slashedLastMoveTile) ninjaDogVulkanZig.movedAnimate(player, direction);
-        try stepAndCheckEnemyHitAndProjectileHit(player, step.stepCount, direction, getStepDirection(direction), state);
+        try stepAndCheckEnemyHitAndProjectileHitAndTiles(player, step.stepCount, direction, getStepDirection(direction), state);
         if (executeMovePiece.steps.len > 1) {
             player.executeMovePiece = .{ .steps = executeMovePiece.steps[1..] };
         } else {
@@ -300,20 +301,26 @@ pub fn isTilePositionOnMovePiece(checkTile: main.TilePosition, movePieceStartTil
     return false;
 }
 
-fn stepAndCheckEnemyHitAndProjectileHit(player: *main.Player, stepCount: u8, direction: u8, stepDirection: main.Position, state: *main.GameState) !void {
-    for (0..stepCount) |i| {
+fn stepAndCheckEnemyHitAndProjectileHitAndTiles(player: *main.Player, stepCount: u8, direction: u8, stepDirection: main.Position, state: *main.GameState) !void {
+    var currIndex: usize = 0;
+    while (currIndex < stepCount) {
         player.slashedLastMoveTile = false;
         try ninjaDogVulkanZig.addAfterImages(1, stepDirection, player, state);
         player.position.x += stepDirection.x * main.TILESIZE;
         player.position.y += stepDirection.y * main.TILESIZE;
         if (try checkEnemyHitOnMoveStep(player, direction, state)) {
             ninjaDogVulkanZig.bladeSlashAnimate(player);
-            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BLADE_CUT_INDICIES[0..], i * 25, 1);
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BLADE_CUT_INDICIES[0..], currIndex * 25, 1);
             try resetPieces(player);
             player.slashedLastMoveTile = true;
         }
         if (enemyObjectZig.checkHitMovingPlayer(player, state)) {
             try main.playerHit(player, state);
+        }
+        const tilePosition = main.gamePositionToTilePosition(player.position);
+        currIndex += 1;
+        if (currIndex == stepCount and mapTileZig.getMapTilePositionType(tilePosition, &state.mapData) == .ice) {
+            currIndex -= 1;
         }
     }
 }

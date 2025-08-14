@@ -1,9 +1,7 @@
 Tasks:
 - next enemy
     - ice enemy
-        - continue: bug ice only top left tiles
         - throws ice shuriken
-            - when player on same x or y
             - leave ice tiles which makes player slide
             - changes move of movePiece if goes over this tile
                 - or can not change direction on this tile
