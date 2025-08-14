@@ -16,13 +16,12 @@ Tasks:
 
 
 Play Times:
-    lvl  5 finished in 163
-    lvl 10 finished in 222
-    lvl 15 finished in 263
-    lvl 20 finished in 333
-    lvl 25 finished in 556
-    lvl 30 finished in 540
-    best total beat level 30 in 2256
+    lvl  5 best in 163
+    lvl 10 best in 222 total 406
+    lvl 15 best in 263 total 706
+    lvl 20 best in 333 total 1088
+    lvl 25 best in 556
+    lvl 30 best in 540 total 2256
 
 Next ideas:
 - 1 new enemies all 5 levels
