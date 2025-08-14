@@ -6,12 +6,14 @@ const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
 const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const enemyZig = @import("enemy.zig");
 const enemyObjectZig = @import("enemyObject.zig");
+const mapTileZig = @import("../mapTile.zig");
 
 pub const EnemyProjectile = struct {
     imageIndex: u8,
     direction: u8,
     moveInterval: i32,
     nextMoveTime: i64,
+    ice: bool,
 };
 
 pub fn createEnemyObjectFunctions() enemyObjectZig.EnemyObjectFunctions {
@@ -24,7 +26,8 @@ pub fn createEnemyObjectFunctions() enemyObjectZig.EnemyObjectFunctions {
     };
 }
 
-pub fn spawnProjectile(position: main.Position, direction: u8, imageIndex: u8, moveInterval: i32, state: *main.GameState) !void {
+pub fn spawnProjectile(position: main.Position, direction: u8, imageIndex: u8, moveInterval: i32, ice: bool, state: *main.GameState) !void {
+    if (ice) mapTileZig.setMapTilePositionType(main.gamePositionToTilePosition(position), .ice, &state.mapData);
     try state.enemyObjects.append(.{
         .position = position,
         .functionsIndex = 0,
@@ -33,6 +36,7 @@ pub fn spawnProjectile(position: main.Position, direction: u8, imageIndex: u8, m
             .imageIndex = imageIndex,
             .moveInterval = moveInterval,
             .nextMoveTime = moveInterval + state.gameTime,
+            .ice = ice,
         } },
     });
 }
@@ -71,6 +75,7 @@ fn tick(object: *enemyObjectZig.EnemyObject, passedTime: i64, state: *main.GameS
             .x = object.position.x + stepDirection.x * main.TILESIZE,
             .y = object.position.y + stepDirection.y * main.TILESIZE,
         };
+        mapTileZig.setMapTilePositionType(main.gamePositionToTilePosition(object.position), .ice, &state.mapData);
     }
     try enemyZig.checkPlayerHit(object.position, state);
 }

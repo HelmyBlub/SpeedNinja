@@ -92,7 +92,14 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                         .x = bossSplit.position.x + stepDirection.x * main.TILESIZE,
                         .y = bossSplit.position.y + stepDirection.y * main.TILESIZE,
                     };
-                    try enemyObjectProjectileZig.spawnProjectile(spawnPosition, @intCast(direction), imageZig.IMAGE_SHURIKEN, splitData.shurikenMoveInterval, state);
+                    try enemyObjectProjectileZig.spawnProjectile(
+                        spawnPosition,
+                        @intCast(direction),
+                        imageZig.IMAGE_SHURIKEN,
+                        splitData.shurikenMoveInterval,
+                        false,
+                        state,
+                    );
                 }
                 bossSplit.nextAttackTime = null;
                 bossSplit.waitUntilTime = state.gameTime + bossSplit.waitAfterAttackTime;

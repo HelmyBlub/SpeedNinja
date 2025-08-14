@@ -28,7 +28,14 @@ pub fn tick(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
                 .x = enemy.position.x + stepDirection.x * main.TILESIZE,
                 .y = enemy.position.y + stepDirection.y * main.TILESIZE,
             };
-            try enemyObjectProjectileZig.spawnProjectile(spawnPosition, data.direction, imageZig.IMAGE_SHURIKEN, 1000, state);
+            try enemyObjectProjectileZig.spawnProjectile(
+                spawnPosition,
+                data.direction,
+                imageZig.IMAGE_SHURIKEN,
+                1000,
+                false,
+                state,
+            );
             data.startTime = null;
         }
     } else {

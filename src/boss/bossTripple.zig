@@ -115,7 +115,14 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                     .x = boss.position.x + stepDirection.x * main.TILESIZE,
                     .y = boss.position.y + stepDirection.y * main.TILESIZE,
                 };
-                try enemyObjectProjectileZig.spawnProjectile(spawnPosition, @intCast(direction), imageZig.IMAGE_SHURIKEN, trippleData.shurikenMoveInterval, state);
+                try enemyObjectProjectileZig.spawnProjectile(
+                    spawnPosition,
+                    @intCast(direction),
+                    imageZig.IMAGE_SHURIKEN,
+                    trippleData.shurikenMoveInterval,
+                    false,
+                    state,
+                );
             }
             trippleData.shurikenThrowTime = null;
         }

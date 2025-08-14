@@ -1,5 +1,7 @@
 const std = @import("std");
 const main = @import("main.zig");
+const paintVulkanZig = @import("vulkan/paintVulkan.zig");
+const windowSdlZig = @import("windowSdl.zig");
 
 pub const MapTileType = enum {
     normal,
@@ -35,7 +37,7 @@ pub fn getMapTilePositionType(tile: main.TilePosition, mapData: *MapData) MapTil
 pub fn setMapTilePositionType(tile: main.TilePosition, tileType: MapTileType, mapData: *MapData) void {
     const index = tilePositionToTileIndex(tile, mapData.tileRadius);
     if (index == null or index.? >= mapData.tiles.len) return;
-    mapData.tiles[index] = tileType;
+    mapData.tiles[index.?] = tileType;
 }
 
 fn tilePositionToTileIndex(tilePosition: main.TilePosition, tileRadius: u32) ?usize {
@@ -71,5 +73,30 @@ pub fn setMapRadius(tileRadius: u32, state: *main.GameState) !void {
 pub fn resetMapTiles(tiles: []MapTileType) void {
     for (0..tiles.len) |i| {
         tiles[i] = .normal;
+    }
+}
+
+pub fn setupVertices(state: *main.GameState) void {
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const width = onePixelXInVulkan * main.TILESIZE * state.camera.zoom;
+    const height = onePixelYInVulkan * main.TILESIZE * state.camera.zoom;
+    for (0..state.mapData.tiles.len) |i| {
+        const tileType = state.mapData.tiles[i];
+        const tilePosition = tileIndexToTilePosition(i, state.mapData.tileRadius);
+        const tileGamePosition: main.Position = .{
+            .x = @floatFromInt(tilePosition.x * main.TILESIZE),
+            .y = @floatFromInt(tilePosition.y * main.TILESIZE),
+        };
+        const vulkan: main.Position = .{
+            .x = (-state.camera.position.x + tileGamePosition.x - main.TILESIZE / 2) * state.camera.zoom * onePixelXInVulkan,
+            .y = (-state.camera.position.y + tileGamePosition.y - main.TILESIZE / 2) * state.camera.zoom * onePixelYInVulkan,
+        };
+        switch (tileType) {
+            .ice => {
+                paintVulkanZig.verticesForRectangle(vulkan.x, vulkan.y, width, height, .{ 0, 0, 1 }, null, &state.vkState.verticeData.triangles);
+            },
+            else => {},
+        }
     }
 }

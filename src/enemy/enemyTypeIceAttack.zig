@@ -36,7 +36,14 @@ pub fn tick(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
                 .x = enemy.position.x + stepDirection.x * main.TILESIZE,
                 .y = enemy.position.y + stepDirection.y * main.TILESIZE,
             };
-            try enemyObjectProjectileZig.spawnProjectile(spawnPosition, data.direction, imageZig.IMAGE_SHURIKEN, data.attackMovementInterval, state);
+            try enemyObjectProjectileZig.spawnProjectile(
+                spawnPosition,
+                data.direction,
+                imageZig.IMAGE_SHURIKEN,
+                data.attackMovementInterval,
+                true,
+                state,
+            );
             data.startTime = null;
             data.waitUntil = state.gameTime + data.cooldown;
         }
@@ -45,6 +52,7 @@ pub fn tick(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
     } else {
         const enemyTile = main.gamePositionToTilePosition(enemy.position);
         for (state.players.items) |player| {
+            if (player.executeMovePiece != null) continue;
             const playerTile = main.gamePositionToTilePosition(player.position);
             if (enemyTile.x == playerTile.x) {
                 data.startTime = state.gameTime;

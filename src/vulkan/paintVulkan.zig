@@ -15,10 +15,12 @@ const shopVulkanZig = @import("shopVulkan.zig");
 const choosenMovePieceVulkanZig = @import("choosenMovePieceVisualizationVulkan.zig");
 const gameInfoUxZig = @import("gameInfoUxVulkan.zig");
 const enemyObjectZig = @import("../enemy/enemyObject.zig");
+const mapTileZig = @import("../mapTile.zig");
 
 pub fn drawFrame(state: *main.GameState) !void {
     const vkState = &state.vkState;
     try resetVerticeData(state);
+    mapTileZig.setupVertices(state);
     mapGridVulkanZig.setupVertices(state);
     shopVulkanZig.setupVertices(state);
     enemyVulkanZig.setupVerticesGround(state);
