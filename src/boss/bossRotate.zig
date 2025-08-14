@@ -7,6 +7,7 @@ const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 const ninjaDogVulkanZig = @import("../vulkan/ninjaDogVulkan.zig");
 const soundMixerZig = @import("../soundMixer.zig");
+const mapTileZig = @import("../mapTile.zig");
 
 const RotateState = enum {
     spawnPillars,
@@ -58,7 +59,7 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
             .attackTiles = std.ArrayList(main.TilePosition).init(state.allocator),
         } },
     });
-    state.mapTileRadius = 6;
+    try mapTileZig.setMapRadius(6, state);
     main.adjustZoom(state);
 }
 

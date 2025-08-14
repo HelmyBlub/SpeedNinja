@@ -5,6 +5,7 @@ const bossZig = @import("boss.zig");
 const soundMixerZig = @import("../soundMixer.zig");
 const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
+const mapTileZig = @import("../mapTile.zig");
 
 const StompState = enum {
     searchTarget,
@@ -47,7 +48,7 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
         .dataIndex = bossDataIndex,
         .typeData = .{ .stomp = .{} },
     });
-    state.mapTileRadius = 6;
+    try mapTileZig.setMapRadius(6, state);
     main.adjustZoom(state);
 }
 
@@ -59,15 +60,15 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             const randomPlayerIndex: usize = @intFromFloat(std.crypto.random.float(f32) * @as(f32, @floatFromInt(state.players.items.len)));
             const playerTile = main.gamePositionToTilePosition(state.players.items[randomPlayerIndex].position);
             stompData.attackTilePosition = playerTile;
-            if (stompData.attackTilePosition.x > state.mapTileRadius) {
-                stompData.attackTilePosition.x = @intCast(state.mapTileRadius);
-            } else if (stompData.attackTilePosition.x < -@as(i32, @intCast(state.mapTileRadius))) {
-                stompData.attackTilePosition.x = -@as(i32, @intCast(state.mapTileRadius));
+            if (stompData.attackTilePosition.x > state.mapData.tileRadius) {
+                stompData.attackTilePosition.x = @intCast(state.mapData.tileRadius);
+            } else if (stompData.attackTilePosition.x < -@as(i32, @intCast(state.mapData.tileRadius))) {
+                stompData.attackTilePosition.x = -@as(i32, @intCast(state.mapData.tileRadius));
             }
-            if (stompData.attackTilePosition.y > state.mapTileRadius) {
-                stompData.attackTilePosition.y = @intCast(state.mapTileRadius);
-            } else if (stompData.attackTilePosition.y < -@as(i32, @intCast(state.mapTileRadius))) {
-                stompData.attackTilePosition.y = -@as(i32, @intCast(state.mapTileRadius));
+            if (stompData.attackTilePosition.y > state.mapData.tileRadius) {
+                stompData.attackTilePosition.y = @intCast(state.mapData.tileRadius);
+            } else if (stompData.attackTilePosition.y < -@as(i32, @intCast(state.mapData.tileRadius))) {
+                stompData.attackTilePosition.y = -@as(i32, @intCast(state.mapData.tileRadius));
             }
             stompData.state = .moveToTarget;
         },

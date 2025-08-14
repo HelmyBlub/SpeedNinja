@@ -8,6 +8,7 @@ const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
 const movePieceZig = @import("../movePiece.zig");
 const enemyZig = @import("../enemy/enemy.zig");
 const enemyObjectFireZig = @import("../enemy/enemyObjectFire.zig");
+const mapTileZig = @import("../mapTile.zig");
 
 pub const BossSnakeData = struct {
     nextMoveTime: i64 = 0,
@@ -60,7 +61,7 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
     }
     try enemyObjectFireZig.spawnFire(snakeBoss.position, snakeBoss.typeData.snake.fireDuration, state);
     try state.bosses.append(snakeBoss);
-    state.mapTileRadius = 6;
+    try mapTileZig.setMapRadius(6, state);
     main.adjustZoom(state);
 }
 
@@ -93,7 +94,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
         snakeData.nextMoveTime = state.gameTime + snakeData.moveInterval;
         var isNextDirectionValied = false;
         const lastDirection = snakeData.nextMoveDirection;
-        const border: f32 = @floatFromInt(state.mapTileRadius * main.TILESIZE);
+        const border: f32 = @floatFromInt(state.mapData.tileRadius * main.TILESIZE);
         while (!isNextDirectionValied) {
             snakeData.nextMoveDirection = std.crypto.random.int(u2);
             if (lastDirection == @mod(snakeData.nextMoveDirection + 2, 4)) {

@@ -7,6 +7,7 @@ const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
 const movePieceZig = @import("../movePiece.zig");
 const enemyObjectProjectileZig = @import("../enemy/enemyObjectProjectile.zig");
+const mapTileZig = @import("../mapTile.zig");
 
 pub const BossSplitData = struct {
     splits: std.ArrayList(BossSplitPartData),
@@ -69,7 +70,7 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
         .dataIndex = bossDataIndex,
         .typeData = .{ .split = bossTypeData },
     });
-    state.mapTileRadius = 6;
+    try mapTileZig.setMapRadius(6, state);
     main.adjustZoom(state);
 }
 
@@ -203,7 +204,7 @@ fn getRandomFlyToPosition(splitData: *BossSplitData, state: *main.GameState) mai
     var randomPos: main.Position = .{ .x = 0, .y = 0 };
     var validPosition = false;
     searchPos: while (!validPosition) {
-        const mapTileRadiusI32 = @as(i32, @intCast(state.mapTileRadius));
+        const mapTileRadiusI32 = @as(i32, @intCast(state.mapData.tileRadius));
         randomPos.x = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusI32, mapTileRadiusI32) * main.TILESIZE);
         randomPos.y = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusI32, mapTileRadiusI32) * main.TILESIZE);
         for (splitData.splits.items) |bossSplit| {

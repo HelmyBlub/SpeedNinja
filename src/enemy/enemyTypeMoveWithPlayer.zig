@@ -37,7 +37,7 @@ pub fn onPlayerMoved(enemy: *enemyZig.Enemy, player: *main.Player, state: *main.
     data.waitCount = 0;
 
     var validDirection: bool = false;
-    const border: f32 = @floatFromInt(state.mapTileRadius * main.TILESIZE);
+    const border: f32 = @floatFromInt(state.mapData.tileRadius * main.TILESIZE);
     while (!validDirection) {
         data.direction = std.crypto.random.int(u2);
         const newStepDirection = movePieceZig.getStepDirection(data.direction);

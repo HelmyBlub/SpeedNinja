@@ -10,12 +10,12 @@ pub fn setupVertices(state: *main.GameState) void {
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const zoomedTileSize = main.TILESIZE * state.camera.zoom;
-    const mapRadius: f32 = @as(f32, @floatFromInt(state.mapTileRadius)) * zoomedTileSize;
+    const mapRadius: f32 = @as(f32, @floatFromInt(state.mapData.tileRadius)) * zoomedTileSize;
     const left: f32 = (-mapRadius - zoomedTileSize / 2) * onePixelXInVulkan;
     const right: f32 = (mapRadius + zoomedTileSize * 0.5) * onePixelXInVulkan;
     const top: f32 = (-mapRadius - zoomedTileSize / 2) * onePixelYInVulkan;
     const bottom: f32 = (mapRadius + zoomedTileSize * 0.5) * onePixelYInVulkan;
-    for (0..(state.mapTileRadius * 2 + 2)) |i| {
+    for (0..(state.mapData.tileRadius * 2 + 2)) |i| {
         const floatIndex = @as(f32, @floatFromInt(i));
         const vulkanX = left + floatIndex * zoomedTileSize * onePixelXInVulkan;
         const vulkanY = top + floatIndex * zoomedTileSize * onePixelYInVulkan;

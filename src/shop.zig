@@ -3,6 +3,7 @@ const main = @import("main.zig");
 const imageZig = @import("image.zig");
 const movePieceZig = @import("movePiece.zig");
 const bossZig = @import("boss/boss.zig");
+const mapTileZig = @import("mapTile.zig");
 
 const ShopOption = enum {
     none,
@@ -159,8 +160,8 @@ pub fn getShopEarlyTriggerPosition(state: *main.GameState) ?main.TilePosition {
     if (state.gamePhase == .shopping) return null;
     if (state.round < state.roundToReachForNextLevel) return null;
     return main.TilePosition{
-        .x = @intCast(state.mapTileRadius + 2),
-        .y = @intCast(@divFloor(state.mapTileRadius, 2) - 1),
+        .x = @intCast(state.mapData.tileRadius + 2),
+        .y = @intCast(@divFloor(state.mapData.tileRadius, 2) - 1),
     };
 }
 
@@ -177,13 +178,14 @@ pub fn startShoppingPhase(state: *main.GameState) !void {
     state.gamePhase = .shopping;
     state.enemies.clearRetainingCapacity();
     state.enemyObjects.clearRetainingCapacity();
+    mapTileZig.resetMapTiles(state.mapData.tiles);
     bossZig.clearBosses(state);
     try randomizeShop(state);
     for (state.players.items) |*player| {
         player.shop.gridDisplayPiece = null;
         player.shop.selectedOption = .none;
     }
-    state.mapTileRadius = 5;
+    try mapTileZig.setMapRadius(5, state);
     main.adjustZoom(state);
 }
 

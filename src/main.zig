@@ -10,6 +10,7 @@ const enemyObjectZig = @import("enemy/enemyObject.zig");
 const shopZig = @import("shop.zig");
 const bossZig = @import("boss/boss.zig");
 const imageZig = @import("image.zig");
+const mapTileZig = @import("mapTile.zig");
 
 pub const GamePhase = enum {
     combat,
@@ -18,7 +19,6 @@ pub const GamePhase = enum {
 };
 
 pub const TILESIZE = 20;
-pub const BASE_MAP_TILE_RADIUS = 3;
 pub const GameState = struct {
     vkState: initVulkanZig.VkState = .{},
     allocator: std.mem.Allocator = undefined,
@@ -29,11 +29,11 @@ pub const GameState = struct {
     roundToReachForNextLevel: usize = 5,
     bonusTimePerRoundFinished: i32 = 5000,
     minimalTimePerRequiredRounds: i32 = 60_000,
+    mapData: mapTileZig.MapData,
     levelInitialTime: i32 = 60_000,
     roundEndTimeMS: i64 = 0,
     roundStartedTime: i64 = 0,
     playerImmunityFrames: i64 = 1000,
-    mapTileRadius: u32 = BASE_MAP_TILE_RADIUS,
     bosses: std.ArrayList(bossZig.Boss) = undefined,
     enemies: std.ArrayList(enemyZig.Enemy) = undefined,
     spriteCutAnimations: std.ArrayList(enemyZig.CutSpriteAnimation) = undefined,
@@ -194,6 +194,7 @@ pub fn endShoppingPhase(state: *GameState) !void {
 pub fn startNextLevel(state: *GameState) !void {
     state.enemies.clearRetainingCapacity();
     state.enemyObjects.clearRetainingCapacity();
+    mapTileZig.resetMapTiles(state.mapData.tiles);
     state.gamePhase = .combat;
     state.level += 1;
     state.round = 0;
@@ -265,11 +266,11 @@ pub fn restart(state: *GameState) !void {
     if (state.gameTime > 1000) std.debug.print("ended on lvl {d} in time: {d}\n", .{ state.level, @divFloor(state.gameTime, 1000) });
     state.level = 0;
     state.round = 0;
-    state.mapTileRadius = BASE_MAP_TILE_RADIUS;
     state.gamePhase = .combat;
     state.gameTime = 0;
     state.roundStartedTime = 0;
     state.lastBossDefeatedTime = 0;
+    mapTileZig.resetMapTiles(state.mapData.tiles);
     for (state.players.items) |*player| {
         player.hp = 2;
         player.money = 0;
@@ -291,7 +292,7 @@ pub fn restart(state: *GameState) !void {
 }
 
 pub fn adjustZoom(state: *GameState) void {
-    const mapSize: f32 = @floatFromInt((state.mapTileRadius * 2 + 1) * TILESIZE);
+    const mapSize: f32 = @floatFromInt((state.mapData.tileRadius * 2 + 1) * TILESIZE);
     const targetMapScreenPerCent = 0.75;
     const widthPerCent = mapSize / windowSdlZig.windowData.widthFloat;
     const heightPerCent = mapSize / windowSdlZig.windowData.heightFloat;
@@ -304,6 +305,7 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
         .players = std.ArrayList(Player).init(allocator),
         .bosses = std.ArrayList(bossZig.Boss).init(allocator),
         .shop = .{ .buyOptions = std.ArrayList(shopZig.ShopBuyOption).init(allocator) },
+        .mapData = try mapTileZig.createMapData(allocator),
     };
     state.allocator = allocator;
     try windowSdlZig.initWindowSdl();
@@ -352,6 +354,7 @@ fn destroyGameState(state: *GameState) void {
     }
     state.bosses.deinit();
     state.shop.buyOptions.deinit();
+    mapTileZig.deinit(state);
     enemyZig.destroyEnemy(state);
 }
 

@@ -34,7 +34,7 @@ pub fn tick(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
     } else {
         data.direction = std.crypto.random.int(u2);
         const stepDirection = movePieceZig.getStepDirection(data.direction);
-        const border: f32 = @floatFromInt(state.mapTileRadius * main.TILESIZE);
+        const border: f32 = @floatFromInt(state.mapData.tileRadius * main.TILESIZE);
         if (stepDirection.x < 0 and enemy.position.x > -border or
             stepDirection.x > 0 and enemy.position.x < border or
             stepDirection.y < 0 and enemy.position.y > -border or

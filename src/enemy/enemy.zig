@@ -9,16 +9,8 @@ const enemyTypeMoveWithPlayerZig = @import("enemyTypeMoveWithPlayer.zig");
 const enemyTypeProjectileAttackZig = @import("enemyTypeProjectileAttack.zig");
 const enemyTypePutFireZig = @import("enemyTypePutFire.zig");
 const enemyTypeBlockZig = @import("enemyTypeBlock.zig");
-
-pub const EnemyType = enum {
-    nothing,
-    attack,
-    move,
-    moveWithPlayer,
-    projectileAttack,
-    putFire,
-    block,
-};
+const enemyTypeIceAttackZig = @import("enemyTypeIceAttack.zig");
+const mapTileZig = @import("../mapTile.zig");
 
 const EnemyTypeSpawnLevelData = struct {
     enemyType: EnemyType,
@@ -33,6 +25,17 @@ pub const EnemyTypeDelayedActionData = struct {
     startTime: ?i64 = null,
 };
 
+pub const EnemyType = enum {
+    nothing,
+    attack,
+    move,
+    moveWithPlayer,
+    projectileAttack,
+    putFire,
+    block,
+    ice,
+};
+
 pub const EnemyTypeData = union(EnemyType) {
     nothing,
     attack: EnemyTypeDelayedActionData,
@@ -41,6 +44,7 @@ pub const EnemyTypeData = union(EnemyType) {
     projectileAttack: EnemyTypeDelayedActionData,
     putFire: enemyTypePutFireZig.EnemyTypePutFireData,
     block: enemyTypeBlockZig.EnemyTypeBlockData,
+    ice: enemyTypeIceAttackZig.DelayedAttackWithCooldown,
 };
 
 pub const Enemy = struct {
@@ -80,8 +84,9 @@ const ENEMY_TYPE_SPAWN_LEVEL_DATA = [_]EnemyTypeSpawnLevelData{
     .{ .baseProbability = 1, .enemyType = .move, .startingLevel = 5, .leavingLevel = 15 },
     .{ .baseProbability = 1, .enemyType = .moveWithPlayer, .startingLevel = 10, .leavingLevel = 20 },
     .{ .baseProbability = 1, .enemyType = .projectileAttack, .startingLevel = 15, .leavingLevel = 25 },
-    .{ .baseProbability = 1, .enemyType = .putFire, .startingLevel = 20, .leavingLevel = null },
+    .{ .baseProbability = 1, .enemyType = .putFire, .startingLevel = 20, .leavingLevel = 30 },
     .{ .baseProbability = 1, .enemyType = .block, .startingLevel = 25, .leavingLevel = null },
+    .{ .baseProbability = 1, .enemyType = .ice, .startingLevel = 30, .leavingLevel = null },
 };
 
 pub fn tickEnemies(passedTime: i64, state: *main.GameState) !void {
@@ -101,6 +106,9 @@ pub fn tickEnemies(passedTime: i64, state: *main.GameState) !void {
             },
             .block => {
                 try enemyTypeBlockZig.tick(enemy, state);
+            },
+            .ice => {
+                try enemyTypeIceAttackZig.tick(enemy, state);
             },
             else => {},
         }
@@ -141,6 +149,9 @@ fn createSpawnEnemyEntryEnemy(enemyType: EnemyType) Enemy {
         },
         .block => {
             return enemyTypeBlockZig.createSpawnEnemyEntryEnemy();
+        },
+        .ice => {
+            return enemyTypeIceAttackZig.createSpawnEnemyEntryEnemy();
         },
     }
 }
@@ -252,8 +263,9 @@ pub fn setupEnemies(state: *main.GameState) !void {
     if (state.enemySpawnData.enemyEntries.items.len == 0) return;
     const rand = std.crypto.random;
     const enemyCount = state.round + @min(5, (@divFloor(state.level - 1, 2)));
-    state.mapTileRadius = main.BASE_MAP_TILE_RADIUS + @as(u32, @intFromFloat(@sqrt(@as(f32, @floatFromInt(enemyCount)))));
-    const length: f32 = @floatFromInt(state.mapTileRadius * 2 + 1);
+    const mapTileRadius = mapTileZig.BASE_MAP_TILE_RADIUS + @as(u32, @intFromFloat(@sqrt(@as(f32, @floatFromInt(enemyCount)))));
+    try mapTileZig.setMapRadius(mapTileRadius, state);
+    const length: f32 = @floatFromInt(state.mapData.tileRadius * 2 + 1);
     while (enemies.items.len < enemyCount) {
         const randomTileX: i16 = @as(i16, @intFromFloat(rand.float(f32) * length - length / 2));
         const randomTileY: i16 = @as(i16, @intFromFloat(rand.float(f32) * length - length / 2));

@@ -8,6 +8,7 @@ const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
 const movePieceZig = @import("../movePiece.zig");
 const enemyObjectProjectileZig = @import("../enemy/enemyObjectProjectile.zig");
 const enemyObjectFireZig = @import("../enemy/enemyObjectFire.zig");
+const mapTileZig = @import("../mapTile.zig");
 
 const AttackDelayed = struct {
     targetPosition: main.TilePosition,
@@ -89,7 +90,7 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
             .enabledShuriken = true,
         } },
     });
-    state.mapTileRadius = 6;
+    try mapTileZig.setMapRadius(6, state);
     main.adjustZoom(state);
 }
 
@@ -200,7 +201,7 @@ fn getRandomFreePosition(state: *main.GameState) main.Position {
     var randomPos: main.Position = .{ .x = 0, .y = 0 };
     var validPosition = false;
     searchPos: while (!validPosition) {
-        const mapTileRadiusI32 = @as(i32, @intCast(state.mapTileRadius));
+        const mapTileRadiusI32 = @as(i32, @intCast(state.mapData.tileRadius));
         randomPos.x = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusI32, mapTileRadiusI32) * main.TILESIZE);
         randomPos.y = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusI32, mapTileRadiusI32) * main.TILESIZE);
         for (state.bosses.items) |bossSingle| {

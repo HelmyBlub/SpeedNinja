@@ -7,6 +7,7 @@ const soundMixerZig = @import("../soundMixer.zig");
 const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
 const movePieceZig = @import("../movePiece.zig");
+const mapTileZig = @import("../mapTile.zig");
 
 const RollState = enum {
     chooseRandomMovePiece,
@@ -82,7 +83,7 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
             .attackTilePositions = std.ArrayList(AttackDelayed).init(state.allocator),
         } },
     });
-    state.mapTileRadius = 6;
+    try mapTileZig.setMapRadius(6, state);
     main.adjustZoom(state);
 }
 
@@ -113,7 +114,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             rollData.state = .executeMovePiece;
             rollData.nextStateTime = state.gameTime + rollData.moveChargeTime;
             const movePiece = rollData.movePieces[rollData.movePieceIndex];
-            const gridBorder: f32 = @floatFromInt(state.mapTileRadius * main.TILESIZE);
+            const gridBorder: f32 = @floatFromInt(state.mapData.tileRadius * main.TILESIZE);
             var validMovePosition = false;
             while (!validMovePosition) {
                 var bossPositionAfterPiece = boss.position;

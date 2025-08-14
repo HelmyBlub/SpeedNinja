@@ -1,26 +1,33 @@
 Tasks:
-- bug: shop sells same pieces after buying one
-
 - next enemy
     - ice enemy
-        - leave ice tiles which makes player slide
+        - throws ice shuriken
+            - when player on same x or y
+            - leave ice tiles which makes player slide
             - changes move of movePiece if goes over this tile
+                - or can not change direction on this tile
+- next boss idea
+    - each time boss hit, rolls in hit direction
+        - rolling makes boss bigger?
+        - hitting boss splits it?
+        - rolling boss leaves behind ice tiles
 
 
 Play Times:
-    lvl  5 finished in  200
-    lvl 10 finished in  249
-    lvl 15 finished in  309
-    lvl 20 finished in  377
-    lvl 25 finished in  624
-
+    lvl  5 finished in 200
+    lvl 10 finished in 222
+    lvl 15 finished in 263
+    lvl 20 finished in 333
+    lvl 25 finished in 556
+    lvl 30 finished in 540
+    best total beat level 30 in 2256
 
 Next ideas:
+- 1 new enemies all 5 levels
+- 1 boss all 5 levels
+- until level 50
+- after level 50 start new game+, repeat bosses but stuff gets harder, faster
 - something which makes player stronger over time, but better player get stronger faster
-    - 2 new enemies all 5 levels
-    - 1 boss all 5 levels
-    - until level 50
-    - after level 50 start new game+, repeat bosses but stuff gets harder, faster
 
     - boss abilities shown by enemies before for easier learning
     - buy equippment which is visualized on character

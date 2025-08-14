@@ -12,6 +12,7 @@ const enemyTypeMoveWithPlayerZig = @import("../enemy/enemyTypeMoveWithPlayer.zig
 const enemyTypeProjectileAttackZig = @import("../enemy/enemyTypeProjectileAttack.zig");
 const enemyTypePutFireZig = @import("../enemy/enemyTypePutFire.zig");
 const enemyTypeBlockZig = @import("../enemy/enemyTypeBlock.zig");
+const enemyTypeIceAttackZig = @import("../enemy/enemyTypeIceAttack.zig");
 
 pub fn setupVertices(state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
@@ -48,6 +49,9 @@ pub fn setupVerticesGround(state: *main.GameState) void {
             },
             .block => {
                 enemyTypeBlockZig.setupVerticesGround(enemy, state);
+            },
+            .ice => {
+                enemyTypeIceAttackZig.setupVerticesGround(enemy, state);
             },
         }
     }
