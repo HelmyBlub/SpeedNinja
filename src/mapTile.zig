@@ -16,7 +16,8 @@ pub const MapData = struct {
 pub const BASE_MAP_TILE_RADIUS = 3;
 
 pub fn createMapData(allocator: std.mem.Allocator) !MapData {
-    const tiles = try allocator.alloc(MapTileType, BASE_MAP_TILE_RADIUS * BASE_MAP_TILE_RADIUS);
+    const tileLength = (BASE_MAP_TILE_RADIUS * 2 + 1);
+    const tiles = try allocator.alloc(MapTileType, tileLength * tileLength);
     resetMapTiles(tiles);
     return MapData{
         .tileRadius = BASE_MAP_TILE_RADIUS,
@@ -42,22 +43,25 @@ pub fn setMapTilePositionType(tile: main.TilePosition, tileType: MapTileType, ma
 
 fn tilePositionToTileIndex(tilePosition: main.TilePosition, tileRadius: u32) ?usize {
     const iTileRadius = @as(i32, @intCast(tileRadius));
+    const tileLength = (tileRadius * 2 + 1);
     if (tilePosition.x < -iTileRadius) return null;
     if (tilePosition.y < -iTileRadius) return null;
-    return @as(u32, @intCast(tilePosition.x + iTileRadius)) + @as(u32, @intCast(tilePosition.y + iTileRadius)) * tileRadius;
+    return @as(u32, @intCast(tilePosition.x + iTileRadius)) + @as(u32, @intCast(tilePosition.y + iTileRadius)) * tileLength;
 }
 
 fn tileIndexToTilePosition(tileIndex: usize, tileRadius: u32) main.TilePosition {
     const iTileRadius = @as(i32, @intCast(tileRadius));
+    const tileLength = (tileRadius * 2 + 1);
     return main.TilePosition{
-        .x = @as(i32, @intCast(@mod(tileIndex, tileRadius))) - iTileRadius,
-        .y = @as(i32, @intCast(@divFloor(tileIndex, tileRadius))) - iTileRadius,
+        .x = @as(i32, @intCast(@mod(tileIndex, tileLength))) - iTileRadius,
+        .y = @as(i32, @intCast(@divFloor(tileIndex, tileLength))) - iTileRadius,
     };
 }
 
 pub fn setMapRadius(tileRadius: u32, state: *main.GameState) !void {
     if (tileRadius == state.mapData.tileRadius) return;
-    const tiles = try state.allocator.alloc(MapTileType, tileRadius * tileRadius);
+    const tileLength = (tileRadius * 2 + 1);
+    const tiles = try state.allocator.alloc(MapTileType, tileLength * tileLength);
     resetMapTiles(tiles);
     for (0..state.mapData.tiles.len) |oldTileIndex| {
         const tilePosition = tileIndexToTilePosition(oldTileIndex, state.mapData.tileRadius);

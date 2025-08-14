@@ -75,7 +75,7 @@ fn tick(object: *enemyObjectZig.EnemyObject, passedTime: i64, state: *main.GameS
             .x = object.position.x + stepDirection.x * main.TILESIZE,
             .y = object.position.y + stepDirection.y * main.TILESIZE,
         };
-        mapTileZig.setMapTilePositionType(main.gamePositionToTilePosition(object.position), .ice, &state.mapData);
+        if (projectileData.ice) mapTileZig.setMapTilePositionType(main.gamePositionToTilePosition(object.position), .ice, &state.mapData);
     }
     try enemyZig.checkPlayerHit(object.position, state);
 }

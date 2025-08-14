@@ -1,6 +1,7 @@
 Tasks:
 - next enemy
     - ice enemy
+        - continue: bug ice only top left tiles
         - throws ice shuriken
             - when player on same x or y
             - leave ice tiles which makes player slide
@@ -14,7 +15,7 @@ Tasks:
 
 
 Play Times:
-    lvl  5 finished in 200
+    lvl  5 finished in 163
     lvl 10 finished in 222
     lvl 15 finished in 263
     lvl 20 finished in 333
