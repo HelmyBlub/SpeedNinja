@@ -1,5 +1,4 @@
 Tasks:
-- ice enemy image
 - snowball boss idea
     - each time boss hit, rolls in hit direction
         - rolling over ice tiles makes boss bigger?
