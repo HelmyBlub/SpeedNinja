@@ -54,6 +54,7 @@ pub const IMAGE_SHIELD = 46;
 pub const IMAGE_ENEMY_SNOWMAN = 47;
 pub const IMAGE_SHURIKEN_WHITE = 48;
 pub const IMAGE_BOSS_SNOWBALL = 49;
+pub const IMAGE_ENEMY_WALLER = 50;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaDog.png" },
@@ -106,6 +107,7 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/enemySnowman.png" },
     .{ .path = "images/shurikenWhite.png", .scale = 2 },
     .{ .path = "images/bossSnowball.png" },
+    .{ .path = "images/enemyWaller.png" },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 pub const IMAGE_DOG__CENTER_BODY: main.Position = .{ .x = 99, .y = 128 };

@@ -1,9 +1,5 @@
 Tasks:
-- waller enemy
-    - choosen move piece not drawn correctly. End arrow missing
-    - unreachable with ice?
-- check overlapping move piece highlighting
-
+- enemy wall image
 - next boss idea
     - boss creats blocking tiles in some way and destroys them in another way
         - blocking tiles fall from the sky onto player position after boss makes attack
@@ -16,6 +12,9 @@ Tasks:
 - think: change random position to single function instead of duplicate with small differenes?
 - think: change enemy code more to boss code
     - less functions all over the place
+- waller enemy
+    - unreachable with ice
+        - possible, but hard to prevent
 
 Play Times:
     lvl  5 best in 163

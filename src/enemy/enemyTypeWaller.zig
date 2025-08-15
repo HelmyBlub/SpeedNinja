@@ -15,7 +15,7 @@ pub const EnemyTypeWallerData = struct {
 
 pub fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
     return .{
-        .imageIndex = imageZig.IMAGE_EVIL_TREE,
+        .imageIndex = imageZig.IMAGE_ENEMY_WALLER,
         .position = .{ .x = 0, .y = 0 },
         .enemyTypeData = .{
             .waller = .{},
