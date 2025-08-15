@@ -1,15 +1,8 @@
 Tasks:
-- next enemy
-    - continue: 
-            - enemy not spawn on wall
-            - waller not block area off
-                - only block 2 directions
-                - if more blocked, open one up
-    - waller enemy
-      - places tile which block path, enemies can not spawn on them
-        - after some initial delay
-        - should not be able to block itself out
-    - after blocking tiles placed, attacks randomly to open directions
+- waller enemy
+    - choosen move piece not drawn correctly. End arrow missing
+    - unreachable with ice?
+- check overlapping move piece highlighting
 
 - next boss idea
     - boss creats blocking tiles in some way and destroys them in another way

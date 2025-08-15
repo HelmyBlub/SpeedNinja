@@ -64,10 +64,22 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
                         .x = gamePosition.x + moveX,
                         .y = gamePosition.y + moveY,
                     };
+                    if (stepCount + 1 < moveStep.stepCount) {
+                        const afterNextPosition: main.Position = .{
+                            .x = nextPosition.x + moveX,
+                            .y = nextPosition.y + moveY,
+                        };
+                        const afterTilePosition = main.gamePositionToTilePosition(afterNextPosition);
+                        const afterTileType = mapTileZig.getMapTilePositionType(afterTilePosition, &state.mapData);
+                        if (afterTileType == .wall) {
+                            stepCount = moveStep.stepCount - 1;
+                        }
+                    }
                     const tilePosition = main.gamePositionToTilePosition(nextPosition);
                     const tileType = mapTileZig.getMapTilePositionType(tilePosition, &state.mapData);
-                    if (tileType == .wall) break;
-                    gamePosition = nextPosition;
+                    if (tileType != .wall) {
+                        gamePosition = nextPosition;
+                    }
                     var x = gamePosition.x * onePixelXInVulkan * state.camera.zoom;
                     var y = gamePosition.y * onePixelYInVulkan * state.camera.zoom;
                     stepCount += 1;
