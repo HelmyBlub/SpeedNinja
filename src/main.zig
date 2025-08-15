@@ -358,6 +358,23 @@ fn destroyGameState(state: *GameState) void {
     enemyZig.destroyEnemy(state);
 }
 
+pub fn isTileEmpty(position: Position, state: *GameState) bool {
+    for (state.enemies.items) |enemy| {
+        if (@abs(enemy.position.x - position.x) < TILESIZE / 2 and @abs(enemy.position.y - position.y) < TILESIZE / 2) return false;
+    }
+    for (state.bosses.items) |boss| {
+        if (@abs(boss.position.x - position.x) < TILESIZE / 2 and @abs(boss.position.y - position.y) < TILESIZE / 2) return false;
+    }
+    for (state.players.items) |player| {
+        if (@abs(player.position.x - position.x) < TILESIZE / 2 and @abs(player.position.y - position.y) < TILESIZE / 2) return false;
+    }
+    const tilePosition = gamePositionToTilePosition(position);
+    const mapTileType = mapTileZig.getMapTilePositionType(tilePosition, &state.mapData);
+    if (mapTileType == .wall) return false;
+
+    return true;
+}
+
 pub fn calculateDistance(pos1: Position, pos2: Position) f32 {
     const diffX = pos1.x - pos2.x;
     const diffY = pos1.y - pos2.y;

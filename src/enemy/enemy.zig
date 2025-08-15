@@ -283,7 +283,7 @@ pub fn setupEnemies(state: *main.GameState) !void {
             .x = @floatFromInt(randomTileX * main.TILESIZE),
             .y = @floatFromInt(randomTileY * main.TILESIZE),
         };
-        if (canSpawnEnemyOnTile(randomPos, state)) {
+        if (main.isTileEmpty(randomPos, state)) {
             const randomFloat = std.crypto.random.float(f32);
             for (state.enemySpawnData.enemyEntries.items) |entry| {
                 if (randomFloat >= entry.calcedProbabilityStart and randomFloat < entry.calcedProbabilityEnd) {
@@ -310,14 +310,4 @@ fn calcAndSetEnemySpawnProbabilities(enemySpawnData: *EnemySpawnData) void {
     if (enemySpawnData.enemyEntries.items.len > 0) {
         enemySpawnData.enemyEntries.items[enemySpawnData.enemyEntries.items.len - 1].calcedProbabilityEnd = 1;
     }
-}
-
-fn canSpawnEnemyOnTile(position: main.Position, state: *main.GameState) bool {
-    for (state.enemies.items) |enemy| {
-        if (@abs(enemy.position.x - position.x) < main.TILESIZE / 2 and @abs(enemy.position.y - position.y) < main.TILESIZE / 2) return false;
-    }
-    for (state.players.items) |player| {
-        if (@abs(player.position.x - position.x) < main.TILESIZE / 2 and @abs(player.position.y - position.y) < main.TILESIZE / 2) return false;
-    }
-    return true;
 }

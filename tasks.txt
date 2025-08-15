@@ -1,5 +1,10 @@
 Tasks:
 - next enemy
+    - continue: 
+            - enemy not spawn on wall
+            - waller not block area off
+                - only block 2 directions
+                - if more blocked, open one up
     - waller enemy
       - places tile which block path, enemies can not spawn on them
         - after some initial delay

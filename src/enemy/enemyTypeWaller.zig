@@ -35,41 +35,72 @@ pub fn tick(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
             try enemyZig.checkPlayerHit(hitPosition, state);
             if (!data.placedWall) {
                 const tilePosition = main.gamePositionToTilePosition(hitPosition);
-                mapTileZig.setMapTilePositionType(tilePosition, .wall, &state.mapData);
+                if (main.isTileEmpty(hitPosition, state)) {
+                    mapTileZig.setMapTilePositionType(tilePosition, .wall, &state.mapData);
+                }
                 data.placedWall = true;
             }
             data.attackTime = null;
         }
     } else {
-        if (data.placedWall) {
-            const tilePosition = main.gamePositionToTilePosition(enemy.position);
-            var validHitDirectionCount: u8 = 0;
-            var validHitDirections = [_]?u8{ null, null, null, null };
-            if (mapTileZig.getMapTilePositionType(.{ .x = tilePosition.x - 1, .y = tilePosition.y }, &state.mapData) != .wall) {
-                validHitDirections[validHitDirectionCount] = movePieceZig.DIRECTION_LEFT;
-                validHitDirectionCount += 1;
-            }
-            if (mapTileZig.getMapTilePositionType(.{ .x = tilePosition.x + 1, .y = tilePosition.y }, &state.mapData) != .wall) {
-                validHitDirections[validHitDirectionCount] = movePieceZig.DIRECTION_RIGHT;
-                validHitDirectionCount += 1;
-            }
-            if (mapTileZig.getMapTilePositionType(.{ .x = tilePosition.x, .y = tilePosition.y - 1 }, &state.mapData) != .wall) {
-                validHitDirections[validHitDirectionCount] = movePieceZig.DIRECTION_UP;
-                validHitDirectionCount += 1;
-            }
-            if (mapTileZig.getMapTilePositionType(.{ .x = tilePosition.x, .y = tilePosition.y + 1 }, &state.mapData) != .wall) {
-                validHitDirections[validHitDirectionCount] = movePieceZig.DIRECTION_DOWN;
-                validHitDirectionCount += 1;
-            }
-            if (validHitDirectionCount > 0) {
-                const randomDirectionIndex = std.crypto.random.intRangeLessThan(u8, 0, validHitDirectionCount);
-                data.direction = validHitDirections[randomDirectionIndex].?;
-            }
-        } else {
-            //
+        const tilePosition = main.gamePositionToTilePosition(enemy.position);
+        var validHitDirectionCount: u8 = 0;
+        var validHitDirections = [_]?u8{ null, null, null, null };
+        if (mapTileZig.getMapTilePositionType(.{ .x = tilePosition.x - 1, .y = tilePosition.y }, &state.mapData) != .wall) {
+            validHitDirections[validHitDirectionCount] = movePieceZig.DIRECTION_LEFT;
+            validHitDirectionCount += 1;
+        }
+        if (mapTileZig.getMapTilePositionType(.{ .x = tilePosition.x + 1, .y = tilePosition.y }, &state.mapData) != .wall) {
+            validHitDirections[validHitDirectionCount] = movePieceZig.DIRECTION_RIGHT;
+            validHitDirectionCount += 1;
+        }
+        if (mapTileZig.getMapTilePositionType(.{ .x = tilePosition.x, .y = tilePosition.y - 1 }, &state.mapData) != .wall) {
+            validHitDirections[validHitDirectionCount] = movePieceZig.DIRECTION_UP;
+            validHitDirectionCount += 1;
+        }
+        if (mapTileZig.getMapTilePositionType(.{ .x = tilePosition.x, .y = tilePosition.y + 1 }, &state.mapData) != .wall) {
+            validHitDirections[validHitDirectionCount] = movePieceZig.DIRECTION_DOWN;
+            validHitDirectionCount += 1;
+        }
+        if (validHitDirectionCount > 0) {
+            const randomDirectionIndex = std.crypto.random.intRangeLessThan(usize, 0, validHitDirectionCount);
+            data.direction = validHitDirections[randomDirectionIndex].?;
+        }
+        if (!data.placedWall and validHitDirectionCount <= 2) data.placedWall = true;
+        if (validHitDirectionCount < 2) {
+            removeOneRandomAdjacentWall(tilePosition, state);
         }
         data.attackTime = state.gameTime + data.delay;
     }
+}
+
+fn removeOneRandomAdjacentWall(tilePosition: main.TilePosition, state: *main.GameState) void {
+    var invalidHitDirectionCount: u8 = 0;
+    var invalidHitDirections = [_]?u8{ null, null, null, null };
+    if (mapTileZig.getMapTilePositionType(.{ .x = tilePosition.x - 1, .y = tilePosition.y }, &state.mapData) == .wall) {
+        invalidHitDirections[invalidHitDirectionCount] = movePieceZig.DIRECTION_LEFT;
+        invalidHitDirectionCount += 1;
+    }
+    if (mapTileZig.getMapTilePositionType(.{ .x = tilePosition.x + 1, .y = tilePosition.y }, &state.mapData) == .wall) {
+        invalidHitDirections[invalidHitDirectionCount] = movePieceZig.DIRECTION_RIGHT;
+        invalidHitDirectionCount += 1;
+    }
+    if (mapTileZig.getMapTilePositionType(.{ .x = tilePosition.x, .y = tilePosition.y - 1 }, &state.mapData) == .wall) {
+        invalidHitDirections[invalidHitDirectionCount] = movePieceZig.DIRECTION_UP;
+        invalidHitDirectionCount += 1;
+    }
+    if (mapTileZig.getMapTilePositionType(.{ .x = tilePosition.x, .y = tilePosition.y + 1 }, &state.mapData) == .wall) {
+        invalidHitDirections[invalidHitDirectionCount] = movePieceZig.DIRECTION_DOWN;
+        invalidHitDirectionCount += 1;
+    }
+    const randomDirectionIndex = std.crypto.random.intRangeLessThan(usize, 0, invalidHitDirectionCount);
+    const direction = invalidHitDirections[randomDirectionIndex].?;
+    const stepDirection = movePieceZig.getStepDirectionTile(direction);
+    const hitTilePosition: main.TilePosition = .{
+        .x = tilePosition.x + stepDirection.x,
+        .y = tilePosition.y + stepDirection.y,
+    };
+    mapTileZig.setMapTilePositionType(hitTilePosition, .normal, &state.mapData);
 }
 
 pub fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) void {
