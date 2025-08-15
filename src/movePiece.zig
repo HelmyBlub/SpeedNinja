@@ -320,6 +320,7 @@ fn stepAndCheckEnemyHitAndProjectileHitAndTiles(player: *main.Player, stepCount:
             try resetPieces(player);
             player.slashedLastMoveTile = true;
         }
+        try bossZig.onPlayerMoveEachTile(player, state);
         if (enemyObjectZig.checkHitMovingPlayer(player, state)) {
             try main.playerHit(player, state);
         }

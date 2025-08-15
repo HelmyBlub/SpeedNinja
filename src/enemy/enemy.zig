@@ -283,7 +283,7 @@ pub fn setupEnemies(state: *main.GameState) !void {
             .x = @floatFromInt(randomTileX * main.TILESIZE),
             .y = @floatFromInt(randomTileY * main.TILESIZE),
         };
-        if (main.isTileEmpty(randomPos, state)) {
+        if (main.isPositionEmpty(randomPos, state)) {
             const randomFloat = std.crypto.random.float(f32);
             for (state.enemySpawnData.enemyEntries.items) |entry| {
                 if (randomFloat >= entry.calcedProbabilityStart and randomFloat < entry.calcedProbabilityEnd) {

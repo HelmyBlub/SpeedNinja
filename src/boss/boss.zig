@@ -10,6 +10,7 @@ const bossSplitZig = @import("bossSplit.zig");
 const bossSnakeZig = @import("bossSnake.zig");
 const bossTrippleZig = @import("bossTripple.zig");
 const bossSnowballZig = @import("bossSnowball.zig");
+const bossWallerZig = @import("bossWaller.zig");
 
 pub const LevelBossData = struct {
     appearsOnLevel: usize,
@@ -19,6 +20,7 @@ pub const LevelBossData = struct {
     setupVerticesGround: *const fn (boss: *Boss, state: *main.GameState) void,
     setupVertices: *const fn (boss: *Boss, state: *main.GameState) void,
     onPlayerMoved: ?*const fn (boss: *Boss, player: *main.Player, state: *main.GameState) anyerror!void = null,
+    onPlayerMoveEachTile: ?*const fn (boss: *Boss, player: *main.Player, state: *main.GameState) anyerror!void = null,
     deinit: ?*const fn (boss: *Boss, allocator: std.mem.Allocator) void = null,
 };
 
@@ -30,6 +32,7 @@ const BossTypes = enum {
     snake,
     tripple,
     snowball,
+    waller,
 };
 
 const BossTypeData = union(BossTypes) {
@@ -40,6 +43,7 @@ const BossTypeData = union(BossTypes) {
     snake: bossSnakeZig.BossSnakeData,
     tripple: bossTrippleZig.BossTrippleData,
     snowball: bossSnowballZig.BossSnowballData,
+    waller: bossWallerZig.BossWallerData,
 };
 
 pub const Boss = struct {
@@ -60,12 +64,20 @@ pub const LEVEL_BOSS_DATA = [_]LevelBossData{
     bossSnakeZig.createBoss(),
     bossTrippleZig.createBoss(),
     bossSnowballZig.createBoss(),
+    bossWallerZig.createBoss(),
 };
 
 pub fn onPlayerMoved(player: *main.Player, state: *main.GameState) !void {
     for (state.bosses.items) |*boss| {
         const levelBossData = LEVEL_BOSS_DATA[boss.dataIndex];
         if (levelBossData.onPlayerMoved) |opm| try opm(boss, player, state);
+    }
+}
+
+pub fn onPlayerMoveEachTile(player: *main.Player, state: *main.GameState) !void {
+    for (state.bosses.items) |*boss| {
+        const levelBossData = LEVEL_BOSS_DATA[boss.dataIndex];
+        if (levelBossData.onPlayerMoveEachTile) |opm| try opm(boss, player, state);
     }
 }
 

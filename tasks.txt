@@ -1,12 +1,12 @@
 Tasks:
-- enemy wall image
 - next boss idea
     - boss creats blocking tiles in some way and destroys them in another way
-        - blocking tiles fall from the sky onto player position after boss makes attack
+        - blocking tiles fall from the sky onto player position
             - onto every tile player moves over in time period
                 - player should move as little as possible
             - on spawn do damage, push player randomly away if hit
-        - boss shots ball in player direction, bounces off wall and destorys it
+        - boss shoots bombs random tiles, do explode and remove walls on surrounding tiles
+            - shoots more, if more walls around?
 
 - small change: debug time to mm:ss
 - think: change random position to single function instead of duplicate with small differenes?

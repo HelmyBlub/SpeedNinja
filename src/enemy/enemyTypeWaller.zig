@@ -35,7 +35,7 @@ pub fn tick(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
             try enemyZig.checkPlayerHit(hitPosition, state);
             if (!data.placedWall) {
                 const tilePosition = main.gamePositionToTilePosition(hitPosition);
-                if (main.isTileEmpty(hitPosition, state)) {
+                if (main.isTileEmpty(tilePosition, state)) {
                     mapTileZig.setMapTilePositionType(tilePosition, .wall, &state.mapData);
                 }
                 data.placedWall = true;
