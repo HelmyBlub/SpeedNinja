@@ -1,16 +1,23 @@
 Tasks:
-- snowball boss idea
-    - each time boss hit, rolls in hit direction
-        - rolling boss leaves behind ice tiles
-        - taking 10% damage spawn enemies
-            
-            
-
-- after play test: should ice tiles disappear after time?
-
 - next enemy
     - waller enemy
-        - places pieces which block path, enemies can not spawn on them
+      - places tile which block path, enemies can not spawn on them
+        - after some initial delay
+        - should not be able to block itself out
+    - after blocking tiles placed, attacks randomly to open directions
+
+- next boss idea
+    - boss creats blocking tiles in some way and destroys them in another way
+        - blocking tiles fall from the sky onto player position after boss makes attack
+            - onto every tile player moves over in time period
+                - player should move as little as possible
+            - on spawn do damage, push player randomly away if hit
+        - boss shots ball in player direction, bounces off wall and destorys it
+
+- small change: debug time to mm:ss
+- think: change random position to single function instead of duplicate with small differenes?
+- think: change enemy code more to boss code
+    - less functions all over the place
 
 Play Times:
     lvl  5 best in 163

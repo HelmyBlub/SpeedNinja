@@ -306,8 +306,14 @@ fn stepAndCheckEnemyHitAndProjectileHitAndTiles(player: *main.Player, stepCount:
     while (currIndex < stepCount) {
         player.slashedLastMoveTile = false;
         try ninjaDogVulkanZig.addAfterImages(1, stepDirection, player, state);
-        player.position.x += stepDirection.x * main.TILESIZE;
-        player.position.y += stepDirection.y * main.TILESIZE;
+        const movedPosition: main.Position = .{
+            .x = player.position.x + stepDirection.x * main.TILESIZE,
+            .y = player.position.y + stepDirection.y * main.TILESIZE,
+        };
+        const tilePosition = main.gamePositionToTilePosition(movedPosition);
+        const tileType = mapTileZig.getMapTilePositionType(tilePosition, &state.mapData);
+        if (tileType == .wall) return;
+        player.position = movedPosition;
         if (try checkEnemyHitOnMoveStep(player, direction, state)) {
             ninjaDogVulkanZig.bladeSlashAnimate(player);
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BLADE_CUT_INDICIES[0..], currIndex * 25, 1);
@@ -317,9 +323,8 @@ fn stepAndCheckEnemyHitAndProjectileHitAndTiles(player: *main.Player, stepCount:
         if (enemyObjectZig.checkHitMovingPlayer(player, state)) {
             try main.playerHit(player, state);
         }
-        const tilePosition = main.gamePositionToTilePosition(player.position);
         currIndex += 1;
-        if (currIndex == stepCount and mapTileZig.getMapTilePositionType(tilePosition, &state.mapData) == .ice) {
+        if (currIndex == stepCount and tileType == .ice) {
             currIndex -= 1;
         }
     }

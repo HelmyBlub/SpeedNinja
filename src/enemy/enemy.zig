@@ -10,6 +10,7 @@ const enemyTypeProjectileAttackZig = @import("enemyTypeProjectileAttack.zig");
 const enemyTypePutFireZig = @import("enemyTypePutFire.zig");
 const enemyTypeBlockZig = @import("enemyTypeBlock.zig");
 const enemyTypeIceAttackZig = @import("enemyTypeIceAttack.zig");
+const enemyTypeWallerZig = @import("enemyTypeWaller.zig");
 const mapTileZig = @import("../mapTile.zig");
 
 const EnemyTypeSpawnLevelData = struct {
@@ -34,6 +35,7 @@ pub const EnemyType = enum {
     putFire,
     block,
     ice,
+    waller,
 };
 
 pub const EnemyTypeData = union(EnemyType) {
@@ -45,6 +47,7 @@ pub const EnemyTypeData = union(EnemyType) {
     putFire: enemyTypePutFireZig.EnemyTypePutFireData,
     block: enemyTypeBlockZig.EnemyTypeBlockData,
     ice: enemyTypeIceAttackZig.DelayedAttackWithCooldown,
+    waller: enemyTypeWallerZig.EnemyTypeWallerData,
 };
 
 pub const Enemy = struct {
@@ -85,8 +88,9 @@ const ENEMY_TYPE_SPAWN_LEVEL_DATA = [_]EnemyTypeSpawnLevelData{
     .{ .baseProbability = 1, .enemyType = .moveWithPlayer, .startingLevel = 10, .leavingLevel = 20 },
     .{ .baseProbability = 1, .enemyType = .projectileAttack, .startingLevel = 15, .leavingLevel = 25 },
     .{ .baseProbability = 1, .enemyType = .putFire, .startingLevel = 20, .leavingLevel = 30 },
-    .{ .baseProbability = 1, .enemyType = .block, .startingLevel = 25, .leavingLevel = null },
+    .{ .baseProbability = 1, .enemyType = .block, .startingLevel = 25, .leavingLevel = 35 },
     .{ .baseProbability = 1, .enemyType = .ice, .startingLevel = 30, .leavingLevel = null },
+    .{ .baseProbability = 1, .enemyType = .waller, .startingLevel = 35, .leavingLevel = null },
 };
 
 pub fn tickEnemies(passedTime: i64, state: *main.GameState) !void {
@@ -109,6 +113,9 @@ pub fn tickEnemies(passedTime: i64, state: *main.GameState) !void {
             },
             .ice => {
                 try enemyTypeIceAttackZig.tick(enemy, state);
+            },
+            .waller => {
+                try enemyTypeWallerZig.tick(enemy, state);
             },
             else => {},
         }
@@ -152,6 +159,9 @@ fn createSpawnEnemyEntryEnemy(enemyType: EnemyType) Enemy {
         },
         .ice => {
             return enemyTypeIceAttackZig.createSpawnEnemyEntryEnemy();
+        },
+        .waller => {
+            return enemyTypeWallerZig.createSpawnEnemyEntryEnemy();
         },
     }
 }

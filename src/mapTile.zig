@@ -6,6 +6,7 @@ const windowSdlZig = @import("windowSdl.zig");
 pub const MapTileType = enum {
     normal,
     ice,
+    wall,
 };
 
 pub const MapData = struct {
@@ -99,6 +100,9 @@ pub fn setupVertices(state: *main.GameState) void {
         switch (tileType) {
             .ice => {
                 paintVulkanZig.verticesForRectangle(vulkan.x, vulkan.y, width, height, .{ 0, 0, 1 }, null, &state.vkState.verticeData.triangles);
+            },
+            .wall => {
+                paintVulkanZig.verticesForRectangle(vulkan.x, vulkan.y, width, height, .{ 0, 0, 0 }, null, &state.vkState.verticeData.triangles);
             },
             else => {},
         }

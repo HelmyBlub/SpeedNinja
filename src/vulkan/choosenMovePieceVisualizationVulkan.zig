@@ -60,13 +60,18 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
                     const modColor = player.choosenMoveOptionVisualizationOverlapping and @mod(totalStepCount, highlightModLimit) == @mod(@as(usize, @intCast(@divFloor(state.gameTime, 100))), highlightModLimit);
                     const lineColor = if (modColor) highlightedLineColor else lineColorForDirection;
                     lastGamePosition = gamePosition;
-                    gamePosition.x += moveX;
-                    gamePosition.y += moveY;
+                    const nextPosition: main.Position = .{
+                        .x = gamePosition.x + moveX,
+                        .y = gamePosition.y + moveY,
+                    };
+                    const tilePosition = main.gamePositionToTilePosition(nextPosition);
+                    const tileType = mapTileZig.getMapTilePositionType(tilePosition, &state.mapData);
+                    if (tileType == .wall) break;
+                    gamePosition = nextPosition;
                     var x = gamePosition.x * onePixelXInVulkan * state.camera.zoom;
                     var y = gamePosition.y * onePixelYInVulkan * state.camera.zoom;
                     stepCount += 1;
-                    const tilePosition = main.gamePositionToTilePosition(gamePosition);
-                    if (stepCount == moveStep.stepCount and mapTileZig.getMapTilePositionType(tilePosition, &state.mapData) == .ice) {
+                    if (stepCount == moveStep.stepCount and tileType == .ice) {
                         stepCount -= 1;
                     }
                     if (stepCount == moveStep.stepCount) {
