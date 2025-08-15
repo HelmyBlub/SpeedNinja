@@ -1,27 +1,25 @@
 Tasks:
 - snowball boss idea
     - each time boss hit, rolls in hit direction
-        - rolling over ice tiles makes boss bigger?
         - rolling boss leaves behind ice tiles
-            - makes him smaller            
-        - boss lost all ice, ice collecting phase
-            - boss runs around pick up ice
-                - when reached x ice again, back to snowball phase
+        - taking 10% damage spawn enemies
             
             
 
 - after play test: should ice tiles disappear after time?
 
 - next enemy
-
+    - waller enemy
+        - places pieces which block path, enemies can not spawn on them
 
 Play Times:
     lvl  5 best in 163
     lvl 10 best in 222 total 406
     lvl 15 best in 263 total 706
     lvl 20 best in 333 total 1088
-    lvl 25 best in 556
+    lvl 25 best in 556 total 1755
     lvl 30 best in 540 total 2256
+    lvl 35 best in 550 total 2859 (work in progress boss)
 
 Next ideas:
 - 1 new enemies all 5 levels

@@ -8,20 +8,21 @@ const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
 const movePieceZig = @import("../movePiece.zig");
 const mapTileZig = @import("../mapTile.zig");
+const enemyTypeIceAttackZig = @import("../enemy/enemyTypeIceAttack.zig");
 
 const SnowballState = enum {
     stationary,
     rolling,
-    collecting,
 };
 
 pub const BossSnowballData = struct {
     nextStateTime: i64 = 0,
     state: SnowballState = .stationary,
-    iceCount: u8 = 20,
+    maxEnemyToSpawn: i8 = 19,
+    enemyToSpawn: u8 = 19,
     rollDirection: u8 = 0,
     nextRollTime: i64 = 0,
-    rollInterval: i32 = 500,
+    rollInterval: i32 = 400,
 };
 
 const BOSS_NAME = "Snowball";
@@ -67,15 +68,11 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             const tilePos = main.gamePositionToTilePosition(boss.position);
             const tileType = mapTileZig.getMapTilePositionType(tilePos, &state.mapData);
             if (tileType == .ice) {
-                data.iceCount +|= 1;
                 mapTileZig.setMapTilePositionType(tilePos, .normal, &state.mapData);
             } else if (tileType == .normal) {
-                if (data.iceCount > 0) {
-                    mapTileZig.setMapTilePositionType(tilePos, .ice, &state.mapData);
-                    data.iceCount -|= 1;
-                }
+                mapTileZig.setMapTilePositionType(tilePos, .ice, &state.mapData);
             }
-            if (data.iceCount == 0 or !canRollInDirection(boss, data.rollDirection, state)) {
+            if (!canRollInDirection(boss, data.rollDirection, state)) {
                 data.state = .stationary;
             }
         }
@@ -104,15 +101,59 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
             data.state = .stationary;
         } else {
             data.rollDirection = hitDirection;
-            data.nextRollTime = state.gameTime;
+            if (data.nextRollTime < state.gameTime) data.nextRollTime = state.gameTime + data.rollInterval;
             data.state = .rolling;
         }
-        if (data.iceCount == 0) {
-            boss.hp -|= 1;
-        }
+        boss.hp -|= 1;
+        try checkSpawnEnemy(boss, state);
         return true;
     }
     return false;
+}
+
+fn checkSpawnEnemy(boss: *bossZig.Boss, state: *main.GameState) !void {
+    if (boss.hp == 0) return;
+    var spawnMore = true;
+    while (spawnMore) {
+        const data = &boss.typeData.snowball;
+        const enemySpawnPerCent: f32 = @as(f32, @floatFromInt(boss.maxHp)) / @as(f32, @floatFromInt(data.maxEnemyToSpawn + 1)) * @as(f32, @floatFromInt(data.enemyToSpawn));
+        const spawnOnHp: u32 = @intFromFloat(enemySpawnPerCent);
+        if (boss.hp <= spawnOnHp) {
+            var enemy = enemyTypeIceAttackZig.createSpawnEnemyEntryEnemy();
+            enemy.position = getRandomFreePosition(state);
+            data.enemyToSpawn -|= 1;
+            try state.enemies.append(enemy);
+        } else {
+            spawnMore = false;
+        }
+    }
+}
+
+fn getRandomFreePosition(state: *main.GameState) main.Position {
+    var randomPos: main.Position = .{ .x = 0, .y = 0 };
+    var validPosition = false;
+    searchPos: while (!validPosition) {
+        const mapTileRadiusI32 = @as(i32, @intCast(state.mapData.tileRadius));
+        randomPos.x = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusI32, mapTileRadiusI32) * main.TILESIZE);
+        randomPos.y = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusI32, mapTileRadiusI32) * main.TILESIZE);
+        for (state.bosses.items) |boss| {
+            if (main.calculateDistance(randomPos, boss.position) < main.TILESIZE * 3) {
+                continue :searchPos;
+            }
+        }
+        for (state.enemies.items) |enemy| {
+            if (main.calculateDistance(randomPos, enemy.position) < main.TILESIZE) {
+                continue :searchPos;
+            }
+        }
+        for (state.players.items) |player| {
+            if (main.calculateDistance(randomPos, player.position) < main.TILESIZE) {
+                continue :searchPos;
+            }
+        }
+        validPosition = true;
+    }
+    return randomPos;
 }
 
 fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) void {
