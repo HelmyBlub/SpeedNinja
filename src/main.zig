@@ -35,10 +35,8 @@ pub const GameState = struct {
     roundStartedTime: i64 = 0,
     playerImmunityFrames: i64 = 1000,
     bosses: std.ArrayList(bossZig.Boss) = undefined,
-    enemies: std.ArrayList(enemyZig.Enemy) = undefined,
+    enemyData: enemyZig.EnemyData = .{},
     spriteCutAnimations: std.ArrayList(enemyZig.CutSpriteAnimation) = undefined,
-    enemySpawnData: enemyZig.EnemySpawnData = undefined,
-    enemyObjects: std.ArrayList(enemyObjectZig.EnemyObject) = undefined,
     players: std.ArrayList(Player),
     soundMixer: ?soundMixerZig.SoundMixer = null,
     gameEnded: bool = false,
@@ -149,7 +147,7 @@ fn mainLoop(state: *GameState) !void {
     var currentTime = lastTime;
     var passedTime: i64 = 0;
     while (!state.gameEnded) {
-        if (state.enemies.items.len == 0 and state.gamePhase == .combat) {
+        if (state.enemyData.enemies.items.len == 0 and state.gamePhase == .combat) {
             try startNextRound(state);
         } else if (shouldEndLevel(state)) {
             if (state.gamePhase == .boss) {
@@ -183,7 +181,7 @@ fn mainLoop(state: *GameState) !void {
 }
 
 pub fn startNextRound(state: *GameState) !void {
-    state.enemies.clearRetainingCapacity();
+    state.enemyData.enemies.clearRetainingCapacity();
     if (state.round == 1) {
         state.roundEndTimeMS = state.gameTime + state.levelInitialTime;
     } else {
@@ -209,8 +207,8 @@ pub fn endShoppingPhase(state: *GameState) !void {
 }
 
 pub fn startNextLevel(state: *GameState) !void {
-    state.enemies.clearRetainingCapacity();
-    state.enemyObjects.clearRetainingCapacity();
+    state.enemyData.enemies.clearRetainingCapacity();
+    state.enemyData.enemyObjects.clearRetainingCapacity();
     mapTileZig.resetMapTiles(state.mapData.tiles);
     state.gamePhase = .combat;
     state.level += 1;
@@ -295,6 +293,10 @@ pub fn restart(state: *GameState) !void {
     state.gameTime = 0;
     state.roundStartedTime = 0;
     state.lastBossDefeatedTime = 0;
+    if (state.enemyData.movePieceEnemyMovePiece) |movePiece| {
+        state.allocator.free(movePiece.steps);
+        state.enemyData.movePieceEnemyMovePiece = null;
+    }
     mapTileZig.resetMapTiles(state.mapData.tiles);
     for (state.players.items) |*player| {
         player.hp = 2;
@@ -389,7 +391,7 @@ pub fn isPositionEmpty(position: Position, state: *GameState) bool {
 }
 
 pub fn isTileEmpty(tilePosition: TilePosition, state: *GameState) bool {
-    for (state.enemies.items) |enemy| {
+    for (state.enemyData.enemies.items) |enemy| {
         const enemyTile = gamePositionToTilePosition(enemy.position);
         if (enemyTile.x == tilePosition.x and enemyTile.y == tilePosition.y) return false;
     }

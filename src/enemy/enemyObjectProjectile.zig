@@ -28,7 +28,7 @@ pub fn createEnemyObjectFunctions() enemyObjectZig.EnemyObjectFunctions {
 
 pub fn spawnProjectile(position: main.Position, direction: u8, imageIndex: u8, moveInterval: i32, ice: bool, state: *main.GameState) !void {
     if (ice) mapTileZig.setMapTilePositionType(main.gamePositionToTilePosition(position), .ice, &state.mapData);
-    try state.enemyObjects.append(.{
+    try state.enemyData.enemyObjects.append(.{
         .position = position,
         .functionsIndex = 0,
         .typeData = .{ .projectile = .{

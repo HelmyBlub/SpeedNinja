@@ -122,7 +122,7 @@ fn checkSpawnEnemy(boss: *bossZig.Boss, state: *main.GameState) !void {
             var enemy = enemyZig.ENEMY_FUNCTIONS.get(.ice).createSpawnEnemyEntryEnemy();
             enemy.position = getRandomFreePosition(state);
             data.enemyToSpawn -|= 1;
-            try state.enemies.append(enemy);
+            try state.enemyData.enemies.append(enemy);
         } else {
             spawnMore = false;
         }
@@ -141,7 +141,7 @@ fn getRandomFreePosition(state: *main.GameState) main.Position {
                 continue :searchPos;
             }
         }
-        for (state.enemies.items) |enemy| {
+        for (state.enemyData.enemies.items) |enemy| {
             if (main.calculateDistance(randomPos, enemy.position) < main.TILESIZE) {
                 continue :searchPos;
             }

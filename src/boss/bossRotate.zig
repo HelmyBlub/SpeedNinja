@@ -92,25 +92,25 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             rotateData.immune = true;
             rotateData.state = .immune;
             const spawnDistance = main.TILESIZE * 3;
-            try state.enemies.append(.{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_BOSS_ROTATE_PILLAR, .position = .{
+            try state.enemyData.enemies.append(.{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_BOSS_ROTATE_PILLAR, .position = .{
                 .x = -spawnDistance,
                 .y = -spawnDistance,
             } });
-            try state.enemies.append(.{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_BOSS_ROTATE_PILLAR, .position = .{
+            try state.enemyData.enemies.append(.{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_BOSS_ROTATE_PILLAR, .position = .{
                 .x = spawnDistance,
                 .y = -spawnDistance,
             } });
-            try state.enemies.append(.{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_BOSS_ROTATE_PILLAR, .position = .{
+            try state.enemyData.enemies.append(.{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_BOSS_ROTATE_PILLAR, .position = .{
                 .x = spawnDistance,
                 .y = spawnDistance,
             } });
-            try state.enemies.append(.{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_BOSS_ROTATE_PILLAR, .position = .{
+            try state.enemyData.enemies.append(.{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_BOSS_ROTATE_PILLAR, .position = .{
                 .x = -spawnDistance,
                 .y = spawnDistance,
             } });
         },
         .immune => {
-            if (state.enemies.items.len == 0) {
+            if (state.enemyData.enemies.items.len == 0) {
                 rotateData.immune = false;
                 try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_IMMUNITY_DOWN, 0, 1);
                 rotateData.state = .rebuildPillars;
@@ -183,7 +183,7 @@ fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) void {
         .x = boss.position.x * state.camera.zoom * onePixelXInVulkan,
         .y = boss.position.y * state.camera.zoom * onePixelYInVulkan,
     };
-    for (state.enemies.items) |enemy| {
+    for (state.enemyData.enemies.items) |enemy| {
         if (lines.verticeCount + 2 >= lines.vertices.len) break;
         const toVulkan: main.Position = .{
             .x = enemy.position.x * state.camera.zoom * onePixelXInVulkan,

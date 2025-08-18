@@ -6,19 +6,11 @@ const dataVulkanZig = @import("dataVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 const movePieceZig = @import("../movePiece.zig");
 const bossZig = @import("../boss/boss.zig");
-const enemyTypeAttackZig = @import("../enemy/enemyTypeAttack.zig");
-const enemyTypeMoveZig = @import("../enemy/enemyTypeMove.zig");
-const enemyTypeMoveWithPlayerZig = @import("../enemy/enemyTypeMoveWithPlayer.zig");
-const enemyTypeProjectileAttackZig = @import("../enemy/enemyTypeProjectileAttack.zig");
-const enemyTypePutFireZig = @import("../enemy/enemyTypePutFire.zig");
-const enemyTypeBlockZig = @import("../enemy/enemyTypeBlock.zig");
-const enemyTypeIceAttackZig = @import("../enemy/enemyTypeIceAttack.zig");
-const enemyTypeWallerZig = @import("../enemy/enemyTypeWaller.zig");
 const enemyZig = @import("../enemy/enemy.zig");
 
 pub fn setupVertices(state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
-    for (state.enemies.items) |*enemy| {
+    for (state.enemyData.enemies.items) |*enemy| {
         if (enemyZig.ENEMY_FUNCTIONS.get(enemy.enemyTypeData).setupVertices) |fVertices| {
             fVertices(enemy, state);
         } else {
@@ -28,7 +20,7 @@ pub fn setupVertices(state: *main.GameState) void {
 }
 
 pub fn setupVerticesGround(state: *main.GameState) void {
-    for (state.enemies.items) |*enemy| {
+    for (state.enemyData.enemies.items) |*enemy| {
         if (enemyZig.ENEMY_FUNCTIONS.get(enemy.enemyTypeData).setupVerticesGround) |ground| ground(enemy, state);
     }
     for (state.bosses.items) |*boss| {

@@ -11,7 +11,15 @@ const enemyTypePutFireZig = @import("enemyTypePutFire.zig");
 const enemyTypeBlockZig = @import("enemyTypeBlock.zig");
 const enemyTypeIceAttackZig = @import("enemyTypeIceAttack.zig");
 const enemyTypeWallerZig = @import("enemyTypeWaller.zig");
+const enemyTypeMovePieceZig = @import("enemyTypeMovePiece.zig");
 const mapTileZig = @import("../mapTile.zig");
+
+pub const EnemyData = struct {
+    enemies: std.ArrayList(Enemy) = undefined,
+    enemySpawnData: EnemySpawnData = undefined,
+    enemyObjects: std.ArrayList(enemyObjectZig.EnemyObject) = undefined,
+    movePieceEnemyMovePiece: ?movePieceZig.MovePiece = null,
+};
 
 pub const EnemyFunctions = struct {
     createSpawnEnemyEntryEnemy: *const fn () Enemy,
@@ -32,6 +40,7 @@ pub const EnemyType = enum {
     block,
     ice,
     waller,
+    movePiece,
 };
 
 pub const EnemyTypeData = union(EnemyType) {
@@ -44,6 +53,7 @@ pub const EnemyTypeData = union(EnemyType) {
     block: enemyTypeBlockZig.EnemyTypeBlockData,
     ice: enemyTypeIceAttackZig.DelayedAttackWithCooldown,
     waller: enemyTypeWallerZig.EnemyTypeWallerData,
+    movePiece: enemyTypeMovePieceZig.EnemyTypeMovePieceData,
 };
 
 pub const ENEMY_FUNCTIONS = std.EnumArray(EnemyType, EnemyFunctions).init(.{
@@ -56,6 +66,7 @@ pub const ENEMY_FUNCTIONS = std.EnumArray(EnemyType, EnemyFunctions).init(.{
     .block = enemyTypeBlockZig.create(),
     .ice = enemyTypeIceAttackZig.create(),
     .waller = enemyTypeWallerZig.create(),
+    .movePiece = enemyTypeMovePieceZig.create(),
 });
 
 const ENEMY_TYPE_SPAWN_LEVEL_DATA = [_]EnemyTypeSpawnLevelData{
@@ -66,8 +77,9 @@ const ENEMY_TYPE_SPAWN_LEVEL_DATA = [_]EnemyTypeSpawnLevelData{
     .{ .baseProbability = 1, .enemyType = .projectileAttack, .startingLevel = 15, .leavingLevel = 25 },
     .{ .baseProbability = 1, .enemyType = .putFire, .startingLevel = 20, .leavingLevel = 30 },
     .{ .baseProbability = 1, .enemyType = .block, .startingLevel = 25, .leavingLevel = 35 },
-    .{ .baseProbability = 1, .enemyType = .ice, .startingLevel = 30, .leavingLevel = null },
+    .{ .baseProbability = 1, .enemyType = .ice, .startingLevel = 30, .leavingLevel = 40 },
     .{ .baseProbability = 1, .enemyType = .waller, .startingLevel = 35, .leavingLevel = null },
+    .{ .baseProbability = 1, .enemyType = .movePiece, .startingLevel = 40, .leavingLevel = null },
 };
 
 const EnemyTypeSpawnLevelData = struct {
@@ -79,7 +91,7 @@ const EnemyTypeSpawnLevelData = struct {
 
 pub const EnemyTypeDelayedActionData = struct {
     delay: i64,
-    direction: u8,
+    direction: u8 = 0,
     startTime: ?i64 = null,
 };
 
@@ -115,14 +127,14 @@ pub const MoveAttackWarningTile = struct {
 };
 
 pub fn tickEnemies(passedTime: i64, state: *main.GameState) !void {
-    for (state.enemies.items) |*enemy| {
+    for (state.enemyData.enemies.items) |*enemy| {
         if (ENEMY_FUNCTIONS.get(enemy.enemyTypeData).tick) |tick| try tick(enemy, passedTime, state);
     }
     try enemyObjectZig.tick(passedTime, state);
 }
 
 pub fn onPlayerMoved(player: *main.Player, state: *main.GameState) !void {
-    for (state.enemies.items) |*enemy| {
+    for (state.enemyData.enemies.items) |*enemy| {
         if (ENEMY_FUNCTIONS.get(enemy.enemyTypeData).onPlayerMoved) |moved| try moved(enemy, player, state);
     }
 }
@@ -163,24 +175,25 @@ pub fn fillMoveAttackWarningTiles(startPosition: main.Position, tileList: *std.A
 
 pub fn initEnemy(state: *main.GameState) !void {
     state.spriteCutAnimations = std.ArrayList(CutSpriteAnimation).init(state.allocator);
-    state.enemies = std.ArrayList(Enemy).init(state.allocator);
-    state.enemySpawnData.enemyEntries = std.ArrayList(EnemySpawnEntry).init(state.allocator);
-    state.enemyObjects = std.ArrayList(enemyObjectZig.EnemyObject).init(state.allocator);
+    state.enemyData.enemies = std.ArrayList(Enemy).init(state.allocator);
+    state.enemyData.enemySpawnData.enemyEntries = std.ArrayList(EnemySpawnEntry).init(state.allocator);
+    state.enemyData.enemyObjects = std.ArrayList(enemyObjectZig.EnemyObject).init(state.allocator);
     try setupSpawnEnemiesOnLevelChange(state);
 }
 
 pub fn setupSpawnEnemiesOnLevelChange(state: *main.GameState) !void {
+    const enemySpawnData = &state.enemyData.enemySpawnData;
     if (state.level == 1) {
-        state.enemySpawnData.enemyEntries.clearRetainingCapacity();
+        enemySpawnData.enemyEntries.clearRetainingCapacity();
     }
     for (ENEMY_TYPE_SPAWN_LEVEL_DATA) |data| {
         if (data.startingLevel == state.level) {
-            try state.enemySpawnData.enemyEntries.append(.{ .probability = 1, .enemy = createSpawnEnemyEntryEnemy(data.enemyType) });
+            try enemySpawnData.enemyEntries.append(.{ .probability = 1, .enemy = createSpawnEnemyEntryEnemy(data.enemyType) });
         }
         if (data.leavingLevel == state.level) {
-            for (state.enemySpawnData.enemyEntries.items, 0..) |entry, index| {
+            for (enemySpawnData.enemyEntries.items, 0..) |entry, index| {
                 if (entry.enemy.enemyTypeData == data.enemyType) {
-                    _ = state.enemySpawnData.enemyEntries.swapRemove(index);
+                    _ = enemySpawnData.enemyEntries.swapRemove(index);
                     break;
                 }
             }
@@ -190,7 +203,7 @@ pub fn setupSpawnEnemiesOnLevelChange(state: *main.GameState) !void {
 }
 
 fn scaleEnemiesToLevel(state: *main.GameState) void {
-    for (state.enemySpawnData.enemyEntries.items) |*entry| {
+    for (state.enemyData.enemySpawnData.enemyEntries.items) |*entry| {
         for (ENEMY_TYPE_SPAWN_LEVEL_DATA) |data| {
             if (entry.enemy.enemyTypeData == data.enemyType) {
                 const baseProbability = data.baseProbability;
@@ -201,14 +214,17 @@ fn scaleEnemiesToLevel(state: *main.GameState) void {
             }
         }
     }
-    calcAndSetEnemySpawnProbabilities(&state.enemySpawnData);
+    calcAndSetEnemySpawnProbabilities(&state.enemyData.enemySpawnData);
 }
 
 pub fn destroyEnemy(state: *main.GameState) void {
-    state.enemySpawnData.enemyEntries.deinit();
     state.spriteCutAnimations.deinit();
-    state.enemies.deinit();
-    state.enemyObjects.deinit();
+    state.enemyData.enemySpawnData.enemyEntries.deinit();
+    state.enemyData.enemies.deinit();
+    state.enemyData.enemyObjects.deinit();
+    if (state.enemyData.movePieceEnemyMovePiece) |movePiece| {
+        state.allocator.free(movePiece.steps);
+    }
 }
 
 pub fn checkStationaryPlayerHit(position: main.Position, state: *main.GameState) !void {
@@ -234,9 +250,9 @@ pub fn checkPlayerHit(position: main.Position, state: *main.GameState) !void {
 }
 
 pub fn setupEnemies(state: *main.GameState) !void {
-    const enemies = &state.enemies;
+    const enemies = &state.enemyData.enemies;
     enemies.clearRetainingCapacity();
-    if (state.enemySpawnData.enemyEntries.items.len == 0) return;
+    if (state.enemyData.enemySpawnData.enemyEntries.items.len == 0) return;
     const rand = std.crypto.random;
     const enemyCount = state.round + @min(5, (@divFloor(state.level - 1, 2)));
     const mapTileRadius = mapTileZig.BASE_MAP_TILE_RADIUS + @as(u32, @intFromFloat(@sqrt(@as(f32, @floatFromInt(enemyCount)))));
@@ -251,7 +267,7 @@ pub fn setupEnemies(state: *main.GameState) !void {
         };
         if (main.isPositionEmpty(randomPos, state)) {
             const randomFloat = std.crypto.random.float(f32);
-            for (state.enemySpawnData.enemyEntries.items) |entry| {
+            for (state.enemyData.enemySpawnData.enemyEntries.items) |entry| {
                 if (randomFloat >= entry.calcedProbabilityStart and randomFloat < entry.calcedProbabilityEnd) {
                     var enemy = entry.enemy;
                     enemy.position = randomPos;

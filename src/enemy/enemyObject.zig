@@ -33,24 +33,24 @@ pub const ENEMY_OBJECT_FUNCTIONS = [_]EnemyObjectFunctions{
 };
 
 pub fn setupVerticesGround(state: *main.GameState) void {
-    for (state.enemyObjects.items) |*object| {
+    for (state.enemyData.enemyObjects.items) |*object| {
         if (ENEMY_OBJECT_FUNCTIONS[object.functionsIndex].setupVerticesGround) |setup| setup(object, state);
     }
 }
 
 pub fn setupVertices(state: *main.GameState) void {
-    for (state.enemyObjects.items) |*object| {
+    for (state.enemyData.enemyObjects.items) |*object| {
         ENEMY_OBJECT_FUNCTIONS[object.functionsIndex].setupVertices(object, state);
     }
 }
 
 pub fn tick(passedTime: i64, state: *main.GameState) !void {
     var currentIndex: usize = 0;
-    while (currentIndex < state.enemyObjects.items.len) {
-        const object = &state.enemyObjects.items[currentIndex];
+    while (currentIndex < state.enemyData.enemyObjects.items.len) {
+        const object = &state.enemyData.enemyObjects.items[currentIndex];
         const functions = ENEMY_OBJECT_FUNCTIONS[object.functionsIndex];
         if (functions.shouldBeRemoved(object, state)) {
-            _ = state.enemyObjects.swapRemove(currentIndex);
+            _ = state.enemyData.enemyObjects.swapRemove(currentIndex);
         } else {
             try functions.tick(object, passedTime, state);
             currentIndex += 1;
@@ -59,7 +59,7 @@ pub fn tick(passedTime: i64, state: *main.GameState) !void {
 }
 
 pub fn checkHitMovingPlayer(player: *main.Player, state: *main.GameState) bool {
-    for (state.enemyObjects.items) |*object| {
+    for (state.enemyData.enemyObjects.items) |*object| {
         const functions = ENEMY_OBJECT_FUNCTIONS[object.functionsIndex];
         if (functions.hitCheckMovingPlayer) |hitCheckMovingPlayer| {
             if (hitCheckMovingPlayer(object, player, state)) {

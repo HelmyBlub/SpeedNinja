@@ -21,7 +21,6 @@ fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
         .enemyTypeData = .{
             .projectileAttack = .{
                 .delay = 5000,
-                .direction = std.crypto.random.int(u2),
             },
         },
     };

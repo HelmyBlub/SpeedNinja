@@ -1,9 +1,8 @@
 Tasks:
-- think: change enemy code more to boss code
-    - less functions all over the place
 - next enemy idea
     - enemy which attacks when player steps onto warning tile of enemy
         - moves when player moves over warning tiles?
+        - check: affected by ice and wall?
 - next boss idea (45)
     - boss moves with player
         - uses move pieces
@@ -19,6 +18,10 @@ Tasks:
 - waller enemy
     - unreachable with ice
         - possible, but hard to prevent
+- think: change enemy object code to use enum array like enemies
+    - removes index
+- think: change boss code to use enum array like enemies
+    - removes index
 
 Play Times:
     lvl  5 best in 2:30  
