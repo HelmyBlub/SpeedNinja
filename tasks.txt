@@ -1,12 +1,12 @@
 Tasks:
-- next boss idea
-    - boss creats blocking tiles in some way and destroys them in another way
-        - blocking tiles fall from the sky onto player position
-            - onto every tile player moves over in time period
-                - player should move as little as possible
-            - on spawn do damage, push player randomly away if hit
-        - boss shoots bombs random tiles, do explode and remove walls on surrounding tiles
-            - shoots more, if more walls around?
+- boss waller
+    - images
+        - bomb
+        - waller boss
+    - sound
+        - bomb explode
+        - bomb throw
+        - wall 
 
 - small change: debug time to mm:ss
 - think: change random position to single function instead of duplicate with small differenes?
@@ -18,12 +18,13 @@ Tasks:
 
 Play Times:
     lvl  5 best in 163
-    lvl 10 best in 222 total 406
-    lvl 15 best in 263 total 706
-    lvl 20 best in 333 total 1088
-    lvl 25 best in 556 total 1755
-    lvl 30 best in 540 total 2256
-    lvl 35 best in 550 total 2859 (work in progress boss)
+    lvl 10 best in 222 total  406
+    lvl 15 best in 263 total  706
+    lvl 20 best in 326 total 1054
+    lvl 25 best in 504 total 1558
+    lvl 30 best in 478 total 2037
+    lvl 35 best in 359 total 2396 
+    lvl 40 best in   ? total  ?
 
 Next ideas:
 - 1 new enemies all 5 levels

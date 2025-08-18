@@ -68,7 +68,7 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
     try state.bosses.append(.{
         .hp = 10,
         .maxHp = 10,
-        .imageIndex = imageZig.IMAGE_BOSS_ROLL,
+        .imageIndex = imageZig.IMAGE_BOSS_WALLER,
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
         .dataIndex = bossDataIndex,
@@ -88,6 +88,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     while (currentWallAttackIndex < data.wallAttackTiles.items.len) {
         const attackTile = data.wallAttackTiles.items[currentWallAttackIndex];
         if (attackTile.hitTime <= state.gameTime) {
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_WALL_PLACED_INDICIES[0..], 0, 1);
             for (state.players.items) |*player| {
                 const playerTile = main.gamePositionToTilePosition(player.position);
                 if (playerTile.x == attackTile.pos.x and playerTile.y == attackTile.pos.y) {
@@ -105,6 +106,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
 
     if (data.bombNextTime != null) {
         if (data.bombNextTime.? <= state.gameTime) {
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_THROW_INDICIES[0..], 0, 0.5);
             const length: f32 = @floatFromInt(state.mapData.tileRadius * 2 + 1);
             const randomTileX: i16 = @as(i16, @intFromFloat(std.crypto.random.float(f32) * length - length / 2));
             const randomTileY: i16 = @as(i16, @intFromFloat(std.crypto.random.float(f32) * length - length / 2));
@@ -140,6 +142,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             }
         }
         if (bomb.explodeTime != null and bomb.explodeTime.? <= state.gameTime) {
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_EXPLODE_INDICIES[0..], 0, 1);
             const bombTilePosition = main.gamePositionToTilePosition(bomb.position);
             const damageTileRectangle: main.TileRectangle = .{
                 .pos = .{ .x = bombTilePosition.x - data.bombAoeSize, .y = bombTilePosition.y - data.bombAoeSize },
@@ -224,7 +227,7 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
         }
         paintVulkanZig.verticesForComplexSpriteDefault(
             bombPosition,
-            boss.imageIndex,
+            imageZig.IMAGE_BOMB,
             &state.vkState.verticeData.spritesComplex,
             state,
         );
