@@ -139,7 +139,7 @@ fn debugTextAfterBossLevelFinished(state: *GameState) void {
     const totalSecondsPassed = @divFloor(state.gameTime, 1000);
     const totalSeconds = @mod(totalSecondsPassed, 60);
     const totalMinutes = @divFloor(totalSecondsPassed, 60);
-    if (minutes > 0) std.debug.print("{d}:", .{totalMinutes});
+    if (totalMinutes > 0) std.debug.print("{d}:", .{totalMinutes});
     if (totalSeconds < 10) std.debug.print("0", .{});
     std.debug.print("{d}\n", .{totalSeconds});
 }
@@ -280,7 +280,15 @@ fn allPlayerOutOfMoveOptions(state: *GameState) bool {
 }
 
 pub fn restart(state: *GameState) !void {
-    if (state.gameTime > 1000) std.debug.print("ended on lvl {d} in time: {d}\n", .{ state.level, @divFloor(state.gameTime, 1000) });
+    if (state.gameTime > 1000) {
+        std.debug.print("ended on lvl {d} in time: ", .{state.level});
+        const totalSecondsPassed = @divFloor(state.gameTime, 1000);
+        const totalSeconds = @mod(totalSecondsPassed, 60);
+        const totalMinutes = @divFloor(totalSecondsPassed, 60);
+        if (totalMinutes > 0) std.debug.print("{d}:", .{totalMinutes});
+        if (totalSeconds < 10) std.debug.print("0", .{});
+        std.debug.print("{d}\n", .{totalSeconds});
+    }
     state.level = 0;
     state.round = 0;
     state.gamePhase = .combat;
