@@ -13,7 +13,15 @@ pub const EnemyTypeWallerData = struct {
     attackTime: ?i64 = null,
 };
 
-pub fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
+pub fn create() enemyZig.EnemyFunctions {
+    return enemyZig.EnemyFunctions{
+        .createSpawnEnemyEntryEnemy = createSpawnEnemyEntryEnemy,
+        .tick = tick,
+        .setupVerticesGround = setupVerticesGround,
+    };
+}
+
+fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
     return .{
         .imageIndex = imageZig.IMAGE_ENEMY_WALLER,
         .position = .{ .x = 0, .y = 0 },
@@ -23,7 +31,8 @@ pub fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
     };
 }
 
-pub fn tick(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
+fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
+    _ = passedTime;
     const data = &enemy.enemyTypeData.waller;
     if (data.attackTime) |attackTime| {
         if (attackTime <= state.gameTime) {
@@ -103,7 +112,7 @@ fn removeOneRandomAdjacentWall(tilePosition: main.TilePosition, state: *main.Gam
     mapTileZig.setMapTilePositionType(hitTilePosition, .normal, &state.mapData);
 }
 
-pub fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) void {
+fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) void {
     const data = enemy.enemyTypeData.waller;
     if (data.attackTime) |attackTime| {
         const moveStep = movePieceZig.getStepDirection(data.direction);

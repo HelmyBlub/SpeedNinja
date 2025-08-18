@@ -1,4 +1,6 @@
 Tasks:
+- think: change enemy code more to boss code
+    - less functions all over the place
 - next enemy idea
     - enemy which attacks when player steps onto warning tile of enemy
         - moves when player moves over warning tiles?
@@ -8,9 +10,12 @@ Tasks:
         - places fire
         - image: double eyes
 
+- end boss ideas (50)
+    - dragon
+    - bigger than one tile
+    - multiple phases
+
 - think: change random position to single function instead of duplicate with small differenes?
-- think: change enemy code more to boss code
-    - less functions all over the place
 - waller enemy
     - unreachable with ice
         - possible, but hard to prevent

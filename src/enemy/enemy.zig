@@ -13,17 +13,13 @@ const enemyTypeIceAttackZig = @import("enemyTypeIceAttack.zig");
 const enemyTypeWallerZig = @import("enemyTypeWaller.zig");
 const mapTileZig = @import("../mapTile.zig");
 
-const EnemyTypeSpawnLevelData = struct {
-    enemyType: EnemyType,
-    startingLevel: u32,
-    leavingLevel: ?u32,
-    baseProbability: f32,
-};
-
-pub const EnemyTypeDelayedActionData = struct {
-    delay: i64,
-    direction: u8,
-    startTime: ?i64 = null,
+pub const EnemyFunctions = struct {
+    createSpawnEnemyEntryEnemy: *const fn () Enemy,
+    tick: ?*const fn (enemy: *Enemy, passedTime: i64, state: *main.GameState) anyerror!void = null,
+    onPlayerMoved: ?*const fn (enemy: *Enemy, player: *main.Player, state: *main.GameState) anyerror!void = null,
+    setupVertices: ?*const fn (enemy: *Enemy, state: *main.GameState) void = null,
+    setupVerticesGround: ?*const fn (enemy: *Enemy, state: *main.GameState) void = null,
+    isEnemyHit: ?*const fn (enemy: *Enemy, hitArea: main.TileRectangle, hitDirection: u8, state: *main.GameState) anyerror!bool = null,
 };
 
 pub const EnemyType = enum {
@@ -48,6 +44,43 @@ pub const EnemyTypeData = union(EnemyType) {
     block: enemyTypeBlockZig.EnemyTypeBlockData,
     ice: enemyTypeIceAttackZig.DelayedAttackWithCooldown,
     waller: enemyTypeWallerZig.EnemyTypeWallerData,
+};
+
+pub const ENEMY_FUNCTIONS = std.EnumArray(EnemyType, EnemyFunctions).init(.{
+    .nothing = .{ .createSpawnEnemyEntryEnemy = nothingEntryEnemy },
+    .attack = enemyTypeAttackZig.create(),
+    .move = enemyTypeMoveZig.create(),
+    .moveWithPlayer = enemyTypeMoveWithPlayerZig.create(),
+    .projectileAttack = enemyTypeProjectileAttackZig.create(),
+    .putFire = enemyTypePutFireZig.create(),
+    .block = enemyTypeBlockZig.create(),
+    .ice = enemyTypeIceAttackZig.create(),
+    .waller = enemyTypeWallerZig.create(),
+});
+
+const ENEMY_TYPE_SPAWN_LEVEL_DATA = [_]EnemyTypeSpawnLevelData{
+    .{ .baseProbability = 0.1, .enemyType = .nothing, .startingLevel = 1, .leavingLevel = 3 },
+    .{ .baseProbability = 1, .enemyType = .attack, .startingLevel = 2, .leavingLevel = 10 },
+    .{ .baseProbability = 1, .enemyType = .move, .startingLevel = 5, .leavingLevel = 15 },
+    .{ .baseProbability = 1, .enemyType = .moveWithPlayer, .startingLevel = 10, .leavingLevel = 20 },
+    .{ .baseProbability = 1, .enemyType = .projectileAttack, .startingLevel = 15, .leavingLevel = 25 },
+    .{ .baseProbability = 1, .enemyType = .putFire, .startingLevel = 20, .leavingLevel = 30 },
+    .{ .baseProbability = 1, .enemyType = .block, .startingLevel = 25, .leavingLevel = 35 },
+    .{ .baseProbability = 1, .enemyType = .ice, .startingLevel = 30, .leavingLevel = null },
+    .{ .baseProbability = 1, .enemyType = .waller, .startingLevel = 35, .leavingLevel = null },
+};
+
+const EnemyTypeSpawnLevelData = struct {
+    enemyType: EnemyType,
+    startingLevel: u32,
+    leavingLevel: ?u32,
+    baseProbability: f32,
+};
+
+pub const EnemyTypeDelayedActionData = struct {
+    delay: i64,
+    direction: u8,
+    startTime: ?i64 = null,
 };
 
 pub const Enemy = struct {
@@ -81,100 +114,33 @@ pub const MoveAttackWarningTile = struct {
     direction: u8,
 };
 
-const ENEMY_TYPE_SPAWN_LEVEL_DATA = [_]EnemyTypeSpawnLevelData{
-    .{ .baseProbability = 0.1, .enemyType = .nothing, .startingLevel = 1, .leavingLevel = 3 },
-    .{ .baseProbability = 1, .enemyType = .attack, .startingLevel = 2, .leavingLevel = 10 },
-    .{ .baseProbability = 1, .enemyType = .move, .startingLevel = 5, .leavingLevel = 15 },
-    .{ .baseProbability = 1, .enemyType = .moveWithPlayer, .startingLevel = 10, .leavingLevel = 20 },
-    .{ .baseProbability = 1, .enemyType = .projectileAttack, .startingLevel = 15, .leavingLevel = 25 },
-    .{ .baseProbability = 1, .enemyType = .putFire, .startingLevel = 20, .leavingLevel = 30 },
-    .{ .baseProbability = 1, .enemyType = .block, .startingLevel = 25, .leavingLevel = 35 },
-    .{ .baseProbability = 1, .enemyType = .ice, .startingLevel = 30, .leavingLevel = null },
-    .{ .baseProbability = 1, .enemyType = .waller, .startingLevel = 35, .leavingLevel = null },
-};
-
 pub fn tickEnemies(passedTime: i64, state: *main.GameState) !void {
     for (state.enemies.items) |*enemy| {
-        switch (enemy.enemyTypeData) {
-            .attack => {
-                try enemyTypeAttackZig.tick(enemy, state);
-            },
-            .move => {
-                try enemyTypeMoveZig.tick(enemy, state);
-            },
-            .projectileAttack => {
-                try enemyTypeProjectileAttackZig.tick(enemy, state);
-            },
-            .putFire => {
-                try enemyTypePutFireZig.tick(enemy, state);
-            },
-            .block => {
-                try enemyTypeBlockZig.tick(enemy, state);
-            },
-            .ice => {
-                try enemyTypeIceAttackZig.tick(enemy, state);
-            },
-            .waller => {
-                try enemyTypeWallerZig.tick(enemy, state);
-            },
-            else => {},
-        }
+        if (ENEMY_FUNCTIONS.get(enemy.enemyTypeData).tick) |tick| try tick(enemy, passedTime, state);
     }
     try enemyObjectZig.tick(passedTime, state);
 }
 
 pub fn onPlayerMoved(player: *main.Player, state: *main.GameState) !void {
     for (state.enemies.items) |*enemy| {
-        switch (enemy.enemyTypeData) {
-            .moveWithPlayer => {
-                try enemyTypeMoveWithPlayerZig.onPlayerMoved(enemy, player, state);
-            },
-            else => {},
-        }
+        if (ENEMY_FUNCTIONS.get(enemy.enemyTypeData).onPlayerMoved) |moved| try moved(enemy, player, state);
     }
 }
 
 fn createSpawnEnemyEntryEnemy(enemyType: EnemyType) Enemy {
-    switch (enemyType) {
-        .nothing => {
-            return .{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_EVIL_TREE, .position = .{ .x = 0, .y = 0 } };
-        },
-        .attack => {
-            return enemyTypeAttackZig.createSpawnEnemyEntryEnemy();
-        },
-        .move => {
-            return enemyTypeMoveZig.createSpawnEnemyEntryEnemy();
-        },
-        .moveWithPlayer => {
-            return enemyTypeMoveWithPlayerZig.createSpawnEnemyEntryEnemy();
-        },
-        .projectileAttack => {
-            return enemyTypeProjectileAttackZig.createSpawnEnemyEntryEnemy();
-        },
-        .putFire => {
-            return enemyTypePutFireZig.createSpawnEnemyEntryEnemy();
-        },
-        .block => {
-            return enemyTypeBlockZig.createSpawnEnemyEntryEnemy();
-        },
-        .ice => {
-            return enemyTypeIceAttackZig.createSpawnEnemyEntryEnemy();
-        },
-        .waller => {
-            return enemyTypeWallerZig.createSpawnEnemyEntryEnemy();
-        },
-    }
+    return ENEMY_FUNCTIONS.get(enemyType).createSpawnEnemyEntryEnemy();
+}
+
+fn nothingEntryEnemy() Enemy {
+    return .{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_EVIL_TREE, .position = .{ .x = 0, .y = 0 } };
 }
 
 pub fn isEnemyHit(enemy: *Enemy, hitArea: main.TileRectangle, hitDirection: u8, state: *main.GameState) !bool {
-    switch (enemy.enemyTypeData) {
-        .block => {
-            return try enemyTypeBlockZig.isEnemyHit(enemy, hitArea, hitDirection, state);
-        },
-        else => {
-            const enemyTile = main.gamePositionToTilePosition(enemy.position);
-            return main.isTilePositionInTileRectangle(enemyTile, hitArea);
-        },
+    if (ENEMY_FUNCTIONS.get(enemy.enemyTypeData).isEnemyHit) |enemyHit| {
+        return enemyHit(enemy, hitArea, hitDirection, state);
+    } else {
+        const enemyTile = main.gamePositionToTilePosition(enemy.position);
+        return main.isTilePositionInTileRectangle(enemyTile, hitArea);
     }
 }
 

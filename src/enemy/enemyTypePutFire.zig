@@ -13,7 +13,15 @@ pub const EnemyTypePutFireData = struct {
     fireDuration: u16 = 12000,
 };
 
-pub fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
+pub fn create() enemyZig.EnemyFunctions {
+    return enemyZig.EnemyFunctions{
+        .createSpawnEnemyEntryEnemy = createSpawnEnemyEntryEnemy,
+        .tick = tick,
+        .setupVerticesGround = setupVerticesGround,
+    };
+}
+
+fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
     return .{
         .imageIndex = imageZig.IMAGE_ENEMY_FIRE,
         .position = .{ .x = 0, .y = 0 },
@@ -25,7 +33,8 @@ pub fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
     };
 }
 
-pub fn tick(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
+fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
+    _ = passedTime;
     const data = &enemy.enemyTypeData.putFire;
     if (data.nextMoveTime) |nextMoveTime| {
         if (nextMoveTime < state.gameTime) {
@@ -53,7 +62,7 @@ pub fn tick(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
     }
 }
 
-pub fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) void {
+fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) void {
     const data = enemy.enemyTypeData.putFire;
     if (data.nextMoveTime) |nextMoveTime| {
         const moveStep = movePieceZig.getStepDirection(data.moveDirection);

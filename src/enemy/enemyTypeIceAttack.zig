@@ -15,7 +15,15 @@ pub const DelayedAttackWithCooldown = struct {
     attackMovementInterval: i32 = 500,
 };
 
-pub fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
+pub fn create() enemyZig.EnemyFunctions {
+    return enemyZig.EnemyFunctions{
+        .createSpawnEnemyEntryEnemy = createSpawnEnemyEntryEnemy,
+        .tick = tick,
+        .setupVerticesGround = setupVerticesGround,
+    };
+}
+
+fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
     return .{
         .imageIndex = imageZig.IMAGE_ENEMY_SNOWMAN,
         .position = .{ .x = 0, .y = 0 },
@@ -27,7 +35,8 @@ pub fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
     };
 }
 
-pub fn tick(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
+fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
+    _ = passedTime;
     const data = &enemy.enemyTypeData.ice;
     if (data.startTime) |startTime| {
         if (startTime + data.delay < state.gameTime) {
@@ -73,7 +82,7 @@ pub fn tick(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
     }
 }
 
-pub fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) void {
+fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) void {
     const data = enemy.enemyTypeData.ice;
     if (data.startTime) |startTime| {
         const moveStep = movePieceZig.getStepDirection(data.direction);

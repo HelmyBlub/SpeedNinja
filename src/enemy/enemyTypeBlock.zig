@@ -16,7 +16,17 @@ pub const EnemyTypeBlockData = struct {
     attackTileRadius: i8 = 1,
 };
 
-pub fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
+pub fn create() enemyZig.EnemyFunctions {
+    return enemyZig.EnemyFunctions{
+        .createSpawnEnemyEntryEnemy = createSpawnEnemyEntryEnemy,
+        .tick = tick,
+        .setupVerticesGround = setupVerticesGround,
+        .setupVertices = setupVertices,
+        .isEnemyHit = isEnemyHit,
+    };
+}
+
+fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
     return .{
         .imageIndex = imageZig.IMAGE_ENEMY_SHIELD,
         .position = .{ .x = 0, .y = 0 },
@@ -28,7 +38,8 @@ pub fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
     };
 }
 
-pub fn tick(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
+fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
+    _ = passedTime;
     const data = &enemy.enemyTypeData.block;
     if (data.lastTurnTime + data.minTurnInterval < state.gameTime) {
         const closestPlayer = main.findClosestPlayer(enemy.position, state);
@@ -58,7 +69,7 @@ pub fn tick(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
     }
 }
 
-pub fn isEnemyHit(enemy: *enemyZig.Enemy, hitArea: main.TileRectangle, hitDirection: u8, state: *main.GameState) !bool {
+fn isEnemyHit(enemy: *enemyZig.Enemy, hitArea: main.TileRectangle, hitDirection: u8, state: *main.GameState) !bool {
     const data = &enemy.enemyTypeData.block;
     const enemyTile = main.gamePositionToTilePosition(enemy.position);
     if (main.isTilePositionInTileRectangle(enemyTile, hitArea)) {
@@ -72,7 +83,7 @@ pub fn isEnemyHit(enemy: *enemyZig.Enemy, hitArea: main.TileRectangle, hitDirect
     return false;
 }
 
-pub fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) void {
+fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) void {
     const data = enemy.enemyTypeData.block;
     if (data.aoeAttackTime) |attackTime| {
         const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(attackTime - state.gameTime)) / @as(f32, @floatFromInt(data.aoeAttackDelay))));
@@ -90,7 +101,7 @@ pub fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) void 
     }
 }
 
-pub fn setupVertices(enemy: *enemyZig.Enemy, state: *main.GameState) void {
+fn setupVertices(enemy: *enemyZig.Enemy, state: *main.GameState) void {
     const data = enemy.enemyTypeData.block;
     const rotation: f32 = @as(f32, @floatFromInt(data.direction)) * std.math.pi / 2.0;
     paintVulkanZig.verticesForComplexSpriteWithRotate(

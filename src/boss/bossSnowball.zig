@@ -119,7 +119,7 @@ fn checkSpawnEnemy(boss: *bossZig.Boss, state: *main.GameState) !void {
         const enemySpawnPerCent: f32 = @as(f32, @floatFromInt(boss.maxHp)) / @as(f32, @floatFromInt(data.maxEnemyToSpawn + 1)) * @as(f32, @floatFromInt(data.enemyToSpawn));
         const spawnOnHp: u32 = @intFromFloat(enemySpawnPerCent);
         if (boss.hp <= spawnOnHp) {
-            var enemy = enemyTypeIceAttackZig.createSpawnEnemyEntryEnemy();
+            var enemy = enemyZig.ENEMY_FUNCTIONS.get(.ice).createSpawnEnemyEntryEnemy();
             enemy.position = getRandomFreePosition(state);
             data.enemyToSpawn -|= 1;
             try state.enemies.append(enemy);

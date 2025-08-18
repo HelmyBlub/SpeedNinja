@@ -14,50 +14,22 @@ const enemyTypePutFireZig = @import("../enemy/enemyTypePutFire.zig");
 const enemyTypeBlockZig = @import("../enemy/enemyTypeBlock.zig");
 const enemyTypeIceAttackZig = @import("../enemy/enemyTypeIceAttack.zig");
 const enemyTypeWallerZig = @import("../enemy/enemyTypeWaller.zig");
+const enemyZig = @import("../enemy/enemy.zig");
 
 pub fn setupVertices(state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
     for (state.enemies.items) |*enemy| {
-        switch (enemy.enemyTypeData) {
-            .block => {
-                enemyTypeBlockZig.setupVertices(enemy, state);
-            },
-            else => {
-                paintVulkanZig.verticesForComplexSpriteDefault(enemy.position, enemy.imageIndex, &verticeData.spritesComplex, state);
-            },
+        if (enemyZig.ENEMY_FUNCTIONS.get(enemy.enemyTypeData).setupVertices) |fVertices| {
+            fVertices(enemy, state);
+        } else {
+            paintVulkanZig.verticesForComplexSpriteDefault(enemy.position, enemy.imageIndex, &verticeData.spritesComplex, state);
         }
     }
 }
 
 pub fn setupVerticesGround(state: *main.GameState) void {
     for (state.enemies.items) |*enemy| {
-        switch (enemy.enemyTypeData) {
-            .nothing => {},
-            .attack => {
-                enemyTypeAttackZig.setupVerticesGround(enemy, state);
-            },
-            .move => {
-                enemyTypeMoveZig.setupVerticesGround(enemy, state);
-            },
-            .moveWithPlayer => {
-                enemyTypeMoveWithPlayerZig.setupVerticesGround(enemy, state);
-            },
-            .projectileAttack => {
-                enemyTypeProjectileAttackZig.setupVerticesGround(enemy, state);
-            },
-            .putFire => {
-                enemyTypePutFireZig.setupVerticesGround(enemy, state);
-            },
-            .block => {
-                enemyTypeBlockZig.setupVerticesGround(enemy, state);
-            },
-            .ice => {
-                enemyTypeIceAttackZig.setupVerticesGround(enemy, state);
-            },
-            .waller => {
-                enemyTypeWallerZig.setupVerticesGround(enemy, state);
-            },
-        }
+        if (enemyZig.ENEMY_FUNCTIONS.get(enemy.enemyTypeData).setupVerticesGround) |ground| ground(enemy, state);
     }
     for (state.bosses.items) |*boss| {
         bossZig.LEVEL_BOSS_DATA[boss.dataIndex].setupVerticesGround(boss, state);

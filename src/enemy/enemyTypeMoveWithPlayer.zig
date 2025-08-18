@@ -10,7 +10,15 @@ pub const EnemyTypeMoveWithPlayerData = struct {
     waitCount: u32 = 0,
 };
 
-pub fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
+pub fn create() enemyZig.EnemyFunctions {
+    return enemyZig.EnemyFunctions{
+        .createSpawnEnemyEntryEnemy = createSpawnEnemyEntryEnemy,
+        .onPlayerMoved = onPlayerMoved,
+        .setupVerticesGround = setupVerticesGround,
+    };
+}
+
+fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
     return .{
         .imageIndex = imageZig.IMAGE_ENEMY_EYE,
         .position = .{ .x = 0, .y = 0 },
@@ -22,7 +30,7 @@ pub fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
     };
 }
 
-pub fn onPlayerMoved(enemy: *enemyZig.Enemy, player: *main.Player, state: *main.GameState) !void {
+fn onPlayerMoved(enemy: *enemyZig.Enemy, player: *main.Player, state: *main.GameState) !void {
     _ = player;
     const data = &enemy.enemyTypeData.moveWithPlayer;
     data.waitCount += 1;
@@ -48,7 +56,7 @@ pub fn onPlayerMoved(enemy: *enemyZig.Enemy, player: *main.Player, state: *main.
     }
 }
 
-pub fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) void {
+fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) void {
     const data = enemy.enemyTypeData.moveWithPlayer;
     const moveStep = movePieceZig.getStepDirection(data.direction);
     const attackPosition: main.Position = .{
