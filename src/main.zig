@@ -127,6 +127,23 @@ fn startGame(allocator: std.mem.Allocator) !void {
     try mainLoop(&state);
 }
 
+fn debugTextAfterBossLevelFinished(state: *GameState) void {
+    std.debug.print("lvl {d} finished in ", .{state.level});
+    const secondsPassed = @divFloor(state.gameTime - state.lastBossDefeatedTime, 1000);
+    const seconds = @mod(secondsPassed, 60);
+    const minutes = @divFloor(secondsPassed, 60);
+    if (minutes > 0) std.debug.print("{d}:", .{minutes});
+    if (seconds < 10) std.debug.print("0", .{});
+    std.debug.print("{d}", .{seconds});
+    std.debug.print(" and total ", .{});
+    const totalSecondsPassed = @divFloor(state.gameTime, 1000);
+    const totalSeconds = @mod(totalSecondsPassed, 60);
+    const totalMinutes = @divFloor(totalSecondsPassed, 60);
+    if (minutes > 0) std.debug.print("{d}:", .{totalMinutes});
+    if (totalSeconds < 10) std.debug.print("0", .{});
+    std.debug.print("{d}\n", .{totalSeconds});
+}
+
 fn mainLoop(state: *GameState) !void {
     var lastTime = std.time.milliTimestamp();
     var currentTime = lastTime;
@@ -136,7 +153,7 @@ fn mainLoop(state: *GameState) !void {
             try startNextRound(state);
         } else if (shouldEndLevel(state)) {
             if (state.gamePhase == .boss) {
-                std.debug.print("lvl {d} finished in {d} and total {d}\n", .{ state.level, @divFloor(state.gameTime - state.lastBossDefeatedTime, 1000), @divFloor(state.gameTime, 1000) });
+                debugTextAfterBossLevelFinished(state);
                 state.lastBossDefeatedTime = state.gameTime;
                 for (state.players.items) |*player| {
                     player.money += state.level * 10;
