@@ -509,7 +509,7 @@ fn checkEnemyHitOnMoveStep(player: *main.Player, hitDirection: u8, state: *main.
     return hitSomething;
 }
 
-fn moveEnemyAndCheckPlayerHitOnMoveStep(hitPosition: main.TilePosition, visualizedDirection: u8, enemyPos: *main.Position, state: *main.GameState) !void {
+pub fn moveEnemyAndCheckPlayerHitOnMoveStep(hitPosition: main.TilePosition, visualizedDirection: u8, enemyPos: *main.Position, state: *main.GameState) !void {
     _ = visualizedDirection;
     for (state.players.items) |*player| {
         const playerTile = main.gamePositionToTilePosition(player.position);

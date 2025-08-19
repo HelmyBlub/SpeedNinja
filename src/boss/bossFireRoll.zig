@@ -8,11 +8,13 @@ const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
 const movePieceZig = @import("../movePiece.zig");
 const mapTileZig = @import("../mapTile.zig");
+const enemyObjectFireZig = @import("../enemy/enemyObjectFire.zig");
 
 pub const BossFireRollData = struct {
     movePieces: [2]movePieceZig.MovePiece,
     movePieceIndex: usize = 0,
     moveDirection: u8 = 0,
+    fireDuration: i32 = 10_000,
 };
 
 const BOSS_NAME = "Fire Roll";
@@ -38,8 +40,27 @@ fn deinit(boss: *bossZig.Boss, allocator: std.mem.Allocator) void {
 fn onPlayerMoved(boss: *bossZig.Boss, player: *main.Player, state: *main.GameState) !void {
     const data = &boss.typeData.fireRoll;
     _ = player;
-    try movePieceZig.attackMovePieceCheckPlayerHit(&boss.position, data.movePieces[data.movePieceIndex], data.moveDirection, state);
+    try attackMoveWithFirePlacing(boss, data.movePieces[data.movePieceIndex], data.moveDirection, state);
     try chooseMovePiece(boss, state);
+}
+
+fn attackMoveWithFirePlacing(boss: *bossZig.Boss, movePiece: movePieceZig.MovePiece, executeDirection: u8, state: *main.GameState) !void {
+    const startPosition: main.TilePosition = main.gamePositionToTilePosition(boss.position);
+    try movePieceZig.executeMovePieceWithCallbackPerStep(
+        *bossZig.Boss,
+        movePiece,
+        executeDirection,
+        startPosition,
+        boss,
+        attackMoveWithFirePlacingCallback,
+        state,
+    );
+}
+
+fn attackMoveWithFirePlacingCallback(hitPosition: main.TilePosition, visualizedDirection: u8, boss: *bossZig.Boss, state: *main.GameState) !void {
+    try movePieceZig.moveEnemyAndCheckPlayerHitOnMoveStep(hitPosition, visualizedDirection, &boss.position, state);
+    const data = &boss.typeData.fireRoll;
+    try enemyObjectFireZig.spawnFire(boss.position, data.fireDuration, state);
 }
 
 fn startBoss(state: *main.GameState) !void {
