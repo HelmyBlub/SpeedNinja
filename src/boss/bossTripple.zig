@@ -223,7 +223,7 @@ fn getRandomFreePosition(state: *main.GameState) main.Position {
     return randomPos;
 }
 
-fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) void {
+fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) !void {
     const trippleData = boss.typeData.tripple;
     if (trippleData.shurikenThrowTime) |throwTime| {
         const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(throwTime - state.gameTime)) / @as(f32, @floatFromInt(trippleData.shurikenDelay))));

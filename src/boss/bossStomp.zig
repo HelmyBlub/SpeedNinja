@@ -130,7 +130,7 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
     return false;
 }
 
-fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) void {
+fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) !void {
     const stompData = boss.typeData.stomp;
     if (stompData.state == .chargeStomp) {
         const fillPerCent: f32 = @min(1, @max(0, @as(f32, @floatFromInt(stompData.attackChargeTime + state.gameTime - stompData.nextStateTime)) / @as(f32, @floatFromInt(stompData.attackChargeTime))));

@@ -24,7 +24,7 @@ pub fn setupVerticesGround(state: *main.GameState) !void {
         if (enemyZig.ENEMY_FUNCTIONS.get(enemy.enemyTypeData).setupVerticesGround) |ground| try ground(enemy, state);
     }
     for (state.bosses.items) |*boss| {
-        bossZig.LEVEL_BOSS_DATA.get(boss.typeData).setupVerticesGround(boss, state);
+        try bossZig.LEVEL_BOSS_DATA.get(boss.typeData).setupVerticesGround(boss, state);
     }
 }
 
@@ -81,6 +81,19 @@ fn addWarningTileSpritesWithImageIndex(gamePosition: main.Position, fillPerCent:
             verticeData.spritesComplex.verticeCount += 1;
         }
     }
+}
+
+pub fn setupVerticesGroundForMovePiece(startTile: main.TilePosition, movePiece: movePieceZig.MovePiece, executeDirection: u8, fillPerCent: f32, state: *main.GameState) !void {
+    try movePieceZig.executeMovePieceWithCallbackPerStep(f32, movePiece, executeDirection, startTile, fillPerCent, setupVerticesGroundStepFunction, state);
+}
+
+fn setupVerticesGroundStepFunction(pos: main.TilePosition, visualizedDirection: u8, fillPerCent: f32, state: *main.GameState) !void {
+    const attackPosition: main.Position = .{
+        .x = @as(f32, @floatFromInt(pos.x)) * main.TILESIZE,
+        .y = @as(f32, @floatFromInt(pos.y)) * main.TILESIZE,
+    };
+    const rotation: f32 = @as(f32, @floatFromInt(visualizedDirection)) * std.math.pi / 2.0;
+    addRedArrowTileSprites(attackPosition, fillPerCent, rotation, state);
 }
 
 pub fn addRedArrowTileSprites(gamePosition: main.Position, fillPerCent: f32, rotation: f32, state: *main.GameState) void {

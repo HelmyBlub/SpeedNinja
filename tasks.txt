@@ -1,11 +1,13 @@
 Tasks:
-- think: change boss code to use enum array like enemies
-    - removes index
 - next boss idea (45)
     - boss moves with player
         - uses move pieces
         - places fire
         - image: double eyes
+- check: enemy MovePiece should not move to far outside
+    - should no stuck on wall
+
+
 
 - end boss ideas (50)
     - dragon

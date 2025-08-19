@@ -40,7 +40,6 @@ pub fn createBoss() bossZig.LevelBossData {
         .appearsOnLevel = 40,
         .startLevel = startBoss,
         .tickBoss = tickBoss,
-        .isBossHit = isBossHit,
         .setupVertices = setupVertices,
         .setupVerticesGround = setupVerticesGround,
         .deinit = deinit,
@@ -166,20 +165,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     }
 }
 
-fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
-    _ = hitDirection;
-    _ = state;
-    _ = cutRotation;
-    _ = player;
-    const bossTile = main.gamePositionToTilePosition(boss.position);
-    if (main.isTilePositionInTileRectangle(bossTile, hitArea)) {
-        boss.hp -|= 1;
-        return true;
-    }
-    return false;
-}
-
-fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) void {
+fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) !void {
     const data = boss.typeData.waller;
     for (data.wallAttackTiles.items) |attackTile| {
         const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(attackTile.hitTime - state.gameTime)) / @as(f32, @floatFromInt(data.wallDelay))));

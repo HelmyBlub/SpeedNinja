@@ -11,13 +11,14 @@ const bossSnakeZig = @import("bossSnake.zig");
 const bossTrippleZig = @import("bossTripple.zig");
 const bossSnowballZig = @import("bossSnowball.zig");
 const bossWallerZig = @import("bossWaller.zig");
+const bossFireRollZig = @import("bossFireRoll.zig");
 
 pub const LevelBossData = struct {
     appearsOnLevel: usize,
     startLevel: *const fn (state: *main.GameState) anyerror!void,
-    tickBoss: *const fn (boss: *Boss, passedTime: i64, state: *main.GameState) anyerror!void,
-    isBossHit: *const fn (boss: *Boss, player: *main.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) anyerror!bool,
-    setupVerticesGround: *const fn (boss: *Boss, state: *main.GameState) void,
+    tickBoss: ?*const fn (boss: *Boss, passedTime: i64, state: *main.GameState) anyerror!void = null,
+    isBossHit: ?*const fn (boss: *Boss, player: *main.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) anyerror!bool = null,
+    setupVerticesGround: *const fn (boss: *Boss, state: *main.GameState) anyerror!void,
     setupVertices: *const fn (boss: *Boss, state: *main.GameState) void,
     onPlayerMoved: ?*const fn (boss: *Boss, player: *main.Player, state: *main.GameState) anyerror!void = null,
     onPlayerMoveEachTile: ?*const fn (boss: *Boss, player: *main.Player, state: *main.GameState) anyerror!void = null,
@@ -33,6 +34,7 @@ const BossTypes = enum {
     tripple,
     snowball,
     waller,
+    fireRoll,
 };
 
 const BossTypeData = union(BossTypes) {
@@ -44,15 +46,7 @@ const BossTypeData = union(BossTypes) {
     tripple: bossTrippleZig.BossTrippleData,
     snowball: bossSnowballZig.BossSnowballData,
     waller: bossWallerZig.BossWallerData,
-};
-
-pub const Boss = struct {
-    imageIndex: u8,
-    position: main.Position,
-    maxHp: u32,
-    hp: u32,
-    name: []const u8,
-    typeData: BossTypeData,
+    fireRoll: bossFireRollZig.BossFireRollData,
 };
 
 pub const LEVEL_BOSS_DATA = std.EnumArray(BossTypes, LevelBossData).init(.{
@@ -64,7 +58,17 @@ pub const LEVEL_BOSS_DATA = std.EnumArray(BossTypes, LevelBossData).init(.{
     .tripple = bossTrippleZig.createBoss(),
     .snowball = bossSnowballZig.createBoss(),
     .waller = bossWallerZig.createBoss(),
+    .fireRoll = bossFireRollZig.createBoss(),
 });
+
+pub const Boss = struct {
+    imageIndex: u8,
+    position: main.Position,
+    maxHp: u32,
+    hp: u32,
+    name: []const u8,
+    typeData: BossTypeData,
+};
 
 pub fn onPlayerMoved(player: *main.Player, state: *main.GameState) !void {
     for (state.bosses.items) |*boss| {
@@ -110,7 +114,11 @@ pub fn isBossHit(hitArea: main.TileRectangle, player: *main.Player, hitDirection
     while (bossIndex < state.bosses.items.len) {
         const boss = &state.bosses.items[bossIndex];
         const levelBossData = LEVEL_BOSS_DATA.get(boss.typeData);
-        if (try levelBossData.isBossHit(boss, player, hitArea, player.paintData.bladeRotation, hitDirection, state)) aBossHit = true;
+        if (levelBossData.isBossHit) |isHitFunction| {
+            if (try isHitFunction(boss, player, hitArea, player.paintData.bladeRotation, hitDirection, state)) aBossHit = true;
+        } else {
+            if (isBossHitDefault(boss, hitArea)) aBossHit = true;
+        }
         if (boss.hp == 0) {
             var deadBoss = state.bosses.swapRemove(bossIndex);
             const cutAngle = player.paintData.bladeRotation + std.math.pi / 2.0;
@@ -131,8 +139,17 @@ pub fn isBossHit(hitArea: main.TileRectangle, player: *main.Player, hitDirection
     return aBossHit;
 }
 
+fn isBossHitDefault(boss: *Boss, hitArea: main.TileRectangle) bool {
+    const bossTile = main.gamePositionToTilePosition(boss.position);
+    if (main.isTilePositionInTileRectangle(bossTile, hitArea)) {
+        boss.hp -|= 1;
+        return true;
+    }
+    return false;
+}
+
 pub fn tickBosses(state: *main.GameState, passedTime: i64) !void {
     for (state.bosses.items) |*boss| {
-        try LEVEL_BOSS_DATA.get(boss.typeData).tickBoss(boss, passedTime, state);
+        if (LEVEL_BOSS_DATA.get(boss.typeData).tickBoss) |fTickBoss| try fTickBoss(boss, passedTime, state);
     }
 }

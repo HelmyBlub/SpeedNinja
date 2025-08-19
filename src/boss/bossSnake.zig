@@ -142,7 +142,7 @@ fn checkLooseBodyPart(boss: *bossZig.Boss, hitPosition: main.Position, cutRotati
     }
 }
 
-fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) void {
+fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) !void {
     const snakeData = boss.typeData.snake;
     const moveStep = movePieceZig.getStepDirection(snakeData.nextMoveDirection);
     const attackPosition: main.Position = .{

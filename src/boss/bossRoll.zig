@@ -39,7 +39,6 @@ pub fn createBoss() bossZig.LevelBossData {
         .appearsOnLevel = 15,
         .startLevel = startBoss,
         .tickBoss = tickBoss,
-        .isBossHit = isBossHit,
         .setupVertices = setupVertices,
         .setupVerticesGround = setupVerticesGround,
         .deinit = deinit,
@@ -118,7 +117,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             while (!validMovePosition) {
                 var bossPositionAfterPiece = boss.position;
                 rollData.moveDirection = std.crypto.random.intRangeLessThan(u8, 0, 4);
-                movePieceZig.movePositionByPiece(&bossPositionAfterPiece, movePiece, rollData.moveDirection);
+                try movePieceZig.movePositionByPiece(&bossPositionAfterPiece, movePiece, rollData.moveDirection, state);
                 validMovePosition = bossPositionAfterPiece.x >= -gridBorder and bossPositionAfterPiece.x <= gridBorder and bossPositionAfterPiece.y >= -gridBorder and bossPositionAfterPiece.y <= gridBorder;
             }
 
@@ -134,20 +133,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     }
 }
 
-fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
-    _ = hitDirection;
-    _ = state;
-    _ = cutRotation;
-    _ = player;
-    const bossTile = main.gamePositionToTilePosition(boss.position);
-    if (main.isTilePositionInTileRectangle(bossTile, hitArea)) {
-        boss.hp -|= 1;
-        return true;
-    }
-    return false;
-}
-
-fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) void {
+fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) !void {
     const rollData = boss.typeData.roll;
     for (rollData.attackTilePositions.items) |attackTile| {
         const fillPerCent: f32 = @min(1, @max(0, 1 - @as(f32, @floatFromInt(attackTile.hitTime - state.gameTime)) / @as(f32, @floatFromInt(rollData.attackDelay))));

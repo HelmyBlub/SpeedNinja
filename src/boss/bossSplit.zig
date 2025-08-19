@@ -227,7 +227,7 @@ fn getRandomFlyToPosition(splitData: *BossSplitData, state: *main.GameState) mai
     return randomPos;
 }
 
-fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) void {
+fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) !void {
     const splitData = boss.typeData.split;
     for (splitData.splits.items) |*bossSplit| {
         if (bossSplit.nextAttackTime) |attackTime| {

@@ -145,15 +145,16 @@ pub fn tickPlayerMovePiece(player: *main.Player, state: *main.GameState) !void {
     }
 }
 
-pub fn movePositionByPiece(position: *main.Position, movePiece: MovePiece, executeDirection: u8) void {
-    for (movePiece.steps) |step| {
-        const direction = @mod(step.direction + executeDirection + 1, 4);
-        const stepDirection = getStepDirection(direction);
-        for (0..step.stepCount) |_| {
-            position.x += stepDirection.x * main.TILESIZE;
-            position.y += stepDirection.y * main.TILESIZE;
-        }
-    }
+pub fn movePositionByPiece(position: *main.Position, movePiece: MovePiece, executeDirection: u8, state: *main.GameState) !void {
+    const startTile = main.gamePositionToTilePosition(position.*);
+    try executeMovePieceWithCallbackPerStep(*main.Position, movePiece, executeDirection, startTile, position, movePositionByPieceCallback, state);
+}
+
+fn movePositionByPieceCallback(pos: main.TilePosition, visualizationDirection: u8, movePosition: *main.Position, state: *main.GameState) !void {
+    _ = visualizationDirection;
+    _ = state;
+    movePosition.x = @floatFromInt(pos.x * main.TILESIZE);
+    movePosition.y = @floatFromInt(pos.y * main.TILESIZE);
 }
 
 pub fn attackMovePieceCheckPlayerHit(position: *main.Position, movePiece: MovePiece, executeDirection: u8, state: *main.GameState) !void {

@@ -155,7 +155,7 @@ fn getRandomFreePosition(state: *main.GameState) main.Position {
     return randomPos;
 }
 
-fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) void {
+fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) !void {
     const data = &boss.typeData.snowball;
     if (data.state == .rolling) {
         const moveStep = movePieceZig.getStepDirection(data.rollDirection);

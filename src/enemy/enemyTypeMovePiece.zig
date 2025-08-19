@@ -83,7 +83,7 @@ fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
     const movePiece = state.enemyData.movePieceEnemyMovePiece.?;
     const enemyDirection = data.direction.?;
     const curTilePos = main.gamePositionToTilePosition(enemy.position);
-    try movePieceZig.executeMovePieceWithCallbackPerStep(void, movePiece, enemyDirection, curTilePos, {}, setupVerticesGroundStepFunction, state);
+    try enemyVulkanZig.setupVerticesGroundForMovePiece(curTilePos, movePiece, enemyDirection, 1, state);
 }
 
 fn setupVerticesGroundStepFunction(pos: main.TilePosition, visualizedDirection: u8, context: void, state: *main.GameState) !void {
