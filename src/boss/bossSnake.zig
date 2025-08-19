@@ -43,14 +43,13 @@ fn deinit(boss: *bossZig.Boss, allocator: std.mem.Allocator) void {
     snakeData.snakeBodyParts.deinit();
 }
 
-fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
+fn startBoss(state: *main.GameState) !void {
     var snakeBoss: bossZig.Boss = .{
         .hp = 20,
         .maxHp = 20,
         .imageIndex = imageZig.IMAGE_BOSS_SNAKE_HEAD,
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
-        .dataIndex = bossDataIndex,
         .typeData = .{ .snake = .{
             .nextMoveDirection = std.crypto.random.intRangeLessThan(u8, 0, 4),
             .snakeBodyParts = std.ArrayList(BodyPart).init(state.allocator),

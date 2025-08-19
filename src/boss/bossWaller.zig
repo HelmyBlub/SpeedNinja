@@ -64,14 +64,13 @@ fn onPlayerMoveEachTile(boss: *bossZig.Boss, player: *main.Player, state: *main.
     });
 }
 
-fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
+fn startBoss(state: *main.GameState) !void {
     try state.bosses.append(.{
         .hp = 10,
         .maxHp = 10,
         .imageIndex = imageZig.IMAGE_BOSS_WALLER,
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
-        .dataIndex = bossDataIndex,
         .typeData = .{ .waller = .{
             .bombs = std.ArrayList(BombPositionDelayed).init(state.allocator),
             .wallAttackTiles = std.ArrayList(PositionDelayed).init(state.allocator),

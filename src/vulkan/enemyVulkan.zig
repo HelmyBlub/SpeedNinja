@@ -24,13 +24,13 @@ pub fn setupVerticesGround(state: *main.GameState) !void {
         if (enemyZig.ENEMY_FUNCTIONS.get(enemy.enemyTypeData).setupVerticesGround) |ground| try ground(enemy, state);
     }
     for (state.bosses.items) |*boss| {
-        bossZig.LEVEL_BOSS_DATA[boss.dataIndex].setupVerticesGround(boss, state);
+        bossZig.LEVEL_BOSS_DATA.get(boss.typeData).setupVerticesGround(boss, state);
     }
 }
 
 pub fn setupVerticesForBosses(state: *main.GameState) void {
     for (state.bosses.items) |*boss| {
-        bossZig.LEVEL_BOSS_DATA[boss.dataIndex].setupVertices(boss, state);
+        bossZig.LEVEL_BOSS_DATA.get(boss.typeData).setupVertices(boss, state);
     }
 }
 

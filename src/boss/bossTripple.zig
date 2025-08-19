@@ -49,7 +49,7 @@ fn deinit(boss: *bossZig.Boss, allocator: std.mem.Allocator) void {
     trippleData.airAttackPosition.deinit();
 }
 
-fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
+fn startBoss(state: *main.GameState) !void {
     const bossHp = 5;
     try state.bosses.append(.{
         .hp = bossHp,
@@ -57,7 +57,6 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
         .imageIndex = imageZig.IMAGE_BOSS_TRIPPLE,
         .position = .{ .x = -1 * main.TILESIZE, .y = -1 * main.TILESIZE },
         .name = "Trip",
-        .dataIndex = bossDataIndex,
         .typeData = .{ .tripple = .{
             .direction = 0,
             .airAttackPosition = std.ArrayList(AttackDelayed).init(state.allocator),
@@ -70,7 +69,6 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
         .imageIndex = imageZig.IMAGE_BOSS_TRIPPLE,
         .position = .{ .x = 3 * main.TILESIZE, .y = 0 },
         .name = "Ripp",
-        .dataIndex = bossDataIndex,
         .typeData = .{ .tripple = .{
             .direction = 0,
             .airAttackPosition = std.ArrayList(AttackDelayed).init(state.allocator),
@@ -83,7 +81,6 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
         .imageIndex = imageZig.IMAGE_BOSS_TRIPPLE,
         .position = .{ .x = 0, .y = 3 * main.TILESIZE },
         .name = "Ipple",
-        .dataIndex = bossDataIndex,
         .typeData = .{ .tripple = .{
             .direction = 0,
             .airAttackPosition = std.ArrayList(AttackDelayed).init(state.allocator),

@@ -38,14 +38,13 @@ pub fn createBoss() bossZig.LevelBossData {
     };
 }
 
-fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
+fn startBoss(state: *main.GameState) !void {
     try state.bosses.append(.{
         .hp = 10,
         .maxHp = 10,
         .imageIndex = imageZig.IMAGE_BOSS_SNOWBALL,
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
-        .dataIndex = bossDataIndex,
         .typeData = .{ .snowball = .{} },
     });
     try mapTileZig.setMapRadius(6, state);

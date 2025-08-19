@@ -46,7 +46,7 @@ pub fn createBoss() bossZig.LevelBossData {
     };
 }
 
-fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
+fn startBoss(state: *main.GameState) !void {
     const maxSplits = 3;
     var bossTypeData: BossSplitData = .{
         .splits = std.ArrayList(BossSplitPartData).init(state.allocator),
@@ -67,7 +67,6 @@ fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
         .imageIndex = imageZig.IMAGE_BOSS_SLIME,
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
-        .dataIndex = bossDataIndex,
         .typeData = .{ .split = bossTypeData },
     });
     try mapTileZig.setMapRadius(6, state);

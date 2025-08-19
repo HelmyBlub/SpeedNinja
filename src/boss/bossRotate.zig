@@ -47,14 +47,13 @@ fn deinit(boss: *bossZig.Boss, allocator: std.mem.Allocator) void {
     rotateData.attackTiles.deinit();
 }
 
-fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
+fn startBoss(state: *main.GameState) !void {
     try state.bosses.append(.{
         .hp = 10,
         .maxHp = 10,
         .imageIndex = imageZig.IMAGE_BOSS_ROTATE,
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
-        .dataIndex = bossDataIndex,
         .typeData = .{ .rotate = .{
             .attackTiles = std.ArrayList(main.TilePosition).init(state.allocator),
         } },

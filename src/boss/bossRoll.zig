@@ -66,14 +66,13 @@ fn onPlayerMoved(boss: *bossZig.Boss, player: *main.Player, state: *main.GameSta
     try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BOSS_ROOL_SHOOT_INDICIES[0..], 0, 1);
 }
 
-fn startBoss(state: *main.GameState, bossDataIndex: usize) !void {
+fn startBoss(state: *main.GameState) !void {
     try state.bosses.append(.{
         .hp = 10,
         .maxHp = 10,
         .imageIndex = imageZig.IMAGE_BOSS_ROLL,
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
-        .dataIndex = bossDataIndex,
         .typeData = .{ .roll = .{
             .movePieces = .{
                 try movePieceZig.createRandomMovePiece(state.allocator),
