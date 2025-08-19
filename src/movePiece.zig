@@ -367,6 +367,7 @@ pub fn executeMovePieceWithCallbackPerStep(
 
 pub fn movePlayerByMovePiece(player: *main.Player, movePieceIndex: usize, directionInput: u8, state: *main.GameState) !void {
     if (player.executeMovePiece != null) return;
+    if (!state.timerStarted) state.timerStarted = true;
     player.executeMovePiece = player.moveOptions.items[movePieceIndex];
     player.executeDirection = directionInput;
     try setRandomMovePiece(player, movePieceIndex);

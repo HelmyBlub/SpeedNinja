@@ -1,7 +1,5 @@
 Tasks:
-- next enemy idea
-    - enemy which attacks when player steps onto or over warning tile of enemy
-        - check: affected by ice and wall?
+- change: timer starts on first move input
 - next boss idea (45)
     - boss moves with player
         - uses move pieces
@@ -15,13 +13,15 @@ Tasks:
 
 - think: change random position to single function instead of duplicate with small differenes?
 - waller enemy
+    - unreachable wall closed up
+        - possible, but hard to prevent?
     - unreachable with ice
         - possible, but hard to prevent
 - think: change enemy object code to use enum array like enemies
     - removes index
 - think: change boss code to use enum array like enemies
     - removes index
-- change: timer starts on first move input
+
 
 Play Times:    best split | best total
     lvl  5 best in 2:23  
