@@ -184,13 +184,17 @@ fn mainLoop(state: *GameState) !void {
 
 pub fn startNextRound(state: *GameState) !void {
     state.enemyData.enemies.clearRetainingCapacity();
+    const maxTime = state.gameTime + state.minimalTimePerRequiredRounds;
     if (state.round == 1) {
         state.roundEndTimeMS = state.gameTime + state.levelInitialTime;
     } else {
         state.roundEndTimeMS += state.bonusTimePerRoundFinished;
+        if (state.roundEndTimeMS > maxTime) {
+            state.roundEndTimeMS = maxTime;
+        }
     }
-    if (state.roundEndTimeMS < state.gameTime + state.minimalTimePerRequiredRounds and state.round < state.roundToReachForNextLevel) {
-        state.roundEndTimeMS = state.gameTime + state.minimalTimePerRequiredRounds;
+    if (state.roundEndTimeMS < maxTime and state.round < state.roundToReachForNextLevel) {
+        state.roundEndTimeMS = maxTime;
     }
     state.roundStartedTime = state.gameTime;
     state.round += 1;

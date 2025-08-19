@@ -1,5 +1,4 @@
 Tasks:
-- change: timer starts on first move input
 - next boss idea (45)
     - boss moves with player
         - uses move pieces
@@ -17,6 +16,9 @@ Tasks:
         - possible, but hard to prevent?
     - unreachable with ice
         - possible, but hard to prevent
+    - idea: onTileChange (limit by only once per x seconds)
+        - pathfind from player to all enemies
+        - if one is not reachable?
 - think: change enemy object code to use enum array like enemies
     - removes index
 - think: change boss code to use enum array like enemies
