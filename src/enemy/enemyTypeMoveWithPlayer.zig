@@ -56,7 +56,7 @@ fn onPlayerMoved(enemy: *enemyZig.Enemy, player: *main.Player, state: *main.Game
     }
 }
 
-fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) void {
+fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
     const data = enemy.enemyTypeData.moveWithPlayer;
     const moveStep = movePieceZig.getStepDirection(data.direction);
     const attackPosition: main.Position = .{

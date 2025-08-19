@@ -83,7 +83,7 @@ fn isEnemyHit(enemy: *enemyZig.Enemy, hitArea: main.TileRectangle, hitDirection:
     return false;
 }
 
-fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) void {
+fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
     const data = enemy.enemyTypeData.block;
     if (data.aoeAttackTime) |attackTime| {
         const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(attackTime - state.gameTime)) / @as(f32, @floatFromInt(data.aoeAttackDelay))));

@@ -62,7 +62,7 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
     }
 }
 
-fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) void {
+fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
     const data = enemy.enemyTypeData.putFire;
     if (data.nextMoveTime) |nextMoveTime| {
         const moveStep = movePieceZig.getStepDirection(data.moveDirection);

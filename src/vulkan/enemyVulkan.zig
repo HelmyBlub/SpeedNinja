@@ -19,9 +19,9 @@ pub fn setupVertices(state: *main.GameState) void {
     }
 }
 
-pub fn setupVerticesGround(state: *main.GameState) void {
+pub fn setupVerticesGround(state: *main.GameState) !void {
     for (state.enemyData.enemies.items) |*enemy| {
-        if (enemyZig.ENEMY_FUNCTIONS.get(enemy.enemyTypeData).setupVerticesGround) |ground| ground(enemy, state);
+        if (enemyZig.ENEMY_FUNCTIONS.get(enemy.enemyTypeData).setupVerticesGround) |ground| try ground(enemy, state);
     }
     for (state.bosses.items) |*boss| {
         bossZig.LEVEL_BOSS_DATA[boss.dataIndex].setupVerticesGround(boss, state);
@@ -75,7 +75,7 @@ fn addWarningTileSpritesWithImageIndex(gamePosition: main.Position, fillPerCent:
             verticeData.spritesComplex.vertices[verticeData.spritesComplex.verticeCount] = dataVulkanZig.SpriteComplexVertex{
                 .pos = .{ vulkan.x, vulkan.y },
                 .imageIndex = if (i < 2) imageIndexFilled else imageIndex,
-                .alpha = 1,
+                .alpha = 0.7,
                 .tex = texPos,
             };
             verticeData.spritesComplex.verticeCount += 1;
@@ -118,7 +118,7 @@ pub fn addRedArrowTileSprites(gamePosition: main.Position, fillPerCent: f32, rot
             verticeData.spritesComplex.vertices[verticeData.spritesComplex.verticeCount] = dataVulkanZig.SpriteComplexVertex{
                 .pos = .{ vulkan.x, vulkan.y },
                 .imageIndex = if (i < 2) imageZig.IMAGE_RED_ARROW_FILLED else imageZig.IMAGE_RED_ARROW,
-                .alpha = 1,
+                .alpha = 0.7,
                 .tex = texPos,
             };
             verticeData.spritesComplex.verticeCount += 1;

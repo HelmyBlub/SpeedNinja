@@ -156,11 +156,9 @@ pub fn movePositionByPiece(position: *main.Position, movePiece: MovePiece, execu
     }
 }
 
-pub fn attackMoveCheckPlayerHit(position: *main.Position, movePiece: MovePiece, executeDirection: u8, state: *main.GameState) !void {
-    for (movePiece.steps) |step| {
-        const direction = @mod(step.direction + executeDirection + 1, 4);
-        try stepAndCheckPlayerHit(position, step.stepCount, getStepDirection(direction), state);
-    }
+pub fn attackMovePieceCheckPlayerHit(position: *main.Position, movePiece: MovePiece, executeDirection: u8, state: *main.GameState) !void {
+    const startPosition: main.TilePosition = main.gamePositionToTilePosition(position.*);
+    try executeMovePieceWithCallbackPerStep(*main.Position, movePiece, executeDirection, startPosition, position, moveEnemyAndCheckPlayerHitOnMoveStep, state);
 }
 
 pub fn combineMovePieces(player: *main.Player, movePieceIndex1: usize, movePieceIndex2: usize, combineDirection: u8, state: *main.GameState) !void {
@@ -321,6 +319,7 @@ fn stepAndCheckEnemyHitAndProjectileHitAndTiles(player: *main.Player, stepCount:
             player.slashedLastMoveTile = true;
         }
         try bossZig.onPlayerMoveEachTile(player, state);
+        try enemyZig.onPlayerMoveEachTile(player, state);
         if (enemyObjectZig.checkHitMovingPlayer(player, state)) {
             try main.playerHit(player, state);
         }
@@ -331,11 +330,38 @@ fn stepAndCheckEnemyHitAndProjectileHitAndTiles(player: *main.Player, stepCount:
     }
 }
 
-fn stepAndCheckPlayerHit(position: *main.Position, stepCount: u8, stepDirection: main.Position, state: *main.GameState) !void {
-    for (0..stepCount) |_| {
-        position.x += stepDirection.x * main.TILESIZE;
-        position.y += stepDirection.y * main.TILESIZE;
-        try checkPlayerHitOnMoveStep(position, state);
+pub fn executeMovePieceWithCallbackPerStep(
+    comptime Data: type,
+    movePiece: MovePiece,
+    executeDirection: u8,
+    startPosition: main.TilePosition,
+    context: Data,
+    stepFunction: fn (pos: main.TilePosition, visualizedDirection: u8, context: Data, state: *main.GameState) anyerror!void,
+    state: *main.GameState,
+) !void {
+    var curTilePos = startPosition;
+    main: for (movePiece.steps, 0..) |step, stepIndex| {
+        const currDirection = @mod(step.direction + executeDirection + 1, 4);
+        const stepDirection = getStepDirectionTile(currDirection);
+        var stepCountIndex: usize = 0;
+        while (stepCountIndex < step.stepCount) {
+            const movedPosition: main.TilePosition = .{
+                .x = curTilePos.x + stepDirection.x,
+                .y = curTilePos.y + stepDirection.y,
+            };
+            const tileType = mapTileZig.getMapTilePositionType(movedPosition, &state.mapData);
+            if (tileType == .wall) continue :main;
+            curTilePos = movedPosition;
+            var visualizedDirection = currDirection;
+            if (stepCountIndex == step.stepCount - 1 and movePiece.steps.len > stepIndex + 1) {
+                visualizedDirection = @mod(movePiece.steps[stepIndex + 1].direction + executeDirection + 1, 4);
+            }
+            try stepFunction(curTilePos, visualizedDirection, context, state);
+            stepCountIndex += 1;
+            if (stepCountIndex == step.stepCount and tileType == .ice) {
+                stepCountIndex -= 1;
+            }
+        }
     }
 }
 
@@ -481,17 +507,16 @@ fn checkEnemyHitOnMoveStep(player: *main.Player, hitDirection: u8, state: *main.
     return hitSomething;
 }
 
-fn checkPlayerHitOnMoveStep(position: *main.Position, state: *main.GameState) !void {
-    const left: f32 = position.x - main.TILESIZE / 2;
-    const top: f32 = position.y - main.TILESIZE / 2;
-    const width: f32 = main.TILESIZE;
-    const height: f32 = main.TILESIZE;
-
+fn moveEnemyAndCheckPlayerHitOnMoveStep(hitPosition: main.TilePosition, visualizedDirection: u8, enemyPos: *main.Position, state: *main.GameState) !void {
+    _ = visualizedDirection;
     for (state.players.items) |*player| {
-        if (player.position.x > left and player.position.x < left + width and player.position.y > top and player.position.y < top + height) {
+        const playerTile = main.gamePositionToTilePosition(player.position);
+        if (playerTile.x == hitPosition.x and playerTile.y == hitPosition.y) {
             try main.playerHit(player, state);
         }
     }
+    enemyPos.x = @floatFromInt(hitPosition.x * main.TILESIZE);
+    enemyPos.y = @floatFromInt(hitPosition.y * main.TILESIZE);
 }
 
 pub fn getMovePieceTileDistances(movePiece: MovePiece) [2]i32 {

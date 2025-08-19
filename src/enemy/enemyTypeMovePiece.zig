@@ -7,7 +7,12 @@ const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 
 pub const EnemyTypeMovePieceData = struct {
     direction: ?u8 = null,
-    executeMove: bool = false,
+    executeMoveTime: ?i64 = null,
+};
+
+const OnPlayerMoveStepData = struct {
+    playerTile: main.TilePosition,
+    enemy: *enemyZig.Enemy,
 };
 
 pub fn create() enemyZig.EnemyFunctions {
@@ -15,6 +20,7 @@ pub fn create() enemyZig.EnemyFunctions {
         .createSpawnEnemyEntryEnemy = createSpawnEnemyEntryEnemy,
         .tick = tick,
         .setupVerticesGround = setupVerticesGround,
+        .onPlayerMoveEachTile = onPlayerMoveEachTile,
     };
 }
 
@@ -28,6 +34,31 @@ fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
     };
 }
 
+fn onPlayerMoveEachTile(enemy: *enemyZig.Enemy, player: *main.Player, state: *main.GameState) anyerror!void {
+    const data = enemy.enemyTypeData.movePiece;
+    if (state.enemyData.movePieceEnemyMovePiece == null or data.direction == null) return;
+    const movePiece = state.enemyData.movePieceEnemyMovePiece.?;
+    const enemyDirection = data.direction.?;
+    const curTilePos = main.gamePositionToTilePosition(enemy.position);
+    const playerTile = main.gamePositionToTilePosition(player.position);
+    try movePieceZig.executeMovePieceWithCallbackPerStep(
+        OnPlayerMoveStepData,
+        movePiece,
+        enemyDirection,
+        curTilePos,
+        .{ .playerTile = playerTile, .enemy = enemy },
+        onPlayerMoveEachTileStepFunction,
+        state,
+    );
+}
+
+fn onPlayerMoveEachTileStepFunction(pos: main.TilePosition, visualizedDirection: u8, data: OnPlayerMoveStepData, state: *main.GameState) !void {
+    _ = visualizedDirection;
+    if (data.playerTile.x == pos.x and data.playerTile.y == pos.y) {
+        data.enemy.enemyTypeData.movePiece.executeMoveTime = state.gameTime + 64;
+    }
+}
+
 fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
     _ = passedTime;
     const data = &enemy.enemyTypeData.movePiece;
@@ -37,37 +68,32 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
     if (data.direction == null) {
         data.direction = std.crypto.random.int(u2);
     }
-    if (data.executeMove) {
-        movePieceZig.movePositionByPiece(&enemy.position, state.enemyData.movePieceEnemyMovePiece.?, data.direction.?);
-        data.direction = std.crypto.random.int(u2);
-        data.executeMove = false;
+    if (data.executeMoveTime) |executeTime| {
+        if (executeTime <= state.gameTime) {
+            try movePieceZig.attackMovePieceCheckPlayerHit(&enemy.position, state.enemyData.movePieceEnemyMovePiece.?, data.direction.?, state);
+            data.direction = std.crypto.random.int(u2);
+            data.executeMoveTime = null;
+        }
     }
 }
 
-fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) void {
+fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
     const data = enemy.enemyTypeData.movePiece;
     if (state.enemyData.movePieceEnemyMovePiece == null or data.direction == null) return;
-    const enemyDirection = data.direction.?;
     const movePiece = state.enemyData.movePieceEnemyMovePiece.?;
-    var curTilePos = main.gamePositionToTilePosition(enemy.position);
-    for (movePiece.steps, 0..) |step, stepIndex| {
-        const currDirection = @mod(step.direction + enemyDirection + 1, 4);
-        const stepDirection = movePieceZig.getStepDirectionTile(currDirection);
-        for (0..step.stepCount) |stepCountIndex| {
-            curTilePos.x += stepDirection.x;
-            curTilePos.y += stepDirection.y;
-            var visualizedDirection = currDirection;
-            if (stepCountIndex == step.stepCount - 1 and movePiece.steps.len > stepIndex + 1) {
-                visualizedDirection = @mod(movePiece.steps[stepIndex + 1].direction + enemyDirection + 1, 4);
-            }
-            const attackPosition: main.Position = .{
-                .x = @as(f32, @floatFromInt(curTilePos.x)) * main.TILESIZE,
-                .y = @as(f32, @floatFromInt(curTilePos.y)) * main.TILESIZE,
-            };
-            const rotation: f32 = @as(f32, @floatFromInt(visualizedDirection)) * std.math.pi / 2.0;
-            enemyVulkanZig.addRedArrowTileSprites(attackPosition, 1, rotation, state);
-        }
-    }
+    const enemyDirection = data.direction.?;
+    const curTilePos = main.gamePositionToTilePosition(enemy.position);
+    try movePieceZig.executeMovePieceWithCallbackPerStep(void, movePiece, enemyDirection, curTilePos, {}, setupVerticesGroundStepFunction, state);
+}
+
+fn setupVerticesGroundStepFunction(pos: main.TilePosition, visualizedDirection: u8, context: void, state: *main.GameState) !void {
+    _ = context;
+    const attackPosition: main.Position = .{
+        .x = @as(f32, @floatFromInt(pos.x)) * main.TILESIZE,
+        .y = @as(f32, @floatFromInt(pos.y)) * main.TILESIZE,
+    };
+    const rotation: f32 = @as(f32, @floatFromInt(visualizedDirection)) * std.math.pi / 2.0;
+    enemyVulkanZig.addRedArrowTileSprites(attackPosition, 1, rotation, state);
 }
 
 pub fn createRandomMovePiece(allocator: std.mem.Allocator) !movePieceZig.MovePiece {

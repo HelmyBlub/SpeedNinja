@@ -112,7 +112,7 @@ fn removeOneRandomAdjacentWall(tilePosition: main.TilePosition, state: *main.Gam
     mapTileZig.setMapTilePositionType(hitTilePosition, .normal, &state.mapData);
 }
 
-fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) void {
+fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
     const data = enemy.enemyTypeData.waller;
     if (data.attackTime) |attackTime| {
         const moveStep = movePieceZig.getStepDirection(data.direction);

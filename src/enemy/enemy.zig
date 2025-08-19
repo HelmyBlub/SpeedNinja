@@ -25,8 +25,9 @@ pub const EnemyFunctions = struct {
     createSpawnEnemyEntryEnemy: *const fn () Enemy,
     tick: ?*const fn (enemy: *Enemy, passedTime: i64, state: *main.GameState) anyerror!void = null,
     onPlayerMoved: ?*const fn (enemy: *Enemy, player: *main.Player, state: *main.GameState) anyerror!void = null,
+    onPlayerMoveEachTile: ?*const fn (enemy: *Enemy, player: *main.Player, state: *main.GameState) anyerror!void = null,
     setupVertices: ?*const fn (enemy: *Enemy, state: *main.GameState) void = null,
-    setupVerticesGround: ?*const fn (enemy: *Enemy, state: *main.GameState) void = null,
+    setupVerticesGround: ?*const fn (enemy: *Enemy, state: *main.GameState) anyerror!void = null,
     isEnemyHit: ?*const fn (enemy: *Enemy, hitArea: main.TileRectangle, hitDirection: u8, state: *main.GameState) anyerror!bool = null,
 };
 
@@ -136,6 +137,12 @@ pub fn tickEnemies(passedTime: i64, state: *main.GameState) !void {
 pub fn onPlayerMoved(player: *main.Player, state: *main.GameState) !void {
     for (state.enemyData.enemies.items) |*enemy| {
         if (ENEMY_FUNCTIONS.get(enemy.enemyTypeData).onPlayerMoved) |moved| try moved(enemy, player, state);
+    }
+}
+
+pub fn onPlayerMoveEachTile(player: *main.Player, state: *main.GameState) !void {
+    for (state.enemyData.enemies.items) |*enemy| {
+        if (ENEMY_FUNCTIONS.get(enemy.enemyTypeData).onPlayerMoveEachTile) |moved| try moved(enemy, player, state);
     }
 }
 

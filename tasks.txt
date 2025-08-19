@@ -23,10 +23,10 @@ Tasks:
     - removes index
 - change: timer starts on first move input
 
-Play Times:
-    lvl  5 best in 2:30  
-    lvl 10 best in 3:29 total  6:23
-    lvl 15 best in 3:59 total 10:59
+Play Times:    best split | best total
+    lvl  5 best in 2:23  
+    lvl 10 best in 3:29 total  6:16
+    lvl 15 best in 3:59 total 10:42
     lvl 20 best in 5:26 total 17:10
     lvl 25 best in 6:58 total 24:39
     lvl 30 best in 7:58 total 33:57
