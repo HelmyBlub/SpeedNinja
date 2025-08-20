@@ -15,7 +15,6 @@ const EnemyObjectTypeData = union(EnemyObjectTypes) {
 
 pub const EnemyObject = struct {
     position: main.Position,
-    functionsIndex: usize,
     typeData: EnemyObjectTypeData,
 };
 
@@ -27,20 +26,20 @@ pub const EnemyObjectFunctions = struct {
     hitCheckMovingPlayer: ?*const fn (object: *EnemyObject, player: *main.Player, state: *main.GameState) bool = null,
 };
 
-pub const ENEMY_OBJECT_FUNCTIONS = [_]EnemyObjectFunctions{
-    enemyObjectProjectileZig.createEnemyObjectFunctions(),
-    enemyObjectFireZig.createEnemyObjectFunctions(),
-};
+pub const ENEMY_OBJECT_FUNCTIONS = std.EnumArray(EnemyObjectTypes, EnemyObjectFunctions).init(.{
+    .projectile = enemyObjectProjectileZig.createEnemyObjectFunctions(),
+    .fire = enemyObjectFireZig.createEnemyObjectFunctions(),
+});
 
 pub fn setupVerticesGround(state: *main.GameState) void {
     for (state.enemyData.enemyObjects.items) |*object| {
-        if (ENEMY_OBJECT_FUNCTIONS[object.functionsIndex].setupVerticesGround) |setup| setup(object, state);
+        if (ENEMY_OBJECT_FUNCTIONS.get(object.typeData).setupVerticesGround) |setup| setup(object, state);
     }
 }
 
 pub fn setupVertices(state: *main.GameState) void {
     for (state.enemyData.enemyObjects.items) |*object| {
-        ENEMY_OBJECT_FUNCTIONS[object.functionsIndex].setupVertices(object, state);
+        ENEMY_OBJECT_FUNCTIONS.get(object.typeData).setupVertices(object, state);
     }
 }
 
@@ -48,7 +47,7 @@ pub fn tick(passedTime: i64, state: *main.GameState) !void {
     var currentIndex: usize = 0;
     while (currentIndex < state.enemyData.enemyObjects.items.len) {
         const object = &state.enemyData.enemyObjects.items[currentIndex];
-        const functions = ENEMY_OBJECT_FUNCTIONS[object.functionsIndex];
+        const functions = ENEMY_OBJECT_FUNCTIONS.get(object.typeData);
         if (functions.shouldBeRemoved(object, state)) {
             _ = state.enemyData.enemyObjects.swapRemove(currentIndex);
         } else {
@@ -60,7 +59,7 @@ pub fn tick(passedTime: i64, state: *main.GameState) !void {
 
 pub fn checkHitMovingPlayer(player: *main.Player, state: *main.GameState) bool {
     for (state.enemyData.enemyObjects.items) |*object| {
-        const functions = ENEMY_OBJECT_FUNCTIONS[object.functionsIndex];
+        const functions = ENEMY_OBJECT_FUNCTIONS.get(object.typeData);
         if (functions.hitCheckMovingPlayer) |hitCheckMovingPlayer| {
             if (hitCheckMovingPlayer(object, player, state)) {
                 return true;

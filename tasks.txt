@@ -1,7 +1,6 @@
 Tasks:
-- check: enemy MovePiece should not move to far outside
-    - should no stuck on wall
-
+- think: change enemy object code to use enum array like enemies
+    - removes index
 - enemy idea:
     - enemy move 3 tiles
     - place bombs on tile before moving
@@ -25,8 +24,6 @@ Tasks:
     - idea: onTileChange (limit by only once per x seconds)
         - pathfind from player to all enemies
         - if one is not reachable?
-- think: change enemy object code to use enum array like enemies
-    - removes index
 
 
 Play Times:    best split | best total | estimated difficulty

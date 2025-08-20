@@ -30,7 +30,6 @@ pub fn spawnProjectile(position: main.Position, direction: u8, imageIndex: u8, m
     if (ice) mapTileZig.setMapTilePositionType(main.gamePositionToTilePosition(position), .ice, &state.mapData);
     try state.enemyData.enemyObjects.append(.{
         .position = position,
-        .functionsIndex = 0,
         .typeData = .{ .projectile = .{
             .direction = direction,
             .imageIndex = imageIndex,

@@ -23,7 +23,6 @@ pub fn createEnemyObjectFunctions() enemyObjectZig.EnemyObjectFunctions {
 pub fn spawnFire(position: main.Position, duration: i32, state: *main.GameState) !void {
     try state.enemyData.enemyObjects.append(.{
         .position = position,
-        .functionsIndex = 1, //TODO
         .typeData = .{ .fire = .{
             .imageIndex = imageZig.IMAGE_FIRE_ANIMATION,
             .removeTime = state.gameTime + duration,
