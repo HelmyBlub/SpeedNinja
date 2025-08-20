@@ -26,7 +26,7 @@ pub fn create() enemyZig.EnemyFunctions {
 
 fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
     return .{
-        .imageIndex = imageZig.IMAGE_ENEMY_MOVING,
+        .imageIndex = imageZig.IMAGE_ENEMY_MOVE_PIECE,
         .position = .{ .x = 0, .y = 0 },
         .enemyTypeData = .{
             .movePiece = .{},
@@ -66,7 +66,7 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
         state.enemyData.movePieceEnemyMovePiece = try createRandomMovePiece(state.allocator);
     }
     if (data.direction == null) {
-        data.direction = std.crypto.random.int(u2);
+        try chooseDirection(enemy, state);
     }
     if (data.executeMoveTime) |executeTime| {
         if (executeTime <= state.gameTime) {

@@ -30,7 +30,7 @@ pub fn setupMovePiece(state: *main.GameState) !void {
 
 fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
     return .{
-        .imageIndex = imageZig.IMAGE_ENEMY_MOVING,
+        .imageIndex = imageZig.IMAGE_ENEMY_BOMB,
         .position = .{ .x = 0, .y = 0 },
         .enemyTypeData = .{
             .bomb = .{},

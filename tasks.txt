@@ -2,9 +2,6 @@ Tasks:
 - enemy movePiece
     - image
 - enemy bomb:
-    - enemy move 3 tiles
-    - place bombs on tile before moving
-        - bomb explode on 3x3 after delay
     - image
 
 - end boss ideas (50)
