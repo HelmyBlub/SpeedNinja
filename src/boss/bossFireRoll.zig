@@ -67,7 +67,7 @@ fn startBoss(state: *main.GameState) !void {
     try state.bosses.append(.{
         .hp = 10,
         .maxHp = 10,
-        .imageIndex = imageZig.IMAGE_BOSS_ROLL,
+        .imageIndex = imageZig.IMAGE_BOSS_FIREROLL,
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
         .typeData = .{ .fireRoll = .{

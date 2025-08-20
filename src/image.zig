@@ -57,6 +57,7 @@ pub const IMAGE_BOSS_SNOWBALL = 49;
 pub const IMAGE_ENEMY_WALLER = 50;
 pub const IMAGE_BOSS_WALLER = 51;
 pub const IMAGE_BOMB = 52;
+pub const IMAGE_BOSS_FIREROLL = 53;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaDog.png" },
@@ -112,6 +113,7 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/enemyWaller.png" },
     .{ .path = "images/bossWaller.png", .scale = 1.2 },
     .{ .path = "images/bomb.png", .scale = 2 },
+    .{ .path = "images/bossFireRoll.png" },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 pub const IMAGE_DOG__CENTER_BODY: main.Position = .{ .x = 99, .y = 128 };
