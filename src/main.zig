@@ -389,7 +389,7 @@ fn destroyGameState(state: *GameState) void {
     state.bosses.deinit();
     state.shop.buyOptions.deinit();
     mapTileZig.deinit(state);
-    enemyZig.destroyEnemy(state);
+    enemyZig.destroyEnemyData(state);
 }
 
 pub fn isPositionEmpty(position: Position, state: *GameState) bool {

@@ -12,6 +12,7 @@ const enemyTypeBlockZig = @import("enemyTypeBlock.zig");
 const enemyTypeIceAttackZig = @import("enemyTypeIceAttack.zig");
 const enemyTypeWallerZig = @import("enemyTypeWaller.zig");
 const enemyTypeMovePieceZig = @import("enemyTypeMovePiece.zig");
+const enemyTypeBombZig = @import("enemyTypeBomb.zig");
 const mapTileZig = @import("../mapTile.zig");
 
 pub const EnemyData = struct {
@@ -19,6 +20,7 @@ pub const EnemyData = struct {
     enemySpawnData: EnemySpawnData = undefined,
     enemyObjects: std.ArrayList(enemyObjectZig.EnemyObject) = undefined,
     movePieceEnemyMovePiece: ?movePieceZig.MovePiece = null,
+    bombEnemyMovePiece: movePieceZig.MovePiece = undefined,
 };
 
 pub const EnemyFunctions = struct {
@@ -42,6 +44,7 @@ pub const EnemyType = enum {
     ice,
     waller,
     movePiece,
+    bomb,
 };
 
 pub const EnemyTypeData = union(EnemyType) {
@@ -55,6 +58,7 @@ pub const EnemyTypeData = union(EnemyType) {
     ice: enemyTypeIceAttackZig.DelayedAttackWithCooldown,
     waller: enemyTypeWallerZig.EnemyTypeWallerData,
     movePiece: enemyTypeMovePieceZig.EnemyTypeMovePieceData,
+    bomb: enemyTypeBombZig.EnemyTypeBombData,
 };
 
 pub const ENEMY_FUNCTIONS = std.EnumArray(EnemyType, EnemyFunctions).init(.{
@@ -68,6 +72,7 @@ pub const ENEMY_FUNCTIONS = std.EnumArray(EnemyType, EnemyFunctions).init(.{
     .ice = enemyTypeIceAttackZig.create(),
     .waller = enemyTypeWallerZig.create(),
     .movePiece = enemyTypeMovePieceZig.create(),
+    .bomb = enemyTypeBombZig.create(),
 });
 
 const ENEMY_TYPE_SPAWN_LEVEL_DATA = [_]EnemyTypeSpawnLevelData{
@@ -79,8 +84,9 @@ const ENEMY_TYPE_SPAWN_LEVEL_DATA = [_]EnemyTypeSpawnLevelData{
     .{ .baseProbability = 1, .enemyType = .putFire, .startingLevel = 20, .leavingLevel = 30 },
     .{ .baseProbability = 1, .enemyType = .block, .startingLevel = 25, .leavingLevel = 35 },
     .{ .baseProbability = 1, .enemyType = .ice, .startingLevel = 30, .leavingLevel = 40 },
-    .{ .baseProbability = 1, .enemyType = .waller, .startingLevel = 35, .leavingLevel = null },
+    .{ .baseProbability = 1, .enemyType = .waller, .startingLevel = 35, .leavingLevel = 45 },
     .{ .baseProbability = 1, .enemyType = .movePiece, .startingLevel = 40, .leavingLevel = null },
+    .{ .baseProbability = 1, .enemyType = .bomb, .startingLevel = 45, .leavingLevel = null },
 };
 
 const EnemyTypeSpawnLevelData = struct {
@@ -185,6 +191,7 @@ pub fn initEnemy(state: *main.GameState) !void {
     state.enemyData.enemies = std.ArrayList(Enemy).init(state.allocator);
     state.enemyData.enemySpawnData.enemyEntries = std.ArrayList(EnemySpawnEntry).init(state.allocator);
     state.enemyData.enemyObjects = std.ArrayList(enemyObjectZig.EnemyObject).init(state.allocator);
+    try enemyTypeBombZig.setupMovePiece(state);
     try setupSpawnEnemiesOnLevelChange(state);
 }
 
@@ -224,7 +231,7 @@ fn scaleEnemiesToLevel(state: *main.GameState) void {
     calcAndSetEnemySpawnProbabilities(&state.enemyData.enemySpawnData);
 }
 
-pub fn destroyEnemy(state: *main.GameState) void {
+pub fn destroyEnemyData(state: *main.GameState) void {
     state.spriteCutAnimations.deinit();
     state.enemyData.enemySpawnData.enemyEntries.deinit();
     state.enemyData.enemies.deinit();
@@ -232,6 +239,7 @@ pub fn destroyEnemy(state: *main.GameState) void {
     if (state.enemyData.movePieceEnemyMovePiece) |movePiece| {
         state.allocator.free(movePiece.steps);
     }
+    state.allocator.free(state.enemyData.bombEnemyMovePiece.steps);
 }
 
 pub fn checkStationaryPlayerHit(position: main.Position, state: *main.GameState) !void {

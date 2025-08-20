@@ -2,16 +2,25 @@ const std = @import("std");
 const main = @import("../main.zig");
 const enemyObjectProjectileZig = @import("enemyObjectProjectile.zig");
 const enemyObjectFireZig = @import("enemyObjectFire.zig");
+const enemyObjectBombZig = @import("enemyObjectBomb.zig");
 
 const EnemyObjectTypes = enum {
     projectile,
     fire,
+    bomb,
 };
 
 const EnemyObjectTypeData = union(EnemyObjectTypes) {
     projectile: enemyObjectProjectileZig.EnemyProjectile,
     fire: enemyObjectFireZig.EnemyFire,
+    bomb: enemyObjectBombZig.EnemyBomb,
 };
+
+pub const ENEMY_OBJECT_FUNCTIONS = std.EnumArray(EnemyObjectTypes, EnemyObjectFunctions).init(.{
+    .projectile = enemyObjectProjectileZig.createEnemyObjectFunctions(),
+    .fire = enemyObjectFireZig.createEnemyObjectFunctions(),
+    .bomb = enemyObjectBombZig.createEnemyObjectFunctions(),
+});
 
 pub const EnemyObject = struct {
     position: main.Position,
@@ -25,11 +34,6 @@ pub const EnemyObjectFunctions = struct {
     setupVertices: *const fn (object: *EnemyObject, state: *main.GameState) void,
     hitCheckMovingPlayer: ?*const fn (object: *EnemyObject, player: *main.Player, state: *main.GameState) bool = null,
 };
-
-pub const ENEMY_OBJECT_FUNCTIONS = std.EnumArray(EnemyObjectTypes, EnemyObjectFunctions).init(.{
-    .projectile = enemyObjectProjectileZig.createEnemyObjectFunctions(),
-    .fire = enemyObjectFireZig.createEnemyObjectFunctions(),
-});
 
 pub fn setupVerticesGround(state: *main.GameState) void {
     for (state.enemyData.enemyObjects.items) |*object| {
