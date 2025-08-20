@@ -71,9 +71,22 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
     if (data.executeMoveTime) |executeTime| {
         if (executeTime <= state.gameTime) {
             try movePieceZig.attackMovePieceCheckPlayerHit(&enemy.position, state.enemyData.movePieceEnemyMovePiece.?, data.direction.?, state);
-            data.direction = std.crypto.random.int(u2);
+            try chooseDirection(enemy, state);
             data.executeMoveTime = null;
         }
+    }
+}
+
+fn chooseDirection(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
+    const movePiece = state.enemyData.movePieceEnemyMovePiece.?;
+    const data = &enemy.enemyTypeData.movePiece;
+    const gridBorder: f32 = @floatFromInt(state.mapData.tileRadius * main.TILESIZE);
+    var validMovePosition = false;
+    while (!validMovePosition) {
+        var bossPositionAfterPiece = enemy.position;
+        data.direction = std.crypto.random.intRangeLessThan(u8, 0, 4);
+        try movePieceZig.movePositionByPiece(&bossPositionAfterPiece, movePiece, data.direction.?, state);
+        validMovePosition = bossPositionAfterPiece.x >= -gridBorder and bossPositionAfterPiece.x <= gridBorder and bossPositionAfterPiece.y >= -gridBorder and bossPositionAfterPiece.y <= gridBorder;
     }
 }
 

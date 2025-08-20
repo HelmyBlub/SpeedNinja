@@ -1,16 +1,20 @@
 Tasks:
-- boss fireRoll
-    - image: double eyes
 - check: enemy MovePiece should not move to far outside
     - should no stuck on wall
 
 - enemy idea:
-    - 
+    - enemy move 3 tiles
+    - place bombs on tile before moving
+        - bomb explode on 3x3 after delay
 
 - end boss ideas (50)
     - dragon
     - bigger than one tile
     - multiple phases
+    - can only damage feet/paws
+        - each paw is one tile
+    - destroys tiles
+    - fall down one area
 
 - think: change random position to single function instead of duplicate with small differenes?
 - waller enemy
