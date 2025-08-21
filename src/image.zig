@@ -62,7 +62,7 @@ pub const IMAGE_ENEMY_MOVE_PIECE = 54;
 pub const IMAGE_ENEMY_BOMB = 55;
 pub const IMAGE_BOSS_DRAGON_FOOT = 56;
 pub const IMAGE_BOSS_DRAGON_BODY_TOP = 57;
-pub const IMAGE_BOSS_DRAGON_FOOT_BOTTOM = 58;
+pub const IMAGE_BOSS_DRAGON_BODY_BOTTOM = 58;
 pub const IMAGE_BOSS_DRAGON_TAIL = 59;
 pub const IMAGE_BOSS_DRAGON_HEAD = 60;
 pub const IMAGE_BOSS_DRAGON_WING = 61;
@@ -126,7 +126,7 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/enemyBomb.png" },
     .{ .path = "images/bossDragonFoot.png" },
     .{ .path = "images/bossDragonBodyTop.png", .scale = 2.0 },
-    .{ .path = "images/bossDragonBodyBottom.png" },
+    .{ .path = "images/bossDragonBodyBottom.png", .scale = 2.0 },
     .{ .path = "images/bossDragonTail.png", .scale = 2.0 },
     .{ .path = "images/bossDragonHead.png", .scale = 1.5 },
     .{ .path = "images/bossDragonWingLeftBottom.png", .scale = 2.0 },

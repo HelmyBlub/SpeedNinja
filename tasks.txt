@@ -1,13 +1,8 @@
 Tasks:
 - end boss dragon
     - dev steps:
-        - boss file
-        - tiles on which the boss can be hit (feet)
-            - can not be hit in air
-        - draw two positions
-            - feed on ground
-            - standing on back feet
-            - alternate between them
+        - animate transition
+            - from all 4 feed on ground to standing on fwo feet
 
     - attacks
         - fire breath
