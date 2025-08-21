@@ -268,6 +268,8 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
             &state.vkState.verticeData.spritesComplex,
             sizeFactor,
             1,
+            false,
+            false,
             state,
         );
     }

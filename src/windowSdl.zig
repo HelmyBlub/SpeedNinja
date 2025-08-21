@@ -115,6 +115,9 @@ pub fn handleEvents(state: *main.GameState) !void {
                     if (state.gamePhase != .shopping) try shopZig.startShoppingPhase(state);
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_F4) {
                     try main.restart(state);
+                } else if (event.key.scancode == sdl.SDL_SCANCODE_F5) {
+                    state.level = 49;
+                    try main.startNextLevel(state);
                 }
             }
         }

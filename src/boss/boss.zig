@@ -12,6 +12,7 @@ const bossTrippleZig = @import("bossTripple.zig");
 const bossSnowballZig = @import("bossSnowball.zig");
 const bossWallerZig = @import("bossWaller.zig");
 const bossFireRollZig = @import("bossFireRoll.zig");
+const bossDragonZig = @import("bossDragon.zig");
 
 pub const LevelBossData = struct {
     appearsOnLevel: usize,
@@ -35,6 +36,7 @@ const BossTypes = enum {
     snowball,
     waller,
     fireRoll,
+    dragon,
 };
 
 const BossTypeData = union(BossTypes) {
@@ -47,6 +49,7 @@ const BossTypeData = union(BossTypes) {
     snowball: bossSnowballZig.BossSnowballData,
     waller: bossWallerZig.BossWallerData,
     fireRoll: bossFireRollZig.BossFireRollData,
+    dragon: bossDragonZig.BossDragonData,
 };
 
 pub const LEVEL_BOSS_DATA = std.EnumArray(BossTypes, LevelBossData).init(.{
@@ -59,6 +62,7 @@ pub const LEVEL_BOSS_DATA = std.EnumArray(BossTypes, LevelBossData).init(.{
     .snowball = bossSnowballZig.createBoss(),
     .waller = bossWallerZig.createBoss(),
     .fireRoll = bossFireRollZig.createBoss(),
+    .dragon = bossDragonZig.createBoss(),
 });
 
 pub const Boss = struct {

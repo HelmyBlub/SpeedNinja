@@ -60,6 +60,12 @@ pub const IMAGE_BOMB = 52;
 pub const IMAGE_BOSS_FIREROLL = 53;
 pub const IMAGE_ENEMY_MOVE_PIECE = 54;
 pub const IMAGE_ENEMY_BOMB = 55;
+pub const IMAGE_BOSS_DRAGON_FOOT = 56;
+pub const IMAGE_BOSS_DRAGON_BODY_TOP = 57;
+pub const IMAGE_BOSS_DRAGON_FOOT_BOTTOM = 58;
+pub const IMAGE_BOSS_DRAGON_TAIL = 59;
+pub const IMAGE_BOSS_DRAGON_HEAD = 60;
+pub const IMAGE_BOSS_DRAGON_WING = 61;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaDog.png" },
@@ -118,6 +124,12 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/bossFireRoll.png" },
     .{ .path = "images/enemyMovePiece.png" },
     .{ .path = "images/enemyBomb.png" },
+    .{ .path = "images/bossDragonFoot.png" },
+    .{ .path = "images/bossDragonBodyTop.png", .scale = 2.0 },
+    .{ .path = "images/bossDragonBodyBottom.png" },
+    .{ .path = "images/bossDragonTail.png", .scale = 2.0 },
+    .{ .path = "images/bossDragonHead.png", .scale = 1.5 },
+    .{ .path = "images/bossDragonWingLeftBottom.png", .scale = 2.0 },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 pub const IMAGE_DOG__CENTER_BODY: main.Position = .{ .x = 99, .y = 128 };
