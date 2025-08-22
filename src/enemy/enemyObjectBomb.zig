@@ -34,12 +34,7 @@ pub fn spawnBomb(position: main.Position, explodeDelay: i32, state: *main.GameSt
 }
 
 fn setupVertices(object: *enemyObjectZig.EnemyObject, state: *main.GameState) void {
-    paintVulkanZig.verticesForComplexSpriteDefault(
-        object.position,
-        imageZig.IMAGE_BOMB,
-        &state.vkState.verticeData.spritesComplex,
-        state,
-    );
+    paintVulkanZig.verticesForComplexSpriteDefault(object.position, imageZig.IMAGE_BOMB, state);
 }
 
 fn tick(object: *enemyObjectZig.EnemyObject, passedTime: i64, state: *main.GameState) !void {

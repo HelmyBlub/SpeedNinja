@@ -9,12 +9,11 @@ const bossZig = @import("../boss/boss.zig");
 const enemyZig = @import("../enemy/enemy.zig");
 
 pub fn setupVertices(state: *main.GameState) void {
-    const verticeData = &state.vkState.verticeData;
     for (state.enemyData.enemies.items) |*enemy| {
         if (enemyZig.ENEMY_FUNCTIONS.get(enemy.enemyTypeData).setupVertices) |fVertices| {
             fVertices(enemy, state);
         } else {
-            paintVulkanZig.verticesForComplexSpriteDefault(enemy.position, enemy.imageIndex, &verticeData.spritesComplex, state);
+            paintVulkanZig.verticesForComplexSpriteDefault(enemy.position, enemy.imageIndex, state);
         }
     }
 }

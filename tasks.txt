@@ -1,9 +1,7 @@
 Tasks:
 - end boss dragon
-    - why is color different?
     - dev steps:
         - make platform appear high in the air
-            - paint blue background
             - far away clouds moving slowly
             - clouds with alpha moving thorugh screen
 

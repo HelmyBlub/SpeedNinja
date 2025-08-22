@@ -252,7 +252,6 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
         boss.position,
         boss.imageIndex,
         rotation,
-        &state.vkState.verticeData.spritesComplex,
         state,
     );
     const shieldCount = getShieldCount(state);
@@ -265,7 +264,6 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
             .{ .x = boss.position.x + stepDirection.x * main.TILESIZE / 2, .y = boss.position.y + stepDirection.y * main.TILESIZE / 2 },
             imageZig.IMAGE_SHIELD,
             shieldRotation,
-            &state.vkState.verticeData.spritesComplex,
             state,
         );
     }
@@ -276,7 +274,7 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
             .x = targetPosition.x,
             .y = targetPosition.y - timeUntilHit / 2,
         };
-        paintVulkanZig.verticesForComplexSpriteDefault(cannonBallPosiion, imageZig.IMAGE_CANNON_BALL, &state.vkState.verticeData.spritesComplex, state);
+        paintVulkanZig.verticesForComplexSpriteDefault(cannonBallPosiion, imageZig.IMAGE_CANNON_BALL, state);
     }
 }
 

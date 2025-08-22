@@ -195,7 +195,7 @@ fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) !void {
 
 fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
     const data = boss.typeData.waller;
-    paintVulkanZig.verticesForComplexSpriteDefault(boss.position, boss.imageIndex, &state.vkState.verticeData.spritesComplex, state);
+    paintVulkanZig.verticesForComplexSpriteDefault(boss.position, boss.imageIndex, state);
 
     for (data.bombs.items) |bomb| {
         var bombPosition = bomb.position;
@@ -208,12 +208,12 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
             paintVulkanZig.verticesForComplexSpriteAlpha(.{
                 .x = bomb.position.x,
                 .y = bomb.position.y + 5,
-            }, imageZig.IMAGE_SHADOW, &state.vkState.verticeData.spritesComplex, 0.75, state);
+            }, imageZig.IMAGE_SHADOW, 0.75, state);
         }
         paintVulkanZig.verticesForComplexSpriteDefault(
             bombPosition,
             imageZig.IMAGE_BOMB,
-            &state.vkState.verticeData.spritesComplex,
+
             state,
         );
     }

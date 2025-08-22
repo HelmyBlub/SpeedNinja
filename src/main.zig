@@ -26,7 +26,7 @@ pub const GameState = struct {
     vkState: initVulkanZig.VkState = .{},
     allocator: std.mem.Allocator = undefined,
     camera: Camera = .{ .position = .{ .x = 0, .y = 0 }, .zoom = 1 },
-    backgroundColor: [3]f32 = .{ 0, 0, 0 },
+    paintData: PaintData = .{},
     gameTime: i64 = 0,
     round: u32 = 1,
     level: u32 = 1,
@@ -48,6 +48,18 @@ pub const GameState = struct {
     shop: shopZig.ShopData,
     lastBossDefeatedTime: i64 = 0,
     timerStarted: bool = false,
+};
+
+pub const PaintData = struct {
+    backgroundColor: [3]f32 = .{ 0, 0, 0 },
+    backClouds: [3]Cloud = .{ .{}, .{}, .{} },
+    frontCloud: Cloud = .{},
+};
+
+pub const Cloud = struct {
+    sizeFactor: f32 = 0,
+    speed: f32 = 0,
+    position: Position = .{ .x = 2000, .y = 0 },
 };
 
 pub const Player = struct {
@@ -171,6 +183,7 @@ fn mainLoop(state: *GameState) !void {
             try movePieceZig.tickPlayerMovePiece(player, state);
             try ninjaDogVulkanZig.tickNinjaDogAnimation(player, passedTime, state);
         }
+        tickClouds(state, passedTime);
         try enemyZig.tickEnemies(passedTime, state);
         try bossZig.tickBosses(state, passedTime);
         try paintVulkanZig.drawFrame(state);
@@ -184,6 +197,28 @@ fn mainLoop(state: *GameState) !void {
         if (!state.timerStarted) passedTime = 0;
         state.gameTime += passedTime;
     }
+}
+
+fn tickClouds(state: *GameState, passedTime: i64) void {
+    if (state.level != 50) return;
+    const fPassedTime: f32 = @floatFromInt(passedTime);
+    for (state.paintData.backClouds[0..]) |*backCloud| {
+        if (backCloud.position.x > 600) {
+            backCloud.position.x = -600 + std.crypto.random.float(f32) * 200;
+            backCloud.position.y = -150 + std.crypto.random.float(f32) * 150;
+            backCloud.sizeFactor = 5;
+            backCloud.speed = 0.02;
+        }
+        backCloud.position.x += backCloud.speed * fPassedTime;
+    }
+    if (state.paintData.frontCloud.position.x > 1000) {
+        state.paintData.frontCloud.position.x = -800 + std.crypto.random.float(f32) * 300;
+        state.paintData.frontCloud.position.y = -150 + std.crypto.random.float(f32) * 300;
+        state.paintData.frontCloud.sizeFactor = 15;
+        state.paintData.frontCloud.speed = 0.1;
+    }
+
+    state.paintData.frontCloud.position.x += state.paintData.frontCloud.speed * fPassedTime;
 }
 
 pub fn startNextRound(state: *GameState) !void {
@@ -297,7 +332,7 @@ pub fn restart(state: *GameState) !void {
         if (totalSeconds < 10) std.debug.print("0", .{});
         std.debug.print("{d}\n", .{totalSeconds});
     }
-    state.backgroundColor = COLOR_TILE_GREEN;
+    state.paintData.backgroundColor = COLOR_TILE_GREEN;
     state.level = 0;
     state.round = 0;
     state.gamePhase = .combat;

@@ -49,7 +49,13 @@ fn startBoss(state: *main.GameState) !void {
         .typeData = .{ .dragon = .{} },
     });
     try mapTileZig.setMapRadius(6, state);
-    state.backgroundColor = main.COLOR_SKY_BLUE;
+    state.paintData.backgroundColor = main.COLOR_SKY_BLUE;
+    for (state.paintData.backClouds[0..]) |*backCloud| {
+        backCloud.position.x = -500 + std.crypto.random.float(f32) * 1000;
+        backCloud.position.y = -150 + std.crypto.random.float(f32) * 150;
+        backCloud.sizeFactor = 5;
+        backCloud.speed = 0.02;
+    }
     main.adjustZoom(state);
 }
 
@@ -99,7 +105,7 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
 
     for (0..2) |index| {
         const foot = data.feet[index];
-        paintVulkanZig.verticesForComplexSpriteDefault(foot, imageZig.IMAGE_BOSS_DRAGON_FOOT, &state.vkState.verticeData.spritesComplex, state);
+        paintVulkanZig.verticesForComplexSpriteDefault(foot, imageZig.IMAGE_BOSS_DRAGON_FOOT, state);
     }
     if (data.paint.standingPerCent < 0.5) {
         for (2..4) |index| {
@@ -108,14 +114,14 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
                 .x = foot.x,
                 .y = foot.y - 100 * data.paint.standingPerCent,
             };
-            paintVulkanZig.verticesForComplexSpriteDefault(footInAirPos, imageZig.IMAGE_BOSS_DRAGON_FOOT, &state.vkState.verticeData.spritesComplex, state);
+            paintVulkanZig.verticesForComplexSpriteDefault(footInAirPos, imageZig.IMAGE_BOSS_DRAGON_FOOT, state);
         }
     }
     const tailPosition: main.Position = .{
         .x = boss.position.x,
         .y = boss.position.y - 70,
     };
-    paintVulkanZig.verticesForComplexSpriteDefault(tailPosition, imageZig.IMAGE_BOSS_DRAGON_TAIL, &state.vkState.verticeData.spritesComplex, state);
+    paintVulkanZig.verticesForComplexSpriteDefault(tailPosition, imageZig.IMAGE_BOSS_DRAGON_TAIL, state);
     if (data.paint.standingPerCent > 0.5) paintDragonWings(boss, state);
     paintDragonBody(boss, state);
     if (data.paint.standingPerCent <= 0.5) paintDragonWings(boss, state);
@@ -127,14 +133,14 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
                 .x = foot.x,
                 .y = foot.y - 100 * data.paint.standingPerCent,
             };
-            paintVulkanZig.verticesForComplexSpriteDefault(footInAirPos, imageZig.IMAGE_BOSS_DRAGON_FOOT, &state.vkState.verticeData.spritesComplex, state);
+            paintVulkanZig.verticesForComplexSpriteDefault(footInAirPos, imageZig.IMAGE_BOSS_DRAGON_FOOT, state);
         }
     }
     const headPosition: main.Position = .{
         .x = boss.position.x,
         .y = boss.position.y + 45 - 160 * data.paint.standingPerCent,
     };
-    paintVulkanZig.verticesForComplexSpriteDefault(headPosition, imageZig.IMAGE_BOSS_DRAGON_HEAD, &state.vkState.verticeData.spritesComplex, state);
+    paintVulkanZig.verticesForComplexSpriteDefault(headPosition, imageZig.IMAGE_BOSS_DRAGON_HEAD, state);
 }
 
 fn paintDragonWings(boss: *bossZig.Boss, state: *main.GameState) void {
@@ -149,11 +155,11 @@ fn paintDragonWings(boss: *bossZig.Boss, state: *main.GameState) void {
     };
     const scaleY = 0.1 + @abs(data.paint.standingPerCent - 0.5) * 2 * 0.9;
     if (data.paint.standingPerCent > 0.5) {
-        paintVulkanZig.verticesForComplexSprite(wingLeftPosition, imageZig.IMAGE_BOSS_DRAGON_WING, &state.vkState.verticeData.spritesComplex, 1, scaleY, 1, false, false, state);
-        paintVulkanZig.verticesForComplexSprite(wingRightPosition, imageZig.IMAGE_BOSS_DRAGON_WING, &state.vkState.verticeData.spritesComplex, 1, scaleY, 1, true, false, state);
+        paintVulkanZig.verticesForComplexSprite(wingLeftPosition, imageZig.IMAGE_BOSS_DRAGON_WING, 1, scaleY, 1, false, false, state);
+        paintVulkanZig.verticesForComplexSprite(wingRightPosition, imageZig.IMAGE_BOSS_DRAGON_WING, 1, scaleY, 1, true, false, state);
     } else {
-        paintVulkanZig.verticesForComplexSprite(wingLeftPosition, imageZig.IMAGE_BOSS_DRAGON_WING, &state.vkState.verticeData.spritesComplex, 1, scaleY, 1, false, true, state);
-        paintVulkanZig.verticesForComplexSprite(wingRightPosition, imageZig.IMAGE_BOSS_DRAGON_WING, &state.vkState.verticeData.spritesComplex, 1, scaleY, 1, true, true, state);
+        paintVulkanZig.verticesForComplexSprite(wingLeftPosition, imageZig.IMAGE_BOSS_DRAGON_WING, 1, scaleY, 1, false, true, state);
+        paintVulkanZig.verticesForComplexSprite(wingRightPosition, imageZig.IMAGE_BOSS_DRAGON_WING, 1, scaleY, 1, true, true, state);
     }
 }
 

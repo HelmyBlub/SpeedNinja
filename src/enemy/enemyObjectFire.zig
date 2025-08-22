@@ -33,14 +33,7 @@ pub fn spawnFire(position: main.Position, duration: i32, state: *main.GameState)
 fn setupVertices(object: *enemyObjectZig.EnemyObject, state: *main.GameState) void {
     const fire = object.typeData.fire;
     const animatePerCent: f32 = @mod(@as(f32, @floatFromInt(state.gameTime)) / 500, 1);
-    paintVulkanZig.verticesForComplexSpriteAnimated(
-        object.position,
-        fire.imageIndex,
-        animatePerCent,
-        2,
-        &state.vkState.verticeData.spritesComplex,
-        state,
-    );
+    paintVulkanZig.verticesForComplexSpriteAnimated(object.position, fire.imageIndex, animatePerCent, 2, state);
 }
 
 fn tick(object: *enemyObjectZig.EnemyObject, passedTime: i64, state: *main.GameState) !void {

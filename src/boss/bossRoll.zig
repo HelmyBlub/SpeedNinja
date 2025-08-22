@@ -158,7 +158,7 @@ fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) !void {
 
 fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
     const rollData = boss.typeData.roll;
-    paintVulkanZig.verticesForComplexSpriteDefault(boss.position, boss.imageIndex, &state.vkState.verticeData.spritesComplex, state);
+    paintVulkanZig.verticesForComplexSpriteDefault(boss.position, boss.imageIndex, state);
     for (rollData.attackTilePositions.items) |attack| {
         if (attack.hitTime > state.gameTime + @divFloor(rollData.attackDelay * 3, 4)) {
             const timePassed: f32 = @floatFromInt(rollData.attackDelay - (attack.hitTime - state.gameTime));
@@ -166,7 +166,7 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
                 .x = boss.position.x,
                 .y = boss.position.y - timePassed / 2,
             };
-            paintVulkanZig.verticesForComplexSpriteDefault(cannonBallPosiion, imageZig.IMAGE_CANNON_BALL, &state.vkState.verticeData.spritesComplex, state);
+            paintVulkanZig.verticesForComplexSpriteDefault(cannonBallPosiion, imageZig.IMAGE_CANNON_BALL, state);
         } else if (attack.hitTime >= state.gameTime - @divFloor(rollData.attackDelay * 3, 4)) {
             const timeUntilHit: f32 = @floatFromInt(attack.hitTime - state.gameTime);
             const targetPosition = main.tilePositionToGamePosition(attack.targetPosition);
@@ -174,7 +174,7 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
                 .x = targetPosition.x,
                 .y = targetPosition.y - timeUntilHit / 2,
             };
-            paintVulkanZig.verticesForComplexSpriteDefault(cannonBallPosiion, imageZig.IMAGE_CANNON_BALL, &state.vkState.verticeData.spritesComplex, state);
+            paintVulkanZig.verticesForComplexSpriteDefault(cannonBallPosiion, imageZig.IMAGE_CANNON_BALL, state);
         }
     }
 }

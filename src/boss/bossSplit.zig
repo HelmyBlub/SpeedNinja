@@ -259,13 +259,12 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
             paintVulkanZig.verticesForComplexSpriteAlpha(.{
                 .x = bossSplit.position.x,
                 .y = bossSplit.position.y + 5,
-            }, imageZig.IMAGE_SHADOW, &state.vkState.verticeData.spritesComplex, 0.75, state);
+            }, imageZig.IMAGE_SHADOW, 0.75, state);
         }
         const sizeFactor: f32 = @as(f32, @floatFromInt(bossSplit.remainingSpltits)) / @as(f32, @floatFromInt(splitData.maxSplits));
         paintVulkanZig.verticesForComplexSprite(
             bossPosition,
             boss.imageIndex,
-            &state.vkState.verticeData.spritesComplex,
             sizeFactor,
             1,
             1,

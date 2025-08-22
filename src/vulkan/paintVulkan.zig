@@ -20,6 +20,8 @@ const mapTileZig = @import("../mapTile.zig");
 pub fn drawFrame(state: *main.GameState) !void {
     const vkState = &state.vkState;
     try resetVerticeData(state);
+    verticesForBackCloud(state);
+    try addDataVerticeDrawCut(&state.vkState.verticeData);
     mapTileZig.setupVertices(state);
     mapGridVulkanZig.setupVertices(state);
     shopVulkanZig.setupVertices(state);
@@ -32,6 +34,7 @@ pub fn drawFrame(state: *main.GameState) !void {
     ninjaDogVulkanZig.setupVertices(state);
     enemyVulkanZig.setupVerticesForBosses(state);
     enemyObjectZig.setupVertices(state);
+    verticesForFrontCloud(state);
     try movePieceUxVulkanZig.setupVertices(state);
     try gameInfoUxZig.setupVertices(state);
     try setupVertexDataForGPU(vkState);
@@ -91,16 +94,46 @@ pub fn drawFrame(state: *main.GameState) !void {
     vkState.currentFrame = (vkState.currentFrame + 1) % initVulkanZig.VkState.MAX_FRAMES_IN_FLIGHT;
 }
 
-pub fn verticesForComplexSpriteDefault(gamePosition: main.Position, imageIndex: u8, vkSpriteComplex: *dataVulkanZig.VkSpriteComplex, state: *main.GameState) void {
-    verticesForComplexSprite(gamePosition, imageIndex, vkSpriteComplex, 1, 1, 1, false, false, state);
+fn verticesForBackCloud(state: *main.GameState) void {
+    if (state.level != 50) return;
+    for (state.paintData.backClouds) |backCloud| {
+        verticesForComplexSprite(
+            backCloud.position,
+            imageZig.IMAGE_CLOUD_1,
+            backCloud.sizeFactor,
+            backCloud.sizeFactor,
+            1,
+            false,
+            false,
+            state,
+        );
+    }
 }
 
-pub fn verticesForComplexSpriteAlpha(gamePosition: main.Position, imageIndex: u8, vkSpriteComplex: *dataVulkanZig.VkSpriteComplex, alpha: f32, state: *main.GameState) void {
-    verticesForComplexSprite(gamePosition, imageIndex, vkSpriteComplex, 1, 1, alpha, false, false, state);
+fn verticesForFrontCloud(state: *main.GameState) void {
+    if (state.level != 50) return;
+    verticesForComplexSprite(
+        state.paintData.frontCloud.position,
+        imageZig.IMAGE_CLOUD_1,
+        state.paintData.frontCloud.sizeFactor,
+        state.paintData.frontCloud.sizeFactor,
+        0.3,
+        false,
+        false,
+        state,
+    );
 }
 
-pub fn verticesForComplexSprite(gamePosition: main.Position, imageIndex: u8, vkSpriteComplex: *dataVulkanZig.VkSpriteComplex, scaleX: f32, scaleY: f32, alpha: f32, mirrorX: bool, mirrorY: bool, state: *main.GameState) void {
-    if (vkSpriteComplex.verticeCount + 6 >= vkSpriteComplex.vertices.len) return;
+pub fn verticesForComplexSpriteDefault(gamePosition: main.Position, imageIndex: u8, state: *main.GameState) void {
+    verticesForComplexSprite(gamePosition, imageIndex, 1, 1, 1, false, false, state);
+}
+
+pub fn verticesForComplexSpriteAlpha(gamePosition: main.Position, imageIndex: u8, alpha: f32, state: *main.GameState) void {
+    verticesForComplexSprite(gamePosition, imageIndex, 1, 1, alpha, false, false, state);
+}
+
+pub fn verticesForComplexSprite(gamePosition: main.Position, imageIndex: u8, scaleX: f32, scaleY: f32, alpha: f32, mirrorX: bool, mirrorY: bool, state: *main.GameState) void {
+    if (state.vkState.verticeData.spritesComplex.verticeCount + 6 >= state.vkState.verticeData.spritesComplex.vertices.len) return;
     const imageData = imageZig.IMAGE_DATA[imageIndex];
     const imageToGameSizeFactor: f32 = imageData.scale / imageZig.IMAGE_TO_GAME_SIZE;
     const halfSizeWidth: f32 = @as(f32, @floatFromInt(imageData.width)) * imageToGameSizeFactor / 2;
@@ -114,8 +147,8 @@ pub fn verticesForComplexSprite(gamePosition: main.Position, imageIndex: u8, vkS
     pointsToVertices(gamePosition, imageIndex, halfSizeWidth, halfSizeHeight, &points, 0, alpha, mirrorX, mirrorY, scaleX, scaleY, state);
 }
 
-pub fn verticesForComplexSpriteWithRotate(gamePosition: main.Position, imageIndex: u8, rotation: f32, vkSpriteComplex: *dataVulkanZig.VkSpriteComplex, state: *main.GameState) void {
-    if (vkSpriteComplex.verticeCount + 6 >= vkSpriteComplex.vertices.len) return;
+pub fn verticesForComplexSpriteWithRotate(gamePosition: main.Position, imageIndex: u8, rotation: f32, state: *main.GameState) void {
+    if (state.vkState.verticeData.spritesComplex.verticeCount + 6 >= state.vkState.verticeData.spritesComplex.vertices.len) return;
     const imageData = imageZig.IMAGE_DATA[imageIndex];
     const imageToGameSizeFactor: f32 = imageData.scale / imageZig.IMAGE_TO_GAME_SIZE;
     const halfSizeWidth: f32 = @as(f32, @floatFromInt(imageData.width)) * imageToGameSizeFactor / 2;
@@ -145,7 +178,8 @@ pub fn verticesForComplexSpriteWithCut(gamePosition: main.Position, imageIndex: 
     pointsToVertices(gamePosition, imageIndex, halfSizeWidth, halfSizeHeight, &points, 0, alpha, false, false, scaleX, scaleY, state);
 }
 
-pub fn verticesForComplexSpriteAnimated(gamePosition: main.Position, imageIndex: u8, animatePerCent: f32, scaling: f32, vkSpriteComplex: *dataVulkanZig.VkSpriteComplex, state: *main.GameState) void {
+pub fn verticesForComplexSpriteAnimated(gamePosition: main.Position, imageIndex: u8, animatePerCent: f32, scaling: f32, state: *main.GameState) void {
+    const vkSpriteComplex = &state.vkState.verticeData.spritesComplex;
     if (vkSpriteComplex.verticeCount + 6 >= vkSpriteComplex.vertices.len) return;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
@@ -319,7 +353,7 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
         },
         .clearValueCount = 2,
         .pClearValues = &[_]vk.VkClearValue{
-            .{ .color = vk.VkClearColorValue{ .float32 = [_]f32{ state.backgroundColor[0], state.backgroundColor[1], state.backgroundColor[2], 1.0 } } },
+            .{ .color = vk.VkClearColorValue{ .float32 = [_]f32{ state.paintData.backgroundColor[0], state.paintData.backgroundColor[1], state.paintData.backgroundColor[2], 1.0 } } },
             .{ .depthStencil = vk.VkClearDepthStencilValue{ .depth = 1.0, .stencil = 0.0 } },
         },
     };

@@ -29,9 +29,9 @@ pub fn setupVertices(state: *main.GameState) void {
                 rectangleForTile(shopButtonGamePosition, .{ 0, 0, 1 }, verticeData, false, state);
             }
             if (shopButton.imageRotate != 0) {
-                paintVulkanZig.verticesForComplexSpriteWithRotate(shopButtonGamePosition, shopButton.imageIndex, shopButton.imageRotate, &verticeData.spritesComplex, state);
+                paintVulkanZig.verticesForComplexSpriteWithRotate(shopButtonGamePosition, shopButton.imageIndex, shopButton.imageRotate, state);
             } else {
-                paintVulkanZig.verticesForComplexSpriteDefault(shopButtonGamePosition, shopButton.imageIndex, &verticeData.spritesComplex, state);
+                paintVulkanZig.verticesForComplexSpriteDefault(shopButtonGamePosition, shopButton.imageIndex, state);
             }
         }
 
@@ -40,12 +40,7 @@ pub fn setupVertices(state: *main.GameState) void {
                 .x = @floatFromInt(buyOption.tilePosition.x * main.TILESIZE),
                 .y = @floatFromInt(buyOption.tilePosition.y * main.TILESIZE),
             };
-            paintVulkanZig.verticesForComplexSpriteDefault(
-                buyOptionGamePosition,
-                buyOption.imageIndex,
-                &verticeData.spritesComplex,
-                state,
-            );
+            paintVulkanZig.verticesForComplexSpriteDefault(buyOptionGamePosition, buyOption.imageIndex, state);
         }
     }
 }
@@ -120,7 +115,7 @@ fn paintGrid(player: *main.Player, state: *main.GameState) void {
                 .x = gridGameTopLeft.x + @as(f32, @floatFromInt(gridCutOffset.x * main.TILESIZE)),
                 .y = gridGameTopLeft.y + @as(f32, @floatFromInt(gridCutOffset.y * main.TILESIZE)),
             };
-            paintVulkanZig.verticesForComplexSpriteDefault(gamePositionCut, imageZig.IMAGE_CUT, &verticeData.spritesComplex, state);
+            paintVulkanZig.verticesForComplexSpriteDefault(gamePositionCut, imageZig.IMAGE_CUT, state);
         }
     }
 }

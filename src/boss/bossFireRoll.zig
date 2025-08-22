@@ -108,5 +108,5 @@ fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) !void {
 }
 
 fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
-    paintVulkanZig.verticesForComplexSpriteDefault(boss.position, boss.imageIndex, &state.vkState.verticeData.spritesComplex, state);
+    paintVulkanZig.verticesForComplexSpriteDefault(boss.position, boss.imageIndex, state);
 }
