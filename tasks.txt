@@ -1,18 +1,49 @@
 Tasks:
 - end boss dragon
+    - why is color different?
     - dev steps:
-        - animate transition
-            - from all 4 feed on ground to standing on fwo feet
+        - make platform appear high in the air
+            - paint blue background
+            - far away clouds moving slowly
+            - clouds with alpha moving thorugh screen
 
+    - player can not move outside of area
+        - or will fall down and take damage
+            - will fall down (after 0.2sec?) if not move instantly again
     - attacks
         - fire breath
         - tail attack
-        - paw stomp
+        - feet stomp
             - floor break
         - air wind burst with wings
     - dragon should move fluently not, jumping from tile to tile 
     - how to paint?
         - 
+    - phase 0:
+        - boss platform is limited, no able to go outside of area
+            - should be high a platform, can fall down at the edges
+        - boss comes in flying
+            - landing in middle
+            - wind pushes player back
+                - player has to move against it to not fall down
+    - phase 1:
+        - boss stomps
+        - stands up, stomps on ground 5x5 area
+        - move towards player
+        - when reached 80% HP, when boss stomps it breakes ground
+            - player falls down
+            - flying phase starts
+    - boss flying phase
+        - boss flys over player spitting fire
+        - player can influence fire position based on where he stands
+        - boss does one horizintal and one vertical fire line with widh 3
+    - phase 2:
+        - abilities
+            - stomp
+            - wing blast
+                - creates wind, pushes player away
+                - pushes fire away
+        
     - image
     - 3*3 feet area, each corner one foot when hitable
     - multiple phases

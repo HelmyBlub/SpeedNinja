@@ -319,7 +319,7 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
         },
         .clearValueCount = 2,
         .pClearValues = &[_]vk.VkClearValue{
-            .{ .color = vk.VkClearColorValue{ .float32 = [_]f32{ 63.0 / 256.0, 155.0 / 256.0, 11.0 / 256.0, 1.0 } } },
+            .{ .color = vk.VkClearColorValue{ .float32 = [_]f32{ state.backgroundColor[0], state.backgroundColor[1], state.backgroundColor[2], 1.0 } } },
             .{ .depthStencil = vk.VkClearDepthStencilValue{ .depth = 1.0, .stencil = 0.0 } },
         },
     };

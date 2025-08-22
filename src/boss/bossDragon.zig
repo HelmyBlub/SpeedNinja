@@ -49,6 +49,7 @@ fn startBoss(state: *main.GameState) !void {
         .typeData = .{ .dragon = .{} },
     });
     try mapTileZig.setMapRadius(6, state);
+    state.backgroundColor = main.COLOR_SKY_BLUE;
     main.adjustZoom(state);
 }
 

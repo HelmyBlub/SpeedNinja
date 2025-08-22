@@ -17,12 +17,16 @@ pub const GamePhase = enum {
     shopping,
     boss,
 };
+pub const COLOR_TILE_GREEN: [3]f32 = .{ 63.0 / 256.0, 155.0 / 256.0, 11.0 / 256.0 };
+pub const COLOR_SKY_BLUE: [3]f32 = .{ 0.529, 0.808, 0.922 };
+pub const COLOR_STONE_WALL: [3]f32 = .{ 0.573, 0.522, 0.451 };
 
 pub const TILESIZE = 20;
 pub const GameState = struct {
     vkState: initVulkanZig.VkState = .{},
     allocator: std.mem.Allocator = undefined,
     camera: Camera = .{ .position = .{ .x = 0, .y = 0 }, .zoom = 1 },
+    backgroundColor: [3]f32 = .{ 0, 0, 0 },
     gameTime: i64 = 0,
     round: u32 = 1,
     level: u32 = 1,
@@ -293,6 +297,7 @@ pub fn restart(state: *GameState) !void {
         if (totalSeconds < 10) std.debug.print("0", .{});
         std.debug.print("{d}\n", .{totalSeconds});
     }
+    state.backgroundColor = COLOR_TILE_GREEN;
     state.level = 0;
     state.round = 0;
     state.gamePhase = .combat;

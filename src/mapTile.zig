@@ -104,7 +104,37 @@ pub fn setupVertices(state: *main.GameState) void {
             .wall => {
                 paintVulkanZig.verticesForRectangle(vulkan.x, vulkan.y, width, height, .{ 0, 0, 0 }, null, &state.vkState.verticeData.triangles);
             },
-            else => {},
+            else => {
+                paintVulkanZig.verticesForRectangle(vulkan.x, vulkan.y, width, height, main.COLOR_TILE_GREEN, null, &state.vkState.verticeData.triangles);
+            },
         }
     }
+    if (state.level == 50) {
+        stoneWallVertices(state);
+    }
+}
+
+fn stoneWallVertices(state: *main.GameState) void {
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const iRadius: i32 = @intCast(state.mapData.tileRadius);
+    const platformGameBottom: f32 = @floatFromInt((state.mapData.tileRadius + 1) * main.TILESIZE);
+    const platformGameLeft: f32 = @floatFromInt(-iRadius * main.TILESIZE);
+    const platformGameRight: f32 = @floatFromInt((state.mapData.tileRadius + 1) * main.TILESIZE);
+
+    const platformVulkanBottom: f32 = (-state.camera.position.y + platformGameBottom - main.TILESIZE / 2) * state.camera.zoom * onePixelYInVulkan;
+    const platformVulkanLeft: f32 = (-state.camera.position.x + platformGameLeft - main.TILESIZE / 2) * state.camera.zoom * onePixelXInVulkan;
+    const platformVulkanRight: f32 = (-state.camera.position.x + platformGameRight - main.TILESIZE / 2) * state.camera.zoom * onePixelXInVulkan;
+
+    const triangles = &state.vkState.verticeData.triangles;
+    if (triangles.verticeCount + 6 >= triangles.vertices.len) return;
+    const fillColor = main.COLOR_STONE_WALL;
+    const inMovement = onePixelXInVulkan * 15;
+    triangles.vertices[triangles.verticeCount] = .{ .pos = .{ platformVulkanLeft, platformVulkanBottom }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount + 1] = .{ .pos = .{ platformVulkanRight - inMovement, 1 }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount + 2] = .{ .pos = .{ platformVulkanLeft + inMovement, 1 }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount + 3] = .{ .pos = .{ platformVulkanLeft, platformVulkanBottom }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount + 4] = .{ .pos = .{ platformVulkanRight, platformVulkanBottom }, .color = fillColor };
+    triangles.vertices[triangles.verticeCount + 5] = .{ .pos = .{ platformVulkanRight - inMovement, 1 }, .color = fillColor };
+    triangles.verticeCount += 6;
 }
