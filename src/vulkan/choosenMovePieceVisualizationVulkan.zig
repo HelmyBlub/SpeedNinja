@@ -217,11 +217,11 @@ fn verticesForArrow(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTile
         },
         else => {},
     }
-    var rotatedOffset = paintVulkanZig.rotateAroundPoint(offsets[0], .{ .x = 0, .y = 0 }, angle);
+    var rotatedOffset = main.rotateAroundPoint(offsets[0], .{ .x = 0, .y = 0 }, angle);
     var currentPos: main.Position = .{ .x = vulkanX + vulkanTileWidth * rotatedOffset.x, .y = vulkanY + vulkanTileHeight * rotatedOffset.y };
     for (1..offsets.len) |i| {
         lastPos = currentPos;
-        rotatedOffset = paintVulkanZig.rotateAroundPoint(offsets[i], .{ .x = 0, .y = 0 }, angle);
+        rotatedOffset = main.rotateAroundPoint(offsets[i], .{ .x = 0, .y = 0 }, angle);
         currentPos = .{ .x = vulkanX + vulkanTileWidth * rotatedOffset.x, .y = vulkanY + vulkanTileHeight * rotatedOffset.y };
         lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ lastPos.x, lastPos.y }, .color = lineColor };
         lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ currentPos.x, currentPos.y }, .color = lineColor };
@@ -246,14 +246,14 @@ fn verticesForFilledArrow(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulk
         else => {},
     }
     const offsets = [_]main.Position{
-        paintVulkanZig.rotateAroundPoint(.{ .x = -0.5, .y = -0.20 }, .{ .x = 0, .y = 0 }, angle),
-        paintVulkanZig.rotateAroundPoint(.{ .x = 0.0, .y = -0.20 }, .{ .x = 0, .y = 0 }, angle),
-        paintVulkanZig.rotateAroundPoint(.{ .x = 0.0, .y = -0.5 }, .{ .x = 0, .y = 0 }, angle),
-        paintVulkanZig.rotateAroundPoint(.{ .x = 0.5, .y = 0 }, .{ .x = 0, .y = 0 }, angle),
-        paintVulkanZig.rotateAroundPoint(.{ .x = 0.0, .y = 0.5 }, .{ .x = 0, .y = 0 }, angle),
-        paintVulkanZig.rotateAroundPoint(.{ .x = 0.0, .y = 0.20 }, .{ .x = 0, .y = 0 }, angle),
-        paintVulkanZig.rotateAroundPoint(.{ .x = -0.5, .y = 0.20 }, .{ .x = 0, .y = 0 }, angle),
-        paintVulkanZig.rotateAroundPoint(.{ .x = -0.5, .y = -0.20 }, .{ .x = 0, .y = 0 }, angle),
+        main.rotateAroundPoint(.{ .x = -0.5, .y = -0.20 }, .{ .x = 0, .y = 0 }, angle),
+        main.rotateAroundPoint(.{ .x = 0.0, .y = -0.20 }, .{ .x = 0, .y = 0 }, angle),
+        main.rotateAroundPoint(.{ .x = 0.0, .y = -0.5 }, .{ .x = 0, .y = 0 }, angle),
+        main.rotateAroundPoint(.{ .x = 0.5, .y = 0 }, .{ .x = 0, .y = 0 }, angle),
+        main.rotateAroundPoint(.{ .x = 0.0, .y = 0.5 }, .{ .x = 0, .y = 0 }, angle),
+        main.rotateAroundPoint(.{ .x = 0.0, .y = 0.20 }, .{ .x = 0, .y = 0 }, angle),
+        main.rotateAroundPoint(.{ .x = -0.5, .y = 0.20 }, .{ .x = 0, .y = 0 }, angle),
+        main.rotateAroundPoint(.{ .x = -0.5, .y = -0.20 }, .{ .x = 0, .y = 0 }, angle),
     };
     if (lines.verticeCount + 2 * offsets.len >= lines.vertices.len) return;
     var pos: [offsets.len]main.Position = undefined;
@@ -310,11 +310,11 @@ fn verticesMiddleLine(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTi
     };
     if (lines.verticeCount + 2 * offsets.len >= lines.vertices.len) return;
     var lastPos: main.Position = .{ .x = vulkanX, .y = vulkanY };
-    var rotatedOffset = paintVulkanZig.rotateAroundPoint(offsets[0], .{ .x = 0, .y = 0 }, rotation);
+    var rotatedOffset = main.rotateAroundPoint(offsets[0], .{ .x = 0, .y = 0 }, rotation);
     var currentPos: main.Position = .{ .x = vulkanX + vulkanTileWidth * rotatedOffset.x, .y = vulkanY + vulkanTileHeight * rotatedOffset.y };
     for (1..offsets.len) |i| {
         lastPos = currentPos;
-        rotatedOffset = paintVulkanZig.rotateAroundPoint(offsets[i], .{ .x = 0, .y = 0 }, rotation);
+        rotatedOffset = main.rotateAroundPoint(offsets[i], .{ .x = 0, .y = 0 }, rotation);
         currentPos = .{ .x = vulkanX + vulkanTileWidth * rotatedOffset.x, .y = vulkanY + vulkanTileHeight * rotatedOffset.y };
         lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ lastPos.x, lastPos.y }, .color = lineColor };
         lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ currentPos.x, currentPos.y }, .color = lineColor };
@@ -331,11 +331,11 @@ fn verticesMiddleZigZag(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkan
     };
     if (lines.verticeCount + 2 * offsets.len >= lines.vertices.len) return;
     var lastPos: main.Position = .{ .x = vulkanX, .y = vulkanY };
-    var rotatedOffset = paintVulkanZig.rotateAroundPoint(offsets[0], .{ .x = 0, .y = 0 }, rotation);
+    var rotatedOffset = main.rotateAroundPoint(offsets[0], .{ .x = 0, .y = 0 }, rotation);
     var currentPos: main.Position = .{ .x = vulkanX + vulkanTileWidth * rotatedOffset.x, .y = vulkanY + vulkanTileHeight * rotatedOffset.y };
     for (1..offsets.len) |i| {
         lastPos = currentPos;
-        rotatedOffset = paintVulkanZig.rotateAroundPoint(offsets[i], .{ .x = 0, .y = 0 }, rotation);
+        rotatedOffset = main.rotateAroundPoint(offsets[i], .{ .x = 0, .y = 0 }, rotation);
         currentPos = .{ .x = vulkanX + vulkanTileWidth * rotatedOffset.x, .y = vulkanY + vulkanTileHeight * rotatedOffset.y };
         lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ lastPos.x, lastPos.y }, .color = lineColor };
         lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ currentPos.x, currentPos.y }, .color = lineColor };
@@ -354,8 +354,8 @@ fn verticesMiddleDotted(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkan
     };
     if (lines.verticeCount + 2 * offsets.len >= lines.vertices.len) return;
     for (0..@divFloor(offsets.len, 2)) |i| {
-        const rotatedOffset = paintVulkanZig.rotateAroundPoint(offsets[i * 2], .{ .x = 0, .y = 0 }, rotation);
-        const rotatedOffset2 = paintVulkanZig.rotateAroundPoint(offsets[i * 2 + 1], .{ .x = 0, .y = 0 }, rotation);
+        const rotatedOffset = main.rotateAroundPoint(offsets[i * 2], .{ .x = 0, .y = 0 }, rotation);
+        const rotatedOffset2 = main.rotateAroundPoint(offsets[i * 2 + 1], .{ .x = 0, .y = 0 }, rotation);
         lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ vulkanX + vulkanTileWidth * rotatedOffset.x, vulkanY + vulkanTileHeight * rotatedOffset.y }, .color = lineColor };
         lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ vulkanX + vulkanTileWidth * rotatedOffset2.x, vulkanY + vulkanTileHeight * rotatedOffset2.y }, .color = lineColor };
         lines.verticeCount += 2;
@@ -373,8 +373,8 @@ fn verticesMiddleArrowed(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulka
     };
     if (lines.verticeCount + 2 * offsets.len >= lines.vertices.len) return;
     for (0..@divFloor(offsets.len, 2)) |i| {
-        const rotatedOffset = paintVulkanZig.rotateAroundPoint(offsets[i * 2], .{ .x = 0, .y = 0 }, rotation);
-        const rotatedOffset2 = paintVulkanZig.rotateAroundPoint(offsets[i * 2 + 1], .{ .x = 0, .y = 0 }, rotation);
+        const rotatedOffset = main.rotateAroundPoint(offsets[i * 2], .{ .x = 0, .y = 0 }, rotation);
+        const rotatedOffset2 = main.rotateAroundPoint(offsets[i * 2 + 1], .{ .x = 0, .y = 0 }, rotation);
         lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ vulkanX + vulkanTileWidth * rotatedOffset.x, vulkanY + vulkanTileHeight * rotatedOffset.y }, .color = lineColor };
         lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ vulkanX + vulkanTileWidth * rotatedOffset2.x, vulkanY + vulkanTileHeight * rotatedOffset2.y }, .color = lineColor };
         lines.verticeCount += 2;

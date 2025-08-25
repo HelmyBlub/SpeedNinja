@@ -117,7 +117,7 @@ pub fn addRedArrowTileSprites(gamePosition: main.Position, fillPerCent: f32, rot
         const pointsIndexes = [_]usize{ i, i + 1 + @mod(i, 2), i + 2 - @mod(i, 2) };
         for (pointsIndexes) |verticeIndex| {
             const cornerPosOffset = points[verticeIndex];
-            const rotatedOffset = paintVulkanZig.rotateAroundPoint(cornerPosOffset, .{ .x = 0, .y = 0 }, rotation);
+            const rotatedOffset = main.rotateAroundPoint(cornerPosOffset, .{ .x = 0, .y = 0 }, rotation);
 
             const vulkan: main.Position = .{
                 .x = (rotatedOffset.x - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,

@@ -462,6 +462,30 @@ pub fn calculateDistance(pos1: Position, pos2: Position) f32 {
     return @floatCast(@sqrt(diffX * diffX + diffY * diffY));
 }
 
+pub fn calculateDirection(start: Position, end: Position) f32 {
+    return @floatCast(std.math.atan2(end.y - start.y, end.x - start.x));
+}
+
+pub fn moveByDirectionAndDistance(position: Position, direction: f32, distance: f32) Position {
+    return .{
+        .x = position.x + @cos(direction) * distance,
+        .y = position.y + @sin(direction) * distance,
+    };
+}
+
+pub fn rotateAroundPoint(point: Position, pivot: Position, angle: f32) Position {
+    const translatedX = point.x - pivot.x;
+    const translatedY = point.y - pivot.y;
+
+    const s = @sin(angle);
+    const c = @cos(angle);
+
+    const rotatedX = c * translatedX - s * translatedY;
+    const rotatedY = s * translatedX + c * translatedY;
+
+    return Position{ .x = rotatedX + pivot.x, .y = rotatedY + pivot.y };
+}
+
 pub fn isTilePositionInTileRectangle(tilePosition: TilePosition, tileRectangle: TileRectangle) bool {
     return tileRectangle.pos.x <= tilePosition.x and tileRectangle.pos.x + tileRectangle.width > tilePosition.x and
         tileRectangle.pos.y <= tilePosition.y and tileRectangle.pos.y + tileRectangle.height > tilePosition.y;

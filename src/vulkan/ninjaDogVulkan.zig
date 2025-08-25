@@ -583,7 +583,7 @@ pub fn addTiranglesForSprite(gamePosition: main.Position, imageAnkerPosition: ma
             .x = (p.x - @as(f32, @floatFromInt(imageData.width)) / 2) / imageZig.IMAGE_TO_GAME_SIZE * scale.x + imageAnkerXHalf,
             .y = (p.y - @as(f32, @floatFromInt(imageData.height)) / 2) / imageZig.IMAGE_TO_GAME_SIZE * scale.y + imageAnkerYHalf,
         } else .{ .x = 0, .y = 0 };
-        const rotatedOffset = paintVulkanZig.rotateAroundPoint(cornerPosOffset, rotatePivot, rotateAngle);
+        const rotatedOffset = main.rotateAroundPoint(cornerPosOffset, rotatePivot, rotateAngle);
         const vulkan: main.Position = .{
             .x = (rotatedOffset.x - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
             .y = (rotatedOffset.y - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
@@ -642,7 +642,7 @@ fn addTiranglesForSpriteWithWaveAnimation(gamePosition: main.Position, imageAnke
                 .x = cornerPosOffset.x,
                 .y = cornerPosOffset.y + @sin(cornerPosOffset.x + waveOffset) * 2 * texPos[0],
             };
-            const rotatedOffset = paintVulkanZig.rotateAroundPoint(waveOffsetPos, rotatePivot, rotateAngle);
+            const rotatedOffset = main.rotateAroundPoint(waveOffsetPos, rotatePivot, rotateAngle);
             const vulkan: main.Position = .{
                 .x = (rotatedOffset.x - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
                 .y = (rotatedOffset.y - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
@@ -695,7 +695,7 @@ fn addTiranglesForSpriteWithBend(gamePosition: main.Position, imageAnkerPosition
                 .y = (p.y - @as(f32, @floatFromInt(imageData.height)) / 2) / imageZig.IMAGE_TO_GAME_SIZE * scale.y + imageAnkerYHalf,
             } else .{ .x = 0, .y = 0 };
             const bendAngle: f32 = rotateAngle + bend * texPos[0];
-            const rotatedOffset = paintVulkanZig.rotateAroundPoint(cornerPosOffset, rotatePivot, bendAngle);
+            const rotatedOffset = main.rotateAroundPoint(cornerPosOffset, rotatePivot, bendAngle);
             const vulkan: main.Position = .{
                 .x = (rotatedOffset.x - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
                 .y = (rotatedOffset.y - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,

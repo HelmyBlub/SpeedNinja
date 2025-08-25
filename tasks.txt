@@ -1,9 +1,12 @@
 Tasks:
+- bug: boss split scaling wrong
 - end boss dragon
     - dev steps:
-        - make platform appear high in the air
-            - far away clouds moving slowly
-            - clouds with alpha moving thorugh screen
+        - phase 0
+          - boss comes in flying
+            - wind which influences player physics
+            - stomps on ground doing damage
+
 
     - player can not move outside of area
         - or will fall down and take damage
@@ -22,8 +25,6 @@ Tasks:
             - should be high a platform, can fall down at the edges
         - boss comes in flying
             - landing in middle
-            - wind pushes player back
-                - player has to move against it to not fall down
     - phase 1:
         - boss stomps
         - stands up, stomps on ground 5x5 area
@@ -66,12 +67,12 @@ Play Times:    best split | best total | estimtaed enemy difficulty | estimated 
     lvl 10 best in 3:29 total  6:12        2/10 (at + move)            3/10 (rotate)
     lvl 15 best in 3:48 total 10:01        3/10 (move + withPlayer)    3/10 (roll)
     lvl 20 best in 4:56 total 14:57        5/10 (wP + shuriken)        4/10 (split)
-    lvl 25 best in 6:15 total 21:14        7/10 (s + fire)             6/10 (snake)
+    lvl 25 best in 5:28 total 21:14        7/10 (s + fire)             6/10 (snake)
     lvl 30 best in 6:53 total 28:21        5/10 (fire + block)         2/10 (tripple)
     lvl 35 best in 5:59 total 34:21        6/10 (block + ice)          3/10 (snowball)
-    lvl 40 best in 7:02 total 41:59        9/10 (ice + wall )          7/10 (waller)
+    lvl 40 best in 7:02 total 41:59        8/10 (ice + wall )          7/10 (waller)
     lvl 45 best in 6:25 total 48:24        4/10 (wall + movePiece)     3/10 (fireRoll)
-    lvl 50 best in *6:24? total *54:48     5/10 (movePiece + bomb)       ? (dragon)
+    lvl 50 best in *6:24? total *54:48     4/10 (movePiece + bomb)       ? (dragon)
             *boss not yet finished
 Next ideas:
 - 1 new enemies all 5 levels

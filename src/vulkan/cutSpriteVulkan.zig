@@ -114,7 +114,7 @@ fn addTriangle(points: [3]main.Position, cutSprite: enemyZig.CutSpriteAnimation,
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
 
     for (points) |point| {
-        const rotatedPoint = paintVulkanZig.rotateAroundPoint(point, rotateCenter, rotate);
+        const rotatedPoint = main.rotateAroundPoint(point, rotateCenter, rotate);
         const vulkan: main.Position = .{
             .x = (rotatedPoint.x * scale - state.camera.position.x + cutSprite.position.x + offsetX) * state.camera.zoom * onePixelXInVulkan,
             .y = (rotatedPoint.y * scale - state.camera.position.y + cutSprite.position.y + offsetY) * state.camera.zoom * onePixelYInVulkan,

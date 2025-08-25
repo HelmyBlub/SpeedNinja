@@ -205,7 +205,7 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
     }
     paintVulkanZig.verticesForComplexSpriteWithRotate(bossPosition, boss.imageIndex, rotate.attackAngle, state);
     if (alpha > 0) {
-        paintVulkanZig.verticesForComplexSpriteWithCut(boss.position, imageZig.IMAGE_CIRCLE, alpha, 0, @max(alpha, 0.5), 1, 1, state);
+        paintVulkanZig.verticesForComplexSpriteWithCut(boss.position, imageZig.IMAGE_CIRCLE, alpha, 0, @max(alpha, 0.5), 0, 1, 1, state);
     }
 
     if (rotate.visualizeAttackUntil != null and rotate.visualizeAttackUntil.? >= state.gameTime) {

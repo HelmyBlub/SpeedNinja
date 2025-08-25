@@ -103,6 +103,7 @@ fn verticesForBackCloud(state: *main.GameState) void {
             backCloud.sizeFactor,
             backCloud.sizeFactor,
             1,
+            0,
             false,
             false,
             state,
@@ -118,6 +119,7 @@ fn verticesForFrontCloud(state: *main.GameState) void {
         state.paintData.frontCloud.sizeFactor,
         state.paintData.frontCloud.sizeFactor,
         0.3,
+        0,
         false,
         false,
         state,
@@ -125,14 +127,14 @@ fn verticesForFrontCloud(state: *main.GameState) void {
 }
 
 pub fn verticesForComplexSpriteDefault(gamePosition: main.Position, imageIndex: u8, state: *main.GameState) void {
-    verticesForComplexSprite(gamePosition, imageIndex, 1, 1, 1, false, false, state);
+    verticesForComplexSprite(gamePosition, imageIndex, 1, 1, 1, 0, false, false, state);
 }
 
 pub fn verticesForComplexSpriteAlpha(gamePosition: main.Position, imageIndex: u8, alpha: f32, state: *main.GameState) void {
-    verticesForComplexSprite(gamePosition, imageIndex, 1, 1, alpha, false, false, state);
+    verticesForComplexSprite(gamePosition, imageIndex, 1, 1, alpha, 0, false, false, state);
 }
 
-pub fn verticesForComplexSprite(gamePosition: main.Position, imageIndex: u8, scaleX: f32, scaleY: f32, alpha: f32, mirrorX: bool, mirrorY: bool, state: *main.GameState) void {
+pub fn verticesForComplexSprite(gamePosition: main.Position, imageIndex: u8, scaleX: f32, scaleY: f32, alpha: f32, rotation: f32, mirrorX: bool, mirrorY: bool, state: *main.GameState) void {
     if (state.vkState.verticeData.spritesComplex.verticeCount + 6 >= state.vkState.verticeData.spritesComplex.vertices.len) return;
     const imageData = imageZig.IMAGE_DATA[imageIndex];
     const imageToGameSizeFactor: f32 = imageData.scale / imageZig.IMAGE_TO_GAME_SIZE;
@@ -144,7 +146,7 @@ pub fn verticesForComplexSprite(gamePosition: main.Position, imageIndex: u8, sca
         main.Position{ .x = halfSizeWidth, .y = halfSizeHeight },
         main.Position{ .x = halfSizeWidth, .y = -halfSizeHeight },
     };
-    pointsToVertices(gamePosition, imageIndex, halfSizeWidth, halfSizeHeight, &points, 0, alpha, mirrorX, mirrorY, scaleX, scaleY, state);
+    pointsToVertices(gamePosition, imageIndex, halfSizeWidth, halfSizeHeight, &points, rotation, alpha, mirrorX, mirrorY, scaleX, scaleY, state);
 }
 
 pub fn verticesForComplexSpriteWithRotate(gamePosition: main.Position, imageIndex: u8, rotation: f32, state: *main.GameState) void {
@@ -162,7 +164,7 @@ pub fn verticesForComplexSpriteWithRotate(gamePosition: main.Position, imageInde
     pointsToVertices(gamePosition, imageIndex, halfSizeWidth, halfSizeHeight, &points, rotation, 1, false, false, 1, 1, state);
 }
 
-pub fn verticesForComplexSpriteWithCut(gamePosition: main.Position, imageIndex: u8, fromCutPerCent: f32, toCutPerCent: f32, alpha: f32, scaleX: f32, scaleY: f32, state: *main.GameState) void {
+pub fn verticesForComplexSpriteWithCut(gamePosition: main.Position, imageIndex: u8, fromCutPerCent: f32, toCutPerCent: f32, alpha: f32, rotation: f32, scaleX: f32, scaleY: f32, state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
     if (verticeData.spritesComplex.verticeCount + 12 >= verticeData.spritesComplex.vertices.len) return;
     const imageData = imageZig.IMAGE_DATA[imageIndex];
@@ -175,7 +177,7 @@ pub fn verticesForComplexSpriteWithCut(gamePosition: main.Position, imageIndex: 
         main.Position{ .x = halfSizeWidth, .y = -halfSizeHeight + halfSizeHeight * 2 * toCutPerCent },
         main.Position{ .x = halfSizeWidth, .y = -halfSizeHeight + halfSizeHeight * 2 * fromCutPerCent },
     };
-    pointsToVertices(gamePosition, imageIndex, halfSizeWidth, halfSizeHeight, &points, 0, alpha, false, false, scaleX, scaleY, state);
+    pointsToVertices(gamePosition, imageIndex, halfSizeWidth, halfSizeHeight, &points, rotation, alpha, false, false, scaleX, scaleY, state);
 }
 
 pub fn verticesForComplexSpriteAnimated(gamePosition: main.Position, imageIndex: u8, animatePerCent: f32, scaling: f32, state: *main.GameState) void {
@@ -242,7 +244,7 @@ fn pointsToVertices(
         for (pointsIndexes) |verticeIndex| {
             const cornerPosOffset = points[verticeIndex];
             var rotatedOffset = cornerPosOffset;
-            if (rotation != 0) rotatedOffset = rotateAroundPoint(cornerPosOffset, .{ .x = 0, .y = 0 }, rotation);
+            if (rotation != 0) rotatedOffset = main.rotateAroundPoint(cornerPosOffset, .{ .x = 0, .y = 0 }, rotation);
             const vulkan: main.Position = .{
                 .x = (rotatedOffset.x * scalingX - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
                 .y = (rotatedOffset.y * scalingY - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
@@ -511,19 +513,6 @@ fn updateUniformBuffer(state: *main.GameState) !void {
             @as([*]u8, @ptrCast(&ubo)),
         );
     }
-}
-
-pub fn rotateAroundPoint(point: main.Position, pivot: main.Position, angle: f32) main.Position {
-    const translatedX = point.x - pivot.x;
-    const translatedY = point.y - pivot.y;
-
-    const s = @sin(angle);
-    const c = @cos(angle);
-
-    const rotatedX = c * translatedX - s * translatedY;
-    const rotatedY = s * translatedX + c * translatedY;
-
-    return main.Position{ .x = rotatedX + pivot.x, .y = rotatedY + pivot.y };
 }
 
 pub fn verticesForRectangle(x: f32, y: f32, width: f32, height: f32, fillColor: [3]f32, optLines: ?*dataVulkanZig.VkColoredVertexes, optTriangles: ?*dataVulkanZig.VkColoredVertexes) void {
