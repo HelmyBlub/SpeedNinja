@@ -1,9 +1,9 @@
 Tasks:
-- bug: boss split scaling wrong
 - end boss dragon
     - dev steps:
         - phase 0
           - boss comes in flying
+            - continue: wing flapping improve
             - wind which influences player physics
             - stomps on ground doing damage
 

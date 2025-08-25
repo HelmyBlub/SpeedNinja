@@ -42,6 +42,7 @@ pub const BossDragonData = struct {
     paint: struct {
         standingPerCent: f32 = 0,
         rotation: f32 = 0,
+        wingsFlapStarted: ?i64 = null,
     } = .{},
 };
 
@@ -63,11 +64,12 @@ fn startBoss(state: *main.GameState) !void {
         .hp = 50,
         .maxHp = 50,
         .imageIndex = imageZig.IMAGE_EVIL_TOWER,
-        .position = .{ .x = 1000, .y = 0 },
+        .position = .{ .x = 0, .y = 800 },
         .name = BOSS_NAME,
-        .typeData = .{ .dragon = .{ .phase = .{ .flyingOver = .{ .speed = 0.2, .targetPos = .{ .x = -1000, .y = 0 } } } } },
+        .typeData = .{ .dragon = .{ .phase = .{ .flyingOver = .{ .speed = 0.3, .targetPos = .{ .x = 0, .y = -400 } } } } },
     };
     boss.typeData.dragon.paint.rotation = 1;
+    boss.typeData.dragon.paint.wingsFlapStarted = state.gameTime;
     try mapTileZig.setMapRadius(6, state);
     state.paintData.backgroundColor = main.COLOR_SKY_BLUE;
     for (state.paintData.backClouds[0..]) |*backCloud| {
@@ -81,6 +83,7 @@ fn startBoss(state: *main.GameState) !void {
 }
 
 fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
+    _ = state;
     const data = &boss.typeData.dragon;
     switch (data.phase) {
         .flyingOver => |phaseData| {
@@ -90,7 +93,8 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             boss.position = main.moveByDirectionAndDistance(boss.position, rotation, distance);
             if (main.calculateDistance(boss.position, phaseData.targetPos) <= phaseData.speed * 16) {
                 boss.position = phaseData.targetPos;
-                data.phase = .{ .landing = .{ .speed = 0.2, .targetPos = .{ .x = 0, .y = 0 } } };
+                data.paint.standingPerCent = 1;
+                data.phase = .{ .landing = .{ .speed = 0.1, .targetPos = .{ .x = 0, .y = 0 } } };
             }
         },
         .landing => |phaseData| {
@@ -105,21 +109,21 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             }
         },
         else => {
-            const changeTime = 2000;
-            if (data.nextStateTime == null or data.nextStateTime.? <= state.gameTime) {
-                if (data.state == .ground) data.state = .standing else data.state = .ground;
-                data.nextStateTime = state.gameTime + changeTime;
-            }
-            if (data.state == .ground) {
-                if (data.paint.standingPerCent > 0) {
-                    data.paint.standingPerCent = @max(0, data.paint.standingPerCent - @as(f32, @floatFromInt(passedTime)) / changeTime);
-                }
-            }
-            if (data.state == .standing) {
-                if (data.paint.standingPerCent < 1) {
-                    data.paint.standingPerCent = @min(data.paint.standingPerCent + @as(f32, @floatFromInt(passedTime)) / changeTime, 1);
-                }
-            }
+            // const changeTime = 2000;
+            // if (data.nextStateTime == null or data.nextStateTime.? <= state.gameTime) {
+            //     if (data.state == .ground) data.state = .standing else data.state = .ground;
+            //     data.nextStateTime = state.gameTime + changeTime;
+            // }
+            // if (data.state == .ground) {
+            //     if (data.paint.standingPerCent > 0) {
+            //         data.paint.standingPerCent = @max(0, data.paint.standingPerCent - @as(f32, @floatFromInt(passedTime)) / changeTime);
+            //     }
+            // }
+            // if (data.state == .standing) {
+            //     if (data.paint.standingPerCent < 1) {
+            //         data.paint.standingPerCent = @min(data.paint.standingPerCent + @as(f32, @floatFromInt(passedTime)) / changeTime, 1);
+            //     }
+            // }
         },
     }
 }
@@ -220,12 +224,23 @@ fn paintDragonTail(boss: *bossZig.Boss, state: *main.GameState) void {
 
 fn paintDragonWings(boss: *bossZig.Boss, state: *main.GameState) void {
     const data = boss.typeData.dragon;
+    const scaleY = 0.1 + @abs(data.paint.standingPerCent - 0.5) * 2 * 0.9;
+    var scaleX: f32 = 1;
+    var wingsFlap: f32 = 0;
+    if (data.paint.wingsFlapStarted) |time| {
+        wingsFlap = @sin(@as(f32, @floatFromInt(state.gameTime - time)) / 200);
+        scaleX += (wingsFlap / 2);
+    }
+    const imageData = imageZig.IMAGE_DATA[imageZig.IMAGE_BOSS_DRAGON_WING];
+    const imageToGameSizeFactor: f32 = imageData.scale / imageZig.IMAGE_TO_GAME_SIZE;
+    const wingsFlapOffset = @as(f32, @floatFromInt(imageData.width)) * imageToGameSizeFactor * (1 - scaleX) / 2;
+
     const wingLeftOffset: main.Position = .{
-        .x = 50,
+        .x = 50 - wingsFlapOffset,
         .y = 10 - 90 * data.paint.standingPerCent,
     };
     const wingRightOffset: main.Position = .{
-        .x = -50,
+        .x = -50 + wingsFlapOffset,
         .y = 10 - 90 * data.paint.standingPerCent,
     };
     const rotatedLeftOffset = main.rotateAroundPoint(wingLeftOffset, .{ .x = 0, .y = 0 }, data.paint.rotation);
@@ -238,13 +253,13 @@ fn paintDragonWings(boss: *bossZig.Boss, state: *main.GameState) void {
         .x = boss.position.x + rotatedRightOffset.x,
         .y = boss.position.y + rotatedRightOffset.y,
     };
-    const scaleY = 0.1 + @abs(data.paint.standingPerCent - 0.5) * 2 * 0.9;
+
     if (data.paint.standingPerCent > 0.5) {
-        paintVulkanZig.verticesForComplexSprite(wingLeftPosition, imageZig.IMAGE_BOSS_DRAGON_WING, 1, scaleY, 1, data.paint.rotation, true, false, state);
-        paintVulkanZig.verticesForComplexSprite(wingRightPosition, imageZig.IMAGE_BOSS_DRAGON_WING, 1, scaleY, 1, data.paint.rotation, false, false, state);
+        paintVulkanZig.verticesForComplexSprite(wingLeftPosition, imageZig.IMAGE_BOSS_DRAGON_WING, scaleX, scaleY, 1, data.paint.rotation, true, false, state);
+        paintVulkanZig.verticesForComplexSprite(wingRightPosition, imageZig.IMAGE_BOSS_DRAGON_WING, scaleX, scaleY, 1, data.paint.rotation, false, false, state);
     } else {
-        paintVulkanZig.verticesForComplexSprite(wingLeftPosition, imageZig.IMAGE_BOSS_DRAGON_WING, 1, scaleY, 1, data.paint.rotation, true, true, state);
-        paintVulkanZig.verticesForComplexSprite(wingRightPosition, imageZig.IMAGE_BOSS_DRAGON_WING, 1, scaleY, 1, data.paint.rotation, false, true, state);
+        paintVulkanZig.verticesForComplexSprite(wingLeftPosition, imageZig.IMAGE_BOSS_DRAGON_WING, scaleX, scaleY, 1, data.paint.rotation, true, true, state);
+        paintVulkanZig.verticesForComplexSprite(wingRightPosition, imageZig.IMAGE_BOSS_DRAGON_WING, scaleX, scaleY, 1, data.paint.rotation, false, true, state);
     }
 }
 
