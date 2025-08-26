@@ -180,12 +180,17 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
     _ = hitDirection;
     _ = player;
     const data = &boss.typeData.dragon;
-    for (data.feetOffset) |footOffset| {
-        const footPos: main.Position = .{ .x = boss.position.x + footOffset.x, .y = boss.position.y + footOffset.y };
-        const footTile = main.gamePositionToTilePosition(footPos);
-        if (main.isTilePositionInTileRectangle(footTile, hitArea)) {
-            boss.hp -|= 1;
-            return true;
+    if (data.inAirHeight < 5) {
+        for (data.feetOffset, 0..) |footOffset, footIndex| {
+            const footPos: main.Position = .{ .x = boss.position.x + footOffset.x, .y = boss.position.y + footOffset.y };
+            const footTile = main.gamePositionToTilePosition(footPos);
+            if (footIndex >= 2 and data.paint.standingPerCent > 0.2) {
+                continue;
+            }
+            if (main.isTilePositionInTileRectangle(footTile, hitArea)) {
+                boss.hp -|= 1;
+                return true;
+            }
         }
     }
     return false;

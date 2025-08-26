@@ -1,11 +1,6 @@
 Tasks:
 - end boss dragon
     - dev steps:
-        - phase 0
-          - boss comes in flying
-            - dragon shadow, height
-            - wind which influences player physics
-            - stomps on ground doing damage
 
 
     - player can not move outside of area
