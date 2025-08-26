@@ -1,6 +1,12 @@
 Tasks:
 - end boss dragon
     - dev steps:
+    - phase 1:
+        - attack: front feet stomp
+        - move
+            - move feet, placing feed does damage
+        - turn
+        - attack front feet should destroy ground trigger flying phase
 
 
     - player can not move outside of area
@@ -12,9 +18,6 @@ Tasks:
         - feet stomp
             - floor break
         - air wind burst with wings
-    - dragon should move fluently not, jumping from tile to tile 
-    - how to paint?
-        - 
     - phase 0:
         - boss platform is limited, no able to go outside of area
             - should be high a platform, can fall down at the edges
@@ -38,8 +41,6 @@ Tasks:
                 - creates wind, pushes player away
                 - pushes fire away
         
-    - image
-    - 3*3 feet area, each corner one foot when hitable
     - multiple phases
     - can only damage feet/paws
         - each paw is one tile

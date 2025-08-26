@@ -12,11 +12,11 @@ const DragonState = enum {
     ground,
 };
 
-const DragonPhase = enum {
+const DragonAction = enum {
     flyingOver,
     landing,
-    stomp,
-    combatPhase1,
+    landingStomp,
+    bodyStomp,
 };
 
 const DragonMoveData = struct {
@@ -26,18 +26,18 @@ const DragonMoveData = struct {
 
 const DragonMoveStompData = struct {
     stompTime: i64,
-    stompHeight: f32 = 50,
+    stompHeight: f32 = 0,
 };
 
-const DrgonPhaseData = union(DragonPhase) {
+const DrgonActionData = union(DragonAction) {
     flyingOver: DragonMoveData,
     landing: DragonMoveData,
-    stomp: DragonMoveStompData,
-    combatPhase1,
+    landingStomp: DragonMoveStompData,
+    bodyStomp: DragonMoveStompData,
 };
 
 pub const BossDragonData = struct {
-    phase: DrgonPhaseData,
+    action: DrgonActionData,
     state: DragonState = .ground,
     nextStateTime: ?i64 = null,
     inAirHeight: f32 = 150,
@@ -56,10 +56,13 @@ pub const BossDragonData = struct {
 };
 
 const BOSS_NAME = "Dragon";
-const STOMP_LADNING_DELAY = 2000;
-const STOMP_AREA_RADIUS_X = 2;
-const STOMP_AREA_RADIUS_Y = 1;
-const STOMP_AREA_OFFSET: main.Position = .{ .x = 0, .y = -main.TILESIZE };
+const LANDING_STOMP_DELAY = 2000;
+const LANDING_STOMP_AREA_RADIUS_X = 2;
+const LANDING_STOMP_AREA_RADIUS_Y = 1;
+const LANDING_STOMP_AREA_OFFSET: main.Position = .{ .x = 0, .y = -main.TILESIZE };
+const BODY_STOMP_DELAY = 2000;
+const BODY_STOMP_AREA_RADIUS_X = 2;
+const BODY_STOMP_AREA_RADIUS_Y = 2;
 
 pub fn createBoss() bossZig.LevelBossData {
     return bossZig.LevelBossData{
@@ -79,7 +82,7 @@ fn startBoss(state: *main.GameState) !void {
         .imageIndex = imageZig.IMAGE_EVIL_TOWER,
         .position = .{ .x = 0, .y = 800 },
         .name = BOSS_NAME,
-        .typeData = .{ .dragon = .{ .phase = .{ .flyingOver = .{ .speed = 0.3, .targetPos = .{ .x = 0, .y = -300 } } } } },
+        .typeData = .{ .dragon = .{ .action = .{ .flyingOver = .{ .speed = 0.3, .targetPos = .{ .x = 0, .y = -300 } } } } },
     };
     boss.typeData.dragon.paint.rotation = 1;
     boss.typeData.dragon.paint.wingsFlapStarted = state.gameTime;
@@ -98,36 +101,36 @@ fn startBoss(state: *main.GameState) !void {
 
 fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
     const data = &boss.typeData.dragon;
-    switch (data.phase) {
-        .flyingOver => |phaseData| {
-            const rotation = main.calculateDirection(boss.position, phaseData.targetPos);
+    switch (data.action) {
+        .flyingOver => |actionData| {
+            const rotation = main.calculateDirection(boss.position, actionData.targetPos);
             data.paint.rotation = rotation - std.math.pi / 2.0;
-            const distance: f32 = phaseData.speed * @as(f32, @floatFromInt(passedTime));
+            const distance: f32 = actionData.speed * @as(f32, @floatFromInt(passedTime));
             boss.position = main.moveByDirectionAndDistance(boss.position, rotation, distance);
-            if (main.calculateDistance(boss.position, phaseData.targetPos) <= phaseData.speed * 16) {
-                boss.position = phaseData.targetPos;
+            if (main.calculateDistance(boss.position, actionData.targetPos) <= actionData.speed * 16) {
+                boss.position = actionData.targetPos;
                 data.paint.standingPerCent = 1;
-                data.phase = .{ .landing = .{ .speed = 0.1, .targetPos = .{ .x = 0, .y = 0 } } };
+                data.action = .{ .landing = .{ .speed = 0.1, .targetPos = .{ .x = 0, .y = 0 } } };
             }
         },
-        .landing => |phaseData| {
-            const rotation = main.calculateDirection(boss.position, phaseData.targetPos);
+        .landing => |actionData| {
+            const rotation = main.calculateDirection(boss.position, actionData.targetPos);
             data.paint.rotation = rotation - std.math.pi / 2.0;
-            const distance: f32 = phaseData.speed * @as(f32, @floatFromInt(passedTime));
+            const distance: f32 = actionData.speed * @as(f32, @floatFromInt(passedTime));
             boss.position = main.moveByDirectionAndDistance(boss.position, rotation, distance);
-            const distanceToTarget = main.calculateDistance(boss.position, phaseData.targetPos);
+            const distanceToTarget = main.calculateDistance(boss.position, actionData.targetPos);
             if (distanceToTarget < data.inAirHeight * 0.75) {
                 data.inAirHeight = @max(0, data.inAirHeight - distance);
             }
-            if (distanceToTarget <= phaseData.speed * 16) {
-                boss.position = phaseData.targetPos;
-                data.phase = .{ .stomp = .{ .stompTime = state.gameTime + STOMP_LADNING_DELAY } };
+            if (distanceToTarget <= actionData.speed * 16) {
+                boss.position = actionData.targetPos;
+                data.action = .{ .landingStomp = .{ .stompTime = state.gameTime + LANDING_STOMP_DELAY } };
                 data.paint.stopWings = true;
                 data.paint.rotation = 0;
             }
         },
-        .stomp => |*stompData| {
-            const stompPerCent: f32 = 1 - @max(0, @as(f32, @floatFromInt(stompData.stompTime - state.gameTime)) / STOMP_LADNING_DELAY);
+        .landingStomp => |*stompData| {
+            const stompPerCent: f32 = 1 - @max(0, @as(f32, @floatFromInt(stompData.stompTime - state.gameTime)) / LANDING_STOMP_DELAY);
             const stompStartPerCent = 0.9;
             if (stompPerCent < stompStartPerCent) {
                 const distanceUp: f32 = 0.02 * @as(f32, @floatFromInt(passedTime));
@@ -137,14 +140,14 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                 data.inAirHeight = stompData.stompHeight * @sqrt((1 - stompPerCent) / (1 - stompStartPerCent));
             }
             if (stompData.stompTime <= state.gameTime) {
-                data.phase = .combatPhase1;
+                data.action = .{ .bodyStomp = .{ .stompTime = state.gameTime + BODY_STOMP_DELAY } };
                 data.inAirHeight = 0;
                 try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_STOMP_INDICIES[0..], 0, 1);
-                const attackTileCenter = main.gamePositionToTilePosition(.{ .x = boss.position.x + STOMP_AREA_OFFSET.x, .y = boss.position.y + STOMP_AREA_OFFSET.y });
+                const attackTileCenter = main.gamePositionToTilePosition(.{ .x = boss.position.x + LANDING_STOMP_AREA_OFFSET.x, .y = boss.position.y + LANDING_STOMP_AREA_OFFSET.y });
                 const damageTileRectangle: main.TileRectangle = .{
-                    .pos = .{ .x = attackTileCenter.x - STOMP_AREA_RADIUS_X, .y = attackTileCenter.y - STOMP_AREA_RADIUS_Y },
-                    .width = STOMP_AREA_RADIUS_X * 2 + 1,
-                    .height = STOMP_AREA_RADIUS_Y * 2 + 1,
+                    .pos = .{ .x = attackTileCenter.x - LANDING_STOMP_AREA_RADIUS_X, .y = attackTileCenter.y - LANDING_STOMP_AREA_RADIUS_Y },
+                    .width = LANDING_STOMP_AREA_RADIUS_X * 2 + 1,
+                    .height = LANDING_STOMP_AREA_RADIUS_Y * 2 + 1,
                 };
                 for (state.players.items) |*player| {
                     const playerTile = main.gamePositionToTilePosition(player.position);
@@ -154,23 +157,50 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                 }
             }
         },
-        else => {
-            // const changeTime = 2000;
-            // if (data.nextStateTime == null or data.nextStateTime.? <= state.gameTime) {
-            //     if (data.state == .ground) data.state = .standing else data.state = .ground;
-            //     data.nextStateTime = state.gameTime + changeTime;
-            // }
-            // if (data.state == .ground) {
-            //     if (data.paint.standingPerCent > 0) {
-            //         data.paint.standingPerCent = @max(0, data.paint.standingPerCent - @as(f32, @floatFromInt(passedTime)) / changeTime);
-            //     }
-            // }
-            // if (data.state == .standing) {
-            //     if (data.paint.standingPerCent < 1) {
-            //         data.paint.standingPerCent = @min(data.paint.standingPerCent + @as(f32, @floatFromInt(passedTime)) / changeTime, 1);
-            //     }
-            // }
+        .bodyStomp => |*stompData| {
+            const stompPerCent: f32 = 1 - @max(0, @as(f32, @floatFromInt(stompData.stompTime - state.gameTime)) / BODY_STOMP_DELAY);
+            const stompStartPerCent = 0.8;
+            if (stompPerCent < stompStartPerCent) {
+                const distanceUp: f32 = 0.0005 * @as(f32, @floatFromInt(passedTime));
+                data.paint.standingPerCent = @min(1, data.paint.standingPerCent + distanceUp);
+                stompData.stompHeight = data.paint.standingPerCent;
+            } else {
+                data.paint.standingPerCent = stompData.stompHeight * @sqrt((1 - stompPerCent) / (1 - stompStartPerCent));
+            }
+            if (stompData.stompTime <= state.gameTime) {
+                data.action = .{ .bodyStomp = .{ .stompTime = state.gameTime + BODY_STOMP_DELAY } };
+                try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_STOMP_INDICIES[0..], 0, 1);
+                const attackTileCenter = main.gamePositionToTilePosition(.{ .x = boss.position.x, .y = boss.position.y });
+                const damageTileRectangle: main.TileRectangle = .{
+                    .pos = .{ .x = attackTileCenter.x - BODY_STOMP_AREA_RADIUS_X, .y = attackTileCenter.y - BODY_STOMP_AREA_RADIUS_Y },
+                    .width = BODY_STOMP_AREA_RADIUS_X * 2 + 1,
+                    .height = BODY_STOMP_AREA_RADIUS_Y * 2 + 1,
+                };
+                for (state.players.items) |*player| {
+                    const playerTile = main.gamePositionToTilePosition(player.position);
+                    if (main.isTilePositionInTileRectangle(playerTile, damageTileRectangle)) {
+                        try main.playerHit(player, state);
+                    }
+                }
+            }
         },
+        // else => {
+        // const changeTime = 2000;
+        // if (data.nextStateTime == null or data.nextStateTime.? <= state.gameTime) {
+        //     if (data.state == .ground) data.state = .standing else data.state = .ground;
+        //     data.nextStateTime = state.gameTime + changeTime;
+        // }
+        // if (data.state == .ground) {
+        //     if (data.paint.standingPerCent > 0) {
+        //         data.paint.standingPerCent = @max(0, data.paint.standingPerCent - @as(f32, @floatFromInt(passedTime)) / changeTime);
+        //     }
+        // }
+        // if (data.state == .standing) {
+        //     if (data.paint.standingPerCent < 1) {
+        //         data.paint.standingPerCent = @min(data.paint.standingPerCent + @as(f32, @floatFromInt(passedTime)) / changeTime, 1);
+        //     }
+        // }
+        // },
     }
 }
 
@@ -198,15 +228,30 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
 
 fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) !void {
     const data = boss.typeData.dragon;
-    switch (data.phase) {
-        .stomp => |stompData| {
-            const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(stompData.stompTime - state.gameTime)) / STOMP_LADNING_DELAY));
-            const sizeX: usize = @intCast(STOMP_AREA_RADIUS_X * 2 + 1);
-            const sizeY: usize = @intCast(STOMP_AREA_RADIUS_Y * 2 + 1);
+    switch (data.action) {
+        .landingStomp => |stompData| {
+            const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(stompData.stompTime - state.gameTime)) / LANDING_STOMP_DELAY));
+            const sizeX: usize = @intCast(LANDING_STOMP_AREA_RADIUS_X * 2 + 1);
+            const sizeY: usize = @intCast(LANDING_STOMP_AREA_RADIUS_Y * 2 + 1);
             for (0..sizeX) |i| {
-                const offsetX: f32 = @as(f32, @floatFromInt(@as(i32, @intCast(i)) - STOMP_AREA_RADIUS_X)) * main.TILESIZE + STOMP_AREA_OFFSET.x;
+                const offsetX: f32 = @as(f32, @floatFromInt(@as(i32, @intCast(i)) - LANDING_STOMP_AREA_RADIUS_X)) * main.TILESIZE + LANDING_STOMP_AREA_OFFSET.x;
                 for (0..sizeY) |j| {
-                    const offsetY: f32 = @as(f32, @floatFromInt(@as(i32, @intCast(j)) - STOMP_AREA_RADIUS_Y)) * main.TILESIZE + STOMP_AREA_OFFSET.y;
+                    const offsetY: f32 = @as(f32, @floatFromInt(@as(i32, @intCast(j)) - LANDING_STOMP_AREA_RADIUS_Y)) * main.TILESIZE + LANDING_STOMP_AREA_OFFSET.y;
+                    enemyVulkanZig.addWarningTileSprites(.{
+                        .x = boss.position.x + offsetX,
+                        .y = boss.position.y + offsetY,
+                    }, fillPerCent, state);
+                }
+            }
+        },
+        .bodyStomp => |stompData| {
+            const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(stompData.stompTime - state.gameTime)) / LANDING_STOMP_DELAY));
+            const sizeX: usize = @intCast(BODY_STOMP_AREA_RADIUS_X * 2 + 1);
+            const sizeY: usize = @intCast(BODY_STOMP_AREA_RADIUS_Y * 2 + 1);
+            for (0..sizeX) |i| {
+                const offsetX: f32 = @as(f32, @floatFromInt(@as(i32, @intCast(i)) - BODY_STOMP_AREA_RADIUS_X)) * main.TILESIZE;
+                for (0..sizeY) |j| {
+                    const offsetY: f32 = @as(f32, @floatFromInt(@as(i32, @intCast(j)) - BODY_STOMP_AREA_RADIUS_Y)) * main.TILESIZE;
                     enemyVulkanZig.addWarningTileSprites(.{
                         .x = boss.position.x + offsetX,
                         .y = boss.position.y + offsetY,
