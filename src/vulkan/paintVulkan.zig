@@ -243,11 +243,15 @@ fn pointsToVertices(
         const pointsIndexes = [_]usize{ i, i + 1 + @mod(i, 2), i + 2 - @mod(i, 2) };
         for (pointsIndexes) |verticeIndex| {
             const cornerPosOffset = points[verticeIndex];
-            var rotatedOffset = cornerPosOffset;
-            if (rotation != 0) rotatedOffset = main.rotateAroundPoint(cornerPosOffset, .{ .x = 0, .y = 0 }, rotation);
+            const scaledCornerPosOffset: main.Position = .{
+                .x = cornerPosOffset.x * scalingX,
+                .y = cornerPosOffset.y * scalingY,
+            };
+            var rotatedOffset = scaledCornerPosOffset;
+            if (rotation != 0) rotatedOffset = main.rotateAroundPoint(scaledCornerPosOffset, .{ .x = 0, .y = 0 }, rotation);
             const vulkan: main.Position = .{
-                .x = (rotatedOffset.x * scalingX - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
-                .y = (rotatedOffset.y * scalingY - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
+                .x = (rotatedOffset.x - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
+                .y = (rotatedOffset.y - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
             };
             var texPos: [2]f32 = .{
                 (cornerPosOffset.x / halfSizeWidth + 1) / 2,

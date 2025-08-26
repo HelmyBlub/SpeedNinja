@@ -2,11 +2,7 @@ Tasks:
 - end boss dragon
     - dev steps:
     - phase 1:
-        - stomp attack with move
-            - stand up
-            - move towards player for stomp
-            - body stomp
-        - turn
+        - bug: wings animation broken when turned 90 degrees
         - attack front feet should destroy ground trigger flying phase
 
 

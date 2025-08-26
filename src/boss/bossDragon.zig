@@ -268,7 +268,7 @@ fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) !void {
         },
         .bodyStomp => |stompData| {
             if (stompData.stompTime) |stompTime| {
-                const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(stompTime - state.gameTime)) / LANDING_STOMP_DELAY));
+                const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(stompTime - state.gameTime)) / BODY_STOMP_DELAY));
                 const sizeX: usize = @intCast(BODY_STOMP_AREA_RADIUS_X * 2 + 1);
                 const sizeY: usize = @intCast(BODY_STOMP_AREA_RADIUS_Y * 2 + 1);
                 for (0..sizeX) |i| {
