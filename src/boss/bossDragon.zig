@@ -67,7 +67,7 @@ const LANDING_STOMP_DELAY = 2000;
 const LANDING_STOMP_AREA_RADIUS_X = 2;
 const LANDING_STOMP_AREA_RADIUS_Y = 1;
 const LANDING_STOMP_AREA_OFFSET: main.Position = .{ .x = 0, .y = -main.TILESIZE };
-const BODY_STOMP_DELAY = 1000;
+const BODY_STOMP_DELAY = 1500;
 const BODY_STOMP_AREA_RADIUS_X = 2;
 const BODY_STOMP_AREA_RADIUS_Y = 2;
 const STAND_UP_SPEED = 0.0005;
@@ -171,7 +171,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
 
 fn tickBodyStomp(stompData: *DragonBodyStompData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
     const data = &boss.typeData.dragon;
-    if (data.paint.standingPerCent < 1) {
+    if (stompData.stompTime == null and data.paint.standingPerCent < 1) {
         const distanceUp: f32 = STAND_UP_SPEED * @as(f32, @floatFromInt(passedTime));
         data.paint.standingPerCent = @min(1, data.paint.standingPerCent + distanceUp);
     } else if (stompData.targetPlayerIndex == null) {
@@ -190,6 +190,7 @@ fn tickBodyStomp(stompData: *DragonBodyStompData, boss: *bossZig.Boss, passedTim
     } else {
         const stompTime = stompData.stompTime.?;
         const stompPerCent: f32 = 1 - @max(0, @as(f32, @floatFromInt(stompTime - state.gameTime)) / BODY_STOMP_DELAY);
+
         const stompStartPerCent = 0.5;
         if (stompPerCent > stompStartPerCent) {
             data.paint.standingPerCent = @sqrt((1 - stompPerCent) / (1 - stompStartPerCent));

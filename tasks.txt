@@ -2,7 +2,7 @@ Tasks:
 - end boss dragon
     - dev steps:
     - phase 1:
-        - bug: wings animation broken when turned 90 degrees
+        - bug: boss body stomp feels delayed to warning to tiles
         - attack front feet should destroy ground trigger flying phase
 
 
