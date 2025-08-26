@@ -3,7 +3,7 @@ Tasks:
     - dev steps:
         - phase 0
           - boss comes in flying
-            - continue: wing flapping improve
+            - dragon shadow, height
             - wind which influences player physics
             - stomps on ground doing damage
 
@@ -63,13 +63,13 @@ Tasks:
 
 
 Play Times:    best split | best total | estimtaed enemy difficulty | estimated boss difficulty
-    lvl  5 best in 2:23                    1/10 (attack)               1/10 (stomp)
-    lvl 10 best in 3:29 total  6:12        2/10 (at + move)            3/10 (rotate)
-    lvl 15 best in 3:48 total 10:01        3/10 (move + withPlayer)    3/10 (roll)
+    lvl  5 best in 2:19                    1/10 (attack)               1/10 (stomp)
+    lvl 10 best in 3:13 total  5:33        2/10 (at + move)            3/10 (rotate)
+    lvl 15 best in 3:48 total  9:48        3/10 (move + withPlayer)    3/10 (roll)
     lvl 20 best in 4:56 total 14:57        5/10 (wP + shuriken)        4/10 (split)
-    lvl 25 best in 5:28 total 21:14        7/10 (s + fire)             6/10 (snake)
-    lvl 30 best in 6:53 total 28:21        5/10 (fire + block)         2/10 (tripple)
-    lvl 35 best in 5:59 total 34:21        6/10 (block + ice)          3/10 (snowball)
+    lvl 25 best in 5:28 total 20:50        7/10 (s + fire)             6/10 (snake)
+    lvl 30 best in 6:53 total 28:03        5/10 (fire + block)         2/10 (tripple)
+    lvl 35 best in 5:59 total 34:04        6/10 (block + ice)          3/10 (snowball)
     lvl 40 best in 7:02 total 41:59        8/10 (ice + wall )          7/10 (waller)
     lvl 45 best in 6:25 total 48:24        4/10 (wall + movePiece)     3/10 (fireRoll)
     lvl 50 best in *6:24? total *54:48     4/10 (movePiece + bomb)       ? (dragon)
