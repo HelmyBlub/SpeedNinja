@@ -186,11 +186,11 @@ fn adjustFeetToTiles(boss: *bossZig.Boss) void {
         }
         var moveFeet = true;
         if (data.movingFeetPair1) {
-            if (index != 0 and index != 2) {
+            if (index != 0 and index != 3) {
                 moveFeet = false;
             }
         } else {
-            if (index == 0 or index == 2) {
+            if (index == 0 or index == 3) {
                 moveFeet = false;
             }
         }

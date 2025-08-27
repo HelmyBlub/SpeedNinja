@@ -2,14 +2,12 @@ Tasks:
 - end boss dragon
     - dev steps:
     - phase 1:
-        - rotated feet need hit detection,
-            - feet should align to tile
-            - feet should move so dragon does not look like floating
+        - move feet does damage?
         - attack front feet should destroy ground trigger flying phase
 
-    - player can not move outside of area
-        - or will fall down and take damage
-            - will fall down (after 0.2sec?) if not move instantly again
+    - player takes damage outside of area
+        - will use properller ears to fly
+            - but takes damage each seconds
     - attacks
         - fire breath
         - tail attack
