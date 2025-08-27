@@ -99,6 +99,7 @@ const FLYING_TRANSITION_DRAGON_POSITIONS = [4]main.Position{
     .{ .x = 0, .y = 25 * main.TILESIZE },
     .{ .x = 0, .y = -25 * main.TILESIZE },
 };
+const PHASE_2_TRANSITION_PER_CENT = 0.8;
 
 pub fn createBoss() bossZig.LevelBossData {
     return bossZig.LevelBossData{
@@ -371,7 +372,7 @@ fn tickBodyStomp(stompData: *DragonBodyStompData, boss: *bossZig.Boss, passedTim
         }
         if (stompTime <= state.gameTime) {
             const hpPerCent: f32 = @as(f32, @floatFromInt(boss.hp)) / @as(f32, @floatFromInt(boss.maxHp));
-            if (data.phase == .phase1 and hpPerCent < 0.99) {
+            if (data.phase == .phase1 and hpPerCent < PHASE_2_TRANSITION_PER_CENT) {
                 data.action = .{ .transitionFlyingPhase = .{} };
                 data.phase = .phase2;
             } else {

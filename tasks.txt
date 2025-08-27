@@ -3,10 +3,9 @@ Tasks:
     - dev steps:
     - phase 1:
         - at 80% health
-            - dragon flies right
-            - dragon flies over area right to left spewing fire
-            - dragon flies over area top to bottom spewing fire
             - attack body stomp destroy ground visualization
+            - fire not in air
+            - fire should be only in grid
         - bug: dragon feet wiggle
 
     - player takes damage outside of area
