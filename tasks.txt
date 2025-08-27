@@ -2,9 +2,10 @@ Tasks:
 - end boss dragon
     - dev steps:
     - phase 1:
-        - bug: boss body stomp feels delayed to warning to tiles
+        - rotated feet need hit detection,
+            - feet should align to tile
+            - feet should move so dragon does not look like floating
         - attack front feet should destroy ground trigger flying phase
-
 
     - player can not move outside of area
         - or will fall down and take damage
@@ -15,11 +16,8 @@ Tasks:
         - feet stomp
             - floor break
         - air wind burst with wings
-    - phase 0:
-        - boss platform is limited, no able to go outside of area
-            - should be high a platform, can fall down at the edges
-        - boss comes in flying
-            - landing in middle
+    - boss platform is limited, no able to go outside of area
+        - should be high a platform, can fall down at the edges
     - phase 1:
         - boss stomps
         - stands up, stomps on ground 5x5 area
@@ -61,12 +59,12 @@ Play Times:    best split | best total | estimtaed enemy difficulty | estimated 
     lvl 15 best in 3:48 total  9:48        3/10 (move + withPlayer)    3/10 (roll)
     lvl 20 best in 4:56 total 14:57        5/10 (wP + shuriken)        4/10 (split)
     lvl 25 best in 5:28 total 20:50        7/10 (s + fire)             6/10 (snake)
-    lvl 30 best in 6:53 total 28:03        5/10 (fire + block)         2/10 (tripple)
-    lvl 35 best in 5:59 total 34:04        6/10 (block + ice)          3/10 (snowball)
-    lvl 40 best in 7:02 total 41:59        8/10 (ice + wall )          7/10 (waller)
-    lvl 45 best in 6:25 total 48:24        4/10 (wall + movePiece)     3/10 (fireRoll)
-    lvl 50 best in *6:24? total *54:48     4/10 (movePiece + bomb)       ? (dragon)
-            *boss not yet finished
+    lvl 30 best in 6:23 total 27:43        5/10 (fire + block)         2/10 (tripple)
+    lvl 35 best in 5:58 total 33:42        6/10 (block + ice)          3/10 (snowball)
+    lvl 40 best in 7:02 total 41:18        8/10 (ice + wall )          7/10 (waller)
+    lvl 45 best in 6:13 total 47:32        4/10 (wall + movePiece)     3/10 (fireRoll)
+    lvl 50 best in *7:26 total *54:59     4/10 (movePiece + bomb)       ? (dragon)
+            *boss phase 1 work in progress
 Next ideas:
 - 1 new enemies all 5 levels
 - 1 boss all 5 levels

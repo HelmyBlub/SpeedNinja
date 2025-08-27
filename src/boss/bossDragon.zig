@@ -48,11 +48,12 @@ pub const BossDragonData = struct {
     nextStateTime: ?i64 = null,
     inAirHeight: f32 = 150,
     direction: f32 = 0,
+    movingFeetPair1: bool = false,
     feetOffset: [4]main.Position = [4]main.Position{
-        .{ .x = -1 * main.TILESIZE, .y = -1 * main.TILESIZE },
-        .{ .x = 1 * main.TILESIZE, .y = -1 * main.TILESIZE },
-        .{ .x = -1 * main.TILESIZE, .y = 1 * main.TILESIZE },
-        .{ .x = 1 * main.TILESIZE, .y = 1 * main.TILESIZE },
+        .{ .x = 0, .y = 0 },
+        .{ .x = 0, .y = 0 },
+        .{ .x = 0, .y = 0 },
+        .{ .x = 0, .y = 0 },
     },
     paint: struct {
         standingPerCent: f32 = 0,
@@ -71,6 +72,12 @@ const BODY_STOMP_DELAY = 1500;
 const BODY_STOMP_AREA_RADIUS_X = 2;
 const BODY_STOMP_AREA_RADIUS_Y = 2;
 const STAND_UP_SPEED = 0.0005;
+const DEFAULT_FEET_OFFSET = [4]main.Position{
+    .{ .x = -1 * main.TILESIZE, .y = -1 * main.TILESIZE },
+    .{ .x = 1 * main.TILESIZE, .y = -1 * main.TILESIZE },
+    .{ .x = -1 * main.TILESIZE, .y = 1 * main.TILESIZE },
+    .{ .x = 1 * main.TILESIZE, .y = 1 * main.TILESIZE },
+};
 
 pub fn createBoss() bossZig.LevelBossData {
     return bossZig.LevelBossData{
@@ -167,6 +174,68 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             try tickBodyStomp(stompData, boss, passedTime, state);
         },
     }
+    adjustFeetToTiles(boss);
+}
+
+fn adjustFeetToTiles(boss: *bossZig.Boss) void {
+    const data = &boss.typeData.dragon;
+    for (0..4) |index| {
+        if (data.inAirHeight > 10 or (index >= 2 and data.paint.standingPerCent > 0.2)) {
+            data.feetOffset[index] = .{ .x = 0, .y = 0 };
+            continue;
+        }
+        var moveFeet = true;
+        if (data.movingFeetPair1) {
+            if (index != 0 and index != 2) {
+                moveFeet = false;
+            }
+        } else {
+            if (index == 0 or index == 2) {
+                moveFeet = false;
+            }
+        }
+        if (moveFeet) {
+            const shouldBeOffset = getFootShouldBeOffset(index, boss);
+            const direction = main.calculateDirection(data.feetOffset[index], shouldBeOffset);
+            data.feetOffset[index] = main.moveByDirectionAndDistance(data.feetOffset[index], direction, 0.2);
+            const distance = main.calculateDistance(shouldBeOffset, data.feetOffset[index]);
+            if (distance < 2) {
+                data.movingFeetPair1 = !data.movingFeetPair1;
+            }
+        } else {
+            data.feetOffset[index] = getFootToCurrentTileOffset(index, boss);
+        }
+    }
+}
+
+fn getFootShouldBeOffset(index: usize, boss: *bossZig.Boss) main.Position {
+    const data = &boss.typeData.dragon;
+    if (data.inAirHeight > 10 or (index >= 2 and data.paint.standingPerCent > 0.2)) {
+        return .{ .x = 0, .y = 0 };
+    }
+    const defaultFootOffset = DEFAULT_FEET_OFFSET[index];
+    const rotatedOffset = main.rotateAroundPoint(defaultFootOffset, .{ .x = 0, .y = 0 }, data.paint.rotation);
+    const footPosition: main.Position = .{ .x = boss.position.x + rotatedOffset.x, .y = boss.position.y + rotatedOffset.y };
+    const tilePos = main.gamePositionToTilePosition(footPosition);
+    const alignedToTilePos = main.tilePositionToGamePosition(tilePos);
+    const alignedOffset: main.Position = .{ .x = alignedToTilePos.x - boss.position.x, .y = alignedToTilePos.y - boss.position.y };
+    const unrotatedDefaultOffset = main.rotateAroundPoint(alignedOffset, .{ .x = 0, .y = 0 }, -data.paint.rotation);
+    return .{ .x = unrotatedDefaultOffset.x - defaultFootOffset.x, .y = unrotatedDefaultOffset.y - defaultFootOffset.y };
+}
+
+fn getFootToCurrentTileOffset(index: usize, boss: *bossZig.Boss) main.Position {
+    const data = &boss.typeData.dragon;
+    if (data.inAirHeight > 10 or (index >= 2 and data.paint.standingPerCent > 0.2)) {
+        return .{ .x = 0, .y = 0 };
+    }
+    const footOffset: main.Position = .{ .x = data.feetOffset[index].x + DEFAULT_FEET_OFFSET[index].x, .y = data.feetOffset[index].y + DEFAULT_FEET_OFFSET[index].y };
+    const rotatedOffset = main.rotateAroundPoint(footOffset, .{ .x = 0, .y = 0 }, data.paint.rotation);
+    const footPosition: main.Position = .{ .x = boss.position.x + rotatedOffset.x, .y = boss.position.y + rotatedOffset.y };
+    const tilePos = main.gamePositionToTilePosition(footPosition);
+    const alignedToTilePos = main.tilePositionToGamePosition(tilePos);
+    const alignedOffset: main.Position = .{ .x = alignedToTilePos.x - boss.position.x, .y = alignedToTilePos.y - boss.position.y };
+    const unrotatedToTileOffset = main.rotateAroundPoint(alignedOffset, .{ .x = 0, .y = 0 }, -data.paint.rotation);
+    return .{ .x = unrotatedToTileOffset.x - DEFAULT_FEET_OFFSET[index].x, .y = unrotatedToTileOffset.y - DEFAULT_FEET_OFFSET[index].y };
 }
 
 fn tickBodyStomp(stompData: *DragonBodyStompData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
@@ -222,7 +291,9 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
     const data = &boss.typeData.dragon;
     if (data.inAirHeight < 5) {
         for (data.feetOffset, 0..) |footOffset, footIndex| {
-            const footPos: main.Position = .{ .x = boss.position.x + footOffset.x, .y = boss.position.y + footOffset.y };
+            const footOffset2: main.Position = .{ .x = footOffset.x + DEFAULT_FEET_OFFSET[footIndex].x, .y = footOffset.y + DEFAULT_FEET_OFFSET[footIndex].y };
+            const rotatedOffset = main.rotateAroundPoint(footOffset2, .{ .x = 0, .y = 0 }, data.paint.rotation);
+            const footPos: main.Position = .{ .x = boss.position.x + rotatedOffset.x, .y = boss.position.y + rotatedOffset.y };
             const footTile = main.gamePositionToTilePosition(footPos);
             if (footIndex >= 2 and data.paint.standingPerCent > 0.2) {
                 continue;
@@ -247,6 +318,7 @@ fn setDirection(boss: *bossZig.Boss, newDirection: f32) void {
     boss.position.x = boss.position.x - oldOffset.x + newOffset.x;
     boss.position.y = boss.position.y - oldOffset.y + newOffset.y;
     data.direction = newDirection;
+    data.paint.rotation = data.direction - std.math.pi / 2.0;
 }
 
 fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) !void {
@@ -348,7 +420,7 @@ fn paintDragonHead(boss: *bossZig.Boss, state: *main.GameState) void {
 fn paintDragonBackFeet(boss: *bossZig.Boss, state: *main.GameState) void {
     const data = boss.typeData.dragon;
     for (0..2) |index| {
-        const footOffset = data.feetOffset[index];
+        const footOffset: main.Position = .{ .x = data.feetOffset[index].x + DEFAULT_FEET_OFFSET[index].x, .y = data.feetOffset[index].y + DEFAULT_FEET_OFFSET[index].y };
         const rotatedOffset = main.rotateAroundPoint(footOffset, .{ .x = 0, .y = 0 }, data.paint.rotation);
         const footPos: main.Position = .{ .x = boss.position.x + rotatedOffset.x, .y = boss.position.y + rotatedOffset.y - data.inAirHeight };
         paintVulkanZig.verticesForComplexSpriteWithRotate(footPos, imageZig.IMAGE_BOSS_DRAGON_FOOT, data.paint.rotation, state);
@@ -358,7 +430,7 @@ fn paintDragonBackFeet(boss: *bossZig.Boss, state: *main.GameState) void {
 fn paintDragonFrontFeet(boss: *bossZig.Boss, state: *main.GameState) void {
     const data = boss.typeData.dragon;
     for (2..4) |index| {
-        const footOffset = data.feetOffset[index];
+        const footOffset: main.Position = .{ .x = data.feetOffset[index].x + DEFAULT_FEET_OFFSET[index].x, .y = data.feetOffset[index].y + DEFAULT_FEET_OFFSET[index].y };
         const bodyRotationOffset: main.Position = .{
             .x = 0,
             .y = -100 * data.paint.standingPerCent,
