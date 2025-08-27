@@ -7,9 +7,9 @@ const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
 const mapTileZig = @import("../mapTile.zig");
 
-const DragonState = enum {
-    standing,
-    ground,
+const DragonPhase = enum {
+    phase1,
+    phase2,
 };
 
 const DragonAction = enum {
@@ -17,6 +17,7 @@ const DragonAction = enum {
     landing,
     landingStomp,
     bodyStomp,
+    transitionFlyingPhase,
 };
 
 const DragonMoveData = struct {
@@ -35,16 +36,22 @@ const DragonBodyStompData = struct {
     targetPlayerIndex: ?usize = null,
 };
 
+const DragonTransitionFlyingData = struct {
+    keepCameraUntilTime: ?i64 = null,
+    moveCameraToDefaultTime: ?i64 = null,
+};
+
 const DragonActionData = union(DragonAction) {
     flyingOver: DragonMoveData,
     landing: DragonMoveData,
     landingStomp: DragonLandingStompData,
     bodyStomp: DragonBodyStompData,
+    transitionFlyingPhase: DragonTransitionFlyingData,
 };
 
 pub const BossDragonData = struct {
     action: DragonActionData,
-    state: DragonState = .ground,
+    phase: DragonPhase = .phase1,
     nextStateTime: ?i64 = null,
     inAirHeight: f32 = 150,
     direction: f32 = 0,
@@ -72,6 +79,9 @@ const BODY_STOMP_DELAY = 1500;
 const BODY_STOMP_AREA_RADIUS_X = 2;
 const BODY_STOMP_AREA_RADIUS_Y = 2;
 const STAND_UP_SPEED = 0.0005;
+const FLYING_TRANSITION_CAMERA_WAIT_TIME = 2000;
+const FLYING_TRANSITION_CAMERA_MOVE_DURATION = 2000;
+const FLYING_TRANSITION_CAMERA_OFFSET_Y = -300;
 const DEFAULT_FEET_OFFSET = [4]main.Position{
     .{ .x = -1 * main.TILESIZE, .y = -1 * main.TILESIZE },
     .{ .x = 1 * main.TILESIZE, .y = -1 * main.TILESIZE },
@@ -173,11 +183,41 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
         .bodyStomp => |*stompData| {
             try tickBodyStomp(stompData, boss, passedTime, state);
         },
+        .transitionFlyingPhase => |*flyingData| {
+            try tickTransitionFlyingPhase(flyingData, boss, passedTime, state);
+        },
     }
-    adjustFeetToTiles(boss);
+    adjustFeetToTiles(boss, passedTime);
 }
 
-fn adjustFeetToTiles(boss: *bossZig.Boss) void {
+fn tickTransitionFlyingPhase(flyingData: *DragonTransitionFlyingData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
+    _ = passedTime;
+    const data = &boss.typeData.dragon;
+    if (flyingData.moveCameraToDefaultTime == null) {
+        if (flyingData.keepCameraUntilTime == null) {
+            flyingData.keepCameraUntilTime = state.gameTime + FLYING_TRANSITION_CAMERA_WAIT_TIME;
+            state.camera.position.y = FLYING_TRANSITION_CAMERA_OFFSET_Y;
+            data.inAirHeight -= FLYING_TRANSITION_CAMERA_OFFSET_Y;
+            for (state.paintData.backClouds[0..]) |*cloud| {
+                cloud.position.y += FLYING_TRANSITION_CAMERA_OFFSET_Y;
+            }
+            for (state.players.items) |*player| {
+                player.inAirHeight -= FLYING_TRANSITION_CAMERA_OFFSET_Y;
+            }
+            state.paintData.frontCloud.position.y += FLYING_TRANSITION_CAMERA_OFFSET_Y;
+        } else if (flyingData.keepCameraUntilTime.? <= state.gameTime) {
+            flyingData.moveCameraToDefaultTime = state.gameTime + FLYING_TRANSITION_CAMERA_MOVE_DURATION;
+        }
+    } else {
+        const movePerCent: f32 = @max(0, @as(f32, @floatFromInt(flyingData.moveCameraToDefaultTime.? - state.gameTime)) / FLYING_TRANSITION_CAMERA_MOVE_DURATION);
+        state.camera.position.y = FLYING_TRANSITION_CAMERA_OFFSET_Y * movePerCent;
+        if (movePerCent == 0) {
+            data.action = .{ .landing = .{ .speed = 0.2, .targetPos = .{ .x = 0, .y = 0 } } };
+        }
+    }
+}
+
+fn adjustFeetToTiles(boss: *bossZig.Boss, passedTime: i64) void {
     const data = &boss.typeData.dragon;
     for (0..4) |index| {
         if (data.inAirHeight > 10 or (index >= 2 and data.paint.standingPerCent > 0.2)) {
@@ -197,7 +237,8 @@ fn adjustFeetToTiles(boss: *bossZig.Boss) void {
         if (moveFeet) {
             const shouldBeOffset = getFootShouldBeOffset(index, boss);
             const direction = main.calculateDirection(data.feetOffset[index], shouldBeOffset);
-            data.feetOffset[index] = main.moveByDirectionAndDistance(data.feetOffset[index], direction, 0.2);
+            const moveDistance: f32 = @as(f32, @floatFromInt(passedTime)) * 0.04;
+            data.feetOffset[index] = main.moveByDirectionAndDistance(data.feetOffset[index], direction, moveDistance);
             const distance = main.calculateDistance(shouldBeOffset, data.feetOffset[index]);
             if (distance < 2) {
                 data.movingFeetPair1 = !data.movingFeetPair1;
@@ -265,7 +306,13 @@ fn tickBodyStomp(stompData: *DragonBodyStompData, boss: *bossZig.Boss, passedTim
             data.paint.standingPerCent = @sqrt((1 - stompPerCent) / (1 - stompStartPerCent));
         }
         if (stompTime <= state.gameTime) {
-            data.action = .{ .bodyStomp = .{} };
+            const hpPerCent: f32 = @as(f32, @floatFromInt(boss.hp)) / @as(f32, @floatFromInt(boss.maxHp));
+            if (data.phase == .phase1 and hpPerCent < 0.8) {
+                data.action = .{ .transitionFlyingPhase = .{} };
+                data.phase = .phase2;
+            } else {
+                data.action = .{ .bodyStomp = .{} };
+            }
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_STOMP_INDICIES[0..], 0, 1);
             const attackTileCenter = main.gamePositionToTilePosition(.{ .x = boss.position.x, .y = boss.position.y });
             const damageTileRectangle: main.TileRectangle = .{

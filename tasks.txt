@@ -2,8 +2,13 @@ Tasks:
 - end boss dragon
     - dev steps:
     - phase 1:
-        - move feet does damage?
-        - attack front feet should destroy ground trigger flying phase
+        - at 80% health
+            - attack body stomp destroy ground 
+            - trigger flying phase
+            - ground should break
+            - dragon shall fly
+            - player falls down
+            - camera moves down
 
     - player takes damage outside of area
         - will use properller ears to fly
@@ -39,6 +44,7 @@ Tasks:
         - each paw is one tile
     - destroys tiles
     - fall down one area
+    - move feet does damage, if boss to easy in the end?
 
 - think: change random position to single function instead of duplicate with small differenes?
 - waller enemy

@@ -34,8 +34,8 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
         const highlightModLimit = @max(5, pieceTotalSteps + 1);
         for (0..4) |direction| {
             var gamePosition: main.Position = .{
-                .x = player.position.x,
-                .y = player.position.y,
+                .x = player.position.x - state.camera.position.x,
+                .y = player.position.y - state.camera.position.y,
             };
 
             const lineColorForDirection: [3]f32 = .{

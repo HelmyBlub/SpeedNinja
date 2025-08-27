@@ -79,6 +79,8 @@ pub const Player = struct {
     money: u32 = 0,
     hp: u32 = 0,
     shop: shopZig.ShopPlayerData = .{},
+    inAirHeight: f32 = 0,
+    fallVelocity: f32 = 0,
 };
 
 pub const AfterImage = struct {
@@ -180,7 +182,17 @@ fn mainLoop(state: *GameState) !void {
         }
         try windowSdlZig.handleEvents(state);
         for (state.players.items) |*player| {
-            try movePieceZig.tickPlayerMovePiece(player, state);
+            if (player.inAirHeight > 0) {
+                const fPassedTime = @as(f32, @floatFromInt(passedTime));
+                player.fallVelocity = @min(5, player.fallVelocity + fPassedTime * 0.001);
+                player.inAirHeight -= player.fallVelocity * fPassedTime;
+                if (player.inAirHeight < 0) {
+                    player.fallVelocity = 0;
+                    player.inAirHeight = 0;
+                }
+            } else {
+                try movePieceZig.tickPlayerMovePiece(player, state);
+            }
             try ninjaDogVulkanZig.tickNinjaDogAnimation(player, passedTime, state);
         }
         tickClouds(state, passedTime);
@@ -252,6 +264,7 @@ pub fn endShoppingPhase(state: *GameState) !void {
 }
 
 pub fn startNextLevel(state: *GameState) !void {
+    state.camera.position = .{ .x = 0, .y = 0 };
     state.enemyData.enemies.clearRetainingCapacity();
     state.enemyData.enemyObjects.clearRetainingCapacity();
     mapTileZig.resetMapTiles(state.mapData.tiles);
@@ -332,6 +345,7 @@ pub fn restart(state: *GameState) !void {
         if (totalSeconds < 10) std.debug.print("0", .{});
         std.debug.print("{d}\n", .{totalSeconds});
     }
+    state.camera.position = .{ .x = 0, .y = 0 };
     state.paintData.backgroundColor = COLOR_TILE_GREEN;
     state.level = 0;
     state.round = 0;

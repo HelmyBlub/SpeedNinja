@@ -273,8 +273,11 @@ pub fn setupVertices(state: *main.GameState) void {
             drawNinjaDog(afterImage.position, afterImage.paintData, state);
             currentAfterImageIndex += 1;
         }
-
-        drawNinjaDog(player.position, player.paintData, state);
+        const drawPosition: main.Position = .{
+            .x = player.position.x,
+            .y = player.position.y - player.inAirHeight,
+        };
+        drawNinjaDog(drawPosition, player.paintData, state);
     }
 }
 

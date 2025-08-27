@@ -175,6 +175,7 @@ pub fn isPlayerInEarlyShopTrigger(player: *main.Player, state: *main.GameState) 
 }
 
 pub fn startShoppingPhase(state: *main.GameState) !void {
+    state.camera.position = .{ .x = 0, .y = 0 };
     state.gamePhase = .shopping;
     state.enemyData.enemies.clearRetainingCapacity();
     state.enemyData.enemyObjects.clearRetainingCapacity();
