@@ -3,12 +3,11 @@ Tasks:
     - dev steps:
     - phase 1:
         - at 80% health
-            - attack body stomp destroy ground 
-            - trigger flying phase
-            - ground should break
-            - dragon shall fly
-            - player falls down
-            - camera moves down
+            - dragon flies right
+            - dragon flies over area right to left spewing fire
+            - dragon flies over area top to bottom spewing fire
+            - attack body stomp destroy ground visualization
+        - bug: dragon feet wiggle
 
     - player takes damage outside of area
         - will use properller ears to fly
