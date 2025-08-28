@@ -21,6 +21,7 @@ const DragonAction = enum {
     bodyStomp,
     transitionFlyingPhase,
     wingBlast,
+    fireBreath,
 };
 
 const DragonActionData = union(DragonAction) {
@@ -30,6 +31,16 @@ const DragonActionData = union(DragonAction) {
     bodyStomp: DragonBodyStompData,
     transitionFlyingPhase: DragonTransitionFlyingData,
     wingBlast: DragonWingBlastData,
+    fireBreath: DragonFireBreathData,
+};
+
+const DragonFireBreathData = struct {
+    nextFireSpitTickTime: ?i64 = null,
+    firstFireSpitDelay: i32 = 2000,
+    spitInterval: i32 = 100,
+    targetPlayerIndex: usize = 0,
+    spitEndTime: i64 = 0,
+    spitDuration: i32 = 3000,
 };
 
 const DragonWingBlastData = struct {
@@ -122,6 +133,7 @@ pub fn createBoss() bossZig.LevelBossData {
         .isBossHit = isBossHit,
         .setupVertices = setupVertices,
         .setupVerticesGround = setupVerticesGround,
+        .onPlayerMoveEachTile = onPlayerMoveEachTile,
     };
 }
 
@@ -146,6 +158,20 @@ fn startBoss(state: *main.GameState) !void {
     }
     main.adjustZoom(state);
     try state.bosses.append(boss);
+}
+
+fn onPlayerMoveEachTile(boss: *bossZig.Boss, player: *main.Player, state: *main.GameState) !void {
+    const data = &boss.typeData.dragon;
+    switch (data.action) {
+        .fireBreath => |*fireBreathData| {
+            if (player == &state.players.items[fireBreathData.targetPlayerIndex]) {
+                fireBreathData.nextFireSpitTickTime = state.gameTime + fireBreathData.spitInterval;
+                const targetPos = player.position;
+                try enemyObjectFireZig.spawnFlyingEternalFire(boss.position, targetPos, 100, state);
+            }
+        },
+        else => {},
+    }
 }
 
 fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
@@ -210,8 +236,30 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
         .wingBlast => |*wingBlastData| {
             try tickWingBlastAction(wingBlastData, boss, passedTime, state);
         },
+        .fireBreath => |*fireBreathData| {
+            try tickFireBreathAction(fireBreathData, boss, passedTime, state);
+        },
     }
     adjustFeetToTiles(boss, passedTime);
+}
+
+fn tickFireBreathAction(fireBreathData: *DragonFireBreathData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
+    if (fireBreathData.nextFireSpitTickTime == null) {
+        fireBreathData.nextFireSpitTickTime = state.gameTime + fireBreathData.firstFireSpitDelay;
+        fireBreathData.targetPlayerIndex = std.crypto.random.intRangeLessThan(usize, 0, state.players.items.len);
+        fireBreathData.spitEndTime = state.gameTime + fireBreathData.spitDuration;
+        setDirection(boss, std.math.pi / 2.0);
+    } else {
+        standUpTick(boss, passedTime);
+        if (fireBreathData.nextFireSpitTickTime.? <= state.gameTime) {
+            fireBreathData.nextFireSpitTickTime = state.gameTime + fireBreathData.spitInterval;
+            const targetPos = state.players.items[fireBreathData.targetPlayerIndex].position;
+            try enemyObjectFireZig.spawnFlyingEternalFire(boss.position, targetPos, 100, state);
+        }
+        if (fireBreathData.spitEndTime <= state.gameTime) {
+            chooseNextAttack(boss);
+        }
+    }
 }
 
 fn tickWingBlastAction(wingBlastData: *DragonWingBlastData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
@@ -258,9 +306,10 @@ fn chooseNextAttack(boss: *bossZig.Boss) void {
     switch (data.phase) {
         .phase1 => data.action = .{ .bodyStomp = .{} },
         .phase2 => {
-            const randomIndex = std.crypto.random.intRangeLessThan(usize, 0, 2);
+            const randomIndex = std.crypto.random.intRangeLessThan(usize, 0, 3);
             if (randomIndex == 0) data.action = .{ .bodyStomp = .{} };
             if (randomIndex == 1) data.action = .{ .wingBlast = .{} };
+            if (randomIndex == 2) data.action = .{ .fireBreath = .{} };
         },
     }
 }
@@ -338,16 +387,16 @@ fn tickTransitionFlyingPhase(flyingData: *DragonTransitionFlyingData, boss: *bos
                 if (flyingData.fireSpawnTile.? >= bossTilePos.x and -@as(i32, @intCast(state.mapData.tileRadius)) <= flyingData.fireSpawnTile.?) {
                     flyingData.fireSpawnTile.? -= 1;
                     const flyToPosition = main.tilePositionToGamePosition(main.gamePositionToTilePosition(boss.position));
-                    const fireSpawn: main.Position = .{ .x = boss.position.x, .y = boss.position.y - data.inAirHeight };
-                    try enemyObjectFireZig.spawnFlyingEternalFire(fireSpawn, flyToPosition, state);
+                    const fireSpawn: main.Position = .{ .x = boss.position.x, .y = boss.position.y };
+                    try enemyObjectFireZig.spawnFlyingEternalFire(fireSpawn, flyToPosition, data.inAirHeight, state);
                 }
             }
             if (flyingData.dragonFlyPositionIndex == 3) {
                 if (flyingData.fireSpawnTile.? >= bossTilePos.y and -@as(i32, @intCast(state.mapData.tileRadius)) <= flyingData.fireSpawnTile.?) {
                     flyingData.fireSpawnTile.? -= 1;
                     const flyToPosition = main.tilePositionToGamePosition(main.gamePositionToTilePosition(boss.position));
-                    const fireSpawn: main.Position = .{ .x = boss.position.x, .y = boss.position.y - data.inAirHeight };
-                    try enemyObjectFireZig.spawnFlyingEternalFire(fireSpawn, flyToPosition, state);
+                    const fireSpawn: main.Position = .{ .x = boss.position.x, .y = boss.position.y };
+                    try enemyObjectFireZig.spawnFlyingEternalFire(fireSpawn, flyToPosition, data.inAirHeight, state);
                 }
             }
         }

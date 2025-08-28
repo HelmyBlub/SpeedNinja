@@ -2,17 +2,19 @@ Tasks:
 - end boss dragon
     - dev steps:
         - phase 2:
-            - new attack wing blast
-                - chooses random direction
-                - pushes player and flames in one direction
-                    - when player get pushed off grid, he takes damage
+            - fire breath
+                - boss stands up
+                - boss chooses random player
+                - boss spits fire to player position
+                - each position the player moves to will get fire
+                - animate boss mouth to open
+
 
 
     - player takes damage outside of area
         - will use properller ears to fly
             - but takes damage each seconds
     - attacks
-        - fire breath
         - tail attack
         - air wind burst with wings
     - boss platform is limited, no able to go outside of area
@@ -24,11 +26,6 @@ Tasks:
                 - creates wind, pushes player away
                 - pushes fire away
         
-    - multiple phases
-    - can only damage feet/paws
-        - each paw is one tile
-    - destroys tiles
-    - fall down one area
     - move feet does damage, if boss to easy in the end?
 
 - think: change random position to single function instead of duplicate with small differenes?

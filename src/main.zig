@@ -496,6 +496,13 @@ pub fn calculateDistance(pos1: Position, pos2: Position) f32 {
     return @floatCast(@sqrt(diffX * diffX + diffY * diffY));
 }
 
+pub fn calculateDistance3D(x1: f32, y1: f32, z1: f32, x2: f32, y2: f32, z2: f32) f32 {
+    const diffX = x1 - x2;
+    const diffY = y1 - y2;
+    const diffZ = z1 - z2;
+    return @floatCast(@sqrt(diffX * diffX + diffY * diffY + diffZ * diffZ));
+}
+
 pub fn calculateDirection(start: Position, end: Position) f32 {
     return @floatCast(std.math.atan2(end.y - start.y, end.x - start.x));
 }
