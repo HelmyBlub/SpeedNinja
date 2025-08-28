@@ -19,6 +19,25 @@ const DragonAction = enum {
     landingStomp,
     bodyStomp,
     transitionFlyingPhase,
+    wingBlast,
+};
+
+const DragonActionData = union(DragonAction) {
+    flyingOver: DragonMoveData,
+    landing: DragonMoveData,
+    landingStomp: DragonLandingStompData,
+    bodyStomp: DragonBodyStompData,
+    transitionFlyingPhase: DragonTransitionFlyingData,
+    wingBlast: DragonWingBlastData,
+};
+
+const DragonWingBlastData = struct {
+    direction: ?u8 = null,
+    nextMoveTickTime: ?i64 = null,
+    firstMoveTickDelay: i32 = 2000,
+    moveInterval: i32 = 250,
+    maxMoveTicks: u16 = 10,
+    moveTickCount: u16 = 0,
 };
 
 const DragonMoveData = struct {
@@ -44,14 +63,6 @@ const DragonTransitionFlyingData = struct {
     fireSpawnTile: ?i32 = null,
 };
 
-const DragonActionData = union(DragonAction) {
-    flyingOver: DragonMoveData,
-    landing: DragonMoveData,
-    landingStomp: DragonLandingStompData,
-    bodyStomp: DragonBodyStompData,
-    transitionFlyingPhase: DragonTransitionFlyingData,
-};
-
 pub const BossDragonData = struct {
     action: DragonActionData,
     phase: DragonPhase = .phase1,
@@ -68,6 +79,7 @@ pub const BossDragonData = struct {
     paint: struct {
         standingPerCent: f32 = 0,
         wingsFlapStarted: ?i64 = null,
+        wingFlapSpeedFactor: f32 = 1,
         stopWings: bool = false,
         rotation: f32 = 0,
     } = .{},
@@ -171,7 +183,6 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                 data.inAirHeight = stompData.stompHeight * @sqrt((1 - stompPerCent) / (1 - stompStartPerCent));
             }
             if (stompData.stompTime <= state.gameTime) {
-                data.action = .{ .bodyStomp = .{} };
                 data.inAirHeight = 0;
                 try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_STOMP_INDICIES[0..], 0, 1);
                 const attackTileCenter = main.gamePositionToTilePosition(.{ .x = boss.position.x + LANDING_STOMP_AREA_OFFSET.x, .y = boss.position.y + LANDING_STOMP_AREA_OFFSET.y });
@@ -186,6 +197,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                         try main.playerHit(player, state);
                     }
                 }
+                chooseNextAttack(boss);
             }
         },
         .bodyStomp => |*stompData| {
@@ -194,8 +206,49 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
         .transitionFlyingPhase => |*flyingData| {
             try tickTransitionFlyingPhase(flyingData, boss, passedTime, state);
         },
+        .wingBlast => |*wingBlastData| {
+            try tickWingBlastAction(wingBlastData, boss, passedTime, state);
+        },
     }
     adjustFeetToTiles(boss, passedTime);
+}
+
+fn tickWingBlastAction(wingBlastData: *DragonWingBlastData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
+    const data = &boss.typeData.dragon;
+    if (wingBlastData.nextMoveTickTime == null) {
+        wingBlastData.nextMoveTickTime = state.gameTime + wingBlastData.firstMoveTickDelay;
+        wingBlastData.direction = std.crypto.random.intRangeLessThan(u8, 0, 4);
+        const bossDirection: f32 = @as(f32, @floatFromInt(wingBlastData.direction.?)) * std.math.pi / 2;
+        setDirection(boss, bossDirection);
+        data.paint.stopWings = false;
+        data.paint.wingsFlapStarted = state.gameTime;
+        data.paint.wingFlapSpeedFactor = 1;
+    } else {
+        standUpTick(boss, passedTime);
+        data.paint.wingFlapSpeedFactor = @min(data.paint.wingFlapSpeedFactor + 0.002, 3);
+        const nextMoveTickTime = wingBlastData.nextMoveTickTime.?;
+        if (nextMoveTickTime <= state.gameTime) {
+            wingBlastData.nextMoveTickTime = state.gameTime + wingBlastData.moveInterval;
+            wingBlastData.moveTickCount += 1;
+            if (wingBlastData.maxMoveTicks <= wingBlastData.moveTickCount) {
+                data.paint.stopWings = true;
+                data.paint.wingFlapSpeedFactor = 1;
+                chooseNextAttack(boss);
+            }
+        }
+    }
+}
+
+fn chooseNextAttack(boss: *bossZig.Boss) void {
+    const data = &boss.typeData.dragon;
+    switch (data.phase) {
+        .phase1 => data.action = .{ .bodyStomp = .{} },
+        .phase2 => {
+            const randomIndex = std.crypto.random.intRangeLessThan(usize, 0, 2);
+            if (randomIndex == 0) data.action = .{ .bodyStomp = .{} };
+            if (randomIndex == 1) data.action = .{ .wingBlast = .{} };
+        },
+    }
 }
 
 fn moveBossTick(boss: *bossZig.Boss, targetPos: main.Position, passedTime: i64, speed: f32) bool {
@@ -353,11 +406,16 @@ fn getFootToCurrentTileOffset(index: usize, boss: *bossZig.Boss) main.Position {
     return .{ .x = unrotatedToTileOffset.x - DEFAULT_FEET_OFFSET[index].x, .y = unrotatedToTileOffset.y - DEFAULT_FEET_OFFSET[index].y };
 }
 
+fn standUpTick(boss: *bossZig.Boss, passedTime: i64) void {
+    const data = &boss.typeData.dragon;
+    const distanceUp: f32 = STAND_UP_SPEED * @as(f32, @floatFromInt(passedTime));
+    data.paint.standingPerCent = @min(1, data.paint.standingPerCent + distanceUp);
+}
+
 fn tickBodyStomp(stompData: *DragonBodyStompData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
     const data = &boss.typeData.dragon;
     if (stompData.stompTime == null and data.paint.standingPerCent < 1) {
-        const distanceUp: f32 = STAND_UP_SPEED * @as(f32, @floatFromInt(passedTime));
-        data.paint.standingPerCent = @min(1, data.paint.standingPerCent + distanceUp);
+        standUpTick(boss, passedTime);
     } else if (stompData.targetPlayerIndex == null) {
         stompData.targetPlayerIndex = std.crypto.random.intRangeLessThan(usize, 0, state.players.items.len);
     } else if (stompData.stompTime == null) {
@@ -386,7 +444,7 @@ fn tickBodyStomp(stompData: *DragonBodyStompData, boss: *bossZig.Boss, passedTim
                 data.phase = .phase2;
                 try cutTilesForGroundBreakingEffect(state);
             } else {
-                data.action = .{ .bodyStomp = .{} };
+                chooseNextAttack(boss);
             }
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_STOMP_INDICIES[0..], 0, 1);
             const attackTileCenter = main.gamePositionToTilePosition(.{ .x = boss.position.x, .y = boss.position.y });
@@ -609,7 +667,7 @@ fn paintDragonWings(boss: *bossZig.Boss, state: *main.GameState) void {
         data.paint.wingsFlapStarted = state.gameTime;
     }
     if (data.paint.wingsFlapStarted) |time| {
-        wingsFlap = @sin(@as(f32, @floatFromInt(state.gameTime - time)) / 200);
+        wingsFlap = @sin(@as(f32, @floatFromInt((state.gameTime - time))) * data.paint.wingFlapSpeedFactor / 200);
         scaleX += (wingsFlap / 2);
         if (data.inAirHeight < 1 and data.paint.stopWings and @abs(wingsFlap) < 0.1) data.paint.wingsFlapStarted = null;
     }

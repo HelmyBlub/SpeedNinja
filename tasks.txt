@@ -1,8 +1,12 @@
 Tasks:
 - end boss dragon
     - dev steps:
-    - phase 1:
-        - bug: dragon feet wiggle
+        - phase 2:
+            - new attack wing blast
+                - chooses random direction
+                - pushes player and flames in one direction
+                    - when player get pushed off grid, he takes damage
+
 
     - player takes damage outside of area
         - will use properller ears to fly
@@ -10,22 +14,9 @@ Tasks:
     - attacks
         - fire breath
         - tail attack
-        - feet stomp
-            - floor break
         - air wind burst with wings
     - boss platform is limited, no able to go outside of area
         - should be high a platform, can fall down at the edges
-    - phase 1:
-        - boss stomps
-        - stands up, stomps on ground 5x5 area
-        - move towards player
-        - when reached 80% HP, when boss stomps it breakes ground
-            - player falls down
-            - flying phase starts
-    - boss flying phase
-        - boss flys over player spitting fire
-        - player can influence fire position based on where he stands
-        - boss does one horizintal and one vertical fire line with widh 3
     - phase 2:
         - abilities
             - stomp
