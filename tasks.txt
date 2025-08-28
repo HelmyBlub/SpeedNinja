@@ -2,14 +2,9 @@ Tasks:
 - end boss dragon
     - dev steps:
         - phase 2:
-            - fire breath
-                - boss stands up
-                - boss chooses random player
-                - boss spits fire to player position
-                - each position the player moves to will get fire
-                - animate boss mouth to open
-
-
+            - transition to phase 3
+                - same as for phase 1 to 2
+                - double fire line
 
     - player takes damage outside of area
         - will use properller ears to fly
@@ -26,6 +21,8 @@ Tasks:
                 - creates wind, pushes player away
                 - pushes fire away
         
+    - change order of attacks to be not completly random
+         - two fire breath max without wing blast to prevent to much fire
     - move feet does damage, if boss to easy in the end?
 
 - think: change random position to single function instead of duplicate with small differenes?

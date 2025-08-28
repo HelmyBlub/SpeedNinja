@@ -320,7 +320,6 @@ fn tickWingBlastAction(wingBlastData: *DragonWingBlastData, boss: *bossZig.Boss,
 }
 
 fn chooseNextAttack(boss: *bossZig.Boss) void {
-    std.debug.print("next attack {}\n", .{boss.typeData.dragon.action});
     const data = &boss.typeData.dragon;
     switch (data.phase) {
         .phase1 => data.action = .{ .bodyStomp = .{} },
