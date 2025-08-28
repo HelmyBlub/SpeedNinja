@@ -40,7 +40,7 @@ const DragonFireBreathData = struct {
     spitInterval: i32 = 100,
     targetPlayerIndex: usize = 0,
     spitEndTime: i64 = 0,
-    spitDuration: i32 = 3000,
+    spitDuration: i32 = 2500,
 };
 
 const DragonWingBlastData = struct {
@@ -82,6 +82,7 @@ pub const BossDragonData = struct {
     inAirHeight: f32 = DEFAULT_FYLING_HEIGHT,
     direction: f32 = 0,
     movingFeetPair1: bool = false,
+    openMouth: bool = false,
     feetOffset: [4]main.Position = [4]main.Position{
         .{ .x = 0, .y = 0 },
         .{ .x = 0, .y = 0 },
@@ -90,6 +91,7 @@ pub const BossDragonData = struct {
     },
     paint: struct {
         standingPerCent: f32 = 0,
+        mouthOpenPerCent: f32 = 0,
         wingsFlapStarted: ?i64 = null,
         wingFlapSpeedFactor: f32 = 1,
         stopWings: bool = false,
@@ -164,10 +166,12 @@ fn onPlayerMoveEachTile(boss: *bossZig.Boss, player: *main.Player, state: *main.
     const data = &boss.typeData.dragon;
     switch (data.action) {
         .fireBreath => |*fireBreathData| {
-            if (player == &state.players.items[fireBreathData.targetPlayerIndex]) {
-                fireBreathData.nextFireSpitTickTime = state.gameTime + fireBreathData.spitInterval;
-                const targetPos = player.position;
-                try enemyObjectFireZig.spawnFlyingEternalFire(boss.position, targetPos, 100, state);
+            if (fireBreathData.spitEndTime - fireBreathData.spitDuration <= state.gameTime) {
+                if (player == &state.players.items[fireBreathData.targetPlayerIndex]) {
+                    fireBreathData.nextFireSpitTickTime = state.gameTime + fireBreathData.spitInterval;
+                    const targetPos = player.position;
+                    try enemyObjectFireZig.spawnFlyingEternalFire(boss.position, targetPos, 100, state);
+                }
             }
         },
         else => {},
@@ -241,14 +245,27 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
         },
     }
     adjustFeetToTiles(boss, passedTime);
+    if (data.openMouth) {
+        if (data.paint.mouthOpenPerCent < 1) {
+            data.paint.mouthOpenPerCent += @as(f32, @floatFromInt(passedTime)) * 0.001;
+            if (data.paint.mouthOpenPerCent > 1) data.paint.mouthOpenPerCent = 1;
+        }
+    } else {
+        if (data.paint.mouthOpenPerCent > 0) {
+            data.paint.mouthOpenPerCent -= @as(f32, @floatFromInt(passedTime)) * 0.001;
+            if (data.paint.mouthOpenPerCent < 0) data.paint.mouthOpenPerCent = 0;
+        }
+    }
 }
 
 fn tickFireBreathAction(fireBreathData: *DragonFireBreathData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
+    const data = &boss.typeData.dragon;
     if (fireBreathData.nextFireSpitTickTime == null) {
         fireBreathData.nextFireSpitTickTime = state.gameTime + fireBreathData.firstFireSpitDelay;
         fireBreathData.targetPlayerIndex = std.crypto.random.intRangeLessThan(usize, 0, state.players.items.len);
-        fireBreathData.spitEndTime = state.gameTime + fireBreathData.spitDuration;
+        fireBreathData.spitEndTime = fireBreathData.nextFireSpitTickTime.? + fireBreathData.spitDuration;
         setDirection(boss, std.math.pi / 2.0);
+        data.openMouth = true;
     } else {
         standUpTick(boss, passedTime);
         if (fireBreathData.nextFireSpitTickTime.? <= state.gameTime) {
@@ -257,6 +274,7 @@ fn tickFireBreathAction(fireBreathData: *DragonFireBreathData, boss: *bossZig.Bo
             try enemyObjectFireZig.spawnFlyingEternalFire(boss.position, targetPos, 100, state);
         }
         if (fireBreathData.spitEndTime <= state.gameTime) {
+            data.openMouth = false;
             chooseNextAttack(boss);
         }
     }
@@ -302,6 +320,7 @@ fn tickWingBlastAction(wingBlastData: *DragonWingBlastData, boss: *bossZig.Boss,
 }
 
 fn chooseNextAttack(boss: *bossZig.Boss) void {
+    std.debug.print("next attack {}\n", .{boss.typeData.dragon.action});
     const data = &boss.typeData.dragon;
     switch (data.phase) {
         .phase1 => data.action = .{ .bodyStomp = .{} },
@@ -689,7 +708,19 @@ fn paintDragonHead(boss: *bossZig.Boss, state: *main.GameState) void {
         .x = boss.position.x + rotatedOffset.x,
         .y = boss.position.y + rotatedOffset.y - data.inAirHeight,
     };
-    paintVulkanZig.verticesForComplexSpriteWithRotate(headPosition, imageZig.IMAGE_BOSS_DRAGON_HEAD, data.paint.rotation, state);
+    paintVulkanZig.verticesForComplexSpriteWithRotate(headPosition, imageZig.IMAGE_BOSS_DRAGON_HEAD_LAYER1, data.paint.rotation, state);
+    const scaleY = 1 - (data.paint.mouthOpenPerCent * 0.5);
+    paintVulkanZig.verticesForComplexSprite(
+        headPosition,
+        imageZig.IMAGE_BOSS_DRAGON_HEAD_LAYER2,
+        1,
+        scaleY,
+        1,
+        data.paint.rotation,
+        false,
+        false,
+        state,
+    );
 }
 
 fn paintDragonBackFeet(boss: *bossZig.Boss, state: *main.GameState) void {
