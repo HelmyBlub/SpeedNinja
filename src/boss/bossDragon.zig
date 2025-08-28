@@ -314,6 +314,7 @@ fn adjustFeetToTiles(boss: *bossZig.Boss, passedTime: i64) void {
             data.feetOffset[index] = main.moveByDirectionAndDistance(data.feetOffset[index], direction, moveDistance);
             const distance = main.calculateDistance(shouldBeOffset, data.feetOffset[index]);
             if (distance < 2) {
+                data.feetOffset[index] = shouldBeOffset;
                 data.movingFeetPair1 = !data.movingFeetPair1;
             }
         } else {

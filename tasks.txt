@@ -2,8 +2,6 @@ Tasks:
 - end boss dragon
     - dev steps:
     - phase 1:
-        - at 80% health
-            - attack body stomp destroy ground visualization
         - bug: dragon feet wiggle
 
     - player takes damage outside of area
