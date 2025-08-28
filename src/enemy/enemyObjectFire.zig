@@ -66,6 +66,10 @@ fn tick(object: *enemyObjectZig.EnemyObject, passedTime: i64, state: *main.GameS
 
 fn shouldBeRemoved(object: *enemyObjectZig.EnemyObject, state: *main.GameState) bool {
     const fire = object.typeData.fire;
-    if (fire.removeTime == null) return false;
+    if (fire.removeTime == null) {
+        if (fire.flyToPosition != null) return false;
+        const tilePos = main.gamePositionToTilePosition(object.position);
+        return @abs(tilePos.x) > state.mapData.tileRadius or @abs(tilePos.y) > state.mapData.tileRadius;
+    }
     return fire.removeTime.? <= state.gameTime;
 }

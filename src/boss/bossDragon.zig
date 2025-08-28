@@ -7,6 +7,7 @@ const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
 const mapTileZig = @import("../mapTile.zig");
 const enemyObjectFireZig = @import("../enemy/enemyObjectFire.zig");
+const movePieceZig = @import("../movePiece.zig");
 
 const DragonPhase = enum {
     phase1,
@@ -111,7 +112,7 @@ const FLYING_TRANSITION_DRAGON_POSITIONS = [4]main.Position{
     .{ .x = 0, .y = 25 * main.TILESIZE },
     .{ .x = 0, .y = -25 * main.TILESIZE },
 };
-const PHASE_2_TRANSITION_PER_CENT = 0.99;
+const PHASE_2_TRANSITION_PER_CENT = 0.80;
 
 pub fn createBoss() bossZig.LevelBossData {
     return bossZig.LevelBossData{
@@ -230,6 +231,19 @@ fn tickWingBlastAction(wingBlastData: *DragonWingBlastData, boss: *bossZig.Boss,
         if (nextMoveTickTime <= state.gameTime) {
             wingBlastData.nextMoveTickTime = state.gameTime + wingBlastData.moveInterval;
             wingBlastData.moveTickCount += 1;
+            const stepDirection = movePieceZig.getStepDirection(wingBlastData.direction.?);
+            for (state.players.items) |*player| {
+                player.position.x += stepDirection.x * main.TILESIZE;
+                player.position.y += stepDirection.y * main.TILESIZE;
+                const tilePos = main.gamePositionToTilePosition(player.position);
+                if (@abs(tilePos.x) > state.mapData.tileRadius or @abs(tilePos.y) > state.mapData.tileRadius) {
+                    try main.playerHit(player, state);
+                }
+            }
+            for (state.enemyData.enemyObjects.items) |*object| {
+                object.position.x += stepDirection.x * main.TILESIZE;
+                object.position.y += stepDirection.y * main.TILESIZE;
+            }
             if (wingBlastData.maxMoveTicks <= wingBlastData.moveTickCount) {
                 data.paint.stopWings = true;
                 data.paint.wingFlapSpeedFactor = 1;
@@ -555,6 +569,20 @@ fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) !void {
                             .y = @floatFromInt(tilePos.y * main.TILESIZE),
                         }, fillPerCent, state);
                     }
+                }
+            }
+        },
+        .wingBlast => |wingBlastData| {
+            if (wingBlastData.nextMoveTickTime) |nextMoveTime| {
+                const rotation: f32 = @as(f32, @floatFromInt(wingBlastData.direction.?)) * std.math.pi / 2.0;
+                const duration = if (wingBlastData.moveTickCount == 0) wingBlastData.firstMoveTickDelay else wingBlastData.moveInterval;
+                const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(nextMoveTime - state.gameTime)) / @as(f32, @floatFromInt(duration))));
+                const stepDirection = movePieceZig.getStepDirection(wingBlastData.direction.?);
+                for (state.players.items) |player| {
+                    enemyVulkanZig.addRedArrowTileSprites(.{
+                        .x = player.position.x + stepDirection.x * main.TILESIZE,
+                        .y = player.position.y + stepDirection.y * main.TILESIZE,
+                    }, fillPerCent, rotation, state);
                 }
             }
         },
