@@ -99,7 +99,7 @@ const FLYING_TRANSITION_DRAGON_POSITIONS = [4]main.Position{
     .{ .x = 0, .y = 25 * main.TILESIZE },
     .{ .x = 0, .y = -25 * main.TILESIZE },
 };
-const PHASE_2_TRANSITION_PER_CENT = 0.8;
+const PHASE_2_TRANSITION_PER_CENT = 0.99;
 
 pub fn createBoss() bossZig.LevelBossData {
     return bossZig.LevelBossData{
@@ -245,9 +245,17 @@ fn tickTransitionFlyingPhase(flyingData: *DragonTransitionFlyingData, boss: *bos
             var currentTargetPos = FLYING_TRANSITION_DRAGON_POSITIONS[flyingData.dragonFlyPositionIndex];
             const randomPlayerIndex = std.crypto.random.intRangeLessThan(usize, 0, state.players.items.len);
             switch (flyingData.dragonFlyPositionIndex) {
-                0 => currentTargetPos.y = state.players.items[randomPlayerIndex].position.y,
+                0 => {
+                    const fMapRadius = @as(f32, @floatFromInt(state.mapData.tileRadius * main.TILESIZE));
+                    const offsetY: f32 = @max(@min(fMapRadius, state.players.items[randomPlayerIndex].position.y), -fMapRadius);
+                    currentTargetPos.y = offsetY;
+                },
                 1 => currentTargetPos.y = boss.position.y,
-                2 => currentTargetPos.x = state.players.items[randomPlayerIndex].position.x,
+                2 => {
+                    const fMapRadius = @as(f32, @floatFromInt(state.mapData.tileRadius * main.TILESIZE));
+                    const offsetX: f32 = @max(@min(fMapRadius, state.players.items[randomPlayerIndex].position.x), -fMapRadius);
+                    currentTargetPos.x = offsetX;
+                },
                 3 => currentTargetPos.x = boss.position.x,
                 else => {},
             }
