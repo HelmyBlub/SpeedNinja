@@ -119,15 +119,6 @@ const EnemySpawnEntry = struct {
     calcedProbabilityEnd: f32 = 0,
 };
 
-pub const CutSpriteAnimation = struct {
-    position: main.Position,
-    deathTime: i64,
-    cutAngle: f32,
-    force: f32,
-    imageIndex: u8,
-    imageToGameScaleFactor: f32 = 1.0 / @as(f32, @floatFromInt(imageZig.IMAGE_TO_GAME_SIZE)) / 2.0,
-};
-
 pub const MoveAttackWarningTile = struct {
     position: main.TilePosition,
     direction: u8,
@@ -187,7 +178,6 @@ pub fn fillMoveAttackWarningTiles(startPosition: main.Position, tileList: *std.A
 }
 
 pub fn initEnemy(state: *main.GameState) !void {
-    state.spriteCutAnimations = std.ArrayList(CutSpriteAnimation).init(state.allocator);
     state.enemyData.enemies = std.ArrayList(Enemy).init(state.allocator);
     state.enemyData.enemySpawnData.enemyEntries = std.ArrayList(EnemySpawnEntry).init(state.allocator);
     state.enemyData.enemyObjects = std.ArrayList(enemyObjectZig.EnemyObject).init(state.allocator);

@@ -3,8 +3,6 @@ Tasks:
     - dev steps:
     - phase 1:
         - at 80% health
-            - fire not in air
-            - fire should be only in grid
             - attack body stomp destroy ground visualization
         - bug: dragon feet wiggle
 

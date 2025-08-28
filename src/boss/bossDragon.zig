@@ -383,6 +383,7 @@ fn tickBodyStomp(stompData: *DragonBodyStompData, boss: *bossZig.Boss, passedTim
             if (data.phase == .phase1 and hpPerCent < PHASE_2_TRANSITION_PER_CENT) {
                 data.action = .{ .transitionFlyingPhase = .{} };
                 data.phase = .phase2;
+                try cutTilesForGroundBreakingEffect(state);
             } else {
                 data.action = .{ .bodyStomp = .{} };
             }
@@ -399,6 +400,24 @@ fn tickBodyStomp(stompData: *DragonBodyStompData, boss: *bossZig.Boss, passedTim
                     try main.playerHit(player, state);
                 }
             }
+        }
+    }
+}
+
+fn cutTilesForGroundBreakingEffect(state: *main.GameState) !void {
+    const mapGridSize = state.mapData.tileRadius * 2 + 1;
+    const fMapTileRadius: f32 = @floatFromInt(state.mapData.tileRadius);
+    for (0..mapGridSize) |i| {
+        const x: f32 = (@as(f32, @floatFromInt(i)) - fMapTileRadius) * main.TILESIZE;
+        for (0..mapGridSize) |j| {
+            const y: f32 = (@as(f32, @floatFromInt(j)) - fMapTileRadius) * main.TILESIZE;
+            try state.spriteCutAnimations.append(.{
+                .deathTime = state.gameTime,
+                .position = .{ .x = x, .y = y + FLYING_TRANSITION_CAMERA_OFFSET_Y },
+                .cutAngle = 0,
+                .force = -1,
+                .colorOrImageIndex = .{ .color = main.COLOR_TILE_GREEN },
+            });
         }
     }
 }

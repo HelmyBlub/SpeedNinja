@@ -24,11 +24,18 @@ pub fn setupVertices(state: *main.GameState) void {
     }
 }
 
-fn setupVerticesForCutSprite(cutSprite: enemyZig.CutSpriteAnimation, state: *main.GameState) void {
+fn setupVerticesForCutSprite(cutSprite: main.CutSpriteAnimation, state: *main.GameState) void {
     const normal: main.Position = .{ .x = @cos(cutSprite.cutAngle), .y = @sin(cutSprite.cutAngle) };
-    const imageData = imageZig.IMAGE_DATA[cutSprite.imageIndex];
-    const width: f32 = @floatFromInt(imageData.width);
-    const height: f32 = @floatFromInt(imageData.height);
+    var width: f32 = 0;
+    var height: f32 = 0;
+    if (cutSprite.colorOrImageIndex == .imageIndex) {
+        const imageData = imageZig.IMAGE_DATA[cutSprite.colorOrImageIndex.imageIndex];
+        width = @floatFromInt(imageData.width);
+        height = @floatFromInt(imageData.height);
+    } else {
+        width = main.TILESIZE * imageZig.IMAGE_TO_GAME_SIZE;
+        height = main.TILESIZE * imageZig.IMAGE_TO_GAME_SIZE;
+    }
     const corners: [4]main.Position = [4]main.Position{
         main.Position{ .x = -width, .y = -height },
         main.Position{ .x = width, .y = -height },
@@ -87,13 +94,13 @@ fn setupVerticesForCutSprite(cutSprite: enemyZig.CutSpriteAnimation, state: *mai
         .x = (positionsNegative[0].x + positionsNegative[1].x + positionsNegative[2].x + positionsNegative[3].x) / 4,
         .y = (positionsNegative[0].y + positionsNegative[1].y + positionsNegative[2].y + positionsNegative[3].y) / 4,
     };
-    addTriangle(.{ positionsPositive[0], positionsPositive[1], positionsPositive[2] }, cutSprite, -offsetX, offsetY, centerOfRotatePositive, cutSprite.imageIndex, cutSprite.imageToGameScaleFactor, state);
-    addTriangle(.{ positionsPositive[0], positionsPositive[2], positionsPositive[3] }, cutSprite, -offsetX, offsetY, centerOfRotatePositive, cutSprite.imageIndex, cutSprite.imageToGameScaleFactor, state);
-    addTriangle(.{ positionsNegative[0], positionsNegative[1], positionsNegative[2] }, cutSprite, offsetX, offsetY, centerOfRotateNegative, cutSprite.imageIndex, cutSprite.imageToGameScaleFactor, state);
-    addTriangle(.{ positionsNegative[0], positionsNegative[2], positionsNegative[3] }, cutSprite, offsetX, offsetY, centerOfRotateNegative, cutSprite.imageIndex, cutSprite.imageToGameScaleFactor, state);
+    addTriangle(.{ positionsPositive[0], positionsPositive[1], positionsPositive[2] }, cutSprite, -offsetX, offsetY, centerOfRotatePositive, state);
+    addTriangle(.{ positionsPositive[0], positionsPositive[2], positionsPositive[3] }, cutSprite, -offsetX, offsetY, centerOfRotatePositive, state);
+    addTriangle(.{ positionsNegative[0], positionsNegative[1], positionsNegative[2] }, cutSprite, offsetX, offsetY, centerOfRotateNegative, state);
+    addTriangle(.{ positionsNegative[0], positionsNegative[2], positionsNegative[3] }, cutSprite, offsetX, offsetY, centerOfRotateNegative, state);
 }
 
-fn calculateOffsetY(cutSprite: enemyZig.CutSpriteAnimation, state: *main.GameState) f32 {
+fn calculateOffsetY(cutSprite: main.CutSpriteAnimation, state: *main.GameState) f32 {
     const iterations: f32 = @as(f32, @floatFromInt(@abs(state.gameTime - cutSprite.deathTime))) / 8;
     const velocity = cutSprite.force;
     const changePerIteration = 0.01;
@@ -102,14 +109,23 @@ fn calculateOffsetY(cutSprite: enemyZig.CutSpriteAnimation, state: *main.GameSta
     return -avgVelocity * iterations / 2;
 }
 
-fn addTriangle(points: [3]main.Position, cutSprite: enemyZig.CutSpriteAnimation, offsetX: f32, offsetY: f32, rotateCenter: main.Position, imageIndex: u8, scale: f32, state: *main.GameState) void {
+fn addTriangle(points: [3]main.Position, cutSprite: main.CutSpriteAnimation, offsetX: f32, offsetY: f32, rotateCenter: main.Position, state: *main.GameState) void {
+    const scale = cutSprite.imageToGameScaleFactor;
     const verticeData = &state.vkState.verticeData;
     if (verticeData.spritesComplex.vertices.len <= verticeData.spritesComplex.verticeCount + 3) return;
     const alpha = 1 - @as(f32, @floatFromInt(state.gameTime - cutSprite.deathTime)) / DEATH_DURATION;
     const rotate: f32 = @as(f32, @floatFromInt(state.gameTime - cutSprite.deathTime)) / 512 * cutSprite.force;
-    const imageData = imageZig.IMAGE_DATA[cutSprite.imageIndex];
-    const width: f32 = @floatFromInt(imageData.width);
-    const height: f32 = @floatFromInt(imageData.height);
+    var width: f32 = main.TILESIZE;
+    var height: f32 = main.TILESIZE;
+    if (cutSprite.colorOrImageIndex == .imageIndex) {
+        const imageData = imageZig.IMAGE_DATA[cutSprite.colorOrImageIndex.imageIndex];
+        width = @floatFromInt(imageData.width);
+        height = @floatFromInt(imageData.height);
+    } else {
+        if (verticeData.triangles.vertices.len <= verticeData.triangles.verticeCount + 3) return;
+        width = main.TILESIZE * imageZig.IMAGE_TO_GAME_SIZE;
+        height = main.TILESIZE * imageZig.IMAGE_TO_GAME_SIZE;
+    }
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
 
@@ -119,16 +135,24 @@ fn addTriangle(points: [3]main.Position, cutSprite: enemyZig.CutSpriteAnimation,
             .x = (rotatedPoint.x * scale - state.camera.position.x + cutSprite.position.x + offsetX) * state.camera.zoom * onePixelXInVulkan,
             .y = (rotatedPoint.y * scale - state.camera.position.y + cutSprite.position.y + offsetY) * state.camera.zoom * onePixelYInVulkan,
         };
-        const texPos: main.Position = .{
-            .x = (point.x / width + 1) / 2,
-            .y = (point.y / height + 1) / 2,
-        };
-        verticeData.spritesComplex.vertices[verticeData.spritesComplex.verticeCount] = dataVulkanZig.SpriteComplexVertex{
-            .pos = .{ vulkan.x, vulkan.y },
-            .tex = .{ texPos.x, texPos.y },
-            .imageIndex = imageIndex,
-            .alpha = alpha,
-        };
-        verticeData.spritesComplex.verticeCount += 1;
+        if (cutSprite.colorOrImageIndex == .imageIndex) {
+            const texPos: main.Position = .{
+                .x = (point.x / width + 1) / 2,
+                .y = (point.y / height + 1) / 2,
+            };
+            verticeData.spritesComplex.vertices[verticeData.spritesComplex.verticeCount] = dataVulkanZig.SpriteComplexVertex{
+                .pos = .{ vulkan.x, vulkan.y },
+                .tex = .{ texPos.x, texPos.y },
+                .imageIndex = cutSprite.colorOrImageIndex.imageIndex,
+                .alpha = alpha,
+            };
+            verticeData.spritesComplex.verticeCount += 1;
+        } else {
+            verticeData.triangles.vertices[verticeData.triangles.verticeCount] = dataVulkanZig.ColoredVertex{
+                .pos = .{ vulkan.x, vulkan.y },
+                .color = cutSprite.colorOrImageIndex.color,
+            };
+            verticeData.triangles.verticeCount += 1;
+        }
     }
 }

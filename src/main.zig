@@ -40,7 +40,7 @@ pub const GameState = struct {
     playerImmunityFrames: i64 = 1000,
     bosses: std.ArrayList(bossZig.Boss) = undefined,
     enemyData: enemyZig.EnemyData = .{},
-    spriteCutAnimations: std.ArrayList(enemyZig.CutSpriteAnimation) = undefined,
+    spriteCutAnimations: std.ArrayList(CutSpriteAnimation) = undefined,
     players: std.ArrayList(Player),
     soundMixer: ?soundMixerZig.SoundMixer = null,
     gameEnded: bool = false,
@@ -89,6 +89,25 @@ pub const AfterImage = struct {
     deleteTime: i64,
 };
 
+pub const ColorOrImageIndex = enum {
+    color,
+    imageIndex,
+};
+
+pub const ColorOrImageIndexData = union(ColorOrImageIndex) {
+    color: [3]f32,
+    imageIndex: u8,
+};
+
+pub const CutSpriteAnimation = struct {
+    position: Position,
+    deathTime: i64,
+    cutAngle: f32,
+    force: f32,
+    colorOrImageIndex: ColorOrImageIndexData,
+    imageToGameScaleFactor: f32 = 1.0 / @as(f32, @floatFromInt(imageZig.IMAGE_TO_GAME_SIZE)) / 2.0,
+};
+
 pub const Position = struct {
     x: f32,
     y: f32,
@@ -127,7 +146,7 @@ pub fn playerHit(player: *Player, state: *GameState) !void {
                 .position = player.position,
                 .cutAngle = 0,
                 .force = 1.2,
-                .imageIndex = player.paintData.chestArmorImageIndex,
+                .colorOrImageIndex = .{ .imageIndex = player.paintData.chestArmorImageIndex },
             },
         );
         player.paintData.chestArmorImageIndex = imageZig.IMAGE_NINJA_BODY_NO_ARMOR;
@@ -400,6 +419,7 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
     try initVulkanZig.initVulkan(state);
     try soundMixerZig.createSoundMixer(state, state.allocator);
     try enemyZig.initEnemy(state);
+    state.spriteCutAnimations = std.ArrayList(CutSpriteAnimation).init(state.allocator);
     try state.players.append(createPlayer(allocator));
     try restart(state);
 }

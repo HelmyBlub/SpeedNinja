@@ -158,7 +158,7 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
                         .position = removed.position,
                         .cutAngle = cutAngle,
                         .force = std.crypto.random.float(f32) + 0.2,
-                        .imageIndex = boss.imageIndex,
+                        .colorOrImageIndex = .{ .imageIndex = boss.imageIndex },
                         .imageToGameScaleFactor = sizeFactor * defaultSizeFactor,
                     },
                 );

@@ -136,7 +136,7 @@ fn checkLooseBodyPart(boss: *bossZig.Boss, hitPosition: main.Position, cutRotati
         _ = snakeData.snakeBodyParts.orderedRemove(0);
         if (boss.hp > 0) {
             try state.spriteCutAnimations.append(
-                .{ .deathTime = state.gameTime, .position = hitPosition, .cutAngle = cutRotation, .force = 1.2, .imageIndex = imageZig.IMAGE_BOSS_SNAKE_BODY },
+                .{ .deathTime = state.gameTime, .position = hitPosition, .cutAngle = cutRotation, .force = 1.2, .colorOrImageIndex = .{ .imageIndex = imageZig.IMAGE_BOSS_SNAKE_BODY } },
             );
         }
     }

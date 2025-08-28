@@ -132,7 +132,7 @@ pub fn isBossHit(hitArea: main.TileRectangle, player: *main.Player, hitDirection
                     .position = deadBoss.position,
                     .cutAngle = cutAngle,
                     .force = std.crypto.random.float(f32) + 0.2,
-                    .imageIndex = boss.imageIndex,
+                    .colorOrImageIndex = .{ .imageIndex = boss.imageIndex },
                 },
             );
             if (levelBossData.deinit) |deinit| deinit(&deadBoss, state.allocator);
