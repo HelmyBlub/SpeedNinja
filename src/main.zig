@@ -507,6 +507,35 @@ pub fn calculateDirection(start: Position, end: Position) f32 {
     return @floatCast(std.math.atan2(end.y - start.y, end.x - start.x));
 }
 
+pub fn calculateDistancePointToLine(point: Position, linestart: Position, lineEnd: Position) f32 {
+    const A: Position = .{ .x = point.x - linestart.x, .y = point.y - linestart.y };
+    const B: Position = .{ .x = lineEnd.x - linestart.x, .y = lineEnd.y - linestart.y };
+
+    const dot = A.x * B.x + A.y * B.y;
+    const len_sq = B.x * B.x + B.y * B.y;
+    var param: f32 = -1;
+    if (len_sq != 0) //in case of 0 length line
+        param = dot / len_sq;
+
+    var xx: f32 = 0;
+    var yy: f32 = 0;
+
+    if (param < 0) {
+        xx = linestart.x;
+        yy = linestart.y;
+    } else if (param > 1) {
+        xx = lineEnd.x;
+        yy = lineEnd.y;
+    } else {
+        xx = linestart.x + param * B.x;
+        yy = linestart.y + param * B.y;
+    }
+
+    const dx = point.x - xx;
+    const dy = point.y - yy;
+    return @sqrt(dx * dx + dy * dy);
+}
+
 pub fn moveByDirectionAndDistance(position: Position, direction: f32, distance: f32) Position {
     return .{
         .x = position.x + @cos(direction) * distance,

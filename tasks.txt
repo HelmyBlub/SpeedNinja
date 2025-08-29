@@ -1,25 +1,19 @@
 Tasks:
 - end boss dragon
     - dev steps:
-        - phase 2:
-            - transition to phase 3
-                - same as for phase 1 to 2
-                - double fire line
+        - phase 3:
+            - tail attack
+                - body to ground
+                - tail in the air
+                - move close enough to player
+                - turn back towards player
+                - tail to the ground stomp
 
     - player takes damage outside of area
         - will use properller ears to fly
             - but takes damage each seconds
-    - attacks
-        - tail attack
-        - air wind burst with wings
     - boss platform is limited, no able to go outside of area
         - should be high a platform, can fall down at the edges
-    - phase 2:
-        - abilities
-            - stomp
-            - wing blast
-                - creates wind, pushes player away
-                - pushes fire away
     
     - check for multiplayer
         - body stomp choose closest player

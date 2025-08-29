@@ -23,19 +23,26 @@ const DragonAction = enum {
     transitionFlyingPhase,
     wingBlast,
     fireBreath,
+    tailAttack,
 };
 
 const DragonActionData = union(DragonAction) {
     flyingOver: DragonMoveData,
     landing: DragonMoveData,
-    landingStomp: DragonLandingStompData,
-    bodyStomp: DragonBodyStompData,
-    transitionFlyingPhase: DragonTransitionFlyingData,
-    wingBlast: DragonWingBlastData,
-    fireBreath: DragonFireBreathData,
+    landingStomp: LandingStompData,
+    bodyStomp: BodyStompData,
+    transitionFlyingPhase: TransitionFlyingData,
+    wingBlast: WingBlastData,
+    fireBreath: FireBreathData,
+    tailAttack: TailAttackhData,
 };
 
-const DragonFireBreathData = struct {
+const TailAttackhData = struct {
+    tailAttackHitTime: ?i64 = null,
+    tailAttackDelay: i32 = 2000,
+};
+
+const FireBreathData = struct {
     nextFireSpitTickTime: ?i64 = null,
     firstFireSpitDelay: i32 = 2000,
     spitInterval: i32 = 100,
@@ -44,7 +51,7 @@ const DragonFireBreathData = struct {
     spitDuration: i32 = 2500,
 };
 
-const DragonWingBlastData = struct {
+const WingBlastData = struct {
     direction: ?u8 = null,
     nextMoveTickTime: ?i64 = null,
     firstMoveTickDelay: i32 = 2000,
@@ -57,18 +64,18 @@ const DragonMoveData = struct {
     targetPos: main.Position,
 };
 
-const DragonLandingStompData = struct {
+const LandingStompData = struct {
     stompTime: i64,
     stompHeight: f32 = 0,
 };
 
-const DragonBodyStompData = struct {
+const BodyStompData = struct {
     stompTime: ?i64 = null,
     standUpMaxPerCent: f32 = 0,
     targetPlayerIndex: ?usize = null,
 };
 
-const DragonTransitionFlyingData = struct {
+const TransitionFlyingData = struct {
     keepCameraUntilTime: ?i64 = null,
     moveCameraToDefaultTime: ?i64 = null,
     cameraDone: bool = false,
@@ -93,11 +100,13 @@ pub const BossDragonData = struct {
     paint: struct {
         standingPerCent: f32 = 0,
         mouthOpenPerCent: f32 = 0,
+        tailUpPerCent: f32 = 0,
         wingsFlapStarted: ?i64 = null,
         wingFlapSpeedFactor: f32 = 1,
         stopWings: bool = false,
         rotation: f32 = 0,
     } = .{},
+    attackTiles: std.ArrayList(main.TilePosition),
 };
 
 const DEFAULT_FYLING_HEIGHT = 150;
@@ -138,7 +147,14 @@ pub fn createBoss() bossZig.LevelBossData {
         .setupVertices = setupVertices,
         .setupVerticesGround = setupVerticesGround,
         .onPlayerMoveEachTile = onPlayerMoveEachTile,
+        .deinit = deinit,
     };
+}
+
+fn deinit(boss: *bossZig.Boss, allocator: std.mem.Allocator) void {
+    _ = allocator;
+    const data = &boss.typeData.dragon;
+    data.attackTiles.deinit();
 }
 
 fn startBoss(state: *main.GameState) !void {
@@ -148,7 +164,10 @@ fn startBoss(state: *main.GameState) !void {
         .imageIndex = imageZig.IMAGE_EVIL_TOWER,
         .position = .{ .x = 0, .y = 800 },
         .name = BOSS_NAME,
-        .typeData = .{ .dragon = .{ .action = .{ .flyingOver = .{ .targetPos = .{ .x = 0, .y = -300 } } } } },
+        .typeData = .{ .dragon = .{
+            .action = .{ .flyingOver = .{ .targetPos = .{ .x = 0, .y = -300 } } },
+            .attackTiles = std.ArrayList(main.TilePosition).init(state.allocator),
+        } },
     };
     boss.typeData.dragon.paint.wingsFlapStarted = state.gameTime;
     boss.typeData.dragon.paint.stopWings = false;
@@ -245,6 +264,9 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
         .fireBreath => |*fireBreathData| {
             try tickFireBreathAction(fireBreathData, boss, passedTime, state);
         },
+        .tailAttack => |*tailAttackhData| {
+            try tickTailAttackAction(tailAttackhData, boss, passedTime, state);
+        },
     }
     adjustFeetToTiles(boss, passedTime);
     if (data.openMouth) {
@@ -260,7 +282,82 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     }
 }
 
-fn tickFireBreathAction(fireBreathData: *DragonFireBreathData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
+fn tickTailAttackAction(tailAttackData: *TailAttackhData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
+    const data = &boss.typeData.dragon;
+    standUpOrDownTick(boss, false, passedTime);
+    if (tailAttackData.tailAttackHitTime == null) {
+        var closestPlayer: ?*main.Player = null;
+        var closestDistance: f32 = 0;
+        for (state.players.items) |*player| {
+            const tempDistance = main.calculateDistance(player.position, boss.position);
+            if (closestPlayer == null or tempDistance < closestDistance) {
+                closestPlayer = player;
+                closestDistance = tempDistance;
+            }
+        }
+        if (closestPlayer) |player| {
+            const direction = main.calculateDirection(player.position, boss.position);
+            setDirection(boss, direction);
+            tailAttackData.tailAttackHitTime = state.gameTime + tailAttackData.tailAttackDelay;
+            try determineTailAttackTiles(boss);
+        }
+    } else {
+        const timePerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(tailAttackData.tailAttackHitTime.? - state.gameTime)) / @as(f32, @floatFromInt(tailAttackData.tailAttackDelay))));
+        const tailDownTimeStartPerCent = 0.8;
+        if (timePerCent > tailDownTimeStartPerCent) {
+            data.paint.tailUpPerCent = @sqrt((1 - timePerCent) / (1 - tailDownTimeStartPerCent));
+        } else {
+            const tailMoveSpeed: f32 = 0.001 * @as(f32, @floatFromInt(passedTime));
+            data.paint.tailUpPerCent = @min(1, data.paint.tailUpPerCent + tailMoveSpeed);
+        }
+        if (tailAttackData.tailAttackHitTime.? <= state.gameTime) {
+            data.paint.tailUpPerCent = 0;
+            chooseNextAttack(boss);
+        }
+    }
+}
+
+fn determineTailAttackTiles(boss: *bossZig.Boss) !void {
+    const data = &boss.typeData.dragon;
+    data.attackTiles.clearRetainingCapacity();
+    const tailLength = 80;
+    const tailStart: main.Position = .{
+        .x = boss.position.x + @cos(data.direction + std.math.pi) * 20,
+        .y = boss.position.y + @sin(data.direction + std.math.pi) * 20,
+    };
+    const tailAttackWidth = main.TILESIZE * 1.5;
+    const tailEnd: main.Position = .{
+        .x = tailStart.x + @cos(data.direction + std.math.pi) * tailLength,
+        .y = tailStart.y + @sin(data.direction + std.math.pi) * tailLength,
+    };
+    const startTile = main.gamePositionToTilePosition(tailStart);
+    const endTile = main.gamePositionToTilePosition(tailEnd);
+    const checkTile: main.TilePosition = .{
+        .x = if (startTile.x < endTile.x) startTile.x else endTile.x,
+        .y = if (startTile.y < endTile.y) startTile.y else endTile.y,
+    };
+    const increaseCheckRectangleBy = 1;
+    const width: usize = @intCast(@abs(startTile.x - endTile.x) + 1 + increaseCheckRectangleBy * 2);
+    const height: usize = @intCast(@abs(startTile.y - endTile.y) + 1 + increaseCheckRectangleBy * 2);
+    for (0..width) |i| {
+        for (0..height) |j| {
+            const tile: main.TilePosition = .{
+                .x = checkTile.x + @as(i32, @intCast(i)) - increaseCheckRectangleBy,
+                .y = checkTile.y + @as(i32, @intCast(j)) - increaseCheckRectangleBy,
+            };
+            const checkPosition: main.Position = .{
+                .x = @floatFromInt(tile.x * main.TILESIZE),
+                .y = @floatFromInt(tile.y * main.TILESIZE),
+            };
+            const distance = main.calculateDistancePointToLine(checkPosition, tailStart, tailEnd);
+            if (distance < tailAttackWidth) {
+                try data.attackTiles.append(tile);
+            }
+        }
+    }
+}
+
+fn tickFireBreathAction(fireBreathData: *FireBreathData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
     const data = &boss.typeData.dragon;
     if (fireBreathData.nextFireSpitTickTime == null) {
         fireBreathData.nextFireSpitTickTime = state.gameTime + fireBreathData.firstFireSpitDelay;
@@ -269,7 +366,7 @@ fn tickFireBreathAction(fireBreathData: *DragonFireBreathData, boss: *bossZig.Bo
         setDirection(boss, std.math.pi / 2.0);
         data.openMouth = true;
     } else {
-        standUpTick(boss, passedTime);
+        standUpOrDownTick(boss, true, passedTime);
         if (fireBreathData.nextFireSpitTickTime.? <= state.gameTime) {
             fireBreathData.nextFireSpitTickTime = state.gameTime + fireBreathData.spitInterval;
             const targetPos = state.players.items[fireBreathData.targetPlayerIndex].position;
@@ -282,7 +379,7 @@ fn tickFireBreathAction(fireBreathData: *DragonFireBreathData, boss: *bossZig.Bo
     }
 }
 
-fn tickWingBlastAction(wingBlastData: *DragonWingBlastData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
+fn tickWingBlastAction(wingBlastData: *WingBlastData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
     const data = &boss.typeData.dragon;
     if (wingBlastData.nextMoveTickTime == null) {
         wingBlastData.nextMoveTickTime = state.gameTime + wingBlastData.firstMoveTickDelay;
@@ -293,7 +390,7 @@ fn tickWingBlastAction(wingBlastData: *DragonWingBlastData, boss: *bossZig.Boss,
         data.paint.wingsFlapStarted = state.gameTime;
         data.paint.wingFlapSpeedFactor = 1;
     } else {
-        standUpTick(boss, passedTime);
+        standUpOrDownTick(boss, true, passedTime);
         data.paint.wingFlapSpeedFactor = @min(data.paint.wingFlapSpeedFactor + 0.002, 3);
         const nextMoveTickTime = wingBlastData.nextMoveTickTime.?;
         if (nextMoveTickTime <= state.gameTime) {
@@ -323,15 +420,21 @@ fn tickWingBlastAction(wingBlastData: *DragonWingBlastData, boss: *bossZig.Boss,
 
 fn chooseNextAttack(boss: *bossZig.Boss) void {
     const data = &boss.typeData.dragon;
+    var least: usize = 0;
+    var lessThan: usize = 1;
     switch (data.phase) {
-        .phase1 => data.action = .{ .bodyStomp = .{} },
-        .phase2, .phase3 => {
-            const randomIndex = std.crypto.random.intRangeLessThan(usize, 0, 3);
-            if (randomIndex == 0) data.action = .{ .bodyStomp = .{} };
-            if (randomIndex == 1) data.action = .{ .wingBlast = .{} };
-            if (randomIndex == 2) data.action = .{ .fireBreath = .{} };
+        .phase1 => {
+            least = 0;
+            lessThan = 1;
         },
+        .phase2 => lessThan = 3,
+        .phase3 => lessThan = 4,
     }
+    const randomIndex = std.crypto.random.intRangeLessThan(usize, least, lessThan);
+    if (randomIndex == 0) data.action = .{ .bodyStomp = .{} };
+    if (randomIndex == 1) data.action = .{ .wingBlast = .{} };
+    if (randomIndex == 2) data.action = .{ .fireBreath = .{} };
+    if (randomIndex == 3) data.action = .{ .tailAttack = .{} };
 }
 
 fn moveBossTick(boss: *bossZig.Boss, targetPos: main.Position, passedTime: i64, speed: f32) bool {
@@ -347,7 +450,7 @@ fn moveBossTick(boss: *bossZig.Boss, targetPos: main.Position, passedTime: i64, 
     return false;
 }
 
-fn tickTransitionFlyingPhase(flyingData: *DragonTransitionFlyingData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
+fn tickTransitionFlyingPhase(flyingData: *TransitionFlyingData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
     const data = &boss.typeData.dragon;
     if (!flyingData.cameraDone) {
         if (flyingData.moveCameraToDefaultTime == null) {
@@ -507,16 +610,20 @@ fn getFootToCurrentTileOffset(index: usize, boss: *bossZig.Boss) main.Position {
     return .{ .x = unrotatedToTileOffset.x - DEFAULT_FEET_OFFSET[index].x, .y = unrotatedToTileOffset.y - DEFAULT_FEET_OFFSET[index].y };
 }
 
-fn standUpTick(boss: *bossZig.Boss, passedTime: i64) void {
+fn standUpOrDownTick(boss: *bossZig.Boss, up: bool, passedTime: i64) void {
     const data = &boss.typeData.dragon;
     const distanceUp: f32 = STAND_UP_SPEED * @as(f32, @floatFromInt(passedTime));
-    data.paint.standingPerCent = @min(1, data.paint.standingPerCent + distanceUp);
+    if (up) {
+        data.paint.standingPerCent = @min(1, data.paint.standingPerCent + distanceUp);
+    } else {
+        data.paint.standingPerCent = @max(0, data.paint.standingPerCent - distanceUp);
+    }
 }
 
-fn tickBodyStomp(stompData: *DragonBodyStompData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
+fn tickBodyStomp(stompData: *BodyStompData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
     const data = &boss.typeData.dragon;
     if (stompData.stompTime == null and data.paint.standingPerCent < 1) {
-        standUpTick(boss, passedTime);
+        standUpOrDownTick(boss, true, passedTime);
     } else if (stompData.targetPlayerIndex == null) {
         stompData.targetPlayerIndex = std.crypto.random.intRangeLessThan(usize, 0, state.players.items.len);
     } else if (stompData.stompTime == null) {
@@ -677,6 +784,17 @@ fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) !void {
                 }
             }
         },
+        .tailAttack => |tailAttackData| {
+            if (tailAttackData.tailAttackHitTime) |hitTime| {
+                const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(hitTime - state.gameTime)) / @as(f32, @floatFromInt(tailAttackData.tailAttackDelay))));
+                for (data.attackTiles.items) |attackPos| {
+                    enemyVulkanZig.addWarningTileSprites(.{
+                        .x = @floatFromInt(attackPos.x * main.TILESIZE),
+                        .y = @floatFromInt(attackPos.y * main.TILESIZE),
+                    }, fillPerCent, state);
+                }
+            }
+        },
         else => {},
     }
 }
@@ -786,7 +904,8 @@ fn paintDragonTail(boss: *bossZig.Boss, state: *main.GameState) void {
         .x = boss.position.x + rotatedOffset.x,
         .y = boss.position.y + rotatedOffset.y - data.inAirHeight,
     };
-    paintVulkanZig.verticesForComplexSpriteWithRotate(tailPosition, imageZig.IMAGE_BOSS_DRAGON_TAIL, data.paint.rotation, state);
+    const tailRotation = data.paint.rotation + data.paint.tailUpPerCent;
+    paintVulkanZig.verticesForComplexSpriteWithRotate(tailPosition, imageZig.IMAGE_BOSS_DRAGON_TAIL, tailRotation, state);
 }
 
 fn paintDragonWings(boss: *bossZig.Boss, state: *main.GameState) void {
