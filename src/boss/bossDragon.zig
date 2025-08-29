@@ -12,6 +12,7 @@ const movePieceZig = @import("../movePiece.zig");
 const DragonPhase = enum {
     phase1,
     phase2,
+    phase3,
 };
 
 const DragonAction = enum {
@@ -126,6 +127,7 @@ const FLYING_TRANSITION_DRAGON_POSITIONS = [4]main.Position{
     .{ .x = 0, .y = -25 * main.TILESIZE },
 };
 const PHASE_2_TRANSITION_PER_CENT = 0.80;
+const PHASE_3_TRANSITION_PER_CENT = 0.50;
 
 pub fn createBoss() bossZig.LevelBossData {
     return bossZig.LevelBossData{
@@ -323,7 +325,7 @@ fn chooseNextAttack(boss: *bossZig.Boss) void {
     const data = &boss.typeData.dragon;
     switch (data.phase) {
         .phase1 => data.action = .{ .bodyStomp = .{} },
-        .phase2 => {
+        .phase2, .phase3 => {
             const randomIndex = std.crypto.random.intRangeLessThan(usize, 0, 3);
             if (randomIndex == 0) data.action = .{ .bodyStomp = .{} };
             if (randomIndex == 1) data.action = .{ .wingBlast = .{} };
@@ -407,6 +409,15 @@ fn tickTransitionFlyingPhase(flyingData: *DragonTransitionFlyingData, boss: *bos
                     const flyToPosition = main.tilePositionToGamePosition(main.gamePositionToTilePosition(boss.position));
                     const fireSpawn: main.Position = .{ .x = boss.position.x, .y = boss.position.y };
                     try enemyObjectFireZig.spawnFlyingEternalFire(fireSpawn, flyToPosition, data.inAirHeight, state);
+                    if (data.phase == .phase3) {
+                        var secondFireFlyToPos: main.Position = flyToPosition;
+                        if (boss.position.y < 0) {
+                            secondFireFlyToPos.y += main.TILESIZE;
+                        } else {
+                            secondFireFlyToPos.y -= main.TILESIZE;
+                        }
+                        try enemyObjectFireZig.spawnFlyingEternalFire(fireSpawn, secondFireFlyToPos, data.inAirHeight, state);
+                    }
                 }
             }
             if (flyingData.dragonFlyPositionIndex == 3) {
@@ -415,6 +426,15 @@ fn tickTransitionFlyingPhase(flyingData: *DragonTransitionFlyingData, boss: *bos
                     const flyToPosition = main.tilePositionToGamePosition(main.gamePositionToTilePosition(boss.position));
                     const fireSpawn: main.Position = .{ .x = boss.position.x, .y = boss.position.y };
                     try enemyObjectFireZig.spawnFlyingEternalFire(fireSpawn, flyToPosition, data.inAirHeight, state);
+                    if (data.phase == .phase3) {
+                        var secondFireFlyToPos: main.Position = flyToPosition;
+                        if (boss.position.x < 0) {
+                            secondFireFlyToPos.x += main.TILESIZE;
+                        } else {
+                            secondFireFlyToPos.x -= main.TILESIZE;
+                        }
+                        try enemyObjectFireZig.spawnFlyingEternalFire(fireSpawn, secondFireFlyToPos, data.inAirHeight, state);
+                    }
                 }
             }
         }
@@ -523,6 +543,10 @@ fn tickBodyStomp(stompData: *DragonBodyStompData, boss: *bossZig.Boss, passedTim
             if (data.phase == .phase1 and hpPerCent < PHASE_2_TRANSITION_PER_CENT) {
                 data.action = .{ .transitionFlyingPhase = .{} };
                 data.phase = .phase2;
+                try cutTilesForGroundBreakingEffect(state);
+            } else if (data.phase == .phase2 and hpPerCent < PHASE_3_TRANSITION_PER_CENT) {
+                data.action = .{ .transitionFlyingPhase = .{} };
+                data.phase = .phase3;
                 try cutTilesForGroundBreakingEffect(state);
             } else {
                 chooseNextAttack(boss);
