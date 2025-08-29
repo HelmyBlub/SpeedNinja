@@ -1,14 +1,18 @@
 Tasks:
 - end boss dragon
-    - player takes damage outside of area
-        - will use properller ears to fly
-            - but takes damage each seconds    
     - change order of attacks to be not completly random
          - two fire breath max without wing blast to prevent to much fire
     - check for multiplayer
         - body stomp choose closest player
+    - problem: hard to see player or warning tiles below dragon  
+        - transparent dragon body if player below?
+        - or consider it something which increases difficulty?
+    - sounds
+        - tail attack
+        - wing blast
+        - fire breath
+        - flying? wing flapping sounds
 
-- check: does invulnerability reset on restart?
 - think: change random position to single function instead of duplicate with small differenes?
 - waller enemy
     - unreachable wall closed up
