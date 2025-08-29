@@ -1,22 +1,12 @@
 Tasks:
 - end boss dragon
-    - dev steps:
-        - tail attack
-            - tail animate bending
-                - tail down straight, tail up is bended
-            - player hit damage                
-
     - player takes damage outside of area
         - will use properller ears to fly
-            - but takes damage each seconds
-    - boss platform is limited, no able to go outside of area
-        - should be high a platform, can fall down at the edges
-    
-    - check for multiplayer
-        - body stomp choose closest player
+            - but takes damage each seconds    
     - change order of attacks to be not completly random
          - two fire breath max without wing blast to prevent to much fire
-    - move feet does damage, if boss to easy in the end?
+    - check for multiplayer
+        - body stomp choose closest player
 
 - check: does invulnerability reset on restart?
 - think: change random position to single function instead of duplicate with small differenes?

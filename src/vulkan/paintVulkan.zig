@@ -95,8 +95,8 @@ pub fn drawFrame(state: *main.GameState) !void {
 }
 
 fn verticesForBackCloud(state: *main.GameState) void {
-    if (state.level != 50) return;
-    for (state.paintData.backClouds) |backCloud| {
+    if (state.mapData.mapType != .top) return;
+    for (state.mapData.paintData.backClouds) |backCloud| {
         verticesForComplexSprite(
             backCloud.position,
             imageZig.IMAGE_CLOUD_1,
@@ -112,12 +112,12 @@ fn verticesForBackCloud(state: *main.GameState) void {
 }
 
 fn verticesForFrontCloud(state: *main.GameState) void {
-    if (state.level != 50) return;
+    if (state.mapData.mapType != .top) return;
     verticesForComplexSprite(
-        state.paintData.frontCloud.position,
+        state.mapData.paintData.frontCloud.position,
         imageZig.IMAGE_CLOUD_1,
-        state.paintData.frontCloud.sizeFactor,
-        state.paintData.frontCloud.sizeFactor,
+        state.mapData.paintData.frontCloud.sizeFactor,
+        state.mapData.paintData.frontCloud.sizeFactor,
         0.3,
         0,
         false,
@@ -415,6 +415,7 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
     };
     try initVulkanZig.vkcheck(vk.vkBeginCommandBuffer.?(commandBuffer, &beginInfo), "Failed to Begin Command Buffer.");
 
+    const backgroundColor = state.mapData.paintData.backgroundColor;
     const renderPassInfo = vk.VkRenderPassBeginInfo{
         .sType = vk.VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
         .renderPass = vkState.renderPass,
@@ -425,7 +426,7 @@ fn recordCommandBuffer(commandBuffer: vk.VkCommandBuffer, imageIndex: u32, state
         },
         .clearValueCount = 2,
         .pClearValues = &[_]vk.VkClearValue{
-            .{ .color = vk.VkClearColorValue{ .float32 = [_]f32{ state.paintData.backgroundColor[0], state.paintData.backgroundColor[1], state.paintData.backgroundColor[2], 1.0 } } },
+            .{ .color = vk.VkClearColorValue{ .float32 = [_]f32{ backgroundColor[0], backgroundColor[1], backgroundColor[2], 1.0 } } },
             .{ .depthStencil = vk.VkClearDepthStencilValue{ .depth = 1.0, .stencil = 0.0 } },
         },
     };

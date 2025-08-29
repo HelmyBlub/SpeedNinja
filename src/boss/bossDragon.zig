@@ -174,14 +174,8 @@ fn startBoss(state: *main.GameState) !void {
     boss.typeData.dragon.paint.wingsFlapStarted = state.gameTime;
     boss.typeData.dragon.paint.stopWings = false;
     try mapTileZig.setMapRadius(6, state);
-    state.paintData.backgroundColor = main.COLOR_SKY_BLUE;
-    for (state.paintData.backClouds[0..]) |*backCloud| {
-        backCloud.position.x = -500 + std.crypto.random.float(f32) * 1000;
-        backCloud.position.y = -150 + std.crypto.random.float(f32) * 150;
-        backCloud.sizeFactor = 5;
-        backCloud.speed = 0.02;
-    }
     main.adjustZoom(state);
+    mapTileZig.setMapType(.top, state);
     try state.bosses.append(boss);
 }
 
@@ -477,13 +471,13 @@ fn tickTransitionFlyingPhase(flyingData: *TransitionFlyingData, boss: *bossZig.B
                 flyingData.keepCameraUntilTime = state.gameTime + FLYING_TRANSITION_CAMERA_WAIT_TIME;
                 state.camera.position.y = FLYING_TRANSITION_CAMERA_OFFSET_Y;
                 data.inAirHeight -= FLYING_TRANSITION_CAMERA_OFFSET_Y;
-                for (state.paintData.backClouds[0..]) |*cloud| {
+                for (state.mapData.paintData.backClouds[0..]) |*cloud| {
                     cloud.position.y += FLYING_TRANSITION_CAMERA_OFFSET_Y;
                 }
                 for (state.players.items) |*player| {
                     player.inAirHeight -= FLYING_TRANSITION_CAMERA_OFFSET_Y;
                 }
-                state.paintData.frontCloud.position.y += FLYING_TRANSITION_CAMERA_OFFSET_Y;
+                state.mapData.paintData.frontCloud.position.y += FLYING_TRANSITION_CAMERA_OFFSET_Y;
             } else if (flyingData.keepCameraUntilTime.? <= state.gameTime) {
                 flyingData.moveCameraToDefaultTime = state.gameTime + FLYING_TRANSITION_CAMERA_MOVE_DURATION;
             }

@@ -9,12 +9,47 @@ pub const MapTileType = enum {
     wall,
 };
 
+pub const MapType = enum {
+    top,
+    default,
+};
+
 pub const MapData = struct {
+    paintData: PaintData = .{},
     tiles: []MapTileType,
     tileRadius: u32,
+    mapType: MapType = .default,
+};
+
+pub const Cloud = struct {
+    sizeFactor: f32 = 0,
+    speed: f32 = 0,
+    position: main.Position = .{ .x = 2000, .y = 0 },
+};
+
+pub const PaintData = struct {
+    backgroundColor: [3]f32 = main.COLOR_TILE_GREEN,
+    backClouds: [3]Cloud = .{ .{}, .{}, .{} },
+    frontCloud: Cloud = .{},
 };
 
 pub const BASE_MAP_TILE_RADIUS = 3;
+
+pub fn setMapType(mapType: MapType, state: *main.GameState) void {
+    state.mapData.mapType = mapType;
+    switch (mapType) {
+        .default => state.mapData.paintData.backgroundColor = main.COLOR_TILE_GREEN,
+        .top => {
+            state.mapData.paintData.backgroundColor = main.COLOR_SKY_BLUE;
+            for (state.mapData.paintData.backClouds[0..]) |*backCloud| {
+                backCloud.position.x = -500 + std.crypto.random.float(f32) * 1000;
+                backCloud.position.y = -150 + std.crypto.random.float(f32) * 150;
+                backCloud.sizeFactor = 5;
+                backCloud.speed = 0.02;
+            }
+        },
+    }
+}
 
 pub fn createMapData(allocator: std.mem.Allocator) !MapData {
     const tileLength = (BASE_MAP_TILE_RADIUS * 2 + 1);
@@ -109,7 +144,7 @@ pub fn setupVertices(state: *main.GameState) void {
             },
         }
     }
-    if (state.level == 50) {
+    if (state.mapData.mapType == .top) {
         stoneWallVertices(state);
     }
 }
