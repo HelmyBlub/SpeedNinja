@@ -68,6 +68,8 @@ pub const Player = struct {
     shop: shopZig.ShopPlayerData = .{},
     inAirHeight: f32 = 0,
     fallVelocity: f32 = 0,
+    startedFallingState: ?i64 = null,
+    fallingStateDamageDelay: i32 = 1500,
 };
 
 pub const AfterImage = struct {
@@ -187,20 +189,7 @@ fn mainLoop(state: *GameState) !void {
             try restart(state);
         }
         try windowSdlZig.handleEvents(state);
-        for (state.players.items) |*player| {
-            if (player.inAirHeight > 0) {
-                const fPassedTime = @as(f32, @floatFromInt(passedTime));
-                player.fallVelocity = @min(5, player.fallVelocity + fPassedTime * 0.001);
-                player.inAirHeight -= player.fallVelocity * fPassedTime;
-                if (player.inAirHeight < 0) {
-                    player.fallVelocity = 0;
-                    player.inAirHeight = 0;
-                }
-            } else {
-                try movePieceZig.tickPlayerMovePiece(player, state);
-            }
-            try ninjaDogVulkanZig.tickNinjaDogAnimation(player, passedTime, state);
-        }
+        try tickPlayers(state, passedTime);
         tickClouds(state, passedTime);
         try enemyZig.tickEnemies(passedTime, state);
         try bossZig.tickBosses(state, passedTime);
@@ -214,6 +203,32 @@ fn mainLoop(state: *GameState) !void {
         }
         if (!state.timerStarted) passedTime = 0;
         state.gameTime += passedTime;
+    }
+}
+
+fn tickPlayers(state: *GameState, passedTime: i64) !void {
+    for (state.players.items) |*player| {
+        if (player.inAirHeight > 0) {
+            const fPassedTime = @as(f32, @floatFromInt(passedTime));
+            player.fallVelocity = @min(5, player.fallVelocity + fPassedTime * 0.001);
+            player.inAirHeight -= player.fallVelocity * fPassedTime;
+            if (player.inAirHeight < 0) {
+                player.fallVelocity = 0;
+                player.inAirHeight = 0;
+            }
+        } else {
+            try movePieceZig.tickPlayerMovePiece(player, state);
+        }
+        if (player.startedFallingState) |time| {
+            if (state.mapData.mapType == .top) {
+                if (time + player.fallingStateDamageDelay <= state.gameTime) {
+                    try playerHit(player, state);
+                }
+            } else {
+                player.startedFallingState = null;
+            }
+        }
+        try ninjaDogVulkanZig.tickNinjaDogAnimation(player, passedTime, state);
     }
 }
 

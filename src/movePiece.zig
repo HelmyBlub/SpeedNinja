@@ -128,6 +128,16 @@ pub fn tickPlayerMovePiece(player: *main.Player, state: *main.GameState) !void {
             player.executeMovePiece = .{ .steps = executeMovePiece.steps[1..] };
         } else {
             player.executeMovePiece = null;
+            if (state.mapData.mapType == .top) {
+                const playerTile = main.gamePositionToTilePosition(player.position);
+                if (@abs(playerTile.x) > state.mapData.tileRadius or @abs(playerTile.y) > state.mapData.tileRadius) {
+                    if (player.startedFallingState == null) player.startedFallingState = state.gameTime;
+                    player.animateData.ears.leftVelocity = 5;
+                    player.animateData.ears.rightVelocity = 5;
+                } else {
+                    player.startedFallingState = null;
+                }
+            }
         }
         if (player.executeMovePiece == null) {
             ninjaDogVulkanZig.moveHandToCenter(player, state);
