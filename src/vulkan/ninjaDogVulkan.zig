@@ -354,7 +354,7 @@ fn drawDogTail(position: main.Position, paintData: NinjaDogPaintData, state: *ma
         .x = position.x + (imageZig.IMAGE_DOG__TAIL.x - @as(f32, @floatFromInt(imageDataDog.width)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
         .y = position.y + (imageZig.IMAGE_DOG__TAIL.y - @as(f32, @floatFromInt(imageDataDog.height)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
     };
-    addTiranglesForSpriteWithBend(
+    paintVulkanZig.addTiranglesForSpriteWithBend(
         dogTailSpritePosition,
         imageZig.IMAGE_DOG_TAIL__ANKER,
         imageZig.IMAGE_DOG_TAIL,
@@ -362,6 +362,7 @@ fn drawDogTail(position: main.Position, paintData: NinjaDogPaintData, state: *ma
         null,
         null,
         paintData.tailBend,
+        true,
         state,
     );
 }
@@ -646,59 +647,6 @@ fn addTiranglesForSpriteWithWaveAnimation(gamePosition: main.Position, imageAnke
                 .y = cornerPosOffset.y + @sin(cornerPosOffset.x + waveOffset) * 2 * texPos[0],
             };
             const rotatedOffset = main.rotateAroundPoint(waveOffsetPos, rotatePivot, rotateAngle);
-            const vulkan: main.Position = .{
-                .x = (rotatedOffset.x - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
-                .y = (rotatedOffset.y - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
-            };
-            verticeData.spritesComplex.vertices[verticeData.spritesComplex.verticeCount] = dataVulkanZig.SpriteComplexVertex{
-                .pos = .{ vulkan.x, vulkan.y },
-                .imageIndex = imageIndex,
-                .alpha = 1,
-                .tex = texPos,
-            };
-            verticeData.spritesComplex.verticeCount += 1;
-        }
-    }
-}
-
-fn addTiranglesForSpriteWithBend(gamePosition: main.Position, imageAnkerPosition: main.Position, imageIndex: u8, rotateAngle: f32, rotatePoint: ?main.Position, optScale: ?main.Position, bend: f32, state: *main.GameState) void {
-    const scale: main.Position = if (optScale) |s| s else .{ .x = 1, .y = 1 };
-    const verticeData = &state.vkState.verticeData;
-    if (verticeData.spritesComplex.vertices.len <= verticeData.spritesComplex.verticeCount + 24) return;
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-    const imageData = imageZig.IMAGE_DATA[imageIndex];
-    const halfSizeWidth: f32 = @as(f32, @floatFromInt(imageData.width)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scale.x;
-    const halfSizeHeigh: f32 = @as(f32, @floatFromInt(imageData.height)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scale.y;
-    const imageAnkerXHalf = (@as(f32, @floatFromInt(imageData.width)) / 2 - imageAnkerPosition.x) / imageZig.IMAGE_TO_GAME_SIZE * scale.x;
-    const imageAnkerYHalf = (@as(f32, @floatFromInt(imageData.height)) / 2 - imageAnkerPosition.y) / imageZig.IMAGE_TO_GAME_SIZE * scale.y;
-    const quarterStep = halfSizeWidth / 2;
-    const points = [_]main.Position{
-        main.Position{ .x = -halfSizeWidth + imageAnkerXHalf, .y = halfSizeHeigh + imageAnkerYHalf },
-        main.Position{ .x = -halfSizeWidth + imageAnkerXHalf, .y = -halfSizeHeigh + imageAnkerYHalf },
-        main.Position{ .x = -halfSizeWidth + quarterStep + imageAnkerXHalf, .y = halfSizeHeigh + imageAnkerYHalf },
-        main.Position{ .x = -halfSizeWidth + quarterStep + imageAnkerXHalf, .y = -halfSizeHeigh + imageAnkerYHalf },
-        main.Position{ .x = imageAnkerXHalf, .y = halfSizeHeigh + imageAnkerYHalf },
-        main.Position{ .x = imageAnkerXHalf, .y = -halfSizeHeigh + imageAnkerYHalf },
-        main.Position{ .x = halfSizeWidth - quarterStep + imageAnkerXHalf, .y = halfSizeHeigh + imageAnkerYHalf },
-        main.Position{ .x = halfSizeWidth - quarterStep + imageAnkerXHalf, .y = -halfSizeHeigh + imageAnkerYHalf },
-        main.Position{ .x = halfSizeWidth + imageAnkerXHalf, .y = halfSizeHeigh + imageAnkerYHalf },
-        main.Position{ .x = halfSizeWidth + imageAnkerXHalf, .y = -halfSizeHeigh + imageAnkerYHalf },
-    };
-    for (0..points.len - 2) |i| {
-        const pointsIndexes = [_]usize{ i, i + 1 + @mod(i, 2), i + 2 - @mod(i, 2) };
-        for (pointsIndexes) |verticeIndex| {
-            const cornerPosOffset = points[verticeIndex];
-            const texPos: [2]f32 = .{
-                ((cornerPosOffset.x - imageAnkerXHalf) / halfSizeWidth + 1) / 2,
-                ((cornerPosOffset.y - imageAnkerYHalf) / halfSizeHeigh + 1) / 2,
-            };
-            const rotatePivot: main.Position = if (rotatePoint) |p| .{
-                .x = (p.x - @as(f32, @floatFromInt(imageData.width)) / 2) / imageZig.IMAGE_TO_GAME_SIZE * scale.x + imageAnkerXHalf,
-                .y = (p.y - @as(f32, @floatFromInt(imageData.height)) / 2) / imageZig.IMAGE_TO_GAME_SIZE * scale.y + imageAnkerYHalf,
-            } else .{ .x = 0, .y = 0 };
-            const bendAngle: f32 = rotateAngle + bend * texPos[0];
-            const rotatedOffset = main.rotateAroundPoint(cornerPosOffset, rotatePivot, bendAngle);
             const vulkan: main.Position = .{
                 .x = (rotatedOffset.x - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
                 .y = (rotatedOffset.y - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,

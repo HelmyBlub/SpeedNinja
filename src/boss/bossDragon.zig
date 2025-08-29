@@ -91,6 +91,7 @@ pub const BossDragonData = struct {
     direction: f32 = 0,
     movingFeetPair1: bool = false,
     openMouth: bool = false,
+    moveSpeed: f32 = DEFAULT_MOVE_SPEED,
     feetOffset: [4]main.Position = [4]main.Position{
         .{ .x = 0, .y = 0 },
         .{ .x = 0, .y = 0 },
@@ -123,6 +124,7 @@ const FLYING_TRANSITION_CAMERA_WAIT_TIME = 2000;
 const FLYING_TRANSITION_CAMERA_MOVE_DURATION = 2000;
 const FLYING_TRANSITION_CAMERA_OFFSET_Y = -300;
 const DEFAULT_FLYING_SPEED = 0.3;
+const DEFAULT_MOVE_SPEED = 0.02;
 const DEFAULT_FEET_OFFSET = [4]main.Position{
     .{ .x = -1 * main.TILESIZE, .y = -1 * main.TILESIZE },
     .{ .x = 1 * main.TILESIZE, .y = -1 * main.TILESIZE },
@@ -284,10 +286,12 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
 
 fn tickTailAttackAction(tailAttackData: *TailAttackhData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
     const data = &boss.typeData.dragon;
+    const tailRange = 100;
     standUpOrDownTick(boss, false, passedTime);
     if (tailAttackData.tailAttackHitTime == null) {
         var closestPlayer: ?*main.Player = null;
         var closestDistance: f32 = 0;
+        data.moveSpeed = DEFAULT_MOVE_SPEED * 2;
         for (state.players.items) |*player| {
             const tempDistance = main.calculateDistance(player.position, boss.position);
             if (closestPlayer == null or tempDistance < closestDistance) {
@@ -298,8 +302,14 @@ fn tickTailAttackAction(tailAttackData: *TailAttackhData, boss: *bossZig.Boss, p
         if (closestPlayer) |player| {
             const direction = main.calculateDirection(player.position, boss.position);
             setDirection(boss, direction);
-            tailAttackData.tailAttackHitTime = state.gameTime + tailAttackData.tailAttackDelay;
-            try determineTailAttackTiles(boss);
+            if (closestDistance < tailRange) {
+                tailAttackData.tailAttackHitTime = state.gameTime + tailAttackData.tailAttackDelay;
+                try determineTailAttackTiles(boss);
+                data.moveSpeed = DEFAULT_MOVE_SPEED;
+            } else {
+                const moveDistance: f32 = data.moveSpeed * @as(f32, @floatFromInt(passedTime));
+                boss.position = main.moveByDirectionAndDistance(boss.position, direction + std.math.pi, moveDistance);
+            }
         }
     } else {
         const timePerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(tailAttackData.tailAttackHitTime.? - state.gameTime)) / @as(f32, @floatFromInt(tailAttackData.tailAttackDelay))));
@@ -311,6 +321,15 @@ fn tickTailAttackAction(tailAttackData: *TailAttackhData, boss: *bossZig.Boss, p
             data.paint.tailUpPerCent = @min(1, data.paint.tailUpPerCent + tailMoveSpeed);
         }
         if (tailAttackData.tailAttackHitTime.? <= state.gameTime) {
+            for (state.players.items) |*player| {
+                const playerTile = main.gamePositionToTilePosition(player.position);
+                for (data.attackTiles.items) |tile| {
+                    if (playerTile.x == tile.x and playerTile.y == tile.y) {
+                        try main.playerHit(player, state);
+                        break;
+                    }
+                }
+            }
             data.paint.tailUpPerCent = 0;
             chooseNextAttack(boss);
         }
@@ -567,7 +586,7 @@ fn adjustFeetToTiles(boss: *bossZig.Boss, passedTime: i64) void {
         if (moveFeet) {
             const shouldBeOffset = getFootShouldBeOffset(index, boss);
             const direction = main.calculateDirection(data.feetOffset[index], shouldBeOffset);
-            const moveDistance: f32 = @as(f32, @floatFromInt(passedTime)) * 0.04;
+            const moveDistance: f32 = @as(f32, @floatFromInt(passedTime)) * data.moveSpeed * 2;
             data.feetOffset[index] = main.moveByDirectionAndDistance(data.feetOffset[index], direction, moveDistance);
             const distance = main.calculateDistance(shouldBeOffset, data.feetOffset[index]);
             if (distance < 2) {
@@ -632,7 +651,7 @@ fn tickBodyStomp(stompData: *BodyStompData, boss: *bossZig.Boss, passedTime: i64
         setDirection(boss, direction);
         const distance = main.calculateDistance(boss.position, targetPlayer.position);
         if (distance > 40) {
-            const moveDistance: f32 = 0.02 * @as(f32, @floatFromInt(passedTime));
+            const moveDistance: f32 = data.moveSpeed * @as(f32, @floatFromInt(passedTime));
             boss.position = main.moveByDirectionAndDistance(boss.position, data.direction, moveDistance);
         } else {
             stompData.stompTime = state.gameTime + BODY_STOMP_DELAY;
@@ -904,8 +923,17 @@ fn paintDragonTail(boss: *bossZig.Boss, state: *main.GameState) void {
         .x = boss.position.x + rotatedOffset.x,
         .y = boss.position.y + rotatedOffset.y - data.inAirHeight,
     };
-    const tailRotation = data.paint.rotation + data.paint.tailUpPerCent;
-    paintVulkanZig.verticesForComplexSpriteWithRotate(tailPosition, imageZig.IMAGE_BOSS_DRAGON_TAIL, tailRotation, state);
+    paintVulkanZig.addTiranglesForSpriteWithBend(
+        tailPosition,
+        imageZig.getImageCenter(imageZig.IMAGE_BOSS_DRAGON_TAIL),
+        imageZig.IMAGE_BOSS_DRAGON_TAIL,
+        data.paint.rotation,
+        null,
+        .{ .x = imageZig.IMAGE_DATA[imageZig.IMAGE_BOSS_DRAGON_TAIL].scale, .y = imageZig.IMAGE_DATA[imageZig.IMAGE_BOSS_DRAGON_TAIL].scale },
+        data.paint.tailUpPerCent * 1.75,
+        false,
+        state,
+    );
 }
 
 fn paintDragonWings(boss: *bossZig.Boss, state: *main.GameState) void {

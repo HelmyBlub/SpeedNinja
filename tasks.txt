@@ -1,13 +1,10 @@
 Tasks:
 - end boss dragon
     - dev steps:
-        - phase 3:
-            - tail attack
-                - body to ground
-                - tail in the air
-                - move close enough to player
-                - turn back towards player
-                - tail to the ground stomp
+        - tail attack
+            - tail animate bending
+                - tail down straight, tail up is bended
+            - player hit damage                
 
     - player takes damage outside of area
         - will use properller ears to fly

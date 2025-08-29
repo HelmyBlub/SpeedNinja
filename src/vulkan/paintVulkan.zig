@@ -239,6 +239,7 @@ fn pointsToVertices(
     if (vkSpriteComplex.verticeCount + (points.len - 2) * 3 >= vkSpriteComplex.vertices.len) return;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const pivot: main.Position = .{ .x = 0, .y = 0 };
     for (0..points.len - 2) |i| {
         const pointsIndexes = [_]usize{ i, i + 1 + @mod(i, 2), i + 2 - @mod(i, 2) };
         for (pointsIndexes) |verticeIndex| {
@@ -248,7 +249,7 @@ fn pointsToVertices(
                 .y = cornerPosOffset.y * scalingY,
             };
             var rotatedOffset = scaledCornerPosOffset;
-            if (rotation != 0) rotatedOffset = main.rotateAroundPoint(scaledCornerPosOffset, .{ .x = 0, .y = 0 }, rotation);
+            if (rotation != 0) rotatedOffset = main.rotateAroundPoint(scaledCornerPosOffset, pivot, rotation);
             const vulkan: main.Position = .{
                 .x = (rotatedOffset.x - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
                 .y = (rotatedOffset.y - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
@@ -266,6 +267,71 @@ fn pointsToVertices(
                 .tex = texPos,
             };
             vkSpriteComplex.verticeCount += 1;
+        }
+    }
+}
+
+pub fn addTiranglesForSpriteWithBend(gamePosition: main.Position, imageAnkerPosition: main.Position, imageIndex: u8, rotateAngle: f32, rotatePoint: ?main.Position, optScale: ?main.Position, bend: f32, horizontal: bool, state: *main.GameState) void {
+    const scale: main.Position = if (optScale) |s| s else .{ .x = 1, .y = 1 };
+    const verticeData = &state.vkState.verticeData;
+    if (verticeData.spritesComplex.vertices.len <= verticeData.spritesComplex.verticeCount + 24) return;
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const imageData = imageZig.IMAGE_DATA[imageIndex];
+    const halfSizeWidth: f32 = @as(f32, @floatFromInt(imageData.width)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scale.x;
+    const halfSizeHeight: f32 = @as(f32, @floatFromInt(imageData.height)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scale.y;
+    const imageAnkerXHalf = (@as(f32, @floatFromInt(imageData.width)) / 2 - imageAnkerPosition.x) / imageZig.IMAGE_TO_GAME_SIZE * scale.x;
+    const imageAnkerYHalf = (@as(f32, @floatFromInt(imageData.height)) / 2 - imageAnkerPosition.y) / imageZig.IMAGE_TO_GAME_SIZE * scale.y;
+    const quarterStep = halfSizeWidth / 2;
+    const quarterStepHeight = halfSizeHeight / 2;
+    const points = if (horizontal) [_]main.Position{
+        main.Position{ .x = -halfSizeWidth + imageAnkerXHalf, .y = halfSizeHeight + imageAnkerYHalf },
+        main.Position{ .x = -halfSizeWidth + imageAnkerXHalf, .y = -halfSizeHeight + imageAnkerYHalf },
+        main.Position{ .x = -halfSizeWidth + quarterStep + imageAnkerXHalf, .y = halfSizeHeight + imageAnkerYHalf },
+        main.Position{ .x = -halfSizeWidth + quarterStep + imageAnkerXHalf, .y = -halfSizeHeight + imageAnkerYHalf },
+        main.Position{ .x = imageAnkerXHalf, .y = halfSizeHeight + imageAnkerYHalf },
+        main.Position{ .x = imageAnkerXHalf, .y = -halfSizeHeight + imageAnkerYHalf },
+        main.Position{ .x = halfSizeWidth - quarterStep + imageAnkerXHalf, .y = halfSizeHeight + imageAnkerYHalf },
+        main.Position{ .x = halfSizeWidth - quarterStep + imageAnkerXHalf, .y = -halfSizeHeight + imageAnkerYHalf },
+        main.Position{ .x = halfSizeWidth + imageAnkerXHalf, .y = halfSizeHeight + imageAnkerYHalf },
+        main.Position{ .x = halfSizeWidth + imageAnkerXHalf, .y = -halfSizeHeight + imageAnkerYHalf },
+    } else [_]main.Position{
+        main.Position{ .x = -halfSizeWidth + imageAnkerXHalf, .y = -halfSizeHeight + imageAnkerYHalf },
+        main.Position{ .x = halfSizeWidth + imageAnkerXHalf, .y = -halfSizeHeight + imageAnkerYHalf },
+        main.Position{ .x = -halfSizeWidth + imageAnkerXHalf, .y = -halfSizeHeight + quarterStepHeight + imageAnkerYHalf },
+        main.Position{ .x = halfSizeWidth + imageAnkerXHalf, .y = -halfSizeHeight + quarterStepHeight + imageAnkerYHalf },
+        main.Position{ .x = -halfSizeWidth + imageAnkerXHalf, .y = imageAnkerYHalf },
+        main.Position{ .x = halfSizeWidth + imageAnkerXHalf, .y = imageAnkerYHalf },
+        main.Position{ .x = -halfSizeWidth + imageAnkerXHalf, .y = halfSizeHeight - quarterStepHeight + imageAnkerYHalf },
+        main.Position{ .x = halfSizeWidth + imageAnkerXHalf, .y = halfSizeHeight - quarterStepHeight + imageAnkerYHalf },
+        main.Position{ .x = -halfSizeWidth + imageAnkerXHalf, .y = halfSizeHeight + imageAnkerYHalf },
+        main.Position{ .x = halfSizeWidth + imageAnkerXHalf, .y = halfSizeHeight + imageAnkerYHalf },
+    };
+    const rotatePivot: main.Position = if (rotatePoint) |p| .{
+        .x = (p.x - @as(f32, @floatFromInt(imageData.width)) / 2) / imageZig.IMAGE_TO_GAME_SIZE * scale.x + imageAnkerXHalf,
+        .y = (p.y - @as(f32, @floatFromInt(imageData.height)) / 2) / imageZig.IMAGE_TO_GAME_SIZE * scale.y + imageAnkerYHalf,
+    } else .{ .x = 0, .y = 0 };
+    for (0..points.len - 2) |i| {
+        const pointsIndexes = [_]usize{ i, i + 1 + @mod(i, 2), i + 2 - @mod(i, 2) };
+        for (pointsIndexes) |verticeIndex| {
+            const cornerPosOffset = points[verticeIndex];
+            const texPos: [2]f32 = .{
+                ((cornerPosOffset.x - imageAnkerXHalf) / halfSizeWidth + 1) / 2,
+                ((cornerPosOffset.y - imageAnkerYHalf) / halfSizeHeight + 1) / 2,
+            };
+            const bendAngle: f32 = if (horizontal) rotateAngle + bend * texPos[0] else rotateAngle + bend * (1 - texPos[1]);
+            const rotatedOffset = main.rotateAroundPoint(cornerPosOffset, rotatePivot, bendAngle);
+            const vulkan: main.Position = .{
+                .x = (rotatedOffset.x - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
+                .y = (rotatedOffset.y - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
+            };
+            verticeData.spritesComplex.vertices[verticeData.spritesComplex.verticeCount] = dataVulkanZig.SpriteComplexVertex{
+                .pos = .{ vulkan.x, vulkan.y },
+                .imageIndex = imageIndex,
+                .alpha = 1,
+                .tex = texPos,
+            };
+            verticeData.spritesComplex.verticeCount += 1;
         }
     }
 }
