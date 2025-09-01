@@ -410,6 +410,19 @@ pub fn adjustZoom(state: *GameState) void {
     state.camera.zoom = targetMapScreenPerCent / biggerPerCent;
 }
 
+pub fn getClosestPlayer(position: Position, state: *GameState) struct { player: ?*Player, distance: f32 } {
+    var closestPlayer: ?*Player = null;
+    var closestDistance: f32 = 0;
+    for (state.players.items) |*player| {
+        const tempDistance = calculateDistance(player.position, position);
+        if (closestPlayer == null or tempDistance < closestDistance) {
+            closestPlayer = player;
+            closestDistance = tempDistance;
+        }
+    }
+    return .{ .player = closestPlayer, .distance = closestDistance };
+}
+
 fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
     state.* = .{
         .players = std.ArrayList(Player).init(allocator),

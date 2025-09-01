@@ -1,6 +1,5 @@
 Tasks:
 - end boss dragon
-    - tail attack delay, let boss go to feet first
     - check for multiplayer
         - body stomp choose closest player
     - problem: hard to see player or warning tiles below dragon  

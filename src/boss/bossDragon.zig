@@ -72,7 +72,6 @@ const LandingStompData = struct {
 const BodyStompData = struct {
     stompTime: ?i64 = null,
     standUpMaxPerCent: f32 = 0,
-    targetPlayerIndex: ?usize = null,
 };
 
 const TransitionFlyingData = struct {
@@ -285,20 +284,12 @@ fn tickTailAttackAction(tailAttackData: *TailAttackhData, boss: *bossZig.Boss, p
     standUpOrDownTick(boss, false, passedTime);
     if (tailAttackData.tailAttackHitTime == null) {
         if (data.paint.standingPerCent < 0.1) {
-            var closestPlayer: ?*main.Player = null;
-            var closestDistance: f32 = 0;
+            const closest = main.getClosestPlayer(boss.position, state);
             data.moveSpeed = DEFAULT_MOVE_SPEED * 2;
-            for (state.players.items) |*player| {
-                const tempDistance = main.calculateDistance(player.position, boss.position);
-                if (closestPlayer == null or tempDistance < closestDistance) {
-                    closestPlayer = player;
-                    closestDistance = tempDistance;
-                }
-            }
-            if (closestPlayer) |player| {
+            if (closest.player) |player| {
                 const direction = main.calculateDirection(player.position, boss.position);
                 setDirection(boss, direction);
-                if (closestDistance < tailRange) {
+                if (closest.distance < tailRange) {
                     tailAttackData.tailAttackHitTime = state.gameTime + tailAttackData.tailAttackDelay;
                     try determineTailAttackTiles(boss);
                     data.moveSpeed = DEFAULT_MOVE_SPEED;
@@ -650,18 +641,17 @@ fn tickBodyStomp(stompData: *BodyStompData, boss: *bossZig.Boss, passedTime: i64
     const data = &boss.typeData.dragon;
     if (stompData.stompTime == null and data.paint.standingPerCent < 1) {
         standUpOrDownTick(boss, true, passedTime);
-    } else if (stompData.targetPlayerIndex == null) {
-        stompData.targetPlayerIndex = std.crypto.random.intRangeLessThan(usize, 0, state.players.items.len);
     } else if (stompData.stompTime == null) {
-        const targetPlayer = state.players.items[stompData.targetPlayerIndex.?];
-        const direction = main.calculateDirection(boss.position, targetPlayer.position);
-        setDirection(boss, direction);
-        const distance = main.calculateDistance(boss.position, targetPlayer.position);
-        if (distance > 40) {
-            const moveDistance: f32 = data.moveSpeed * @as(f32, @floatFromInt(passedTime));
-            boss.position = main.moveByDirectionAndDistance(boss.position, data.direction, moveDistance);
-        } else {
-            stompData.stompTime = state.gameTime + BODY_STOMP_DELAY;
+        if (main.getClosestPlayer(boss.position, state).player) |targetPlayer| {
+            const direction = main.calculateDirection(boss.position, targetPlayer.position);
+            setDirection(boss, direction);
+            const distance = main.calculateDistance(boss.position, targetPlayer.position);
+            if (distance > 40) {
+                const moveDistance: f32 = data.moveSpeed * @as(f32, @floatFromInt(passedTime));
+                boss.position = main.moveByDirectionAndDistance(boss.position, data.direction, moveDistance);
+            } else {
+                stompData.stompTime = state.gameTime + BODY_STOMP_DELAY;
+            }
         }
     } else {
         const stompTime = stompData.stompTime.?;
