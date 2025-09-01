@@ -454,11 +454,14 @@ fn chooseNextAttack(boss: *bossZig.Boss) void {
     var allowedAttacks: [4]?DragonActionData = .{ .{ .bodyStomp = .{} }, null, null, null };
     var allowedAttacksCount: usize = 1;
     if (data.phase == .phase2) {
-        allowedAttacks[allowedAttacksCount] = .{ .wingBlast = .{} };
-        allowedAttacksCount += 1;
-        if (data.fireAbilitiesSinceLastWingBlast < 1) {
-            allowedAttacks[allowedAttacksCount] = .{ .fireBreath = .{} };
+        const hpPerCent: f32 = @as(f32, @floatFromInt(boss.hp)) / @as(f32, @floatFromInt(boss.maxHp));
+        if (hpPerCent > PHASE_3_TRANSITION_PER_CENT) {
+            allowedAttacks[allowedAttacksCount] = .{ .wingBlast = .{} };
             allowedAttacksCount += 1;
+            if (data.fireAbilitiesSinceLastWingBlast < 1) {
+                allowedAttacks[allowedAttacksCount] = .{ .fireBreath = .{} };
+                allowedAttacksCount += 1;
+            }
         }
     }
     if (data.phase == .phase3) {

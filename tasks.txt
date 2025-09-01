@@ -1,5 +1,17 @@
 Tasks:
-- end boss dragon
+- equipment
+    - images:
+        -feet
+        -head
+    - +hp equipment first
+        - head
+        - feet
+    - on damage hit break equipment with hp
+        - parts of equipment tell player hp
+
+- boss hp scalling
+- check: prevent player from buying downgrades?
+- when bought new equipment, place old equipment at position to be able to switch back
 
 - think: change random position to single function instead of duplicate with small differenes?
 - waller enemy
@@ -16,44 +28,56 @@ Play Times:    best split | best total | estimtaed enemy difficulty | estimated 
     lvl  5 best in 2:18                    1/10 (attack)               1/10 (stomp)
     lvl 10 best in 2:55 total  5:18        2/10 (at + move)            3/10 (rotate)
     lvl 15 best in 3:35 total  9:28        3/10 (move + withPlayer)    3/10 (roll)
-    lvl 20 best in 4:56 total 14:24        5/10 (wP + shuriken)        4/10 (split)
+    lvl 20 best in 4:39 total 14:24        5/10 (wP + shuriken)        4/10 (split)
     lvl 25 best in 5:28 total 19:54        7/10 (s + fire)             5/10 (snake) (piece dependent)
-    lvl 30 best in 6:08 total 26:03        5/10 (fire + block)         2/10 (tripple)
+    lvl 30 best in 5:36 total 26:03        5/10 (fire + block)         2/10 (tripple)
     lvl 35 best in 5:19 total 32:16        6/10 (block + ice)          3/10 (snowball)
     lvl 40 best in 6:52 total 39:35        7/10 (ice + wall )          7/10 (waller)
     lvl 45 best in 6:00 total 45:44        4/10 (wall + movePiece)     3/10 (fireRoll)
-    lvl 50 best in *7:26 total *54:59      4/10 (movePiece + bomb)       ? (dragon)
-            *boss phase 1 work in progress
+    lvl 50 best in 7:30 total 54:00        4/10 (movePiece + bomb)     9/10 (dragon)
+
 Next ideas:
-- 1 new enemies all 5 levels
-- 1 boss all 5 levels
-- until level 50
-- after level 50 start new game+, repeat bosses but stuff gets harder, faster
-- something which makes player stronger over time, but better player get stronger faster
+- buy equippment which is visualized on character
+    - feet/boots: 
+        - some military boots
+            - +hp
+        - roller blades
+            - short fire immunity after move
+            - can not move backwards (opposide to last direction)
+        - time shoes
+            - increase round time limit for required rounds
+        - barefoot
+            - +damage
+    - head:
+        - some military helmet
+            - +hp
+        - image: bandana over eyes
+            - x2 damage
+            - blind => don't display selected move piece
+        - image: eyepatch
+            - +damage
+            - can not choose move piece, but order of next 2 are displayed instead
+    - weapon    
+        - blade
+            - a bit bonus damage
+        - big hammer
+            - aoe at move piece end
+        - kunai
+            - throw kunai each move piece edge for 2 pieces far
+        - gold weapon  
+            - increase money gained
+            - less damage
+    - body/chest
+        - always one option for +hp?
+           +1 hp
+           +2 hp
+        - +damage
 
-    - boss abilities shown by enemies before for easier learning
-    - buy equippment which is visualized on character
-        - only certan slots: feet slot, weapong slot, head slot, chest slot
-        - weapon: for damage
-    - difficulty rises
-        - enemies gain new abilities 
-        - new enemy types
-        - boss rounds
-    - player has HP
-
+    
 - retries for money?
     - each retry gets more expensive
+- after level 50 start new game+, repeat bosses but stuff gets harder, faster
 
-- enemy ideas
-    - enemy throws piece aoe
-- player upgrades
-    - piece corner effect
-    - start effect
-    - end effect
-
-    - end tile aoe
-    - throw projectile on tile
-    
 - game modifier
     - can be choosen -> more money per round, but harder or different
     - no choice but more damage
@@ -63,7 +87,3 @@ Next ideas:
         - no time limit, but piece limit
     - only one piece and copies of it
     - chunky enemies: more hp -> no/easier attack pattens
-
-- early end level
-    - when round x reached, make tile to finish so player can progress faster, although less money
-
