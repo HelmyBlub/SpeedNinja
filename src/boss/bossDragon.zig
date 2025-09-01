@@ -108,6 +108,9 @@ pub const BossDragonData = struct {
         rotation: f32 = 0,
         alpha: f32 = 1,
     } = .{},
+    soundData: struct {
+        windSoundPlayer: bool = false,
+    } = .{},
     attackTiles: std.ArrayList(main.TilePosition),
 };
 
@@ -275,6 +278,17 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
         if (data.paint.mouthOpenPerCent > 0) {
             data.paint.mouthOpenPerCent -= @as(f32, @floatFromInt(passedTime)) * 0.001;
             if (data.paint.mouthOpenPerCent < 0) data.paint.mouthOpenPerCent = 0;
+        }
+    }
+    if (data.paint.wingsFlapStarted) |startedTime| {
+        const wingsFlap = @sin(@as(f32, @floatFromInt((state.gameTime - startedTime))) * data.paint.wingFlapSpeedFactor / 200);
+        if (@abs(wingsFlap) < 0.1 and !data.soundData.windSoundPlayer) {
+            const distance = main.calculateDistance(boss.position, .{ .x = 0, .y = 0 });
+            const volume = 1.0 / @max(1.0, (distance - 200) / 50);
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_WIND_INDICIES[0..], 0, volume);
+            data.soundData.windSoundPlayer = true;
+        } else if (wingsFlap < -0.5 and data.soundData.windSoundPlayer) {
+            data.soundData.windSoundPlayer = false;
         }
     }
 }

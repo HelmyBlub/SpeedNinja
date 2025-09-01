@@ -1,11 +1,10 @@
 Tasks:
 - end boss dragon
-    - dragon death
     - sounds
-        - tail attack
         - wing blast
-        - fire breath
         - flying? wing flapping sounds
+        - fire breath
+        - tail attack
 
 - think: change random position to single function instead of duplicate with small differenes?
 - waller enemy

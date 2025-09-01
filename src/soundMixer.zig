@@ -81,6 +81,10 @@ var SOUND_FILE_PATHES = [_][]const u8{
     "sounds/wallPlaced2.mp3",
     "sounds/wallPlaced3.mp3",
     "sounds/wallPlaced4.mp3",
+    "sounds/wind1.mp3",
+    "sounds/wind2.mp3",
+    "sounds/wind3.mp3",
+    "sounds/wind4.mp3",
 };
 
 pub const SOUND_NINJA_MOVE_INDICIES = [_]usize{ 0, 1, 2 };
@@ -97,7 +101,8 @@ pub const SOUND_BOSS_SNAKE_MOVE_INDICIES = [_]usize{ 26, 27, 28, 29 };
 pub const SOUND_ENEMY_BLOCK_INDICIES = [_]usize{ 30, 31, 32, 33 };
 pub const SOUND_EXPLODE_INDICIES = [_]usize{ 34, 35, 36, 37 };
 pub const SOUND_THROW_INDICIES = [_]usize{ 38, 39, 40 };
-pub const SOUND_WALL_PLACED_INDICIES = [_]usize{ 41, 42, 43 };
+pub const SOUND_WALL_PLACED_INDICIES = [_]usize{ 41, 42, 43, 44 };
+pub const SOUND_WIND_INDICIES = [_]usize{ 45, 46, 47, 48 };
 
 pub fn createSoundMixer(state: *main.GameState, allocator: std.mem.Allocator) !void {
     state.soundMixer = .{
