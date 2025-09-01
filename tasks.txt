@@ -1,9 +1,5 @@
 Tasks:
 - end boss dragon
-    - problem: hard to see player or warning tiles below dragon  
-        - transparent dragon body if player below?
-        - or consider it something which increases difficulty?
-        - unclear what the player has to hit
     - dragon death
     - sounds
         - tail attack

@@ -164,7 +164,7 @@ fn startBoss(state: *main.GameState) !void {
     var boss: bossZig.Boss = .{
         .hp = 50,
         .maxHp = 50,
-        .imageIndex = imageZig.IMAGE_EVIL_TOWER,
+        .imageIndex = imageZig.IMAGE_BOSS_DRAGON_TAIL,
         .position = .{ .x = 0, .y = 800 },
         .name = BOSS_NAME,
         .typeData = .{ .dragon = .{
@@ -711,8 +711,6 @@ fn cutTilesForGroundBreakingEffect(state: *main.GameState) !void {
 }
 
 fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
-    _ = state;
-    _ = cutRotation;
     _ = hitDirection;
     _ = player;
     const data = &boss.typeData.dragon;
@@ -727,11 +725,38 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
             }
             if (main.isTilePositionInTileRectangle(footTile, hitArea)) {
                 boss.hp -|= 1;
+                if (boss.hp <= 0) {
+                    try bossDeathCutSprites(boss, cutRotation, state);
+                }
                 return true;
             }
         }
     }
     return false;
+}
+
+fn bossDeathCutSprites(boss: *bossZig.Boss, cutRotation: f32, state: *main.GameState) !void {
+    try state.spriteCutAnimations.append(.{
+        .colorOrImageIndex = .{ .imageIndex = imageZig.IMAGE_BOSS_DRAGON_HEAD_LAYER1 },
+        .cutAngle = cutRotation,
+        .deathTime = state.gameTime,
+        .force = 0.9,
+        .position = boss.position,
+    });
+    try state.spriteCutAnimations.append(.{
+        .colorOrImageIndex = .{ .imageIndex = imageZig.IMAGE_BOSS_DRAGON_HEAD_LAYER2 },
+        .cutAngle = cutRotation,
+        .deathTime = state.gameTime,
+        .force = 0.9,
+        .position = boss.position,
+    });
+    try state.spriteCutAnimations.append(.{
+        .colorOrImageIndex = .{ .imageIndex = imageZig.IMAGE_BOSS_DRAGON_BODY_TOP },
+        .cutAngle = cutRotation,
+        .deathTime = state.gameTime,
+        .force = 1.5,
+        .position = boss.position,
+    });
 }
 
 fn setDirection(boss: *bossZig.Boss, newDirection: f32) void {
