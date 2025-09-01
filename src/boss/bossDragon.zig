@@ -462,10 +462,11 @@ fn chooseNextAttack(boss: *bossZig.Boss) void {
         }
     }
     if (data.phase == .phase3) {
-        allowedAttacks[allowedAttacksCount] = .{ .wingBlast = .{} };
-        allowedAttacksCount += 1;
         if (data.fireAbilitiesSinceLastWingBlast < 2) {
             allowedAttacks[allowedAttacksCount] = .{ .fireBreath = .{} };
+            allowedAttacksCount += 1;
+        } else {
+            allowedAttacks[allowedAttacksCount] = .{ .wingBlast = .{} };
             allowedAttacksCount += 1;
         }
         allowedAttacks[allowedAttacksCount] = .{ .tailAttack = .{} };
