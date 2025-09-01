@@ -252,6 +252,7 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
         boss.position,
         boss.imageIndex,
         rotation,
+        1,
         state,
     );
     const shieldCount = getShieldCount(state);
@@ -264,6 +265,7 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
             .{ .x = boss.position.x + stepDirection.x * main.TILESIZE / 2, .y = boss.position.y + stepDirection.y * main.TILESIZE / 2 },
             imageZig.IMAGE_SHIELD,
             shieldRotation,
+            1,
             state,
         );
     }

@@ -104,5 +104,5 @@ fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
 fn setupVertices(enemy: *enemyZig.Enemy, state: *main.GameState) void {
     const data = enemy.enemyTypeData.block;
     const rotation: f32 = @as(f32, @floatFromInt(data.direction)) * std.math.pi / 2.0;
-    paintVulkanZig.verticesForComplexSpriteWithRotate(enemy.position, enemy.imageIndex, rotation, state);
+    paintVulkanZig.verticesForComplexSpriteWithRotate(enemy.position, enemy.imageIndex, rotation, 1, state);
 }

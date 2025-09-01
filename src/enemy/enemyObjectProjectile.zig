@@ -55,7 +55,7 @@ fn setupVerticesGround(object: *enemyObjectZig.EnemyObject, state: *main.GameSta
 fn setupVertices(object: *enemyObjectZig.EnemyObject, state: *main.GameState) void {
     const projectileData = object.typeData.projectile;
     const rotation: f32 = @mod(@as(f32, @floatFromInt(state.gameTime)) / 150, std.math.pi * 2);
-    paintVulkanZig.verticesForComplexSpriteWithRotate(object.position, projectileData.imageIndex, rotation, state);
+    paintVulkanZig.verticesForComplexSpriteWithRotate(object.position, projectileData.imageIndex, rotation, 1, state);
 }
 
 fn tick(object: *enemyObjectZig.EnemyObject, passedTime: i64, state: *main.GameState) !void {

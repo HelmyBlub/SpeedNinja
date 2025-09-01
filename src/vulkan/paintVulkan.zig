@@ -149,7 +149,7 @@ pub fn verticesForComplexSprite(gamePosition: main.Position, imageIndex: u8, sca
     pointsToVertices(gamePosition, imageIndex, halfSizeWidth, halfSizeHeight, &points, rotation, alpha, mirrorX, mirrorY, scaleX, scaleY, state);
 }
 
-pub fn verticesForComplexSpriteWithRotate(gamePosition: main.Position, imageIndex: u8, rotation: f32, state: *main.GameState) void {
+pub fn verticesForComplexSpriteWithRotate(gamePosition: main.Position, imageIndex: u8, rotation: f32, alpha: f32, state: *main.GameState) void {
     if (state.vkState.verticeData.spritesComplex.verticeCount + 6 >= state.vkState.verticeData.spritesComplex.vertices.len) return;
     const imageData = imageZig.IMAGE_DATA[imageIndex];
     const imageToGameSizeFactor: f32 = imageData.scale / imageZig.IMAGE_TO_GAME_SIZE;
@@ -161,7 +161,7 @@ pub fn verticesForComplexSpriteWithRotate(gamePosition: main.Position, imageInde
         main.Position{ .x = halfSizeWidth, .y = halfSizeHeight },
         main.Position{ .x = halfSizeWidth, .y = -halfSizeHeight },
     };
-    pointsToVertices(gamePosition, imageIndex, halfSizeWidth, halfSizeHeight, &points, rotation, 1, false, false, 1, 1, state);
+    pointsToVertices(gamePosition, imageIndex, halfSizeWidth, halfSizeHeight, &points, rotation, alpha, false, false, 1, 1, state);
 }
 
 pub fn verticesForComplexSpriteWithCut(gamePosition: main.Position, imageIndex: u8, fromCutPerCent: f32, toCutPerCent: f32, alpha: f32, rotation: f32, scaleX: f32, scaleY: f32, state: *main.GameState) void {
@@ -271,7 +271,7 @@ fn pointsToVertices(
     }
 }
 
-pub fn addTiranglesForSpriteWithBend(gamePosition: main.Position, imageAnkerPosition: main.Position, imageIndex: u8, rotateAngle: f32, rotatePoint: ?main.Position, optScale: ?main.Position, bend: f32, horizontal: bool, state: *main.GameState) void {
+pub fn addTiranglesForSpriteWithBend(gamePosition: main.Position, imageAnkerPosition: main.Position, imageIndex: u8, rotateAngle: f32, rotatePoint: ?main.Position, optScale: ?main.Position, bend: f32, horizontal: bool, alpha: f32, state: *main.GameState) void {
     const scale: main.Position = if (optScale) |s| s else .{ .x = 1, .y = 1 };
     const verticeData = &state.vkState.verticeData;
     if (verticeData.spritesComplex.vertices.len <= verticeData.spritesComplex.verticeCount + 24) return;
@@ -328,7 +328,7 @@ pub fn addTiranglesForSpriteWithBend(gamePosition: main.Position, imageAnkerPosi
             verticeData.spritesComplex.vertices[verticeData.spritesComplex.verticeCount] = dataVulkanZig.SpriteComplexVertex{
                 .pos = .{ vulkan.x, vulkan.y },
                 .imageIndex = imageIndex,
-                .alpha = 1,
+                .alpha = alpha,
                 .tex = texPos,
             };
             verticeData.spritesComplex.verticeCount += 1;

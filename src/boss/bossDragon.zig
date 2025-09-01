@@ -106,6 +106,7 @@ pub const BossDragonData = struct {
         wingFlapSpeedFactor: f32 = 1,
         stopWings: bool = false,
         rotation: f32 = 0,
+        alpha: f32 = 1,
     } = .{},
     attackTiles: std.ArrayList(main.TilePosition),
 };
@@ -865,14 +866,14 @@ fn paintDragonHead(boss: *bossZig.Boss, state: *main.GameState) void {
         .x = boss.position.x + rotatedOffset.x,
         .y = boss.position.y + rotatedOffset.y - data.inAirHeight,
     };
-    paintVulkanZig.verticesForComplexSpriteWithRotate(headPosition, imageZig.IMAGE_BOSS_DRAGON_HEAD_LAYER1, data.paint.rotation, state);
+    paintVulkanZig.verticesForComplexSpriteWithRotate(headPosition, imageZig.IMAGE_BOSS_DRAGON_HEAD_LAYER1, data.paint.rotation, data.paint.alpha, state);
     const scaleY = 1 - (data.paint.mouthOpenPerCent * 0.5);
     paintVulkanZig.verticesForComplexSprite(
         headPosition,
         imageZig.IMAGE_BOSS_DRAGON_HEAD_LAYER2,
         1,
         scaleY,
-        1,
+        data.paint.alpha,
         data.paint.rotation,
         false,
         false,
@@ -886,7 +887,7 @@ fn paintDragonBackFeet(boss: *bossZig.Boss, state: *main.GameState) void {
         const footOffset: main.Position = .{ .x = data.feetOffset[index].x + DEFAULT_FEET_OFFSET[index].x, .y = data.feetOffset[index].y + DEFAULT_FEET_OFFSET[index].y };
         const rotatedOffset = main.rotateAroundPoint(footOffset, .{ .x = 0, .y = 0 }, data.paint.rotation);
         const footPos: main.Position = .{ .x = boss.position.x + rotatedOffset.x, .y = boss.position.y + rotatedOffset.y - data.inAirHeight };
-        paintVulkanZig.verticesForComplexSpriteWithRotate(footPos, imageZig.IMAGE_BOSS_DRAGON_FOOT, data.paint.rotation, state);
+        paintVulkanZig.verticesForComplexSpriteWithRotate(footPos, imageZig.IMAGE_BOSS_DRAGON_FOOT, data.paint.rotation, 1, state);
     }
 }
 
@@ -905,7 +906,8 @@ fn paintDragonFrontFeet(boss: *bossZig.Boss, state: *main.GameState) void {
             .x = boss.position.x + feetRotatedOffset.x + bodyRotatedOffset.x,
             .y = boss.position.y + feetRotatedOffset.y + bodyRotatedOffset.y - data.inAirHeight,
         };
-        paintVulkanZig.verticesForComplexSpriteWithRotate(footInAirPos, imageZig.IMAGE_BOSS_DRAGON_FOOT, data.paint.rotation, state);
+        const alpha = if (data.paint.standingPerCent < 0.1) 1 else data.paint.alpha;
+        paintVulkanZig.verticesForComplexSpriteWithRotate(footInAirPos, imageZig.IMAGE_BOSS_DRAGON_FOOT, data.paint.rotation, alpha, state);
     }
 }
 
@@ -929,6 +931,7 @@ fn paintDragonTail(boss: *bossZig.Boss, state: *main.GameState) void {
         .{ .x = imageZig.IMAGE_DATA[imageZig.IMAGE_BOSS_DRAGON_TAIL].scale, .y = imageZig.IMAGE_DATA[imageZig.IMAGE_BOSS_DRAGON_TAIL].scale },
         data.paint.tailUpPerCent * 1.75,
         false,
+        data.paint.alpha,
         state,
     );
 }
@@ -970,11 +973,11 @@ fn paintDragonWings(boss: *bossZig.Boss, state: *main.GameState) void {
     };
 
     if (data.paint.standingPerCent > 0.5) {
-        paintVulkanZig.verticesForComplexSprite(wingLeftPosition, imageZig.IMAGE_BOSS_DRAGON_WING, scaleX, scaleY, 1, data.paint.rotation, true, false, state);
-        paintVulkanZig.verticesForComplexSprite(wingRightPosition, imageZig.IMAGE_BOSS_DRAGON_WING, scaleX, scaleY, 1, data.paint.rotation, false, false, state);
+        paintVulkanZig.verticesForComplexSprite(wingLeftPosition, imageZig.IMAGE_BOSS_DRAGON_WING, scaleX, scaleY, data.paint.alpha, data.paint.rotation, true, false, state);
+        paintVulkanZig.verticesForComplexSprite(wingRightPosition, imageZig.IMAGE_BOSS_DRAGON_WING, scaleX, scaleY, data.paint.alpha, data.paint.rotation, false, false, state);
     } else {
-        paintVulkanZig.verticesForComplexSprite(wingLeftPosition, imageZig.IMAGE_BOSS_DRAGON_WING, scaleX, scaleY, 1, data.paint.rotation, true, true, state);
-        paintVulkanZig.verticesForComplexSprite(wingRightPosition, imageZig.IMAGE_BOSS_DRAGON_WING, scaleX, scaleY, 1, data.paint.rotation, false, true, state);
+        paintVulkanZig.verticesForComplexSprite(wingLeftPosition, imageZig.IMAGE_BOSS_DRAGON_WING, scaleX, scaleY, data.paint.alpha, data.paint.rotation, true, true, state);
+        paintVulkanZig.verticesForComplexSprite(wingRightPosition, imageZig.IMAGE_BOSS_DRAGON_WING, scaleX, scaleY, data.paint.alpha, data.paint.rotation, false, true, state);
     }
 }
 
@@ -995,7 +998,7 @@ fn paintDragonBody(boss: *bossZig.Boss, state: *main.GameState) void {
         imageZig.IMAGE_BOSS_DRAGON_BODY_BOTTOM,
         1 - data.paint.standingPerCent,
         1,
-        1,
+        data.paint.alpha,
         data.paint.rotation,
         1,
         scaleY,
@@ -1006,7 +1009,7 @@ fn paintDragonBody(boss: *bossZig.Boss, state: *main.GameState) void {
         imageZig.IMAGE_BOSS_DRAGON_BODY_TOP,
         0,
         1 - data.paint.standingPerCent,
-        1,
+        data.paint.alpha,
         data.paint.rotation,
         1,
         scaleY,

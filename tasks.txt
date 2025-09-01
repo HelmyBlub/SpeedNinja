@@ -1,10 +1,10 @@
 Tasks:
 - end boss dragon
-    - check for multiplayer
-        - body stomp choose closest player
     - problem: hard to see player or warning tiles below dragon  
         - transparent dragon body if player below?
         - or consider it something which increases difficulty?
+        - unclear what the player has to hit
+    - dragon death
     - sounds
         - tail attack
         - wing blast

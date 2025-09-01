@@ -363,6 +363,7 @@ fn drawDogTail(position: main.Position, paintData: NinjaDogPaintData, state: *ma
         null,
         paintData.tailBend,
         true,
+        1,
         state,
     );
 }

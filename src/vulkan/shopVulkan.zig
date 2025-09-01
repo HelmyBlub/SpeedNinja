@@ -29,7 +29,7 @@ pub fn setupVertices(state: *main.GameState) void {
                 rectangleForTile(shopButtonGamePosition, .{ 0, 0, 1 }, verticeData, false, state);
             }
             if (shopButton.imageRotate != 0) {
-                paintVulkanZig.verticesForComplexSpriteWithRotate(shopButtonGamePosition, shopButton.imageIndex, shopButton.imageRotate, state);
+                paintVulkanZig.verticesForComplexSpriteWithRotate(shopButtonGamePosition, shopButton.imageIndex, shopButton.imageRotate, 1, state);
             } else {
                 paintVulkanZig.verticesForComplexSpriteDefault(shopButtonGamePosition, shopButton.imageIndex, state);
             }

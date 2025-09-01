@@ -161,6 +161,7 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
             bodyPart.pos,
             imageZig.IMAGE_BOSS_SNAKE_BODY,
             bodyPart.rotation,
+            1,
             state,
         );
     }
@@ -169,6 +170,7 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
         boss.position,
         boss.imageIndex,
         rotation,
+        1,
         state,
     );
 }
