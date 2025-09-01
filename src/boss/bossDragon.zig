@@ -110,6 +110,7 @@ pub const BossDragonData = struct {
     } = .{},
     soundData: struct {
         windSoundPlayer: bool = false,
+        lastFireBreathTime: ?i64 = null,
     } = .{},
     attackTiles: std.ArrayList(main.TilePosition),
 };
@@ -382,6 +383,7 @@ fn determineTailAttackTiles(boss: *bossZig.Boss) !void {
 fn tickFireBreathAction(fireBreathData: *FireBreathData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
     const data = &boss.typeData.dragon;
     if (fireBreathData.nextFireSpitTickTime == null) {
+        try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BREATH_IN, 0, 1);
         fireBreathData.nextFireSpitTickTime = state.gameTime + fireBreathData.firstFireSpitDelay;
         fireBreathData.targetPlayerIndex = std.crypto.random.intRangeLessThan(usize, 0, state.players.items.len);
         fireBreathData.spitEndTime = fireBreathData.nextFireSpitTickTime.? + fireBreathData.spitDuration;
@@ -389,6 +391,10 @@ fn tickFireBreathAction(fireBreathData: *FireBreathData, boss: *bossZig.Boss, pa
         data.openMouth = true;
     } else {
         standUpOrDownTick(boss, true, passedTime);
+        if (fireBreathData.spitEndTime - state.gameTime < fireBreathData.spitDuration and (data.soundData.lastFireBreathTime == null or data.soundData.lastFireBreathTime.? + 650 < state.gameTime)) {
+            try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_FIRE_BREATH, 0, 1);
+            data.soundData.lastFireBreathTime = state.gameTime;
+        }
         if (fireBreathData.nextFireSpitTickTime.? <= state.gameTime) {
             fireBreathData.nextFireSpitTickTime = state.gameTime + fireBreathData.spitInterval;
             const targetPos = state.players.items[fireBreathData.targetPlayerIndex].position;
