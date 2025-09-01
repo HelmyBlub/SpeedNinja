@@ -92,6 +92,7 @@ pub const BossDragonData = struct {
     movingFeetPair1: bool = false,
     openMouth: bool = false,
     moveSpeed: f32 = DEFAULT_MOVE_SPEED,
+    fireAbilitiesSinceLastWingBlast: u32 = 0,
     feetOffset: [4]main.Position = [4]main.Position{
         .{ .x = 0, .y = 0 },
         .{ .x = 0, .y = 0 },
@@ -387,6 +388,7 @@ fn tickFireBreathAction(fireBreathData: *FireBreathData, boss: *bossZig.Boss, pa
         }
         if (fireBreathData.spitEndTime <= state.gameTime) {
             data.openMouth = false;
+            data.fireAbilitiesSinceLastWingBlast += 1;
             chooseNextAttack(boss);
         }
     }
@@ -425,6 +427,7 @@ fn tickWingBlastAction(wingBlastData: *WingBlastData, boss: *bossZig.Boss, passe
             if (wingBlastData.maxMoveTicks <= wingBlastData.moveTickCount) {
                 data.paint.stopWings = true;
                 data.paint.wingFlapSpeedFactor = 1;
+                data.fireAbilitiesSinceLastWingBlast = 0;
                 chooseNextAttack(boss);
             }
         }
@@ -433,21 +436,28 @@ fn tickWingBlastAction(wingBlastData: *WingBlastData, boss: *bossZig.Boss, passe
 
 fn chooseNextAttack(boss: *bossZig.Boss) void {
     const data = &boss.typeData.dragon;
-    var least: usize = 0;
-    var lessThan: usize = 1;
-    switch (data.phase) {
-        .phase1 => {
-            least = 0;
-            lessThan = 1;
-        },
-        .phase2 => lessThan = 3,
-        .phase3 => lessThan = 4,
+    var allowedAttacks: [4]?DragonActionData = .{ .{ .bodyStomp = .{} }, null, null, null };
+    var allowedAttacksCount: usize = 1;
+    if (data.phase == .phase2) {
+        allowedAttacks[allowedAttacksCount] = .{ .wingBlast = .{} };
+        allowedAttacksCount += 1;
+        if (data.fireAbilitiesSinceLastWingBlast < 1) {
+            allowedAttacks[allowedAttacksCount] = .{ .fireBreath = .{} };
+            allowedAttacksCount += 1;
+        }
     }
-    const randomIndex = std.crypto.random.intRangeLessThan(usize, least, lessThan);
-    if (randomIndex == 0) data.action = .{ .bodyStomp = .{} };
-    if (randomIndex == 1) data.action = .{ .wingBlast = .{} };
-    if (randomIndex == 2) data.action = .{ .fireBreath = .{} };
-    if (randomIndex == 3) data.action = .{ .tailAttack = .{} };
+    if (data.phase == .phase3) {
+        allowedAttacks[allowedAttacksCount] = .{ .wingBlast = .{} };
+        allowedAttacksCount += 1;
+        if (data.fireAbilitiesSinceLastWingBlast < 2) {
+            allowedAttacks[allowedAttacksCount] = .{ .fireBreath = .{} };
+            allowedAttacksCount += 1;
+        }
+        allowedAttacks[allowedAttacksCount] = .{ .tailAttack = .{} };
+        allowedAttacksCount += 1;
+    }
+    const randomIndex = std.crypto.random.intRangeLessThan(usize, 0, allowedAttacksCount);
+    data.action = allowedAttacks[randomIndex].?;
 }
 
 fn moveBossTick(boss: *bossZig.Boss, targetPos: main.Position, passedTime: i64, speed: f32) bool {
@@ -557,6 +567,7 @@ fn tickTransitionFlyingPhase(flyingData: *TransitionFlyingData, boss: *bossZig.B
     } else {
         data.paint.standingPerCent = 1;
         data.action = .{ .landing = .{ .targetPos = .{ .x = 0, .y = 0 } } };
+        data.fireAbilitiesSinceLastWingBlast += 1;
     }
 }
 
