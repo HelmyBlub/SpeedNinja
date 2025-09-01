@@ -284,26 +284,28 @@ fn tickTailAttackAction(tailAttackData: *TailAttackhData, boss: *bossZig.Boss, p
     const tailRange = 100;
     standUpOrDownTick(boss, false, passedTime);
     if (tailAttackData.tailAttackHitTime == null) {
-        var closestPlayer: ?*main.Player = null;
-        var closestDistance: f32 = 0;
-        data.moveSpeed = DEFAULT_MOVE_SPEED * 2;
-        for (state.players.items) |*player| {
-            const tempDistance = main.calculateDistance(player.position, boss.position);
-            if (closestPlayer == null or tempDistance < closestDistance) {
-                closestPlayer = player;
-                closestDistance = tempDistance;
+        if (data.paint.standingPerCent < 0.1) {
+            var closestPlayer: ?*main.Player = null;
+            var closestDistance: f32 = 0;
+            data.moveSpeed = DEFAULT_MOVE_SPEED * 2;
+            for (state.players.items) |*player| {
+                const tempDistance = main.calculateDistance(player.position, boss.position);
+                if (closestPlayer == null or tempDistance < closestDistance) {
+                    closestPlayer = player;
+                    closestDistance = tempDistance;
+                }
             }
-        }
-        if (closestPlayer) |player| {
-            const direction = main.calculateDirection(player.position, boss.position);
-            setDirection(boss, direction);
-            if (closestDistance < tailRange) {
-                tailAttackData.tailAttackHitTime = state.gameTime + tailAttackData.tailAttackDelay;
-                try determineTailAttackTiles(boss);
-                data.moveSpeed = DEFAULT_MOVE_SPEED;
-            } else {
-                const moveDistance: f32 = data.moveSpeed * @as(f32, @floatFromInt(passedTime));
-                boss.position = main.moveByDirectionAndDistance(boss.position, direction + std.math.pi, moveDistance);
+            if (closestPlayer) |player| {
+                const direction = main.calculateDirection(player.position, boss.position);
+                setDirection(boss, direction);
+                if (closestDistance < tailRange) {
+                    tailAttackData.tailAttackHitTime = state.gameTime + tailAttackData.tailAttackDelay;
+                    try determineTailAttackTiles(boss);
+                    data.moveSpeed = DEFAULT_MOVE_SPEED;
+                } else {
+                    const moveDistance: f32 = data.moveSpeed * @as(f32, @floatFromInt(passedTime));
+                    boss.position = main.moveByDirectionAndDistance(boss.position, direction + std.math.pi, moveDistance);
+                }
             }
         }
     } else {
