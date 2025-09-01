@@ -325,6 +325,7 @@ fn tickTailAttackAction(tailAttackData: *TailAttackhData, boss: *bossZig.Boss, p
             data.paint.tailUpPerCent = @min(1, data.paint.tailUpPerCent + tailMoveSpeed);
         }
         if (tailAttackData.tailAttackHitTime.? <= state.gameTime) {
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_TAIL_ATTACK_INDICIES[0..], 0, 1);
             for (state.players.items) |*player| {
                 const playerTile = main.gamePositionToTilePosition(player.position);
                 for (data.attackTiles.items) |tile| {

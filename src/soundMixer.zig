@@ -87,6 +87,8 @@ var SOUND_FILE_PATHES = [_][]const u8{
     "sounds/wind4.mp3",
     "sounds/breathIn.mp3",
     "sounds/fireBreath.mp3",
+    "sounds/tailAttack1.mp3",
+    "sounds/tailAttack2.mp3",
 };
 
 pub const SOUND_NINJA_MOVE_INDICIES = [_]usize{ 0, 1, 2 };
@@ -107,6 +109,7 @@ pub const SOUND_WALL_PLACED_INDICIES = [_]usize{ 41, 42, 43, 44 };
 pub const SOUND_WIND_INDICIES = [_]usize{ 45, 46, 47, 48 };
 pub const SOUND_BREATH_IN = 49;
 pub const SOUND_FIRE_BREATH = 50;
+pub const SOUND_TAIL_ATTACK_INDICIES = [_]usize{ 51, 52 };
 
 pub fn createSoundMixer(state: *main.GameState, allocator: std.mem.Allocator) !void {
     state.soundMixer = .{

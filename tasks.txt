@@ -1,7 +1,6 @@
 Tasks:
 - end boss dragon
     - sounds
-        - fire breath
         - tail attack
 
 - think: change random position to single function instead of duplicate with small differenes?
