@@ -220,8 +220,8 @@ pub fn randomizeShop(state: *main.GameState) !void {
     try state.shop.buyOptions.append(.{
         .price = state.level * 5,
         .tilePosition = .{ .x = 6, .y = 3 },
-        .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_1,
-        .equipment = .{ .body = .{ .effectType = .{ .hp = 1 }, .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_1 } },
+        .imageIndex = imageZig.IMAGE_NINJA_HEAD,
+        .equipment = .{ .head = .{ .effectType = .{ .hp = 1 }, .bandana = true, .earImageIndex = imageZig.IMAGE_NINJA_EAR, .imageIndex = imageZig.IMAGE_NINJA_HEAD } },
     });
     try state.shop.buyOptions.append(.{
         .price = state.level * 10,
