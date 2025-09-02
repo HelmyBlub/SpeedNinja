@@ -68,6 +68,9 @@ pub const IMAGE_BOSS_DRAGON_HEAD_LAYER1 = 60;
 pub const IMAGE_BOSS_DRAGON_WING = 61;
 pub const IMAGE_CLOUD_1 = 62;
 pub const IMAGE_BOSS_DRAGON_HEAD_LAYER2 = 63;
+pub const IMAGE_DOG_HEAD = 64;
+pub const IMAGE_NINJA_EAR = 65;
+pub const IMAGE_NINJA_HEAD = 66;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaDog.png" },
@@ -134,6 +137,9 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/bossDragonWingLeftBottom.png", .scale = 2.0 },
     .{ .path = "images/cloud1.png" },
     .{ .path = "images/bossDragonHeadLayer2.png", .scale = 1.5 },
+    .{ .path = "images/dogHead.png" },
+    .{ .path = "images/ninjaEar.png" },
+    .{ .path = "images/ninjaHead.png" },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 pub const IMAGE_DOG__CENTER_BODY: main.Position = .{ .x = 99, .y = 128 };
@@ -141,6 +147,9 @@ pub const IMAGE_DOG__CENTER_BODY: main.Position = .{ .x = 99, .y = 128 };
 pub const IMAGE_DOG__EAR_LEFT: main.Position = .{ .x = 68, .y = 31 };
 pub const IMAGE_DOG__EAR_RIGHT: main.Position = .{ .x = 132, .y = 31 };
 pub const IMAGE_DOG_EAR__ANKER: main.Position = .{ .x = 14, .y = 6 };
+
+pub const IMAGE_DOG__HEAD: main.Position = .{ .x = 103, .y = 94 };
+pub const IMAGE_DOG_HEAD__ANKER: main.Position = .{ .x = 36, .y = 78 };
 
 pub const IMAGE_DOG__EYE_LEFT: main.Position = .{ .x = 87, .y = 35 };
 pub const IMAGE_DOG__EYE_RIGHT: main.Position = .{ .x = 113, .y = 35 };

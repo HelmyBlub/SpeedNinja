@@ -26,6 +26,10 @@ pub const NinjaDogPaintData = struct {
     tailRotation: f32 = 0,
     tailBend: f32 = 0,
     chestArmorImageIndex: u8 = imageZig.IMAGE_NINJA_CHEST_ARMOR_1,
+    headLayer1ImageIndex: ?u8 = null,
+    headLayer2ImageIndex: u8 = imageZig.IMAGE_NINJA_HEAD,
+    earImageIndex: u8 = imageZig.IMAGE_NINJA_EAR,
+    hasBandana: bool = true,
 };
 
 const NinjaDogAnimationStatePaw = enum {
@@ -291,8 +295,7 @@ pub fn drawNinjaDog(position: main.Position, paintData: NinjaDogPaintData, state
         };
         addTiranglesForSprite(bladeBackPosition, imageZig.IMAGE_BLADE__HAND_HOLD_POINT, imageZig.IMAGE_BLADE, paintData.bladeRotation, null, null, state);
     }
-    drawBandana(position, paintData, state);
-    drawEars(position, paintData, state);
+    drawHead(position, paintData, state);
     addTiranglesForSprite(position, imageZig.IMAGE_DOG__CENTER, imageZig.IMAGE_DOG, 0, null, null, state);
 
     const chestSpritePosition: main.Position = .{
@@ -346,6 +349,36 @@ pub fn drawNinjaDog(position: main.Position, paintData: NinjaDogPaintData, state
             state,
         );
     }
+}
+
+fn drawHead(position: main.Position, paintData: NinjaDogPaintData, state: *main.GameState) void {
+    const imageDataDog = imageZig.IMAGE_DATA[imageZig.IMAGE_DOG];
+    if (paintData.hasBandana) drawBandana(position, paintData, state);
+    drawEars(position, paintData, state);
+    const headPosition: main.Position = .{
+        .x = position.x + (imageZig.IMAGE_DOG__HEAD.x - @as(f32, @floatFromInt(imageDataDog.width)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
+        .y = position.y + (imageZig.IMAGE_DOG__HEAD.y - @as(f32, @floatFromInt(imageDataDog.height)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
+    };
+    if (paintData.headLayer1ImageIndex) |imageIndex| {
+        addTiranglesForSprite(
+            headPosition,
+            imageZig.IMAGE_DOG_HEAD__ANKER,
+            imageIndex,
+            0,
+            null,
+            null,
+            state,
+        );
+    }
+    addTiranglesForSprite(
+        headPosition,
+        imageZig.IMAGE_DOG_HEAD__ANKER,
+        paintData.headLayer2ImageIndex,
+        0,
+        null,
+        null,
+        state,
+    );
 }
 
 fn drawDogTail(position: main.Position, paintData: NinjaDogPaintData, state: *main.GameState) void {
@@ -410,8 +443,8 @@ fn drawEars(position: main.Position, paintData: NinjaDogPaintData, state: *main.
         .x = position.x + (imageZig.IMAGE_DOG__EAR_RIGHT.x - @as(f32, @floatFromInt(imageDataDog.width)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
         .y = position.y + (imageZig.IMAGE_DOG__EAR_RIGHT.y - @as(f32, @floatFromInt(imageDataDog.height)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
     };
-    addTiranglesForSprite(leftEarSpritePosition, imageZig.IMAGE_DOG_EAR__ANKER, imageZig.IMAGE_DOG_EAR, paintData.leftEarRotation, null, null, state);
-    addTiranglesForSprite(rightEarSpritePosition, imageZig.IMAGE_DOG_EAR__ANKER, imageZig.IMAGE_DOG_EAR, paintData.rightEarRotation, null, null, state);
+    addTiranglesForSprite(leftEarSpritePosition, imageZig.IMAGE_DOG_EAR__ANKER, paintData.earImageIndex, paintData.leftEarRotation, null, null, state);
+    addTiranglesForSprite(rightEarSpritePosition, imageZig.IMAGE_DOG_EAR__ANKER, paintData.earImageIndex, paintData.rightEarRotation, null, null, state);
 }
 
 fn drawEyes(position: main.Position, paintData: NinjaDogPaintData, state: *main.GameState) void {
