@@ -2,8 +2,6 @@ Tasks:
 - equipment
     - images:
         -feet
-        -head
-            -ears
     - +hp equipment first
         - head
         - feet
