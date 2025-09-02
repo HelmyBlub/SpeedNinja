@@ -119,13 +119,13 @@ pub fn isBossHit(hitArea: main.TileRectangle, player: *main.Player, hitDirection
         const boss = &state.bosses.items[bossIndex];
         const levelBossData = LEVEL_BOSS_DATA.get(boss.typeData);
         if (levelBossData.isBossHit) |isHitFunction| {
-            if (try isHitFunction(boss, player, hitArea, player.paintData.bladeRotation, hitDirection, state)) aBossHit = true;
+            if (try isHitFunction(boss, player, hitArea, player.paintData.weaponRotation, hitDirection, state)) aBossHit = true;
         } else {
             if (isBossHitDefault(boss, hitArea)) aBossHit = true;
         }
         if (boss.hp == 0) {
             var deadBoss = state.bosses.swapRemove(bossIndex);
-            const cutAngle = player.paintData.bladeRotation + std.math.pi / 2.0;
+            const cutAngle = player.paintData.weaponRotation + std.math.pi / 2.0;
             try state.spriteCutAnimations.append(
                 .{
                     .deathTime = state.gameTime,

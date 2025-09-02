@@ -111,6 +111,7 @@ pub fn getMovePieceTotalStepes(movePiece: MovePiece) usize {
 }
 
 pub fn setMoveOptionIndex(player: *main.Player, index: usize, state: *main.GameState) void {
+    if (!state.timerStarted) state.timerStarted = true;
     if (player.moveOptions.items.len > index) {
         player.choosenMoveOptionIndex = index;
         ninjaDogVulkanZig.swordHandsCentered(player, state);
@@ -378,7 +379,6 @@ pub fn executeMovePieceWithCallbackPerStep(
 
 pub fn movePlayerByMovePiece(player: *main.Player, movePieceIndex: usize, directionInput: u8, state: *main.GameState) !void {
     if (player.executeMovePiece != null) return;
-    if (!state.timerStarted) state.timerStarted = true;
     player.executeMovePiece = player.moveOptions.items[movePieceIndex];
     player.executeDirection = directionInput;
     try setRandomMovePiece(player, movePieceIndex);
@@ -504,7 +504,7 @@ fn checkEnemyHitOnMoveStep(player: *main.Player, hitDirection: u8, state: *main.
         const enemy = &state.enemyData.enemies.items[enemyIndex];
         if (try enemyZig.isEnemyHit(enemy, hitArea, hitDirection, state)) {
             const deadEnemy = state.enemyData.enemies.swapRemove(enemyIndex);
-            const cutAngle = player.paintData.bladeRotation + std.math.pi / 2.0;
+            const cutAngle = player.paintData.weaponRotation + std.math.pi / 2.0;
             try state.spriteCutAnimations.append(.{ .deathTime = state.gameTime, .position = deadEnemy.position, .cutAngle = cutAngle, .force = rand.float(f32) + 0.2, .colorOrImageIndex = .{ .imageIndex = deadEnemy.imageIndex } });
             hitSomething = true;
         } else {

@@ -4,6 +4,7 @@ const imageZig = @import("image.zig");
 const movePieceZig = @import("movePiece.zig");
 const bossZig = @import("boss/boss.zig");
 const mapTileZig = @import("mapTile.zig");
+const equipmentZig = @import("equipment.zig");
 
 const ShopOption = enum {
     none,
@@ -63,9 +64,9 @@ pub const ShopPlayerData = struct {
 
 pub const ShopBuyOption = struct {
     tilePosition: main.TilePosition,
-    imageIndex: u8,
     price: u32,
-    hpAmount: u32,
+    imageIndex: u8,
+    equipment: equipmentZig.EquipmentSlotTypeData,
 };
 
 pub const ShopData = struct {
@@ -146,9 +147,8 @@ pub fn executeShopActionForPlayer(player: *main.Player, state: *main.GameState) 
     for (state.shop.buyOptions.items, 0..) |buyOption, buyIndex| {
         if (buyOption.tilePosition.x == playerTile.x and buyOption.tilePosition.y == playerTile.y) {
             if (player.money >= buyOption.price) {
-                player.hp = buyOption.hpAmount + 1;
                 player.money -= buyOption.price;
-                player.paintData.chestArmorImageIndex = buyOption.imageIndex;
+                equipmentZig.equip(buyOption.equipment, player);
                 _ = state.shop.buyOptions.swapRemove(buyIndex);
             }
             return;
@@ -218,16 +218,16 @@ pub fn randomizeShop(state: *main.GameState) !void {
 
     state.shop.buyOptions.clearRetainingCapacity();
     try state.shop.buyOptions.append(.{
-        .hpAmount = 2,
-        .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_1,
         .price = state.level * 5,
         .tilePosition = .{ .x = 6, .y = 3 },
+        .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_1,
+        .equipment = .{ .body = .{ .quipmentType = .{ .hp = 1 }, .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_1 } },
     });
     try state.shop.buyOptions.append(.{
-        .hpAmount = 3,
-        .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_2,
         .price = state.level * 10,
         .tilePosition = .{ .x = 7, .y = 3 },
+        .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_2,
+        .equipment = .{ .body = .{ .quipmentType = .{ .hp = 2 }, .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_2 } },
     });
 }
 

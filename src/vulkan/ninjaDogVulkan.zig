@@ -9,9 +9,9 @@ const soundMixerZig = @import("../soundMixer.zig");
 const DEATH_DURATION = 3000;
 
 pub const NinjaDogPaintData = struct {
-    bladeDrawn: bool = false,
+    weaponDrawn: bool = false,
     blinking: bool = false,
-    bladeRotation: f32 = std.math.pi * 0.25,
+    weaponRotation: f32 = std.math.pi * 0.25,
     pawWaveOffset: f32 = 0,
     leftPawOffset: main.Position = .{ .x = 0, .y = 0 },
     rightPawOffset: main.Position = .{ .x = 0, .y = 0 },
@@ -30,6 +30,7 @@ pub const NinjaDogPaintData = struct {
     headLayer2ImageIndex: u8 = imageZig.IMAGE_NINJA_HEAD,
     earImageIndex: u8 = imageZig.IMAGE_NINJA_EAR,
     feetImageIndex: u8 = imageZig.IMAGE_NINJA_FEET,
+    weaponImageIndex: u8 = imageZig.IMAGE_BLADE,
     hasBandana: bool = true,
 };
 
@@ -213,7 +214,7 @@ fn tickNinjaDogPawAnimation(player: *main.Player, timePassed: i64, state: *main.
                 };
                 if (perCent >= 1) {
                     player.animateData.paws = .{
-                        .bladeToFront = .{ .angle = player.paintData.bladeRotation, .duration = 1000, .startTime = state.gameTime },
+                        .bladeToFront = .{ .angle = player.paintData.weaponRotation, .duration = 1000, .startTime = state.gameTime },
                     };
                     try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BLADE_DRAW, 0, 1);
                 }
@@ -221,12 +222,12 @@ fn tickNinjaDogPawAnimation(player: *main.Player, timePassed: i64, state: *main.
             .bladeToFront => |data| {
                 const perCent: f32 = @min(1, @as(f32, @floatFromInt(state.gameTime - data.startTime)) / @as(f32, @floatFromInt(data.duration)));
                 const targetAngle = std.math.pi * -0.75;
-                player.paintData.bladeRotation = data.angle + (targetAngle - data.angle) * perCent;
+                player.paintData.weaponRotation = data.angle + (targetAngle - data.angle) * perCent;
                 if (perCent >= 1) {
-                    player.paintData.bladeDrawn = true;
+                    player.paintData.weaponDrawn = true;
                     player.animateData.paws = .{
                         .bladeToCenter = .{
-                            .angle = player.paintData.bladeRotation,
+                            .angle = player.paintData.weaponRotation,
                             .duration = 1000,
                             .startTime = state.gameTime,
                             .position1 = player.paintData.leftPawOffset,
@@ -254,7 +255,7 @@ fn tickNinjaDogPawAnimation(player: *main.Player, timePassed: i64, state: *main.
                     .x = data.position2.x + (rightHandTarget.x - data.position2.x) * perCent,
                     .y = data.position2.y + (rightHandTarget.y - data.position2.y) * perCent,
                 };
-                player.paintData.bladeRotation = data.angle + (targetAngle - data.angle) * perCent;
+                player.paintData.weaponRotation = data.angle + (targetAngle - data.angle) * perCent;
                 if (perCent >= 1) {
                     player.animateData.paws = null;
                 }
@@ -289,12 +290,12 @@ pub fn setupVertices(state: *main.GameState) void {
 pub fn drawNinjaDog(position: main.Position, paintData: NinjaDogPaintData, state: *main.GameState) void {
     const dogSize = imageZig.IMAGE_DOG_TOTAL_SIZE;
     drawDogTail(position, paintData, state);
-    if (!paintData.bladeDrawn) {
+    if (!paintData.weaponDrawn) {
         const bladeBackPosition: main.Position = .{
             .x = position.x + (imageZig.IMAGE_DOG__BLADE_BACK.x - @as(f32, @floatFromInt(dogSize)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
             .y = position.y + (imageZig.IMAGE_DOG__BLADE_BACK.y - @as(f32, @floatFromInt(dogSize)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
         };
-        addTiranglesForSprite(bladeBackPosition, imageZig.IMAGE_BLADE__HAND_HOLD_POINT, imageZig.IMAGE_BLADE, paintData.bladeRotation, null, null, state);
+        addTiranglesForSprite(bladeBackPosition, imageZig.IMAGE_BLADE__HAND_HOLD_POINT, paintData.weaponImageIndex, paintData.weaponRotation, null, null, state);
     }
     drawHead(position, paintData, state);
     drawFeet(position, paintData, state);
@@ -335,7 +336,7 @@ pub fn drawNinjaDog(position: main.Position, paintData: NinjaDogPaintData, state
         .{ .x = 1, .y = rightArmValues.scale },
         state,
     );
-    if (paintData.bladeDrawn) {
+    if (paintData.weaponDrawn) {
         const leftHandBladePosition: main.Position = .{
             .x = leftArmSpritePosition.x + (imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT.x - imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.x + leftPawWithWaveOffset.x) / imageZig.IMAGE_TO_GAME_SIZE,
             .y = leftArmSpritePosition.y + (imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT.y - imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.y + leftPawWithWaveOffset.y) / imageZig.IMAGE_TO_GAME_SIZE,
@@ -343,8 +344,8 @@ pub fn drawNinjaDog(position: main.Position, paintData: NinjaDogPaintData, state
         addTiranglesForSprite(
             leftHandBladePosition,
             imageZig.IMAGE_BLADE__HAND_HOLD_POINT,
-            imageZig.IMAGE_BLADE,
-            paintData.bladeRotation,
+            paintData.weaponImageIndex,
+            paintData.weaponRotation,
             imageZig.IMAGE_BLADE__HAND_HOLD_POINT,
             null,
             state,
@@ -495,7 +496,7 @@ fn drawEyes(position: main.Position, paintData: NinjaDogPaintData, state: *main.
 }
 
 pub fn swordHandsCentered(player: *main.Player, state: *main.GameState) void {
-    if (player.animateData.paws == null and player.paintData.bladeDrawn == false) {
+    if (player.animateData.paws == null and player.paintData.weaponDrawn == false) {
         player.animateData.paws = .{ .drawBlade = .{
             .duration = 500,
             .position = player.paintData.leftPawOffset,
@@ -506,7 +507,7 @@ pub fn swordHandsCentered(player: *main.Player, state: *main.GameState) void {
 
 pub fn bladeSlashAnimate(player: *main.Player) void {
     if (player.animateData.paws != null) player.animateData.paws = null;
-    const pawAngle = @mod(player.paintData.bladeRotation + std.math.pi, std.math.pi * 2);
+    const pawAngle = @mod(player.paintData.weaponRotation + std.math.pi, std.math.pi * 2);
     setPawAndBladeAngle(player, pawAngle);
 }
 
@@ -532,8 +533,8 @@ fn setPawAndBladeAngle(player: *main.Player, angle: f32) void {
         .x = player.paintData.leftPawOffset.x + imageZig.IMAGE_DOG__LEFT_ARM_ROTATE_POINT.x - imageZig.IMAGE_DOG__RIGHT_ARM_ROTATE_POINT.x,
         .y = player.paintData.leftPawOffset.y,
     };
-    player.paintData.bladeDrawn = true;
-    player.paintData.bladeRotation = angle;
+    player.paintData.weaponDrawn = true;
+    player.paintData.weaponRotation = angle;
 }
 
 fn setEarDirection(player: *main.Player, direction: u8) void {
@@ -569,7 +570,7 @@ fn setEyeLookDirection(player: *main.Player, direction: u8) void {
 
 pub fn moveHandToCenter(player: *main.Player, state: *main.GameState) void {
     player.animateData.paws = .{ .bladeToCenter = .{
-        .angle = player.paintData.bladeRotation,
+        .angle = player.paintData.weaponRotation,
         .duration = 1000,
         .position1 = player.paintData.leftPawOffset,
         .position2 = player.paintData.rightPawOffset,

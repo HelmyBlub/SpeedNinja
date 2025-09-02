@@ -11,6 +11,7 @@ const shopZig = @import("shop.zig");
 const bossZig = @import("boss/boss.zig");
 const imageZig = @import("image.zig");
 const mapTileZig = @import("mapTile.zig");
+const equipmentZig = @import("equipment.zig");
 
 pub const GamePhase = enum {
     combat,
@@ -70,6 +71,12 @@ pub const Player = struct {
     fallVelocity: f32 = 0,
     startedFallingState: ?i64 = null,
     fallingStateDamageDelay: i32 = 1500,
+    equipment: std.EnumArray(equipmentZig.EquipmentSlotTypes, ?equipmentZig.EquipmentSlotTypeData) = std.EnumArray(equipmentZig.EquipmentSlotTypes, ?equipmentZig.EquipmentSlotTypeData).init(.{
+        .body = null,
+        .head = null,
+        .feet = null,
+        .weapon = null,
+    }),
 };
 
 pub const AfterImage = struct {
@@ -393,7 +400,8 @@ pub fn restart(state: *GameState) !void {
         player.shop.gridDisplayPiece = null;
         player.shop.selectedOption = .none;
         player.immunUntilTime = 0;
-
+        player.choosenMoveOptionIndex = null;
+        equipmentZig.equipStarterEquipment(player);
         try movePieceZig.setupMovePieces(player, state);
     }
     bossZig.clearBosses(state);
