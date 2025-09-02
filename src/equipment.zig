@@ -9,103 +9,168 @@ pub const EquipmentSlotTypes = enum {
     weapon,
 };
 
+pub const EquipmentSlotsData = struct {
+    head: ?EquipmentHeadData = null,
+    body: ?EquipmentData = null,
+    feet: ?EquipmentData = null,
+    weapon: ?EquipmentData = null,
+};
+
 pub const EquipmentSlotTypeData = union(EquipmentSlotTypes) {
-    head: EquipmentHeadData,
-    body: EquipmentData,
-    feet: EquipmentData,
-    weapon: EquipmentData,
+    head: ?EquipmentHeadData,
+    body: ?EquipmentData,
+    feet: ?EquipmentData,
+    weapon: ?EquipmentData,
 };
 
 const EquipmentData = struct {
-    quipmentType: EquipmentTypeData,
+    effectType: EquipmentEffectTypeData,
     imageIndex: u8,
 };
 
 const EquipmentHeadData = struct {
-    quipmentType: EquipmentTypeData,
+    effectType: EquipmentEffectTypeData,
+    imageIndex: u8,
     bandana: bool,
     imageIndexLayer1: ?u8 = null,
-    imageIndexLayer2: u8,
     earImageIndex: u8 = imageZig.IMAGE_DOG_EAR,
 };
 
-const EquipmentType = enum {
+const EquipmentEffectType = enum {
     none,
     hp,
     damage,
 };
 
-const EquipmentTypeData = union(EquipmentType) {
+const EquipmentEffectTypeData = union(EquipmentEffectType) {
     none,
     hp: u8,
     damage: u8,
 };
 
 pub fn equipStarterEquipment(player: *main.Player) void {
-    equipHead(.{ .head = .{ .quipmentType = .none, .imageIndexLayer2 = imageZig.IMAGE_NINJA_HEAD, .bandana = true, .earImageIndex = imageZig.IMAGE_NINJA_EAR } }, player);
-    equipBody(.{ .body = .{ .quipmentType = .{ .hp = 1 }, .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_1 } }, player);
-    equipFeet(.{ .feet = .{ .quipmentType = .none, .imageIndex = imageZig.IMAGE_NINJA_FEET } }, player);
-    equipWeapon(.{ .weapon = .{ .quipmentType = .{ .damage = 1 }, .imageIndex = imageZig.IMAGE_BLADE } }, player);
+    equipHead(.{ .effectType = .{ .hp = 1 }, .imageIndex = imageZig.IMAGE_NINJA_HEAD, .bandana = true, .earImageIndex = imageZig.IMAGE_NINJA_EAR }, player);
+    equipBody(.{ .effectType = .{ .hp = 1 }, .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_1 }, player);
+    equipFeet(.{ .effectType = .none, .imageIndex = imageZig.IMAGE_NINJA_FEET }, player);
+    equipWeapon(.{ .effectType = .{ .damage = 1 }, .imageIndex = imageZig.IMAGE_BLADE }, player);
 }
 
 pub fn equip(equipment: EquipmentSlotTypeData, player: *main.Player) void {
     switch (equipment) {
         .body => {
-            equipBody(equipment, player);
+            equipBody(equipment.body, player);
         },
         .feet => {
-            equipFeet(equipment, player);
+            equipFeet(equipment.feet, player);
         },
         .head => {
-            equipHead(equipment, player);
+            equipHead(equipment.head, player);
         },
         .weapon => {
-            equipWeapon(equipment, player);
+            equipWeapon(equipment.weapon.?, player);
         },
     }
 }
 
-fn equipHead(head: EquipmentSlotTypeData, player: *main.Player) void {
-    player.equipment.set(.head, head);
-    player.paintData.headLayer1ImageIndex = head.head.imageIndexLayer1;
-    player.paintData.headLayer2ImageIndex = head.head.imageIndexLayer2;
-    player.paintData.earImageIndex = head.head.earImageIndex;
+pub fn damageTakenByEquipment(player: *main.Player, state: *main.GameState) !bool {
+    var equipBrokenImageIndex: ?u8 = null;
+    var equipTookDamage = false;
+    inline for (@typeInfo(EquipmentSlotsData).@"struct".fields) |field| {
+        const valPtr = &@field(player.equipment, field.name);
+        if (valPtr.* != null) {
+            const effectType: EquipmentEffectTypeData = valPtr.*.?.effectType;
+            if (effectType == .hp) {
+                valPtr.*.?.effectType.hp -= 1;
+                equipTookDamage = true;
+                if (valPtr.*.?.effectType.hp == 0) {
+                    equipBrokenImageIndex = valPtr.*.?.imageIndex;
+                    equip(@unionInit(EquipmentSlotTypeData, field.name, null), player);
+                }
+                break;
+            }
+        }
+    }
+    if (equipBrokenImageIndex) |imageIndex| {
+        try state.spriteCutAnimations.append(
+            .{
+                .deathTime = state.gameTime,
+                .position = player.position,
+                .cutAngle = 0,
+                .force = 1.2,
+                .colorOrImageIndex = .{ .imageIndex = imageIndex },
+            },
+        );
+    }
+    return equipTookDamage;
 }
 
-fn equipBody(body: EquipmentSlotTypeData, player: *main.Player) void {
-    const oldBody = player.equipment.get(.body);
-    const optOldEffectType = if (oldBody) |old| old.body.quipmentType else null;
-    equipmentEffect(body.body.quipmentType, optOldEffectType, player);
-    player.equipment.set(.body, body);
-    player.paintData.chestArmorImageIndex = body.body.imageIndex;
+fn equipHead(optHead: ?EquipmentHeadData, player: *main.Player) void {
+    const optOld = player.equipment.head;
+    const optOldEffectType = if (optOld) |old| old.effectType else null;
+    const optNewEffectType = if (optHead) |new| new.effectType else null;
+    equipmentEffect(optNewEffectType, optOldEffectType, player);
+
+    player.equipment.head = optHead;
+    if (optHead) |head| {
+        player.paintData.headLayer1ImageIndex = head.imageIndexLayer1;
+        player.paintData.headLayer2ImageIndex = head.imageIndex;
+        player.paintData.earImageIndex = head.earImageIndex;
+    } else {
+        player.paintData.headLayer1ImageIndex = null;
+        player.paintData.headLayer2ImageIndex = imageZig.IMAGE_DOG_HEAD;
+        player.paintData.earImageIndex = imageZig.IMAGE_DOG_EAR;
+    }
 }
 
-fn equipFeet(feet: EquipmentSlotTypeData, player: *main.Player) void {
-    player.equipment.set(.feet, feet);
-    player.paintData.feetImageIndex = feet.feet.imageIndex;
+fn equipBody(optBody: ?EquipmentData, player: *main.Player) void {
+    const optOld = player.equipment.body;
+    const optOldEffectType = if (optOld) |old| old.effectType else null;
+    const optNewEffectType = if (optBody) |new| new.effectType else null;
+    equipmentEffect(optNewEffectType, optOldEffectType, player);
+    player.equipment.body = optBody;
+    if (optBody) |body| {
+        player.paintData.chestArmorImageIndex = body.imageIndex;
+    } else {
+        player.paintData.chestArmorImageIndex = imageZig.IMAGE_NINJA_BODY_NO_ARMOR;
+    }
 }
 
-fn equipWeapon(weapon: EquipmentSlotTypeData, player: *main.Player) void {
-    player.equipment.set(.weapon, weapon);
-    player.paintData.weaponImageIndex = weapon.weapon.imageIndex;
+fn equipFeet(optFeet: ?EquipmentData, player: *main.Player) void {
+    const optOld = player.equipment.feet;
+    const optOldEffectType = if (optOld) |old| old.effectType else null;
+    const optNewEffectType = if (optFeet) |new| new.effectType else null;
+    equipmentEffect(optNewEffectType, optOldEffectType, player);
+
+    player.equipment.feet = optFeet;
+    if (optFeet) |feet| {
+        player.paintData.feetImageIndex = feet.imageIndex;
+    } else {
+        player.paintData.feetImageIndex = imageZig.IMAGE_NINJA_FEET;
+    }
 }
 
-fn equipmentEffect(newEffectType: EquipmentTypeData, optOldEffectType: ?EquipmentTypeData, player: *main.Player) void {
+fn equipWeapon(weapon: EquipmentData, player: *main.Player) void {
+    const optOld = player.equipment.weapon;
+    const optOldEffectType = if (optOld) |old| old.effectType else null;
+    equipmentEffect(weapon.effectType, optOldEffectType, player);
+    player.equipment.weapon = weapon;
+    player.paintData.weaponImageIndex = weapon.imageIndex;
+}
+
+fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType: ?EquipmentEffectTypeData, player: *main.Player) void {
+    _ = player;
     if (optOldEffectType) |oldEffectType| {
         switch (oldEffectType) {
             .none => {},
             .damage => {},
-            .hp => |hp| {
-                if (player.hp == 0) std.debug.print("bug: no hp left when unequiping armor\n", .{});
-                player.hp -|= hp;
-            },
+            .hp => {},
         }
     }
-    switch (newEffectType) {
-        .none => {},
-        .damage => {},
-        .hp => |hp| {
-            player.hp += hp;
-        },
+    if (optNewEffectType) |newEffectType| {
+        switch (newEffectType) {
+            .none => {},
+            .damage => {},
+            .hp => {},
+        }
     }
 }

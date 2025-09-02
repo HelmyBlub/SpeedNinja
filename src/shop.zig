@@ -221,13 +221,13 @@ pub fn randomizeShop(state: *main.GameState) !void {
         .price = state.level * 5,
         .tilePosition = .{ .x = 6, .y = 3 },
         .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_1,
-        .equipment = .{ .body = .{ .quipmentType = .{ .hp = 1 }, .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_1 } },
+        .equipment = .{ .body = .{ .effectType = .{ .hp = 1 }, .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_1 } },
     });
     try state.shop.buyOptions.append(.{
         .price = state.level * 10,
         .tilePosition = .{ .x = 7, .y = 3 },
         .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_2,
-        .equipment = .{ .body = .{ .quipmentType = .{ .hp = 2 }, .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_2 } },
+        .equipment = .{ .body = .{ .effectType = .{ .hp = 2 }, .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_2 } },
     });
 }
 

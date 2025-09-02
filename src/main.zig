@@ -65,18 +65,13 @@ pub const Player = struct {
     animateData: ninjaDogVulkanZig.NinjaDogAnimationStateData = .{},
     slashedLastMoveTile: bool = false,
     money: u32 = 0,
-    hp: u32 = 0,
+    isDead: bool = false,
     shop: shopZig.ShopPlayerData = .{},
     inAirHeight: f32 = 0,
     fallVelocity: f32 = 0,
     startedFallingState: ?i64 = null,
     fallingStateDamageDelay: i32 = 1500,
-    equipment: std.EnumArray(equipmentZig.EquipmentSlotTypes, ?equipmentZig.EquipmentSlotTypeData) = std.EnumArray(equipmentZig.EquipmentSlotTypes, ?equipmentZig.EquipmentSlotTypeData).init(.{
-        .body = null,
-        .head = null,
-        .feet = null,
-        .weapon = null,
-    }),
+    equipment: equipmentZig.EquipmentSlotsData = .{},
 };
 
 pub const AfterImage = struct {
@@ -134,18 +129,8 @@ pub fn main() !void {
 
 pub fn playerHit(player: *Player, state: *GameState) !void {
     if (player.immunUntilTime >= state.gameTime) return;
-    player.hp -|= 1;
-    if (player.hp == 1) {
-        try state.spriteCutAnimations.append(
-            .{
-                .deathTime = state.gameTime,
-                .position = player.position,
-                .cutAngle = 0,
-                .force = 1.2,
-                .colorOrImageIndex = .{ .imageIndex = player.paintData.chestArmorImageIndex },
-            },
-        );
-        player.paintData.chestArmorImageIndex = imageZig.IMAGE_NINJA_BODY_NO_ARMOR;
+    if (!try equipmentZig.damageTakenByEquipment(player, state)) {
+        player.isDead = true;
     }
     player.immunUntilTime = state.gameTime + state.playerImmunityFrames;
     try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_PLAYER_HIT, 0, 1);
@@ -351,7 +336,7 @@ fn shouldRestart(state: *GameState) bool {
 
 fn allPlayerNoHp(state: *GameState) bool {
     for (state.players.items) |player| {
-        if (player.hp > 0) return false;
+        if (!player.isDead) return false;
     }
     return true;
 }
@@ -389,8 +374,8 @@ pub fn restart(state: *GameState) !void {
     }
     mapTileZig.resetMapTiles(state.mapData.tiles);
     for (state.players.items) |*player| {
-        player.hp = 2;
         player.money = 0;
+        player.isDead = false;
         player.position.x = 0;
         player.position.y = 0;
         player.afterImages.clearRetainingCapacity();

@@ -1,6 +1,5 @@
 Tasks:
 - equipment
-    - continue: hp from armor broken
     - +hp equipment first
         - head
         - feet
