@@ -112,6 +112,10 @@ pub fn startBossLevel(state: *main.GameState) !void {
     }
 }
 
+pub fn getHpScalingForLevel(hp: u32, level: u32) u32 {
+    return hp * (1 + @divFloor(level, 5));
+}
+
 pub fn isBossHit(hitArea: main.TileRectangle, player: *main.Player, hitDirection: u8, state: *main.GameState) !bool {
     var aBossHit = false;
     var bossIndex: usize = 0;
@@ -121,7 +125,7 @@ pub fn isBossHit(hitArea: main.TileRectangle, player: *main.Player, hitDirection
         if (levelBossData.isBossHit) |isHitFunction| {
             if (try isHitFunction(boss, player, hitArea, player.paintData.weaponRotation, hitDirection, state)) aBossHit = true;
         } else {
-            if (isBossHitDefault(boss, hitArea)) aBossHit = true;
+            if (isBossHitDefault(boss, player.damage, hitArea)) aBossHit = true;
         }
         if (boss.hp == 0) {
             var deadBoss = state.bosses.swapRemove(bossIndex);
@@ -143,10 +147,10 @@ pub fn isBossHit(hitArea: main.TileRectangle, player: *main.Player, hitDirection
     return aBossHit;
 }
 
-fn isBossHitDefault(boss: *Boss, hitArea: main.TileRectangle) bool {
+fn isBossHitDefault(boss: *Boss, damage: u32, hitArea: main.TileRectangle) bool {
     const bossTile = main.gamePositionToTilePosition(boss.position);
     if (main.isTilePositionInTileRectangle(bossTile, hitArea)) {
-        boss.hp -|= 1;
+        boss.hp -|= damage;
         return true;
     }
     return false;

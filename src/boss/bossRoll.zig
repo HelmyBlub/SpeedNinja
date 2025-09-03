@@ -66,9 +66,10 @@ fn onPlayerMoved(boss: *bossZig.Boss, player: *main.Player, state: *main.GameSta
 }
 
 fn startBoss(state: *main.GameState) !void {
+    const scaledHp = bossZig.getHpScalingForLevel(10, state.level);
     try state.bosses.append(.{
-        .hp = 10,
-        .maxHp = 10,
+        .hp = scaledHp,
+        .maxHp = scaledHp,
         .imageIndex = imageZig.IMAGE_BOSS_ROLL,
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,

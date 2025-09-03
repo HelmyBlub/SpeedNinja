@@ -1,8 +1,20 @@
 Tasks:
-- bug: movePiece enemy can damage player on spawn?
 - equipment
     - weapons
-
+        - blade
+            - a bit bonus damage
+        - big hammer
+            - aoe at move piece end
+        - kunai
+            - throw kunai each move piece edge for 2 pieces far
+        - gold weapon  
+            - increase money gained
+            - less damage
+    - shop should have one weapon buy option always
+    - prevent buying same or weaker item
+- bug: split boss death sprite location incorrect
+- bug: split boss third split not visible
+    - boss should split correct amount of times even for high damage values
 - boss hp scalling
 - check: prevent player from buying downgrades?
 - when bought new equipment, place old equipment at position to be able to switch back

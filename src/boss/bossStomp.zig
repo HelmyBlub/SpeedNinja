@@ -39,9 +39,10 @@ pub fn createBoss() bossZig.LevelBossData {
 }
 
 fn startBoss(state: *main.GameState) !void {
+    const scaledHp = bossZig.getHpScalingForLevel(10, state.level);
     try state.bosses.append(.{
-        .hp = 10,
-        .maxHp = 10,
+        .hp = scaledHp,
+        .maxHp = scaledHp,
         .imageIndex = imageZig.IMAGE_EVIL_TOWER,
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
@@ -118,12 +119,11 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
     _ = state;
     _ = cutRotation;
     _ = hitDirection;
-    _ = player;
     const stompData = &boss.typeData.stomp;
     if (!stompData.inAir) {
         const bossTile = main.gamePositionToTilePosition(boss.position);
         if (main.isTilePositionInTileRectangle(bossTile, hitArea)) {
-            boss.hp -|= 1;
+            boss.hp -|= player.damage;
             return true;
         }
     }

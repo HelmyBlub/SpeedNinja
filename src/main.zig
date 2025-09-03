@@ -52,6 +52,7 @@ pub const GameState = struct {
 
 pub const Player = struct {
     position: Position = .{ .x = 0, .y = 0 },
+    damage: u32 = 0,
     immunUntilTime: i64 = 0,
     executeMovePiece: ?movePieceZig.MovePiece = null,
     executeDirection: u8 = 0,

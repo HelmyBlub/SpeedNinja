@@ -45,7 +45,7 @@ const EquipmentEffectType = enum {
 const EquipmentEffectTypeData = union(EquipmentEffectType) {
     none,
     hp: u8,
-    damage: u8,
+    damage: u32,
 };
 
 pub const EquipmentShopOptions = struct {
@@ -98,7 +98,25 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
             .slotTypeData = .feet,
         },
     },
+    .{
+        .basePrice = 10,
+        .shopDisplayImage = imageZig.IMAGE_BLADE,
+        .equipment = .{
+            .effectType = .{ .damage = 10 },
+            .imageIndex = imageZig.IMAGE_BLADE,
+            .slotTypeData = .weapon,
+        },
+    },
 };
+
+pub fn getEquipmentOptionByIndexScaledToLevel(index: usize, level: u32) EquipmentShopOptions {
+    var option = EQUIPMENT_SHOP_OPTIONS[index];
+    if (option.equipment.effectType == .damage) {
+        const damageScaledToLevel = @divFloor(@divFloor(level + 10, 5) * option.equipment.effectType.damage, 10);
+        option.equipment.effectType.damage = damageScaledToLevel;
+    }
+    return option;
+}
 
 pub fn equipStarterEquipment(player: *main.Player) void {
     equip(.{
@@ -240,18 +258,21 @@ fn equipWeapon(optWeapon: ?EquipmentData, player: *main.Player) void {
 }
 
 fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType: ?EquipmentEffectTypeData, player: *main.Player) void {
-    _ = player;
     if (optOldEffectType) |oldEffectType| {
         switch (oldEffectType) {
             .none => {},
-            .damage => {},
+            .damage => |damage| {
+                player.damage -= damage;
+            },
             .hp => {},
         }
     }
     if (optNewEffectType) |newEffectType| {
         switch (newEffectType) {
             .none => {},
-            .damage => {},
+            .damage => |damage| {
+                player.damage += damage;
+            },
             .hp => {},
         }
     }

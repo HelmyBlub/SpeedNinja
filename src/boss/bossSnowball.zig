@@ -39,9 +39,10 @@ pub fn createBoss() bossZig.LevelBossData {
 }
 
 fn startBoss(state: *main.GameState) !void {
+    const scaledHp = bossZig.getHpScalingForLevel(10, state.level);
     try state.bosses.append(.{
-        .hp = 10,
-        .maxHp = 10,
+        .hp = scaledHp,
+        .maxHp = scaledHp,
         .imageIndex = imageZig.IMAGE_BOSS_SNOWBALL,
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
@@ -92,7 +93,6 @@ fn canRollInDirection(boss: *bossZig.Boss, direction: u8, state: *main.GameState
 
 fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
     _ = cutRotation;
-    _ = player;
     const data = &boss.typeData.snowball;
     const bossTile = main.gamePositionToTilePosition(boss.position);
     if (main.isTilePositionInTileRectangle(bossTile, hitArea)) {
@@ -103,7 +103,7 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
             if (data.nextRollTime < state.gameTime) data.nextRollTime = state.gameTime + data.rollInterval;
             data.state = .rolling;
         }
-        boss.hp -|= 1;
+        boss.hp -|= player.damage;
         try checkSpawnEnemy(boss, state);
         return true;
     }

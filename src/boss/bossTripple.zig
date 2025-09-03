@@ -50,7 +50,8 @@ fn deinit(boss: *bossZig.Boss, allocator: std.mem.Allocator) void {
 }
 
 fn startBoss(state: *main.GameState) !void {
-    const bossHp = 5;
+    const scaledHp = bossZig.getHpScalingForLevel(5, state.level);
+    const bossHp = scaledHp;
     try state.bosses.append(.{
         .hp = bossHp,
         .maxHp = bossHp,
@@ -165,7 +166,7 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_ENEMY_BLOCK_INDICIES[0..], 0, 1);
             try executeAttack(boss, player, hitDirection, state);
         } else {
-            boss.hp -|= 1;
+            boss.hp -|= player.damage;
             if (boss.hp == 0) {
                 for (state.bosses.items) |*otherBoss| {
                     if (otherBoss.typeData == .tripple) {

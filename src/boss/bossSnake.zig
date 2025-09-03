@@ -44,9 +44,10 @@ fn deinit(boss: *bossZig.Boss, allocator: std.mem.Allocator) void {
 }
 
 fn startBoss(state: *main.GameState) !void {
+    const scaledHp = bossZig.getHpScalingForLevel(20, state.level);
     var snakeBoss: bossZig.Boss = .{
-        .hp = 20,
-        .maxHp = 20,
+        .hp = scaledHp,
+        .maxHp = scaledHp,
         .imageIndex = imageZig.IMAGE_BOSS_SNAKE_HEAD,
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
@@ -110,18 +111,17 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
 
 fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
     _ = hitDirection;
-    _ = player;
     const snakeData = &boss.typeData.snake;
     const bossTile = main.gamePositionToTilePosition(boss.position);
     if (main.isTilePositionInTileRectangle(bossTile, hitArea)) {
-        boss.hp -|= 1;
+        boss.hp -|= player.damage;
         try checkLooseBodyPart(boss, boss.position, cutRotation, state);
         return true;
     }
     for (snakeData.snakeBodyParts.items) |snakeBodyPart| {
         const partTile = main.gamePositionToTilePosition(snakeBodyPart.pos);
         if (main.isTilePositionInTileRectangle(partTile, hitArea)) {
-            boss.hp -|= 1;
+            boss.hp -|= player.damage;
             try checkLooseBodyPart(boss, snakeBodyPart.pos, cutRotation, state);
             return true;
         }

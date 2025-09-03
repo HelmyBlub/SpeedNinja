@@ -165,9 +165,11 @@ fn deinit(boss: *bossZig.Boss, allocator: std.mem.Allocator) void {
 }
 
 fn startBoss(state: *main.GameState) !void {
+    const baseHp = 50;
+    const scaledHp = bossZig.getHpScalingForLevel(baseHp, state.level);
     var boss: bossZig.Boss = .{
-        .hp = 50,
-        .maxHp = 50,
+        .hp = scaledHp,
+        .maxHp = scaledHp,
         .imageIndex = imageZig.IMAGE_BOSS_DRAGON_TAIL,
         .position = .{ .x = 0, .y = 800 },
         .name = BOSS_NAME,
@@ -737,7 +739,6 @@ fn cutTilesForGroundBreakingEffect(state: *main.GameState) !void {
 
 fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
     _ = hitDirection;
-    _ = player;
     const data = &boss.typeData.dragon;
     if (data.inAirHeight < 5) {
         for (data.feetOffset, 0..) |footOffset, footIndex| {
@@ -749,7 +750,7 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
                 continue;
             }
             if (main.isTilePositionInTileRectangle(footTile, hitArea)) {
-                boss.hp -|= 1;
+                boss.hp -|= player.damage;
                 if (boss.hp <= 0) {
                     try bossDeathCutSprites(boss, cutRotation, state);
                 }

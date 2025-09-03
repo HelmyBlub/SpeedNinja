@@ -48,9 +48,10 @@ fn deinit(boss: *bossZig.Boss, allocator: std.mem.Allocator) void {
 }
 
 fn startBoss(state: *main.GameState) !void {
+    const scaledHp = bossZig.getHpScalingForLevel(10, state.level);
     try state.bosses.append(.{
-        .hp = 10,
-        .maxHp = 10,
+        .hp = scaledHp,
+        .maxHp = scaledHp,
         .imageIndex = imageZig.IMAGE_BOSS_ROTATE,
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
@@ -150,12 +151,11 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
     _ = hitDirection;
     _ = state;
     _ = cutRotation;
-    _ = player;
     const rotate = &boss.typeData.rotate;
     if (!rotate.immune) {
         const bossTile = main.gamePositionToTilePosition(boss.position);
         if (main.isTilePositionInTileRectangle(bossTile, hitArea)) {
-            boss.hp -|= 1;
+            boss.hp -|= player.damage;
             return true;
         }
     }

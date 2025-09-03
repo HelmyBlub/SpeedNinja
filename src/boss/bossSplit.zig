@@ -47,12 +47,13 @@ pub fn createBoss() bossZig.LevelBossData {
 }
 
 fn startBoss(state: *main.GameState) !void {
+    const scaledHp = bossZig.getHpScalingForLevel(10, state.level);
     const maxSplits = 3;
     var bossTypeData: BossSplitData = .{
         .splits = std.ArrayList(BossSplitPartData).init(state.allocator),
         .maxSplits = maxSplits,
     };
-    const bossHp = 10;
+    const bossHp = scaledHp;
     const splitEachXHealth = @divFloor(bossHp, std.math.pow(u32, 2, maxSplits));
     try bossTypeData.splits.append(.{
         .hp = bossHp,
@@ -130,7 +131,6 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
 
 fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
     _ = hitDirection;
-    _ = player;
     var somethingHit = false;
     const splitData = &boss.typeData.split;
     var currentIndex: usize = 0;
@@ -140,8 +140,8 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
             const bossTile = main.gamePositionToTilePosition(bossSplit.position);
             if (main.isTilePositionInTileRectangle(bossTile, hitArea)) {
                 if (bossSplit.hp > 0) {
-                    boss.hp -|= 1;
-                    bossSplit.hp -|= 1;
+                    boss.hp -|= player.damage;
+                    bossSplit.hp -|= player.damage;
                     somethingHit = true;
                 }
             }
