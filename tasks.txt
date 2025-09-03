@@ -1,8 +1,7 @@
 Tasks:
-- equipment
-    - dont sell same item twice
-    - +damage equip
 - bug: movePiece enemy can damage player on spawn?
+- equipment
+    - weapons
 
 - boss hp scalling
 - check: prevent player from buying downgrades?

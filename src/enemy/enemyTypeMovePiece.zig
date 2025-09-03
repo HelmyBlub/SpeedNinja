@@ -8,6 +8,7 @@ const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 pub const EnemyTypeMovePieceData = struct {
     direction: ?u8 = null,
     executeMoveTime: ?i64 = null,
+    spawnDelay: ?i64 = null,
 };
 
 const OnPlayerMoveStepData = struct {
@@ -65,6 +66,8 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
     if (state.enemyData.movePieceEnemyMovePiece == null) {
         state.enemyData.movePieceEnemyMovePiece = try createRandomMovePiece(state.allocator);
     }
+    if (data.spawnDelay == null) data.spawnDelay = state.gameTime + 64;
+    if (data.spawnDelay.? > state.gameTime) return;
     if (data.direction == null) {
         try chooseDirection(enemy, state);
     }
