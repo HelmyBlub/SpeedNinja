@@ -28,6 +28,7 @@ pub const NinjaDogPaintData = struct {
     chestArmorImageIndex: u8 = imageZig.IMAGE_NINJA_CHEST_ARMOR_1,
     headLayer1ImageIndex: ?u8 = null,
     headLayer2ImageIndex: u8 = imageZig.IMAGE_NINJA_HEAD,
+    headLayer2Offset: main.Position = .{ .x = 0, .y = 0 },
     earImageIndex: u8 = imageZig.IMAGE_NINJA_EAR,
     feetImageIndex: u8 = imageZig.IMAGE_NINJA_FEET,
     weaponImageIndex: u8 = imageZig.IMAGE_BLADE,
@@ -390,7 +391,7 @@ fn drawHead(position: main.Position, paintData: NinjaDogPaintData, state: *main.
         );
     }
     addTiranglesForSprite(
-        headPosition,
+        .{ .x = headPosition.x + paintData.headLayer2Offset.x, .y = headPosition.y + paintData.headLayer2Offset.y },
         imageZig.IMAGE_DOG_HEAD__ANKER,
         paintData.headLayer2ImageIndex,
         0,

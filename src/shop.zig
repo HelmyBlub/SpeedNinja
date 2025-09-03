@@ -229,6 +229,19 @@ pub fn randomizeShop(state: *main.GameState) !void {
         .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_2,
         .equipment = .{ .body = .{ .effectType = .{ .hp = 2 }, .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_2 } },
     });
+    try state.shop.buyOptions.append(.{
+        .price = state.level * 10,
+        .tilePosition = .{ .x = 8, .y = 3 },
+        .imageIndex = imageZig.IMAGE_MILITARY_HELMET,
+        .equipment = .{ .head = .{
+            .effectType = .{ .hp = 2 },
+            .bandana = false,
+            .earImageIndex = imageZig.IMAGE_DOG_EAR,
+            .imageIndex = imageZig.IMAGE_MILITARY_HELMET,
+            .imageIndexLayer1 = imageZig.IMAGE_DOG_HEAD,
+            .offset = imageZig.IMAGE_MILITARY_HELMET__OFFSET_GAME,
+        } },
+    });
 }
 
 pub fn executeGridTile(player: *main.Player, state: *main.GameState) !void {

@@ -3,8 +3,7 @@ Tasks:
     - +hp equipment first
         - head
         - feet
-    - on damage hit break equipment with hp
-        - parts of equipment tell player hp
+    - randomize shop
 
 - boss hp scalling
 - check: prevent player from buying downgrades?
@@ -29,8 +28,8 @@ Play Times:    best split | best total | estimtaed enemy difficulty | estimated 
     lvl 25 best in 5:28 total 19:54        7/10 (s + fire)             5/10 (snake) (piece dependent)
     lvl 30 best in 5:36 total 26:03        5/10 (fire + block)         2/10 (tripple)
     lvl 35 best in 5:19 total 32:16        6/10 (block + ice)          3/10 (snowball)
-    lvl 40 best in 6:52 total 39:35        7/10 (ice + wall )          7/10 (waller)
-    lvl 45 best in 6:00 total 45:44        4/10 (wall + movePiece)     3/10 (fireRoll)
+    lvl 40 best in 6:08 total 39:35        7/10 (ice + wall )          7/10 (waller)
+    lvl 45 best in 5:19 total 45:44        4/10 (wall + movePiece)     3/10 (fireRoll)
     lvl 50 best in 7:30 total 54:00        4/10 (movePiece + bomb)     9/10 (dragon)
 
 Next ideas:

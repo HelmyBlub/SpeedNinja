@@ -34,6 +34,7 @@ const EquipmentHeadData = struct {
     bandana: bool,
     imageIndexLayer1: ?u8 = null,
     earImageIndex: u8 = imageZig.IMAGE_DOG_EAR,
+    offset: main.Position = .{ .x = 0, .y = 0 },
 };
 
 const EquipmentEffectType = enum {
@@ -115,10 +116,14 @@ fn equipHead(optHead: ?EquipmentHeadData, player: *main.Player) void {
         player.paintData.headLayer1ImageIndex = head.imageIndexLayer1;
         player.paintData.headLayer2ImageIndex = head.imageIndex;
         player.paintData.earImageIndex = head.earImageIndex;
+        player.paintData.headLayer2Offset = head.offset;
+        player.paintData.hasBandana = head.bandana;
     } else {
         player.paintData.headLayer1ImageIndex = null;
         player.paintData.headLayer2ImageIndex = imageZig.IMAGE_DOG_HEAD;
         player.paintData.earImageIndex = imageZig.IMAGE_DOG_EAR;
+        player.paintData.headLayer2Offset = .{ .x = 0, .y = 0 };
+        player.paintData.hasBandana = false;
     }
 }
 

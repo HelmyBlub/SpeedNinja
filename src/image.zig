@@ -71,6 +71,7 @@ pub const IMAGE_BOSS_DRAGON_HEAD_LAYER2 = 63;
 pub const IMAGE_DOG_HEAD = 64;
 pub const IMAGE_NINJA_EAR = 65;
 pub const IMAGE_NINJA_HEAD = 66;
+pub const IMAGE_MILITARY_HELMET = 67;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaFeet.png" },
@@ -140,6 +141,7 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/dogHead.png" },
     .{ .path = "images/ninjaEar.png" },
     .{ .path = "images/ninjaHead.png" },
+    .{ .path = "images/militaryHelmet.png" },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 pub const IMAGE_DOG__CENTER_BODY: main.Position = .{ .x = 99, .y = 128 };
@@ -174,6 +176,7 @@ pub const IMAGE_BLADE__HAND_HOLD_POINT: main.Position = .{ .x = 13, .y = 12 };
 pub const IMAGE_TO_GAME_SIZE = IMAGE_DOG_TOTAL_SIZE / main.TILESIZE;
 
 pub const IMAGE_DOG_TOTAL_SIZE = 200;
+pub const IMAGE_MILITARY_HELMET__OFFSET_GAME: main.Position = .{ .x = -1.8, .y = -2.6 };
 
 pub const ImageData = struct {
     path: []const u8,
