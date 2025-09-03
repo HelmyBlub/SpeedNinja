@@ -216,9 +216,22 @@ pub fn randomizeShop(state: *main.GameState) !void {
         }
     }
 
+    try randomizeBuyableEquipment(3, state);
+}
+
+fn randomizeBuyableEquipment(maxShopOptions: usize, state: *main.GameState) !void {
     state.shop.buyOptions.clearRetainingCapacity();
-    for (0..2) |i| {
-        const randomEquipIndex = std.crypto.random.intRangeLessThan(usize, 0, equipmentZig.EQUIPMENT_SHOP_OPTIONS.len);
+    var availableIndexes: [equipmentZig.EQUIPMENT_SHOP_OPTIONS.len]usize = undefined;
+    var availableIndexesLength = availableIndexes.len;
+    for (0..availableIndexes.len) |i| {
+        availableIndexes[i] = i;
+    }
+    for (0..maxShopOptions) |i| {
+        const randomIndex = std.crypto.random.intRangeLessThan(usize, 0, availableIndexesLength);
+        const randomEquipIndex = availableIndexes[randomIndex];
+        availableIndexesLength -= 1;
+        availableIndexes[randomIndex] = availableIndexes[availableIndexesLength];
+
         const randomEquip = equipmentZig.EQUIPMENT_SHOP_OPTIONS[randomEquipIndex];
         try state.shop.buyOptions.append(.{
             .price = state.level * randomEquip.basePrice,
@@ -226,6 +239,7 @@ pub fn randomizeShop(state: *main.GameState) !void {
             .imageIndex = randomEquip.shopDisplayImage,
             .equipment = randomEquip.equipment,
         });
+        if (availableIndexesLength == 0) break;
     }
 }
 

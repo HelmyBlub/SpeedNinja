@@ -128,7 +128,7 @@ pub fn equip(equipment: EquipmentData, player: *main.Player) void {
     }
 }
 
-pub fn unequip(slotType: EquipmentSlotTypes, player: *main.Player) void {
+fn unequip(slotType: EquipmentSlotTypes, player: *main.Player) void {
     switch (slotType) {
         .body => {
             equipBody(null, player);
