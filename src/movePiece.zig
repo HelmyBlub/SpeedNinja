@@ -342,7 +342,7 @@ fn stepAndCheckEnemyHitAndProjectileHitAndTiles(player: *main.Player, stepCount:
         if (player.hasWeaponHammer and currIndex == stepCount and player.executeMovePiece.?.steps.len == 1) {
             const hitArea: main.TileRectangle = .{ .pos = .{ .x = tilePosition.x - 1, .y = tilePosition.y - 1 }, .height = 3, .width = 3 };
             if (try checkEnemyHitOnMoveStepWithHitArea(player, direction, hitArea, state)) {
-                try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BLADE_CUT_INDICIES[0..], currIndex * 25, 1);
+                try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_HAMMER_INDICIES[0..], currIndex * 25, 1);
                 try resetPieces(player);
             }
         }

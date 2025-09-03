@@ -4,7 +4,6 @@ Tasks:
         - big hammer
             - aoe at move piece end
                 - visualize
-                    - when displaying move piece?
                     - when executing
                         - hit hammer to the ground
                         - sound
