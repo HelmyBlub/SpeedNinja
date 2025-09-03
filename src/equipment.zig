@@ -40,12 +40,14 @@ const EquipmentEffectType = enum {
     none,
     hp,
     damage,
+    hammer,
 };
 
 const EquipmentEffectTypeData = union(EquipmentEffectType) {
     none,
     hp: u8,
     damage: u32,
+    hammer: u32,
 };
 
 pub const EquipmentShopOptions = struct {
@@ -107,13 +109,26 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
             .slotTypeData = .weapon,
         },
     },
+    .{
+        .basePrice = 10,
+        .shopDisplayImage = imageZig.IMAGE_HAMMER,
+        .equipment = .{
+            .effectType = .{ .hammer = 4 },
+            .imageIndex = imageZig.IMAGE_HAMMER,
+            .slotTypeData = .weapon,
+        },
+    },
 };
 
 pub fn getEquipmentOptionByIndexScaledToLevel(index: usize, level: u32) EquipmentShopOptions {
     var option = EQUIPMENT_SHOP_OPTIONS[index];
     if (option.equipment.effectType == .damage) {
-        const damageScaledToLevel = @divFloor(@divFloor(level + 10, 5) * option.equipment.effectType.damage, 10);
+        const damageScaledToLevel = @max(1, @divFloor(@divFloor(level + 10, 5) * option.equipment.effectType.damage, 10));
         option.equipment.effectType.damage = damageScaledToLevel;
+    }
+    if (option.equipment.effectType == .hammer) {
+        const damageScaledToLevel = @max(1, @divFloor(@divFloor(level + 10, 5) * option.equipment.effectType.hammer, 10));
+        option.equipment.effectType.hammer = damageScaledToLevel;
     }
     return option;
 }
@@ -264,6 +279,10 @@ fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType:
             .damage => |damage| {
                 player.damage -= damage;
             },
+            .hammer => |damage| {
+                player.damage -= damage;
+                player.hasWeaponHammer = false;
+            },
             .hp => {},
         }
     }
@@ -272,6 +291,10 @@ fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType:
             .none => {},
             .damage => |damage| {
                 player.damage += damage;
+            },
+            .hammer => |damage| {
+                player.damage += damage;
+                player.hasWeaponHammer = true;
             },
             .hp => {},
         }

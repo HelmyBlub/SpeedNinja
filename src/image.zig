@@ -73,6 +73,7 @@ pub const IMAGE_NINJA_EAR = 65;
 pub const IMAGE_NINJA_HEAD = 66;
 pub const IMAGE_MILITARY_HELMET = 67;
 pub const IMAGE_MILITARY_BOOTS = 68;
+pub const IMAGE_HAMMER = 69;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaFeet.png" },
@@ -144,6 +145,7 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaHead.png" },
     .{ .path = "images/militaryHelmet.png" },
     .{ .path = "images/militaryBoots.png" },
+    .{ .path = "images/hammer.png" },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 pub const IMAGE_DOG__CENTER_BODY: main.Position = .{ .x = 99, .y = 128 };

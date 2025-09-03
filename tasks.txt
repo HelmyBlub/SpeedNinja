@@ -1,10 +1,9 @@
 Tasks:
 - equipment
     - weapons
-        - blade
-            - a bit bonus damage
         - big hammer
             - aoe at move piece end
+            
         - kunai
             - throw kunai each move piece edge for 2 pieces far
         - gold weapon  

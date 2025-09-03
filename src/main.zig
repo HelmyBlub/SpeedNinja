@@ -73,6 +73,7 @@ pub const Player = struct {
     startedFallingState: ?i64 = null,
     fallingStateDamageDelay: i32 = 1500,
     equipment: equipmentZig.EquipmentSlotsData = .{},
+    hasWeaponHammer: bool = false,
 };
 
 pub const AfterImage = struct {

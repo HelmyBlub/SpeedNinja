@@ -339,6 +339,13 @@ fn stepAndCheckEnemyHitAndProjectileHitAndTiles(player: *main.Player, stepCount:
         if (currIndex == stepCount and tileType == .ice) {
             currIndex -= 1;
         }
+        if (player.hasWeaponHammer and currIndex == stepCount and player.executeMovePiece.?.steps.len == 1) {
+            const hitArea: main.TileRectangle = .{ .pos = .{ .x = tilePosition.x - 1, .y = tilePosition.y - 1 }, .height = 3, .width = 3 };
+            if (try checkEnemyHitOnMoveStepWithHitArea(player, direction, hitArea, state)) {
+                try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BLADE_CUT_INDICIES[0..], currIndex * 25, 1);
+                try resetPieces(player);
+            }
+        }
     }
 }
 
@@ -494,12 +501,15 @@ pub fn createRandomMovePiece(allocator: std.mem.Allocator) !MovePiece {
 
 fn checkEnemyHitOnMoveStep(player: *main.Player, hitDirection: u8, state: *main.GameState) !bool {
     const position: main.Position = player.position;
-    var enemyIndex: usize = 0;
     const tilePosition = main.gamePositionToTilePosition(position);
     const hitArea: main.TileRectangle = .{ .pos = tilePosition, .height = 1, .width = 1 };
+    return try checkEnemyHitOnMoveStepWithHitArea(player, hitDirection, hitArea, state);
+}
 
+fn checkEnemyHitOnMoveStepWithHitArea(player: *main.Player, hitDirection: u8, hitArea: main.TileRectangle, state: *main.GameState) !bool {
     const rand = std.crypto.random;
     var hitSomething = false;
+    var enemyIndex: usize = 0;
     while (enemyIndex < state.enemyData.enemies.items.len) {
         const enemy = &state.enemyData.enemies.items[enemyIndex];
         if (try enemyZig.isEnemyHit(enemy, hitArea, hitDirection, state)) {
