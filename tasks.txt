@@ -1,7 +1,6 @@
 Tasks:
 - equipment
     - +hp equipment first
-        - head
         - feet
     - randomize shop
 

@@ -242,6 +242,12 @@ pub fn randomizeShop(state: *main.GameState) !void {
             .offset = imageZig.IMAGE_MILITARY_HELMET__OFFSET_GAME,
         } },
     });
+    try state.shop.buyOptions.append(.{
+        .price = state.level * 10,
+        .tilePosition = .{ .x = 9, .y = 3 },
+        .imageIndex = imageZig.IMAGE_MILITARY_BOOTS,
+        .equipment = .{ .feet = .{ .effectType = .{ .hp = 2 }, .imageIndex = imageZig.IMAGE_MILITARY_BOOTS } },
+    });
 }
 
 pub fn executeGridTile(player: *main.Player, state: *main.GameState) !void {
