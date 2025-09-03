@@ -1,25 +1,17 @@
 Tasks:
+- bug: split boss third split not visible
+- bug: split boss death sprite location incorrect
+    - boss should split correct amount of times even for high damage values
 - equipment
+    - display equipment values
+    - prevent buying same or weaker item
     - weapons
-        - big hammer
-            - aoe at move piece end
-                - visualize
-                    - when executing
-                        - hit hammer to the ground
-                        - sound
-
-
         - kunai
             - throw kunai each move piece edge for 2 pieces far
         - gold weapon  
             - increase money gained
             - less damage
     - shop should have one weapon buy option always
-    - prevent buying same or weaker item
-- bug: split boss death sprite location incorrect
-- bug: split boss third split not visible
-    - boss should split correct amount of times even for high damage values
-- boss hp scalling
 - check: prevent player from buying downgrades?
 - when bought new equipment, place old equipment at position to be able to switch back
 
