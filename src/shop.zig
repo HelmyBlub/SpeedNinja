@@ -66,7 +66,7 @@ pub const ShopBuyOption = struct {
     tilePosition: main.TilePosition,
     price: u32,
     imageIndex: u8,
-    equipment: equipmentZig.EquipmentSlotTypeData,
+    equipment: equipmentZig.EquipmentData,
 };
 
 pub const ShopData = struct {
@@ -217,37 +217,16 @@ pub fn randomizeShop(state: *main.GameState) !void {
     }
 
     state.shop.buyOptions.clearRetainingCapacity();
-    try state.shop.buyOptions.append(.{
-        .price = state.level * 5,
-        .tilePosition = .{ .x = 6, .y = 3 },
-        .imageIndex = imageZig.IMAGE_NINJA_HEAD,
-        .equipment = .{ .head = .{ .effectType = .{ .hp = 1 }, .bandana = true, .earImageIndex = imageZig.IMAGE_NINJA_EAR, .imageIndex = imageZig.IMAGE_NINJA_HEAD } },
-    });
-    try state.shop.buyOptions.append(.{
-        .price = state.level * 10,
-        .tilePosition = .{ .x = 7, .y = 3 },
-        .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_2,
-        .equipment = .{ .body = .{ .effectType = .{ .hp = 2 }, .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_2 } },
-    });
-    try state.shop.buyOptions.append(.{
-        .price = state.level * 10,
-        .tilePosition = .{ .x = 8, .y = 3 },
-        .imageIndex = imageZig.IMAGE_MILITARY_HELMET,
-        .equipment = .{ .head = .{
-            .effectType = .{ .hp = 2 },
-            .bandana = false,
-            .earImageIndex = imageZig.IMAGE_DOG_EAR,
-            .imageIndex = imageZig.IMAGE_MILITARY_HELMET,
-            .imageIndexLayer1 = imageZig.IMAGE_DOG_HEAD,
-            .offset = imageZig.IMAGE_MILITARY_HELMET__OFFSET_GAME,
-        } },
-    });
-    try state.shop.buyOptions.append(.{
-        .price = state.level * 10,
-        .tilePosition = .{ .x = 9, .y = 3 },
-        .imageIndex = imageZig.IMAGE_MILITARY_BOOTS,
-        .equipment = .{ .feet = .{ .effectType = .{ .hp = 2 }, .imageIndex = imageZig.IMAGE_MILITARY_BOOTS } },
-    });
+    for (0..2) |i| {
+        const randomEquipIndex = std.crypto.random.intRangeLessThan(usize, 0, equipmentZig.EQUIPMENT_SHOP_OPTIONS.len);
+        const randomEquip = equipmentZig.EQUIPMENT_SHOP_OPTIONS[randomEquipIndex];
+        try state.shop.buyOptions.append(.{
+            .price = state.level * randomEquip.basePrice,
+            .tilePosition = .{ .x = 6 + @as(i32, @intCast(i)), .y = 3 },
+            .imageIndex = randomEquip.shopDisplayImage,
+            .equipment = randomEquip.equipment,
+        });
+    }
 }
 
 pub fn executeGridTile(player: *main.Player, state: *main.GameState) !void {

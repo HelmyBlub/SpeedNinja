@@ -1,8 +1,7 @@
 Tasks:
 - equipment
-    - +hp equipment first
-        - feet
     - randomize shop
+    - +damage equip
 
 - boss hp scalling
 - check: prevent player from buying downgrades?
