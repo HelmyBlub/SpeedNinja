@@ -5,6 +5,7 @@ const windowSdlZig = @import("../windowSdl.zig");
 const movePieceZig = @import("../movePiece.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 const mapTileZig = @import("../mapTile.zig");
+const imageZig = @import("../image.zig");
 
 pub const VkChoosenMovePieceVisualization = struct {
     triangles: dataVulkanZig.VkColoredVertexes = undefined,
@@ -33,7 +34,7 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
         const pieceTotalSteps = movePieceZig.getMovePieceTotalStepes(movePiece);
         const highlightModLimit = @max(5, pieceTotalSteps + 1);
         for (0..4) |direction| {
-            var gamePosition: main.Position = .{
+            var gamePositionWithCameraOffset: main.Position = .{
                 .x = player.position.x - state.camera.position.x,
                 .y = player.position.y - state.camera.position.y,
             };
@@ -45,7 +46,7 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
             };
             const highlightedLineColor: [3]f32 = .{ 1, 1, 1 };
 
-            var lastGamePosition: main.Position = gamePosition;
+            var lastGamePosition: main.Position = gamePositionWithCameraOffset;
             var lastMoveDirection: usize = 0;
             var moveDirection: usize = 0;
             var totalStepCount: usize = 0;
@@ -59,10 +60,10 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
                     totalStepCount += 1;
                     const modColor = player.choosenMoveOptionVisualizationOverlapping and @mod(totalStepCount, highlightModLimit) == @mod(@as(usize, @intCast(@divFloor(state.gameTime, 100))), highlightModLimit);
                     const lineColor = if (modColor) highlightedLineColor else lineColorForDirection;
-                    lastGamePosition = gamePosition;
+                    lastGamePosition = gamePositionWithCameraOffset;
                     const nextPosition: main.Position = .{
-                        .x = gamePosition.x + moveX,
-                        .y = gamePosition.y + moveY,
+                        .x = gamePositionWithCameraOffset.x + moveX,
+                        .y = gamePositionWithCameraOffset.y + moveY,
                     };
                     if (stepCount + 1 < moveStep.stepCount) {
                         const afterNextPosition: main.Position = .{
@@ -78,10 +79,10 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
                     const tilePosition = main.gamePositionToTilePosition(nextPosition);
                     const tileType = mapTileZig.getMapTilePositionType(tilePosition, &state.mapData);
                     if (tileType != .wall) {
-                        gamePosition = nextPosition;
+                        gamePositionWithCameraOffset = nextPosition;
                     }
-                    var x = gamePosition.x * onePixelXInVulkan * state.camera.zoom;
-                    var y = gamePosition.y * onePixelYInVulkan * state.camera.zoom;
+                    var x = gamePositionWithCameraOffset.x * onePixelXInVulkan * state.camera.zoom;
+                    var y = gamePositionWithCameraOffset.y * onePixelYInVulkan * state.camera.zoom;
                     stepCount += 1;
                     if (stepCount == moveStep.stepCount and tileType == .ice) {
                         stepCount -= 1;
@@ -185,6 +186,25 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
                             },
                         }
                     }
+                }
+            }
+            if (player.hasWeaponHammer) {
+                const hammerPositionOffsets = [_]main.Position{
+                    .{ .x = -main.TILESIZE, .y = -main.TILESIZE },
+                    .{ .x = 0, .y = -main.TILESIZE },
+                    .{ .x = main.TILESIZE, .y = -main.TILESIZE },
+                    .{ .x = -main.TILESIZE, .y = 0 },
+                    .{ .x = main.TILESIZE, .y = 0 },
+                    .{ .x = -main.TILESIZE, .y = main.TILESIZE },
+                    .{ .x = 0, .y = main.TILESIZE },
+                    .{ .x = main.TILESIZE, .y = main.TILESIZE },
+                };
+                for (0..hammerPositionOffsets.len) |i| {
+                    const gamePosition: main.Position = .{
+                        .x = gamePositionWithCameraOffset.x + state.camera.position.x + hammerPositionOffsets[i].x,
+                        .y = gamePositionWithCameraOffset.y + state.camera.position.y + hammerPositionOffsets[i].y,
+                    };
+                    paintVulkanZig.verticesForComplexSpriteAlpha(gamePosition, imageZig.IMAGE_HAMMER_TILE_INDICATOR, 0.25, state);
                 }
             }
         }

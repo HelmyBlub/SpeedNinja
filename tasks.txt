@@ -3,7 +3,13 @@ Tasks:
     - weapons
         - big hammer
             - aoe at move piece end
-            
+                - visualize
+                    - when displaying move piece?
+                    - when executing
+                        - hit hammer to the ground
+                        - sound
+
+
         - kunai
             - throw kunai each move piece edge for 2 pieces far
         - gold weapon  
