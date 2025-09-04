@@ -190,9 +190,7 @@ fn checkAndSplitBoss(splitData: *BossSplitData, bossSplit: *BossSplitPartData, s
         bossSplit.flyCutDuration = @intFromFloat(distance * timePerDistance);
         const hp = @divFloor(bossSplit.hp, 2);
         const splitEachXHealth = @max(1, @divFloor(hp, std.math.pow(u32, 2, bossSplit.remainingSpltits)));
-        std.debug.print("beforeHp: {}, ", .{bossSplit.hp});
         bossSplit.hp -= hp;
-        std.debug.print("afterHp1: {}, ", .{bossSplit.hp});
         bossSplit.splitOnHp = bossSplit.hp - splitEachXHealth;
         var bossSplit2: BossSplitPartData = .{
             .position = bossSplit.position,
@@ -204,7 +202,6 @@ fn checkAndSplitBoss(splitData: *BossSplitData, bossSplit: *BossSplitPartData, s
             .remainingSpltits = bossSplit.remainingSpltits,
             .flyCutStart = state.gameTime,
         };
-        std.debug.print(" afterHp2: {}\n", .{bossSplit2.hp});
         const distance2 = main.calculateDistance(bossSplit.position, bossSplit2.flyToPosition.?);
         bossSplit2.flyCutDuration = @intFromFloat(distance2 * timePerDistance);
         try splitData.splits.append(bossSplit2);
