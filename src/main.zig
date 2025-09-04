@@ -41,6 +41,7 @@ pub const GameState = struct {
     bosses: std.ArrayList(bossZig.Boss) = undefined,
     enemyData: enemyZig.EnemyData = .{},
     spriteCutAnimations: std.ArrayList(CutSpriteAnimation) = undefined,
+    mapObjects: std.ArrayList(MapObject) = undefined,
     players: std.ArrayList(Player),
     soundMixer: ?soundMixerZig.SoundMixer = null,
     gameEnded: bool = false,
@@ -74,6 +75,26 @@ pub const Player = struct {
     fallingStateDamageDelay: i32 = 1500,
     equipment: equipmentZig.EquipmentSlotsData = .{},
     hasWeaponHammer: bool = false,
+    hasWeaponKunai: bool = false,
+};
+
+pub const MapObjectType = enum {
+    kunai,
+};
+
+pub const MabObjectKunaiData = struct {
+    direction: u8,
+    speed: f32,
+    deleteTime: i64,
+};
+
+pub const MapObjectTypeData = union(MapObjectType) {
+    kunai: MabObjectKunaiData,
+};
+
+pub const MapObject = struct {
+    position: Position,
+    typeData: MapObjectTypeData,
 };
 
 pub const AfterImage = struct {
@@ -187,6 +208,7 @@ fn mainLoop(state: *GameState) !void {
         tickClouds(state, passedTime);
         try enemyZig.tickEnemies(passedTime, state);
         try bossZig.tickBosses(state, passedTime);
+        tickMapObjects(state, passedTime);
         try paintVulkanZig.drawFrame(state);
         std.Thread.sleep(5_000_000);
         lastTime = currentTime;
@@ -197,6 +219,27 @@ fn mainLoop(state: *GameState) !void {
         }
         if (!state.timerStarted) passedTime = 0;
         state.gameTime += passedTime;
+    }
+}
+
+fn tickMapObjects(state: *GameState, passedTime: i64) void {
+    var currentIndex: usize = 0;
+    while (currentIndex < state.mapObjects.items.len) {
+        const mapObject = &state.mapObjects.items[currentIndex];
+        switch (mapObject.typeData) {
+            .kunai => |kunaiData| {
+                if (kunaiData.deleteTime <= state.gameTime) {
+                    _ = state.mapObjects.swapRemove(currentIndex);
+                    continue;
+                } else {
+                    const fPassedTime = @as(f32, @floatFromInt(passedTime)) / 100;
+                    const stepDirection = movePieceZig.getStepDirection(kunaiData.direction);
+                    mapObject.position.x += stepDirection.x * kunaiData.speed * fPassedTime;
+                    mapObject.position.y += stepDirection.y * kunaiData.speed * fPassedTime;
+                }
+            },
+        }
+        currentIndex += 1;
     }
 }
 
@@ -393,6 +436,7 @@ pub fn restart(state: *GameState) !void {
     }
     bossZig.clearBosses(state);
     state.spriteCutAnimations.clearRetainingCapacity();
+    state.mapObjects.clearAndFree();
     try startNextLevel(state);
 }
 
@@ -431,6 +475,7 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
     try soundMixerZig.createSoundMixer(state, state.allocator);
     try enemyZig.initEnemy(state);
     state.spriteCutAnimations = std.ArrayList(CutSpriteAnimation).init(state.allocator);
+    state.mapObjects = std.ArrayList(MapObject).init(state.allocator);
     try state.players.append(createPlayer(allocator));
     try restart(state);
 }
@@ -473,6 +518,8 @@ fn destroyGameState(state: *GameState) void {
     }
     state.bosses.deinit();
     state.shop.buyOptions.deinit();
+    state.spriteCutAnimations.deinit();
+    state.mapObjects.deinit();
     mapTileZig.deinit(state);
     enemyZig.destroyEnemyData(state);
 }

@@ -41,6 +41,7 @@ const EquipmentEffectType = enum {
     hp,
     damage,
     hammer,
+    kunai,
 };
 
 const EquipmentEffectTypeData = union(EquipmentEffectType) {
@@ -48,6 +49,7 @@ const EquipmentEffectTypeData = union(EquipmentEffectType) {
     hp: u8,
     damage: u32,
     hammer: u32,
+    kunai: u32,
 };
 
 pub const EquipmentShopOptions = struct {
@@ -118,6 +120,15 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
             .slotTypeData = .weapon,
         },
     },
+    .{
+        .basePrice = 10,
+        .shopDisplayImage = imageZig.IMAGE_KUNAI,
+        .equipment = .{
+            .effectType = .{ .kunai = 6 },
+            .imageIndex = imageZig.IMAGE_KUNAI,
+            .slotTypeData = .weapon,
+        },
+    },
 };
 
 pub fn getEquipmentOptionByIndexScaledToLevel(index: usize, level: u32) EquipmentShopOptions {
@@ -129,6 +140,10 @@ pub fn getEquipmentOptionByIndexScaledToLevel(index: usize, level: u32) Equipmen
     if (option.equipment.effectType == .hammer) {
         const damageScaledToLevel = @max(1, @divFloor(@divFloor(level + 10, 5) * option.equipment.effectType.hammer, 10));
         option.equipment.effectType.hammer = damageScaledToLevel;
+    }
+    if (option.equipment.effectType == .kunai) {
+        const damageScaledToLevel = @max(1, @divFloor(@divFloor(level + 10, 5) * option.equipment.effectType.kunai, 10));
+        option.equipment.effectType.kunai = damageScaledToLevel;
     }
     return option;
 }
@@ -269,6 +284,11 @@ fn isDowngrade(optOldEffectType: ?EquipmentEffectTypeData, optNewEffectType: ?Eq
                         return true;
                     }
                 },
+                .kunai => |damage| {
+                    if (damage >= optNewEffectType.?.kunai) {
+                        return true;
+                    }
+                },
                 else => {},
             }
         }
@@ -317,6 +337,10 @@ fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType:
                 player.damage -= damage;
                 player.hasWeaponHammer = false;
             },
+            .kunai => |damage| {
+                player.damage -= damage;
+                player.hasWeaponKunai = false;
+            },
             .hp => {},
         }
     }
@@ -329,6 +353,10 @@ fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType:
             .hammer => |damage| {
                 player.damage += damage;
                 player.hasWeaponHammer = true;
+            },
+            .kunai => |damage| {
+                player.damage += damage;
+                player.hasWeaponKunai = true;
             },
             .hp => {},
         }

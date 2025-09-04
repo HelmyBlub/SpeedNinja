@@ -222,7 +222,6 @@ fn scaleEnemiesToLevel(state: *main.GameState) void {
 }
 
 pub fn destroyEnemyData(state: *main.GameState) void {
-    state.spriteCutAnimations.deinit();
     state.enemyData.enemySpawnData.enemyEntries.deinit();
     state.enemyData.enemies.deinit();
     state.enemyData.enemyObjects.deinit();

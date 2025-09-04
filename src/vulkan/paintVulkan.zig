@@ -26,6 +26,7 @@ pub fn drawFrame(state: *main.GameState) !void {
     mapGridVulkanZig.setupVertices(state);
     try shopVulkanZig.setupVertices(state);
     try enemyVulkanZig.setupVerticesGround(state);
+    verticesForMapObjects(state);
     enemyObjectZig.setupVerticesGround(state);
     try addDataVerticeDrawCut(&state.vkState.verticeData);
     choosenMovePieceVulkanZig.setupVertices(state);
@@ -108,6 +109,27 @@ fn verticesForBackCloud(state: *main.GameState) void {
             false,
             state,
         );
+    }
+}
+
+fn verticesForMapObjects(state: *main.GameState) void {
+    for (state.mapObjects.items) |mapObject| {
+        switch (mapObject.typeData) {
+            .kunai => |kunaiData| {
+                const rotation: f32 = @as(f32, @floatFromInt(kunaiData.direction)) * std.math.pi / 2.0;
+                verticesForComplexSprite(
+                    mapObject.position,
+                    imageZig.IMAGE_KUNAI,
+                    2,
+                    2,
+                    1,
+                    rotation,
+                    false,
+                    false,
+                    state,
+                );
+            },
+        }
     }
 }
 

@@ -61,7 +61,7 @@ pub fn setupVertices(state: *main.GameState) !void {
                     };
                     paintVulkanZig.verticesForComplexSprite(hpDisplayIconPos, imageZig.IMAGE_ICON_HP, 2.5, 2.5, 1, 0, false, false, state);
                 },
-                .damage, .hammer => |damage| {
+                .damage, .hammer, .kunai => |damage| {
                     const damageDisplayTextPos: main.Position = .{
                         .x = moneyDisplayPos.x + 2,
                         .y = moneyDisplayPos.y + fontSize + 1,

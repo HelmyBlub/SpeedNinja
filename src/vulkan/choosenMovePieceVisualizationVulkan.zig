@@ -187,6 +187,17 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
                         }
                     }
                 }
+                if (player.hasWeaponKunai) {
+                    const kunaiRange = 2;
+                    for (1..kunaiRange + 1) |i| {
+                        const fi: f32 = @floatFromInt(i);
+                        const gamePosition: main.Position = .{
+                            .x = gamePositionWithCameraOffset.x + state.camera.position.x + moveX * fi,
+                            .y = gamePositionWithCameraOffset.y + state.camera.position.y + moveY * fi,
+                        };
+                        paintVulkanZig.verticesForComplexSpriteAlpha(gamePosition, imageZig.IMAGE_KUNAI_TILE_INDICATOR, 0.25, state);
+                    }
+                }
             }
             if (player.hasWeaponHammer) {
                 const hammerPositionOffsets = [_]main.Position{
