@@ -140,14 +140,16 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
             const bossTile = main.gamePositionToTilePosition(bossSplit.position);
             if (main.isTilePositionInTileRectangle(bossTile, hitArea)) {
                 if (bossSplit.hp > 0) {
-                    boss.hp -|= player.damage;
-                    bossSplit.hp -|= player.damage;
+                    const damage = @min(bossSplit.hp, player.damage);
+                    boss.hp -|= damage;
+                    bossSplit.hp -|= damage;
                     somethingHit = true;
                 }
             }
         }
         if (bossSplit.hp == 0) {
             const removed = splitData.splits.swapRemove(currentIndex);
+            boss.position = bossSplit.position;
             if (boss.hp > 0) {
                 const cutAngle = cutRotation + std.math.pi / 2.0;
                 const sizeFactor: f32 = @as(f32, @floatFromInt(bossSplit.remainingSpltits)) / @as(f32, @floatFromInt(splitData.maxSplits));
@@ -188,7 +190,9 @@ fn checkAndSplitBoss(splitData: *BossSplitData, bossSplit: *BossSplitPartData, s
         bossSplit.flyCutDuration = @intFromFloat(distance * timePerDistance);
         const hp = @divFloor(bossSplit.hp, 2);
         const splitEachXHealth = @max(1, @divFloor(hp, std.math.pow(u32, 2, bossSplit.remainingSpltits)));
+        std.debug.print("beforeHp: {}, ", .{bossSplit.hp});
         bossSplit.hp -= hp;
+        std.debug.print("afterHp1: {}, ", .{bossSplit.hp});
         bossSplit.splitOnHp = bossSplit.hp - splitEachXHealth;
         var bossSplit2: BossSplitPartData = .{
             .position = bossSplit.position,
@@ -200,6 +204,7 @@ fn checkAndSplitBoss(splitData: *BossSplitData, bossSplit: *BossSplitPartData, s
             .remainingSpltits = bossSplit.remainingSpltits,
             .flyCutStart = state.gameTime,
         };
+        std.debug.print(" afterHp2: {}\n", .{bossSplit2.hp});
         const distance2 = main.calculateDistance(bossSplit.position, bossSplit2.flyToPosition.?);
         bossSplit2.flyCutDuration = @intFromFloat(distance2 * timePerDistance);
         try splitData.splits.append(bossSplit2);
@@ -261,7 +266,7 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
                 .y = bossSplit.position.y + 5,
             }, imageZig.IMAGE_SHADOW, 0.75, state);
         }
-        const sizeFactor: f32 = @as(f32, @floatFromInt(bossSplit.remainingSpltits)) / @as(f32, @floatFromInt(splitData.maxSplits));
+        const sizeFactor: f32 = @as(f32, @floatFromInt(bossSplit.remainingSpltits + 1)) / @as(f32, @floatFromInt(splitData.maxSplits));
         paintVulkanZig.verticesForComplexSprite(
             bossPosition,
             boss.imageIndex,

@@ -2,6 +2,7 @@ Tasks:
 - bug: split boss third split not visible
 - bug: split boss death sprite location incorrect
     - boss should split correct amount of times even for high damage values
+- change: triplle boss to easy
 - equipment
     - display equipment values
     - prevent buying same or weaker item
