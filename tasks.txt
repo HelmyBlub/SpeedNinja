@@ -1,9 +1,6 @@
 Tasks:
 - equipment
     - weapons
-        - kunai
-            - throw kunai each move piece edge for 2 pieces far
-            - sound
         - gold weapon  
             - increase money gained
             - less damage

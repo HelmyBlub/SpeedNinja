@@ -40,16 +40,24 @@ const EquipmentEffectType = enum {
     none,
     hp,
     damage,
-    hammer,
-    kunai,
 };
 
 const EquipmentEffectTypeData = union(EquipmentEffectType) {
     none,
     hp: u8,
+    damage: EquipEffectDamageData,
+};
+
+const EquipEffectDamageData = struct {
     damage: u32,
-    hammer: u32,
-    kunai: u32,
+    effect: DamageEffect = .none,
+};
+
+const DamageEffect = enum {
+    none,
+    hammer,
+    kunai,
+    gold,
 };
 
 pub const EquipmentShopOptions = struct {
@@ -106,7 +114,7 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
         .basePrice = 10,
         .shopDisplayImage = imageZig.IMAGE_BLADE,
         .equipment = .{
-            .effectType = .{ .damage = 10 },
+            .effectType = .{ .damage = .{ .damage = 10 } },
             .imageIndex = imageZig.IMAGE_BLADE,
             .slotTypeData = .weapon,
         },
@@ -115,7 +123,7 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
         .basePrice = 10,
         .shopDisplayImage = imageZig.IMAGE_HAMMER,
         .equipment = .{
-            .effectType = .{ .hammer = 4 },
+            .effectType = .{ .damage = .{ .damage = 4, .effect = .hammer } },
             .imageIndex = imageZig.IMAGE_HAMMER,
             .slotTypeData = .weapon,
         },
@@ -124,8 +132,17 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
         .basePrice = 10,
         .shopDisplayImage = imageZig.IMAGE_KUNAI,
         .equipment = .{
-            .effectType = .{ .kunai = 6 },
+            .effectType = .{ .damage = .{ .damage = 6, .effect = .kunai } },
             .imageIndex = imageZig.IMAGE_KUNAI,
+            .slotTypeData = .weapon,
+        },
+    },
+    .{
+        .basePrice = 10,
+        .shopDisplayImage = imageZig.IMAGE_ARROW_RIGHT,
+        .equipment = .{
+            .effectType = .{ .damage = .{ .damage = 5, .effect = .gold } },
+            .imageIndex = imageZig.IMAGE_ARROW_RIGHT,
             .slotTypeData = .weapon,
         },
     },
@@ -134,16 +151,8 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
 pub fn getEquipmentOptionByIndexScaledToLevel(index: usize, level: u32) EquipmentShopOptions {
     var option = EQUIPMENT_SHOP_OPTIONS[index];
     if (option.equipment.effectType == .damage) {
-        const damageScaledToLevel = @max(1, @divFloor(@divFloor(level + 10, 5) * option.equipment.effectType.damage, 10));
-        option.equipment.effectType.damage = damageScaledToLevel;
-    }
-    if (option.equipment.effectType == .hammer) {
-        const damageScaledToLevel = @max(1, @divFloor(@divFloor(level + 10, 5) * option.equipment.effectType.hammer, 10));
-        option.equipment.effectType.hammer = damageScaledToLevel;
-    }
-    if (option.equipment.effectType == .kunai) {
-        const damageScaledToLevel = @max(1, @divFloor(@divFloor(level + 10, 5) * option.equipment.effectType.kunai, 10));
-        option.equipment.effectType.kunai = damageScaledToLevel;
+        const damageScaledToLevel = @max(1, @divFloor(@divFloor(level + 10, 5) * option.equipment.effectType.damage.damage, 10));
+        option.equipment.effectType.damage.damage = damageScaledToLevel;
     }
     return option;
 }
@@ -156,7 +165,7 @@ pub fn equipStarterEquipment(player: *main.Player) void {
     }, false, player);
     _ = equip(.{ .effectType = .{ .hp = 1 }, .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_1, .slotTypeData = .body }, false, player);
     _ = equip(.{ .effectType = .none, .imageIndex = imageZig.IMAGE_NINJA_FEET, .slotTypeData = .feet }, false, player);
-    _ = equip(.{ .effectType = .{ .damage = 1 }, .imageIndex = imageZig.IMAGE_BLADE, .slotTypeData = .weapon }, false, player);
+    _ = equip(.{ .effectType = .{ .damage = .{ .damage = 1 } }, .imageIndex = imageZig.IMAGE_BLADE, .slotTypeData = .weapon }, false, player);
 }
 
 /// return true if item equipted
@@ -270,22 +279,12 @@ fn isDowngrade(optOldEffectType: ?EquipmentEffectTypeData, optNewEffectType: ?Eq
         if (@as(EquipmentEffectType, optOldEffectType.?) == @as(EquipmentEffectType, optNewEffectType.?)) {
             switch (optOldEffectType.?) {
                 .damage => |damage| {
-                    if (damage >= optNewEffectType.?.damage) {
+                    if (damage.damage >= optNewEffectType.?.damage.damage and @as(DamageEffect, optOldEffectType.?.damage.effect) == @as(DamageEffect, optNewEffectType.?.damage.effect)) {
                         return true;
                     }
                 },
                 .hp => |hp| {
                     if (hp >= optNewEffectType.?.hp) {
-                        return true;
-                    }
-                },
-                .hammer => |damage| {
-                    if (damage >= optNewEffectType.?.hammer) {
-                        return true;
-                    }
-                },
-                .kunai => |damage| {
-                    if (damage >= optNewEffectType.?.kunai) {
                         return true;
                     }
                 },
@@ -331,15 +330,17 @@ fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType:
         switch (oldEffectType) {
             .none => {},
             .damage => |damage| {
-                player.damage -= damage;
-            },
-            .hammer => |damage| {
-                player.damage -= damage;
-                player.hasWeaponHammer = false;
-            },
-            .kunai => |damage| {
-                player.damage -= damage;
-                player.hasWeaponKunai = false;
+                player.damage -= damage.damage;
+                switch (damage.effect) {
+                    .hammer => {
+                        player.hasWeaponHammer = false;
+                    },
+                    .kunai => {
+                        player.hasWeaponKunai = false;
+                    },
+                    .gold => {},
+                    .none => {},
+                }
             },
             .hp => {},
         }
@@ -348,15 +349,17 @@ fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType:
         switch (newEffectType) {
             .none => {},
             .damage => |damage| {
-                player.damage += damage;
-            },
-            .hammer => |damage| {
-                player.damage += damage;
-                player.hasWeaponHammer = true;
-            },
-            .kunai => |damage| {
-                player.damage += damage;
-                player.hasWeaponKunai = true;
+                player.damage += damage.damage;
+                switch (damage.effect) {
+                    .hammer => {
+                        player.hasWeaponHammer = true;
+                    },
+                    .kunai => {
+                        player.hasWeaponKunai = true;
+                    },
+                    .gold => {},
+                    .none => {},
+                }
             },
             .hp => {},
         }
