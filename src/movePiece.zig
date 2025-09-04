@@ -322,30 +322,33 @@ fn stepAndCheckEnemyHitAndProjectileHitAndTiles(player: *main.Player, stepCount:
         };
         const tilePosition = main.gamePositionToTilePosition(movedPosition);
         const tileType = mapTileZig.getMapTilePositionType(tilePosition, &state.mapData);
-        if (tileType == .wall) return;
-        player.position = movedPosition;
-        if (try checkEnemyHitOnMoveStep(player, direction, state)) {
-            ninjaDogVulkanZig.bladeSlashAnimate(player);
-            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BLADE_CUT_INDICIES[0..], currIndex * 25, 1);
-            try resetPieces(player);
-            player.slashedLastMoveTile = true;
+        if (tileType != .wall) {
+            player.position = movedPosition;
+            if (try checkEnemyHitOnMoveStep(player, direction, state)) {
+                ninjaDogVulkanZig.bladeSlashAnimate(player);
+                try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BLADE_CUT_INDICIES[0..], currIndex * 25, 1);
+                try resetPieces(player);
+                player.slashedLastMoveTile = true;
+            }
+            try bossZig.onPlayerMoveEachTile(player, state);
+            try enemyZig.onPlayerMoveEachTile(player, state);
+            if (enemyObjectZig.checkHitMovingPlayer(player, state)) {
+                try main.playerHit(player, state);
+            }
+            currIndex += 1;
+            if (currIndex == stepCount and tileType == .ice) {
+                currIndex -= 1;
+            }
         }
-        try bossZig.onPlayerMoveEachTile(player, state);
-        try enemyZig.onPlayerMoveEachTile(player, state);
-        if (enemyObjectZig.checkHitMovingPlayer(player, state)) {
-            try main.playerHit(player, state);
-        }
-        currIndex += 1;
-        if (currIndex == stepCount and tileType == .ice) {
-            currIndex -= 1;
-        }
-        if (player.hasWeaponHammer and currIndex == stepCount and player.executeMovePiece.?.steps.len == 1) {
-            const hitArea: main.TileRectangle = .{ .pos = .{ .x = tilePosition.x - 1, .y = tilePosition.y - 1 }, .height = 3, .width = 3 };
+        if (player.hasWeaponHammer and (currIndex == stepCount or tileType == .wall) and player.executeMovePiece.?.steps.len == 1) {
+            const playerTilePosition = main.gamePositionToTilePosition(player.position);
+            const hitArea: main.TileRectangle = .{ .pos = .{ .x = playerTilePosition.x - 1, .y = playerTilePosition.y - 1 }, .height = 3, .width = 3 };
             if (try checkEnemyHitOnMoveStepWithHitArea(player, direction, hitArea, state)) {
                 try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_HAMMER_INDICIES[0..], currIndex * 25, 1);
                 try resetPieces(player);
             }
         }
+        if (tileType == .wall) return;
     }
 }
 
