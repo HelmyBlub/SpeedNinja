@@ -162,9 +162,9 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
         const shield2Direction = @mod(trippleData.direction + 1, 4);
         const shield3Direction = @mod(trippleData.direction + 3, 4);
         const hitShield = shieldCount > 0 and hitCompareDirection == shield1Direction or shieldCount > 1 and hitCompareDirection == shield2Direction or shieldCount > 2 and hitCompareDirection == shield3Direction;
+        try executeAttack(boss, player, hitDirection, state);
         if (hitShield) {
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_ENEMY_BLOCK_INDICIES[0..], 0, 1);
-            try executeAttack(boss, player, hitDirection, state);
         } else {
             boss.hp -|= player.damage;
             if (boss.hp == 0) {

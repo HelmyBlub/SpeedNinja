@@ -1,8 +1,5 @@
 Tasks:
-- bug: split boss third split not visible
-- bug: split boss death sprite location incorrect
-    - boss should split correct amount of times even for high damage values
-- change: triplle boss to easy
+- change: triple boss to easy
 - equipment
     - display equipment values
     - prevent buying same or weaker item
@@ -15,6 +12,7 @@ Tasks:
     - shop should have one weapon buy option always
 - check: prevent player from buying downgrades?
 - when bought new equipment, place old equipment at position to be able to switch back
+- boss split: split correct amount of times even for high damage values
 
 - think: change random position to single function instead of duplicate with small differenes?
 - waller enemy
