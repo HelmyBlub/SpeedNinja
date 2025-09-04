@@ -11,7 +11,7 @@ const shopZig = @import("../shop.zig");
 const movePieceUxVulkanZig = @import("movePieceUxVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 
-pub fn setupVertices(state: *main.GameState) void {
+pub fn setupVertices(state: *main.GameState) !void {
     const verticeData = &state.vkState.verticeData;
     if (state.gamePhase != .shopping) {
         verticesForEarlyShopTrigger(state);
@@ -41,6 +41,40 @@ pub fn setupVertices(state: *main.GameState) void {
                 .y = @floatFromInt(buyOption.tilePosition.y * main.TILESIZE),
             };
             paintVulkanZig.verticesForComplexSpriteDefault(buyOptionGamePosition, buyOption.imageIndex, state);
+            var moneyDisplayPos: main.Position = .{
+                .x = buyOptionGamePosition.x - main.TILESIZE / 2,
+                .y = buyOptionGamePosition.y + main.TILESIZE / 2,
+            };
+            const fontSize = 8;
+            moneyDisplayPos.x += fontVulkanZig.paintTextGameMap("$", moneyDisplayPos, fontSize, &state.vkState.verticeData.font, state);
+            _ = try fontVulkanZig.paintNumberGameMap(buyOption.price, moneyDisplayPos, fontSize, &state.vkState.verticeData.font, state);
+            switch (buyOption.equipment.effectType) {
+                .hp => |hp| {
+                    const hpDisplayTextPos: main.Position = .{
+                        .x = moneyDisplayPos.x,
+                        .y = moneyDisplayPos.y + fontSize + 1,
+                    };
+                    const textWidth = try fontVulkanZig.paintNumberGameMap(hp, hpDisplayTextPos, fontSize, &state.vkState.verticeData.font, state);
+                    const hpDisplayIconPos: main.Position = .{
+                        .x = hpDisplayTextPos.x + textWidth / 2,
+                        .y = hpDisplayTextPos.y + fontSize / 2,
+                    };
+                    paintVulkanZig.verticesForComplexSprite(hpDisplayIconPos, imageZig.IMAGE_ICON_HP, 2.5, 2.5, 1, 0, false, false, state);
+                },
+                .damage, .hammer => |damage| {
+                    const damageDisplayTextPos: main.Position = .{
+                        .x = moneyDisplayPos.x + 2,
+                        .y = moneyDisplayPos.y + fontSize + 1,
+                    };
+                    _ = try fontVulkanZig.paintNumberGameMap(damage, damageDisplayTextPos, fontSize, &state.vkState.verticeData.font, state);
+                    const DamageDisplayIconPos: main.Position = .{
+                        .x = damageDisplayTextPos.x - 2.5,
+                        .y = damageDisplayTextPos.y + fontSize / 2,
+                    };
+                    paintVulkanZig.verticesForComplexSprite(DamageDisplayIconPos, imageZig.IMAGE_ICON_DAMAGE, 2, 2, 1, 0, false, false, state);
+                },
+                else => {},
+            }
         }
     }
 }

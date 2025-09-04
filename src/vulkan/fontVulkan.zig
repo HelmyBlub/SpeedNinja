@@ -13,6 +13,19 @@ pub const VkFontData = struct {
     textureImageView: vk.VkImageView = undefined,
 };
 
+/// returns game width of text
+pub fn paintTextGameMap(chars: []const u8, gamePosition: main.Position, fontSize: f32, vkFont: *dataVulkanZig.VkFont, state: *main.GameState) f32 {
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const vulkanPos: main.Position = .{
+        .x = (-state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
+        .y = (-state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
+    };
+    const zoomedFontSize = fontSize * state.camera.zoom;
+    const vulkanWidth = paintText(chars, vulkanPos, zoomedFontSize, vkFont);
+    return vulkanWidth / onePixelXInVulkan / state.camera.zoom;
+}
+
 /// returns vulkan surface width of text
 pub fn paintText(chars: []const u8, vulkanSurfacePosition: main.Position, fontSize: f32, vkFont: *dataVulkanZig.VkFont) f32 {
     var texX: f32 = 0;
@@ -45,6 +58,19 @@ pub fn getCharFontVertex(char: u8, vulkanSurfacePosition: main.Position, fontSiz
         .texWidth = texWidth,
         .size = fontSize,
     };
+}
+
+/// returns game width of text
+pub fn paintNumberGameMap(number: anytype, gamePosition: main.Position, fontSize: f32, vkFont: *dataVulkanZig.VkFont, state: *main.GameState) !f32 {
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const vulkanPos: main.Position = .{
+        .x = (-state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
+        .y = (-state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
+    };
+    const zoomedFontSize = fontSize * state.camera.zoom;
+    const vulkanWidth = try paintNumber(number, vulkanPos, zoomedFontSize, vkFont);
+    return vulkanWidth / onePixelXInVulkan / state.camera.zoom;
 }
 
 pub fn paintNumber(number: anytype, vulkanSurfacePosition: main.Position, fontSize: f32, vkFont: *dataVulkanZig.VkFont) !f32 {

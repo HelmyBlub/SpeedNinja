@@ -1,7 +1,9 @@
 Tasks:
-- change: triple boss to easy
 - equipment
     - display equipment values
+        - display damage
+        - display hp
+        - display current player damage
     - prevent buying same or weaker item
     - weapons
         - kunai

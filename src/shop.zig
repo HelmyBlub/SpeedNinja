@@ -235,7 +235,7 @@ fn randomizeBuyableEquipment(maxShopOptions: usize, state: *main.GameState) !voi
         const randomEquip = equipmentZig.getEquipmentOptionByIndexScaledToLevel(randomEquipIndex, state.level);
         try state.shop.buyOptions.append(.{
             .price = state.level * randomEquip.basePrice,
-            .tilePosition = .{ .x = 6 + @as(i32, @intCast(i)), .y = 3 },
+            .tilePosition = .{ .x = 6 + @as(i32, @intCast(i * 2)), .y = 3 },
             .imageIndex = randomEquip.shopDisplayImage,
             .equipment = randomEquip.equipment,
         });

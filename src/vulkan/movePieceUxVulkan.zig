@@ -5,6 +5,7 @@ const windowSdlZig = @import("../windowSdl.zig");
 const movePieceZig = @import("../movePiece.zig");
 const fontVulkanZig = @import("fontVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
+const imageZig = @import("../image.zig");
 
 const INITIAL_PIECE_COLOR: [3]f32 = .{ 0.0, 0.0, 1 };
 
@@ -22,6 +23,29 @@ pub fn setupVertices(state: *main.GameState) !void {
     var textWidthPieces = try fontVulkanZig.paintNumber(remainingPieces, .{ .x = 0.5, .y = 0.8 }, fontSize, &verticeData.font);
     textWidthPieces += fontVulkanZig.paintText(":", .{ .x = 0.5 + textWidthPieces, .y = 0.8 }, fontSize, &verticeData.font);
     _ = try fontVulkanZig.paintNumber(totalPieces, .{ .x = 0.5 + textWidthPieces, .y = 0.8 }, fontSize, &verticeData.font);
+
+    const damageDisplayTextPos: main.Position = .{
+        .x = 0.5,
+        .y = 0.9,
+    };
+    _ = try fontVulkanZig.paintNumber(state.players.items[0].damage, damageDisplayTextPos, fontSize, &state.vkState.verticeData.font);
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const damageDisplayIconPos: main.Position = .{
+        .x = damageDisplayTextPos.x - onePixelXInVulkan * fontSize / 2,
+        .y = damageDisplayTextPos.y + onePixelYInVulkan * fontSize / 2,
+    };
+    paintVulkanZig.verticesForComplexSpriteVulkan(
+        damageDisplayIconPos,
+        imageZig.IMAGE_ICON_DAMAGE,
+        fontSize,
+        fontSize,
+        1,
+        0,
+        false,
+        false,
+        state,
+    );
 }
 
 fn verticesForMoveOptions(player: *main.Player, verticeData: *dataVulkanZig.VkVerticeData) void {

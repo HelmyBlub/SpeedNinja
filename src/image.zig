@@ -75,6 +75,8 @@ pub const IMAGE_MILITARY_HELMET = 67;
 pub const IMAGE_MILITARY_BOOTS = 68;
 pub const IMAGE_HAMMER = 69;
 pub const IMAGE_HAMMER_TILE_INDICATOR = 70;
+pub const IMAGE_ICON_DAMAGE = 71;
+pub const IMAGE_ICON_HP = 72;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaFeet.png" },
@@ -148,6 +150,8 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/militaryBoots.png" },
     .{ .path = "images/hammer.png" },
     .{ .path = "images/hammerTileIndicator.png", .scale = 2.0 },
+    .{ .path = "images/damageIcon.png" },
+    .{ .path = "images/hpIcon.png" },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 pub const IMAGE_DOG__CENTER_BODY: main.Position = .{ .x = 99, .y = 128 };

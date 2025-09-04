@@ -24,7 +24,7 @@ pub fn drawFrame(state: *main.GameState) !void {
     try addDataVerticeDrawCut(&state.vkState.verticeData);
     mapTileZig.setupVertices(state);
     mapGridVulkanZig.setupVertices(state);
-    shopVulkanZig.setupVertices(state);
+    try shopVulkanZig.setupVertices(state);
     try enemyVulkanZig.setupVerticesGround(state);
     enemyObjectZig.setupVerticesGround(state);
     try addDataVerticeDrawCut(&state.vkState.verticeData);
@@ -149,6 +149,19 @@ pub fn verticesForComplexSprite(gamePosition: main.Position, imageIndex: u8, sca
     pointsToVertices(gamePosition, imageIndex, halfSizeWidth, halfSizeHeight, &points, rotation, alpha, mirrorX, mirrorY, scaleX, scaleY, state);
 }
 
+pub fn verticesForComplexSpriteVulkan(vulkanPosition: main.Position, imageIndex: u8, width: f32, height: f32, alpha: f32, rotation: f32, mirrorX: bool, mirrorY: bool, state: *main.GameState) void {
+    if (state.vkState.verticeData.spritesComplex.verticeCount + 6 >= state.vkState.verticeData.spritesComplex.vertices.len) return;
+    const halfSizeWidth: f32 = width / windowSdlZig.windowData.widthFloat;
+    const halfSizeHeight: f32 = height / windowSdlZig.windowData.heightFloat;
+    const points = [_]main.Position{
+        main.Position{ .x = -halfSizeWidth, .y = halfSizeHeight },
+        main.Position{ .x = -halfSizeWidth, .y = -halfSizeHeight },
+        main.Position{ .x = halfSizeWidth, .y = halfSizeHeight },
+        main.Position{ .x = halfSizeWidth, .y = -halfSizeHeight },
+    };
+    pointsToVerticesVulkan(vulkanPosition, imageIndex, halfSizeWidth, halfSizeHeight, &points, rotation, alpha, mirrorX, mirrorY, 1, 1, state);
+}
+
 pub fn verticesForComplexSpriteWithRotate(gamePosition: main.Position, imageIndex: u8, rotation: f32, alpha: f32, state: *main.GameState) void {
     if (state.vkState.verticeData.spritesComplex.verticeCount + 6 >= state.vkState.verticeData.spritesComplex.vertices.len) return;
     const imageData = imageZig.IMAGE_DATA[imageIndex];
@@ -253,6 +266,54 @@ fn pointsToVertices(
             const vulkan: main.Position = .{
                 .x = (rotatedOffset.x - state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
                 .y = (rotatedOffset.y - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
+            };
+            var texPos: [2]f32 = .{
+                (cornerPosOffset.x / halfSizeWidth + 1) / 2,
+                (cornerPosOffset.y / halfSizeHeight + 1) / 2,
+            };
+            if (mirrorX) texPos[0] = 1 - texPos[0];
+            if (mirrorY) texPos[1] = 1 - texPos[1];
+            vkSpriteComplex.vertices[vkSpriteComplex.verticeCount] = dataVulkanZig.SpriteComplexVertex{
+                .pos = .{ vulkan.x, vulkan.y },
+                .imageIndex = imageIndex,
+                .alpha = alpha,
+                .tex = texPos,
+            };
+            vkSpriteComplex.verticeCount += 1;
+        }
+    }
+}
+
+fn pointsToVerticesVulkan(
+    vulkanPosition: main.Position,
+    imageIndex: u8,
+    halfSizeWidth: f32,
+    halfSizeHeight: f32,
+    points: []const main.Position,
+    rotation: f32,
+    alpha: f32,
+    mirrorX: bool,
+    mirrorY: bool,
+    scalingX: f32,
+    scalingY: f32,
+    state: *main.GameState,
+) void {
+    const vkSpriteComplex = &state.vkState.verticeData.spritesComplex;
+    if (vkSpriteComplex.verticeCount + (points.len - 2) * 3 >= vkSpriteComplex.vertices.len) return;
+    const pivot: main.Position = .{ .x = 0, .y = 0 };
+    for (0..points.len - 2) |i| {
+        const pointsIndexes = [_]usize{ i, i + 1 + @mod(i, 2), i + 2 - @mod(i, 2) };
+        for (pointsIndexes) |verticeIndex| {
+            const cornerPosOffset = points[verticeIndex];
+            const scaledCornerPosOffset: main.Position = .{
+                .x = cornerPosOffset.x * scalingX,
+                .y = cornerPosOffset.y * scalingY,
+            };
+            var rotatedOffset = scaledCornerPosOffset;
+            if (rotation != 0) rotatedOffset = main.rotateAroundPoint(scaledCornerPosOffset, pivot, rotation);
+            const vulkan: main.Position = .{
+                .x = rotatedOffset.x + vulkanPosition.x,
+                .y = rotatedOffset.y + vulkanPosition.y,
             };
             var texPos: [2]f32 = .{
                 (cornerPosOffset.x / halfSizeWidth + 1) / 2,
