@@ -76,6 +76,7 @@ pub const Player = struct {
     equipment: equipmentZig.EquipmentSlotsData = .{},
     hasWeaponHammer: bool = false,
     hasWeaponKunai: bool = false,
+    moneyBonusPerCent: f32 = 0,
 };
 
 pub const MapObjectType = enum {
@@ -196,7 +197,7 @@ fn mainLoop(state: *GameState) !void {
                 debugTextAfterBossLevelFinished(state);
                 state.lastBossDefeatedTime = state.gameTime;
                 for (state.players.items) |*player| {
-                    player.money += state.level * 10;
+                    player.money += @as(u32, @intFromFloat(@as(f32, @floatFromInt(state.level)) * 10.0 * (1.0 + player.moneyBonusPerCent)));
                 }
             }
             try shopZig.startShoppingPhase(state);
@@ -309,7 +310,7 @@ pub fn startNextRound(state: *GameState) !void {
     state.round += 1;
     if (state.round > 1) {
         for (state.players.items) |*player| {
-            player.money += state.level;
+            player.money += @as(u32, @intFromFloat(@ceil(@as(f32, @floatFromInt(state.level)) * (1.0 + player.moneyBonusPerCent))));
         }
     }
     try enemyZig.setupEnemies(state);

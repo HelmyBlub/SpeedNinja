@@ -139,10 +139,10 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
     },
     .{
         .basePrice = 10,
-        .shopDisplayImage = imageZig.IMAGE_ARROW_RIGHT,
+        .shopDisplayImage = imageZig.IMAGE_GOLD_BLADE,
         .equipment = .{
             .effectType = .{ .damage = .{ .damage = 5, .effect = .gold } },
-            .imageIndex = imageZig.IMAGE_ARROW_RIGHT,
+            .imageIndex = imageZig.IMAGE_GOLD_BLADE,
             .slotTypeData = .weapon,
         },
     },
@@ -338,7 +338,9 @@ fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType:
                     .kunai => {
                         player.hasWeaponKunai = false;
                     },
-                    .gold => {},
+                    .gold => {
+                        player.moneyBonusPerCent = 0;
+                    },
                     .none => {},
                 }
             },
@@ -357,7 +359,9 @@ fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType:
                     .kunai => {
                         player.hasWeaponKunai = true;
                     },
-                    .gold => {},
+                    .gold => {
+                        player.moneyBonusPerCent = 0.5;
+                    },
                     .none => {},
                 }
             },

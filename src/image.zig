@@ -79,6 +79,7 @@ pub const IMAGE_ICON_DAMAGE = 71;
 pub const IMAGE_ICON_HP = 72;
 pub const IMAGE_KUNAI = 73;
 pub const IMAGE_KUNAI_TILE_INDICATOR = 74;
+pub const IMAGE_GOLD_BLADE = 75;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaFeet.png" },
@@ -156,6 +157,7 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/hpIcon.png" },
     .{ .path = "images/kunai.png" },
     .{ .path = "images/kunaiTileIndicator.png", .scale = 2.0 },
+    .{ .path = "images/goldblade.png" },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 pub const IMAGE_DOG__CENTER_BODY: main.Position = .{ .x = 99, .y = 128 };
