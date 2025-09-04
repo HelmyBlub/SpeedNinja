@@ -147,9 +147,10 @@ pub fn executeShopActionForPlayer(player: *main.Player, state: *main.GameState) 
     for (state.shop.buyOptions.items, 0..) |buyOption, buyIndex| {
         if (buyOption.tilePosition.x == playerTile.x and buyOption.tilePosition.y == playerTile.y) {
             if (player.money >= buyOption.price) {
-                player.money -= buyOption.price;
-                equipmentZig.equip(buyOption.equipment, player);
-                _ = state.shop.buyOptions.swapRemove(buyIndex);
+                if (equipmentZig.equip(buyOption.equipment, true, player)) {
+                    player.money -= buyOption.price;
+                    _ = state.shop.buyOptions.swapRemove(buyIndex);
+                }
             }
             return;
         }

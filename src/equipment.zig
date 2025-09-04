@@ -134,29 +134,30 @@ pub fn getEquipmentOptionByIndexScaledToLevel(index: usize, level: u32) Equipmen
 }
 
 pub fn equipStarterEquipment(player: *main.Player) void {
-    equip(.{
+    _ = equip(.{
         .effectType = .{ .hp = 1 },
         .imageIndex = imageZig.IMAGE_NINJA_HEAD,
         .slotTypeData = .{ .head = .{ .bandana = true, .earImageIndex = imageZig.IMAGE_NINJA_EAR } },
-    }, player);
-    equip(.{ .effectType = .{ .hp = 1 }, .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_1, .slotTypeData = .body }, player);
-    equip(.{ .effectType = .none, .imageIndex = imageZig.IMAGE_NINJA_FEET, .slotTypeData = .feet }, player);
-    equip(.{ .effectType = .{ .damage = 1 }, .imageIndex = imageZig.IMAGE_BLADE, .slotTypeData = .weapon }, player);
+    }, false, player);
+    _ = equip(.{ .effectType = .{ .hp = 1 }, .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_1, .slotTypeData = .body }, false, player);
+    _ = equip(.{ .effectType = .none, .imageIndex = imageZig.IMAGE_NINJA_FEET, .slotTypeData = .feet }, false, player);
+    _ = equip(.{ .effectType = .{ .damage = 1 }, .imageIndex = imageZig.IMAGE_BLADE, .slotTypeData = .weapon }, false, player);
 }
 
-pub fn equip(equipment: EquipmentData, player: *main.Player) void {
+/// return true if item equipted
+pub fn equip(equipment: EquipmentData, preventDowngrade: bool, player: *main.Player) bool {
     switch (equipment.slotTypeData) {
         .body => {
-            equipBody(equipment, player);
+            return equipBody(equipment, preventDowngrade, player);
         },
         .feet => {
-            equipFeet(equipment, player);
+            return equipFeet(equipment, preventDowngrade, player);
         },
         .head => {
-            equipHead(equipment, player);
+            return equipHead(equipment, preventDowngrade, player);
         },
         .weapon => {
-            equipWeapon(equipment, player);
+            return equipWeapon(equipment, preventDowngrade, player);
         },
     }
 }
@@ -164,16 +165,16 @@ pub fn equip(equipment: EquipmentData, player: *main.Player) void {
 fn unequip(slotType: EquipmentSlotTypes, player: *main.Player) void {
     switch (slotType) {
         .body => {
-            equipBody(null, player);
+            _ = equipBody(null, false, player);
         },
         .feet => {
-            equipFeet(null, player);
+            _ = equipFeet(null, false, player);
         },
         .head => {
-            equipHead(null, player);
+            _ = equipHead(null, false, player);
         },
         .weapon => {
-            equipWeapon(null, player);
+            _ = equipWeapon(null, false, player);
         },
     }
 }
@@ -210,10 +211,11 @@ pub fn damageTakenByEquipment(player: *main.Player, state: *main.GameState) !boo
     return equipTookDamage;
 }
 
-fn equipHead(optHead: ?EquipmentData, player: *main.Player) void {
+fn equipHead(optHead: ?EquipmentData, preventDowngrade: bool, player: *main.Player) bool {
     const optOld = player.equipment.head;
     const optOldEffectType = if (optOld) |old| old.effectType else null;
     const optNewEffectType = if (optHead) |new| new.effectType else null;
+    if (preventDowngrade and isDowngrade(optOldEffectType, optNewEffectType)) return false;
     equipmentEffect(optNewEffectType, optOldEffectType, player);
 
     player.equipment.head = optHead;
@@ -230,12 +232,14 @@ fn equipHead(optHead: ?EquipmentData, player: *main.Player) void {
         player.paintData.headLayer2Offset = .{ .x = 0, .y = 0 };
         player.paintData.hasBandana = false;
     }
+    return true;
 }
 
-fn equipBody(optBody: ?EquipmentData, player: *main.Player) void {
+fn equipBody(optBody: ?EquipmentData, preventDowngrade: bool, player: *main.Player) bool {
     const optOld = player.equipment.body;
     const optOldEffectType = if (optOld) |old| old.effectType else null;
     const optNewEffectType = if (optBody) |new| new.effectType else null;
+    if (preventDowngrade and isDowngrade(optOldEffectType, optNewEffectType)) return false;
     equipmentEffect(optNewEffectType, optOldEffectType, player);
     player.equipment.body = optBody;
     if (optBody) |body| {
@@ -243,26 +247,55 @@ fn equipBody(optBody: ?EquipmentData, player: *main.Player) void {
     } else {
         player.paintData.chestArmorImageIndex = imageZig.IMAGE_NINJA_BODY_NO_ARMOR;
     }
+    return true;
 }
 
-fn equipFeet(optFeet: ?EquipmentData, player: *main.Player) void {
+fn isDowngrade(optOldEffectType: ?EquipmentEffectTypeData, optNewEffectType: ?EquipmentEffectTypeData) bool {
+    if (optOldEffectType != null and optNewEffectType != null) {
+        if (@as(EquipmentEffectType, optOldEffectType.?) == @as(EquipmentEffectType, optNewEffectType.?)) {
+            switch (optOldEffectType.?) {
+                .damage => |damage| {
+                    if (damage >= optNewEffectType.?.damage) {
+                        return true;
+                    }
+                },
+                .hp => |hp| {
+                    if (hp >= optNewEffectType.?.hp) {
+                        return true;
+                    }
+                },
+                .hammer => |damage| {
+                    if (damage >= optNewEffectType.?.hammer) {
+                        return true;
+                    }
+                },
+                else => {},
+            }
+        }
+    }
+    return false;
+}
+
+fn equipFeet(optFeet: ?EquipmentData, preventDowngrade: bool, player: *main.Player) bool {
     const optOld = player.equipment.feet;
     const optOldEffectType = if (optOld) |old| old.effectType else null;
     const optNewEffectType = if (optFeet) |new| new.effectType else null;
+    if (preventDowngrade and isDowngrade(optOldEffectType, optNewEffectType)) return false;
     equipmentEffect(optNewEffectType, optOldEffectType, player);
-
     player.equipment.feet = optFeet;
     if (optFeet) |feet| {
         player.paintData.feetImageIndex = feet.imageIndex;
     } else {
         player.paintData.feetImageIndex = imageZig.IMAGE_NINJA_FEET;
     }
+    return true;
 }
 
-fn equipWeapon(optWeapon: ?EquipmentData, player: *main.Player) void {
+fn equipWeapon(optWeapon: ?EquipmentData, preventDowngrade: bool, player: *main.Player) bool {
     const optOld = player.equipment.weapon;
     const optOldEffectType = if (optOld) |old| old.effectType else null;
     const optNewEffectType = if (optWeapon) |new| new.effectType else null;
+    if (preventDowngrade and isDowngrade(optOldEffectType, optNewEffectType)) return false;
     equipmentEffect(optNewEffectType, optOldEffectType, player);
     player.equipment.weapon = optWeapon;
     if (optWeapon) |weapon| {
@@ -270,6 +303,7 @@ fn equipWeapon(optWeapon: ?EquipmentData, player: *main.Player) void {
     } else {
         player.paintData.weaponImageIndex = imageZig.IMAGE_BLADE;
     }
+    return true;
 }
 
 fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType: ?EquipmentEffectTypeData, player: *main.Player) void {
