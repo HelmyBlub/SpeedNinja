@@ -750,7 +750,7 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
                 continue;
             }
             if (main.isTilePositionInTileRectangle(footTile, hitArea)) {
-                boss.hp -|= player.damage;
+                boss.hp -|= main.getPlayerDamage(player);
                 if (boss.hp <= 0) {
                     try bossDeathCutSprites(boss, cutRotation, state);
                 }

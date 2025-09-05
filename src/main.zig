@@ -54,6 +54,7 @@ pub const GameState = struct {
 pub const Player = struct {
     position: Position = .{ .x = 0, .y = 0 },
     damage: u32 = 0,
+    damagePerCentFactor: f32 = 1,
     immunUntilTime: i64 = 0,
     executeMovePiece: ?movePieceZig.MovePiece = null,
     executeDirection: u8 = 0,
@@ -74,9 +75,10 @@ pub const Player = struct {
     startedFallingState: ?i64 = null,
     fallingStateDamageDelay: i32 = 1500,
     equipment: equipmentZig.EquipmentSlotsData = .{},
+    moneyBonusPerCent: f32 = 0,
     hasWeaponHammer: bool = false,
     hasWeaponKunai: bool = false,
-    moneyBonusPerCent: f32 = 0,
+    hasBlindfold: bool = false,
 };
 
 pub const MapObjectType = enum {
@@ -158,6 +160,10 @@ pub fn playerHit(player: *Player, state: *GameState) !void {
     }
     player.immunUntilTime = state.gameTime + state.playerImmunityFrames;
     try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_PLAYER_HIT, 0, 1);
+}
+
+pub fn getPlayerDamage(player: *Player) u32 {
+    return @as(u32, @intFromFloat(@round(@as(f32, @floatFromInt(player.damage)) * player.damagePerCentFactor)));
 }
 
 fn startGame(allocator: std.mem.Allocator) !void {

@@ -34,30 +34,39 @@ const EquipmentHeadData = struct {
     imageIndexLayer1: ?u8 = null,
     earImageIndex: u8 = imageZig.IMAGE_DOG_EAR,
     offset: main.Position = .{ .x = 0, .y = 0 },
+    eyes: bool = true,
 };
 
 const EquipmentEffectType = enum {
     none,
     hp,
     damage,
+    damagePerCent,
 };
 
 const EquipmentEffectTypeData = union(EquipmentEffectType) {
     none,
     hp: u8,
     damage: EquipEffectDamageData,
+    damagePerCent: EquipEffectDamagePerCentData,
 };
 
 const EquipEffectDamageData = struct {
     damage: u32,
-    effect: DamageEffect = .none,
+    effect: SecondaryEffect = .none,
 };
 
-const DamageEffect = enum {
+const EquipEffectDamagePerCentData = struct {
+    factor: f32,
+    effect: SecondaryEffect = .none,
+};
+
+const SecondaryEffect = enum {
     none,
     hammer,
     kunai,
     gold,
+    blind,
 };
 
 pub const EquipmentShopOptions = struct {
@@ -144,6 +153,22 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
             .effectType = .{ .damage = .{ .damage = 5, .effect = .gold } },
             .imageIndex = imageZig.IMAGE_GOLD_BLADE,
             .slotTypeData = .weapon,
+        },
+    },
+    .{
+        .basePrice = 10,
+        .shopDisplayImage = imageZig.IMAGE_BLINDFOLD,
+        .equipment = .{
+            .effectType = .{ .damagePerCent = .{ .factor = 1, .effect = .blind } },
+            .imageIndex = imageZig.IMAGE_BLINDFOLD,
+            .slotTypeData = .{
+                .head = .{
+                    .bandana = false,
+                    .eyes = false,
+                    .earImageIndex = imageZig.IMAGE_DOG_EAR,
+                    .imageIndexLayer1 = imageZig.IMAGE_DOG_HEAD,
+                },
+            },
         },
     },
 };
@@ -249,12 +274,14 @@ fn equipHead(optHead: ?EquipmentData, preventDowngrade: bool, player: *main.Play
         player.paintData.earImageIndex = head.slotTypeData.head.earImageIndex;
         player.paintData.headLayer2Offset = head.slotTypeData.head.offset;
         player.paintData.hasBandana = head.slotTypeData.head.bandana;
+        player.paintData.drawEyes = head.slotTypeData.head.eyes;
     } else {
         player.paintData.headLayer1ImageIndex = null;
         player.paintData.headLayer2ImageIndex = imageZig.IMAGE_DOG_HEAD;
         player.paintData.earImageIndex = imageZig.IMAGE_DOG_EAR;
         player.paintData.headLayer2Offset = .{ .x = 0, .y = 0 };
         player.paintData.hasBandana = false;
+        player.paintData.drawEyes = true;
     }
     return true;
 }
@@ -279,7 +306,12 @@ fn isDowngrade(optOldEffectType: ?EquipmentEffectTypeData, optNewEffectType: ?Eq
         if (@as(EquipmentEffectType, optOldEffectType.?) == @as(EquipmentEffectType, optNewEffectType.?)) {
             switch (optOldEffectType.?) {
                 .damage => |damage| {
-                    if (damage.damage >= optNewEffectType.?.damage.damage and @as(DamageEffect, optOldEffectType.?.damage.effect) == @as(DamageEffect, optNewEffectType.?.damage.effect)) {
+                    if (damage.damage >= optNewEffectType.?.damage.damage and @as(SecondaryEffect, optOldEffectType.?.damage.effect) == @as(SecondaryEffect, optNewEffectType.?.damage.effect)) {
+                        return true;
+                    }
+                },
+                .damagePerCent => |data| {
+                    if (data.factor >= optNewEffectType.?.damagePerCent.factor and @as(SecondaryEffect, optOldEffectType.?.damagePerCent.effect) == @as(SecondaryEffect, optNewEffectType.?.damagePerCent.effect)) {
                         return true;
                     }
                 },
@@ -327,45 +359,67 @@ fn equipWeapon(optWeapon: ?EquipmentData, preventDowngrade: bool, player: *main.
 
 fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType: ?EquipmentEffectTypeData, player: *main.Player) void {
     if (optOldEffectType) |oldEffectType| {
+        var optSecondaryEffect: ?SecondaryEffect = null;
         switch (oldEffectType) {
             .none => {},
             .damage => |damage| {
                 player.damage -= damage.damage;
-                switch (damage.effect) {
-                    .hammer => {
-                        player.hasWeaponHammer = false;
-                    },
-                    .kunai => {
-                        player.hasWeaponKunai = false;
-                    },
-                    .gold => {
-                        player.moneyBonusPerCent = 0;
-                    },
-                    .none => {},
-                }
+                optSecondaryEffect = damage.effect;
+            },
+            .damagePerCent => |data| {
+                player.damagePerCentFactor -= data.factor;
+                optSecondaryEffect = data.effect;
             },
             .hp => {},
         }
+        if (optSecondaryEffect) |secEffect| {
+            switch (secEffect) {
+                .hammer => {
+                    player.hasWeaponHammer = false;
+                },
+                .kunai => {
+                    player.hasWeaponKunai = false;
+                },
+                .gold => {
+                    player.moneyBonusPerCent = 0;
+                },
+                .blind => {
+                    player.hasBlindfold = false;
+                },
+                .none => {},
+            }
+        }
     }
     if (optNewEffectType) |newEffectType| {
+        var optSecondaryEffect: ?SecondaryEffect = null;
         switch (newEffectType) {
             .none => {},
             .damage => |damage| {
                 player.damage += damage.damage;
-                switch (damage.effect) {
-                    .hammer => {
-                        player.hasWeaponHammer = true;
-                    },
-                    .kunai => {
-                        player.hasWeaponKunai = true;
-                    },
-                    .gold => {
-                        player.moneyBonusPerCent = 0.5;
-                    },
-                    .none => {},
-                }
+                optSecondaryEffect = damage.effect;
+            },
+            .damagePerCent => |data| {
+                player.damagePerCentFactor += data.factor;
+                optSecondaryEffect = data.effect;
             },
             .hp => {},
+        }
+        if (optSecondaryEffect) |secEffect| {
+            switch (secEffect) {
+                .hammer => {
+                    player.hasWeaponHammer = true;
+                },
+                .kunai => {
+                    player.hasWeaponKunai = true;
+                },
+                .gold => {
+                    player.moneyBonusPerCent = 0.5;
+                },
+                .blind => {
+                    player.hasBlindfold = true;
+                },
+                .none => {},
+            }
         }
     }
 }

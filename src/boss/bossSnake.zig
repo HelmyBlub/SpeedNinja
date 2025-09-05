@@ -114,14 +114,14 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
     const snakeData = &boss.typeData.snake;
     const bossTile = main.gamePositionToTilePosition(boss.position);
     if (main.isTilePositionInTileRectangle(bossTile, hitArea)) {
-        boss.hp -|= player.damage;
+        boss.hp -|= main.getPlayerDamage(player);
         try checkLooseBodyPart(boss, boss.position, cutRotation, state);
         return true;
     }
     for (snakeData.snakeBodyParts.items) |snakeBodyPart| {
         const partTile = main.gamePositionToTilePosition(snakeBodyPart.pos);
         if (main.isTilePositionInTileRectangle(partTile, hitArea)) {
-            boss.hp -|= player.damage;
+            boss.hp -|= main.getPlayerDamage(player);
             try checkLooseBodyPart(boss, snakeBodyPart.pos, cutRotation, state);
             return true;
         }

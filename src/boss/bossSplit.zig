@@ -140,7 +140,7 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
             const bossTile = main.gamePositionToTilePosition(bossSplit.position);
             if (main.isTilePositionInTileRectangle(bossTile, hitArea)) {
                 if (bossSplit.hp > 0) {
-                    const damage = @min(bossSplit.hp, player.damage);
+                    const damage = @min(bossSplit.hp, main.getPlayerDamage(player));
                     boss.hp -|= damage;
                     bossSplit.hp -|= damage;
                     somethingHit = true;

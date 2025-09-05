@@ -166,7 +166,7 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
         if (hitShield) {
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_ENEMY_BLOCK_INDICIES[0..], 0, 1);
         } else {
-            boss.hp -|= player.damage;
+            boss.hp -|= main.getPlayerDamage(player);
             if (boss.hp == 0) {
                 for (state.bosses.items) |*otherBoss| {
                     if (otherBoss.typeData == .tripple) {

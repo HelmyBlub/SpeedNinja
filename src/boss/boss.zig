@@ -125,7 +125,7 @@ pub fn isBossHit(hitArea: main.TileRectangle, player: *main.Player, hitDirection
         if (levelBossData.isBossHit) |isHitFunction| {
             if (try isHitFunction(boss, player, hitArea, player.paintData.weaponRotation, hitDirection, state)) aBossHit = true;
         } else {
-            if (isBossHitDefault(boss, player.damage, hitArea)) aBossHit = true;
+            if (isBossHitDefault(boss, main.getPlayerDamage(player), hitArea)) aBossHit = true;
         }
         if (boss.hp == 0) {
             var deadBoss = state.bosses.swapRemove(bossIndex);

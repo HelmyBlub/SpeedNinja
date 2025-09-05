@@ -1,8 +1,7 @@
 Tasks:
-- on shop phase spawn player in own grid
 - equipment
     - head:
-        - image: bandana over eyes
+        - image: blindfold
             - x2 damage
             - blind => don't display selected move piece
         - image: eyepatch

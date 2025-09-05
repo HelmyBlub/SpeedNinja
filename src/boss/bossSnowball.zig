@@ -103,7 +103,7 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
             if (data.nextRollTime < state.gameTime) data.nextRollTime = state.gameTime + data.rollInterval;
             data.state = .rolling;
         }
-        boss.hp -|= player.damage;
+        boss.hp -|= main.getPlayerDamage(player);
         try checkSpawnEnemy(boss, state);
         return true;
     }

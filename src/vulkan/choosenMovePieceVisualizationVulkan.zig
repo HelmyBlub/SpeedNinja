@@ -24,6 +24,7 @@ pub fn setupVertices(state: *main.GameState) void {
 }
 
 fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataVulkanZig.VkColoredVertexes, triangles: *dataVulkanZig.VkColoredVertexes, state: *main.GameState) void {
+    if (player.hasBlindfold) return;
     if (player.choosenMoveOptionIndex) |index| {
         const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
         const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;

@@ -33,6 +33,7 @@ pub const NinjaDogPaintData = struct {
     feetImageIndex: u8 = imageZig.IMAGE_NINJA_FEET,
     weaponImageIndex: u8 = imageZig.IMAGE_BLADE,
     hasBandana: bool = true,
+    drawEyes: bool = true,
 };
 
 const NinjaDogAnimationStatePaw = enum {
@@ -468,6 +469,7 @@ fn drawEars(position: main.Position, paintData: NinjaDogPaintData, state: *main.
 }
 
 fn drawEyes(position: main.Position, paintData: NinjaDogPaintData, state: *main.GameState) void {
+    if (!paintData.drawEyes) return;
     const dogSize = imageZig.IMAGE_DOG_TOTAL_SIZE;
     const leftEyeSpritePosition: main.Position = .{
         .x = position.x + (imageZig.IMAGE_DOG__EYE_LEFT.x - @as(f32, @floatFromInt(dogSize)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
@@ -647,9 +649,10 @@ pub fn addTiranglesForSprite(gamePosition: main.Position, imageAnkerPosition: ma
             .y = (rotatedOffset.y - state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
         };
         const texPos: [2]f32 = .{
-            if (cornerPosOffset.x < 0) 0 else 1,
-            if (cornerPosOffset.y < 0) 0 else 1,
+            if (cornerPosOffset.x < imageAnkerXHalf) 0 else 1,
+            if (cornerPosOffset.y < imageAnkerYHalf) 0 else 1,
         };
+
         verticeData.spritesComplex.vertices[verticeData.spritesComplex.verticeCount] = dataVulkanZig.SpriteComplexVertex{
             .pos = .{ vulkan.x, vulkan.y },
             .imageIndex = imageIndex,

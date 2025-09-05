@@ -123,7 +123,7 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
     if (!stompData.inAir) {
         const bossTile = main.gamePositionToTilePosition(boss.position);
         if (main.isTilePositionInTileRectangle(bossTile, hitArea)) {
-            boss.hp -|= player.damage;
+            boss.hp -|= main.getPlayerDamage(player);
             return true;
         }
     }

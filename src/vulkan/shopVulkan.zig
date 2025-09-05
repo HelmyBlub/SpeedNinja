@@ -73,6 +73,19 @@ pub fn setupVertices(state: *main.GameState) !void {
                     };
                     paintVulkanZig.verticesForComplexSprite(DamageDisplayIconPos, imageZig.IMAGE_ICON_DAMAGE, 2, 2, 1, 0, false, false, state);
                 },
+                .damagePerCent => |data| {
+                    const damageDisplayTextPos: main.Position = .{
+                        .x = moneyDisplayPos.x + 2,
+                        .y = moneyDisplayPos.y + fontSize + 1,
+                    };
+                    const textWidth = fontVulkanZig.paintTextGameMap("x", damageDisplayTextPos, fontSize, &state.vkState.verticeData.font, state);
+                    _ = try fontVulkanZig.paintNumberGameMap((data.factor + 1), .{ .x = damageDisplayTextPos.x + textWidth, .y = damageDisplayTextPos.y }, fontSize, &state.vkState.verticeData.font, state);
+                    const DamageDisplayIconPos: main.Position = .{
+                        .x = damageDisplayTextPos.x - 2.5,
+                        .y = damageDisplayTextPos.y + fontSize / 2,
+                    };
+                    paintVulkanZig.verticesForComplexSprite(DamageDisplayIconPos, imageZig.IMAGE_ICON_DAMAGE, 2, 2, 1, 0, false, false, state);
+                },
                 else => {},
             }
         }
