@@ -81,6 +81,7 @@ pub const IMAGE_KUNAI = 73;
 pub const IMAGE_KUNAI_TILE_INDICATOR = 74;
 pub const IMAGE_GOLD_BLADE = 75;
 pub const IMAGE_BLINDFOLD = 76;
+pub const IMAGE_EYEPATCH = 77;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaFeet.png" },
@@ -160,6 +161,7 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/kunaiTileIndicator.png", .scale = 2.0 },
     .{ .path = "images/goldblade.png" },
     .{ .path = "images/blindfold.png" },
+    .{ .path = "images/eyepatch.png" },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 pub const IMAGE_DOG__CENTER_BODY: main.Position = .{ .x = 99, .y = 128 };

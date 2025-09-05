@@ -33,7 +33,8 @@ pub const NinjaDogPaintData = struct {
     feetImageIndex: u8 = imageZig.IMAGE_NINJA_FEET,
     weaponImageIndex: u8 = imageZig.IMAGE_BLADE,
     hasBandana: bool = true,
-    drawEyes: bool = true,
+    drawLeftEye: bool = true,
+    drawRightEye: bool = true,
 };
 
 const NinjaDogAnimationStatePaw = enum {
@@ -469,32 +470,38 @@ fn drawEars(position: main.Position, paintData: NinjaDogPaintData, state: *main.
 }
 
 fn drawEyes(position: main.Position, paintData: NinjaDogPaintData, state: *main.GameState) void {
-    if (!paintData.drawEyes) return;
     const dogSize = imageZig.IMAGE_DOG_TOTAL_SIZE;
-    const leftEyeSpritePosition: main.Position = .{
-        .x = position.x + (imageZig.IMAGE_DOG__EYE_LEFT.x - @as(f32, @floatFromInt(dogSize)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
-        .y = position.y + (imageZig.IMAGE_DOG__EYE_LEFT.y - @as(f32, @floatFromInt(dogSize)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
-    };
-    const rightEyeSpritePosition: main.Position = .{
-        .x = position.x + (imageZig.IMAGE_DOG__EYE_RIGHT.x - @as(f32, @floatFromInt(dogSize)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
-        .y = position.y + (imageZig.IMAGE_DOG__EYE_RIGHT.y - @as(f32, @floatFromInt(dogSize)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
-    };
-    if (!paintData.blinking) {
-        const leftPupilSpritePosition: main.Position = .{
-            .x = leftEyeSpritePosition.x + paintData.leftPupilOffset.x / imageZig.IMAGE_TO_GAME_SIZE,
-            .y = leftEyeSpritePosition.y + paintData.leftPupilOffset.y / imageZig.IMAGE_TO_GAME_SIZE,
+    if (paintData.drawLeftEye) {
+        const leftEyeSpritePosition: main.Position = .{
+            .x = position.x + (imageZig.IMAGE_DOG__EYE_LEFT.x - @as(f32, @floatFromInt(dogSize)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
+            .y = position.y + (imageZig.IMAGE_DOG__EYE_LEFT.y - @as(f32, @floatFromInt(dogSize)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
         };
-        const rightPupilSpritePosition: main.Position = .{
-            .x = rightEyeSpritePosition.x + paintData.rightPupilOffset.x / imageZig.IMAGE_TO_GAME_SIZE,
-            .y = rightEyeSpritePosition.y + paintData.rightPupilOffset.y / imageZig.IMAGE_TO_GAME_SIZE,
+        if (!paintData.blinking) {
+            const leftPupilSpritePosition: main.Position = .{
+                .x = leftEyeSpritePosition.x + paintData.leftPupilOffset.x / imageZig.IMAGE_TO_GAME_SIZE,
+                .y = leftEyeSpritePosition.y + paintData.leftPupilOffset.y / imageZig.IMAGE_TO_GAME_SIZE,
+            };
+            addTiranglesForSprite(leftPupilSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_PUPIL_LEFT), imageZig.IMAGE_PUPIL_LEFT, 0, null, null, state);
+            addTiranglesForSprite(leftEyeSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_EYE_LEFT), imageZig.IMAGE_EYE_LEFT, 0, null, null, state);
+        } else {
+            addTiranglesForSprite(leftEyeSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_EYE_CLOSED), imageZig.IMAGE_EYE_CLOSED, 0, null, null, state);
+        }
+    }
+    if (paintData.drawRightEye) {
+        const rightEyeSpritePosition: main.Position = .{
+            .x = position.x + (imageZig.IMAGE_DOG__EYE_RIGHT.x - @as(f32, @floatFromInt(dogSize)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
+            .y = position.y + (imageZig.IMAGE_DOG__EYE_RIGHT.y - @as(f32, @floatFromInt(dogSize)) / 2) / imageZig.IMAGE_TO_GAME_SIZE,
         };
-        addTiranglesForSprite(leftPupilSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_PUPIL_LEFT), imageZig.IMAGE_PUPIL_LEFT, 0, null, null, state);
-        addTiranglesForSprite(rightPupilSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_PUPIL_RIGHT), imageZig.IMAGE_PUPIL_RIGHT, 0, null, null, state);
-        addTiranglesForSprite(leftEyeSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_EYE_LEFT), imageZig.IMAGE_EYE_LEFT, 0, null, null, state);
-        addTiranglesForSprite(rightEyeSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_EYE_RIGHT), imageZig.IMAGE_EYE_RIGHT, 0, null, null, state);
-    } else {
-        addTiranglesForSprite(leftEyeSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_EYE_CLOSED), imageZig.IMAGE_EYE_CLOSED, 0, null, null, state);
-        addTiranglesForSprite(rightEyeSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_EYE_CLOSED), imageZig.IMAGE_EYE_CLOSED, 0, null, null, state);
+        if (!paintData.blinking) {
+            const rightPupilSpritePosition: main.Position = .{
+                .x = rightEyeSpritePosition.x + paintData.rightPupilOffset.x / imageZig.IMAGE_TO_GAME_SIZE,
+                .y = rightEyeSpritePosition.y + paintData.rightPupilOffset.y / imageZig.IMAGE_TO_GAME_SIZE,
+            };
+            addTiranglesForSprite(rightPupilSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_PUPIL_RIGHT), imageZig.IMAGE_PUPIL_RIGHT, 0, null, null, state);
+            addTiranglesForSprite(rightEyeSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_EYE_RIGHT), imageZig.IMAGE_EYE_RIGHT, 0, null, null, state);
+        } else {
+            addTiranglesForSprite(rightEyeSpritePosition, imageZig.getImageCenter(imageZig.IMAGE_EYE_CLOSED), imageZig.IMAGE_EYE_CLOSED, 0, null, null, state);
+        }
     }
 }
 

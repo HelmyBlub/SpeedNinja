@@ -79,6 +79,7 @@ pub const Player = struct {
     hasWeaponHammer: bool = false,
     hasWeaponKunai: bool = false,
     hasBlindfold: bool = false,
+    hasEyePatch: bool = false,
 };
 
 pub const MapObjectType = enum {

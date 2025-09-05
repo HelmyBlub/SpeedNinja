@@ -114,8 +114,9 @@ pub fn setMoveOptionIndex(player: *main.Player, index: usize, state: *main.GameS
     if (!state.timerStarted) state.timerStarted = true;
     if (player.moveOptions.items.len > index) {
         player.choosenMoveOptionIndex = index;
+        if (player.hasEyePatch) player.choosenMoveOptionIndex = 0;
         ninjaDogVulkanZig.swordHandsCentered(player, state);
-        player.choosenMoveOptionVisualizationOverlapping = choosenMovePieceVisualizationVulkanZig.isChoosenPieceVisualizationOverlapping(player.moveOptions.items[index]);
+        player.choosenMoveOptionVisualizationOverlapping = choosenMovePieceVisualizationVulkanZig.isChoosenPieceVisualizationOverlapping(player.moveOptions.items[player.choosenMoveOptionIndex.?]);
     }
 }
 
@@ -412,9 +413,18 @@ pub fn executeMovePieceWithCallbackPerStep(
 
 pub fn movePlayerByMovePiece(player: *main.Player, movePieceIndex: usize, directionInput: u8, state: *main.GameState) !void {
     if (player.executeMovePiece != null) return;
+    if (!player.hasEyePatch or state.gamePhase == .shopping) player.choosenMoveOptionIndex = null;
     player.executeMovePiece = player.moveOptions.items[movePieceIndex];
     player.executeDirection = directionInput;
+
     try setRandomMovePiece(player, movePieceIndex);
+    if (player.hasEyePatch and player.moveOptions.items.len > 0) {
+        const newOption = player.moveOptions.items[0];
+        for (0..player.moveOptions.items.len - 1) |index| {
+            player.moveOptions.items[index] = player.moveOptions.items[index + 1];
+        }
+        player.moveOptions.items[player.moveOptions.items.len - 1] = newOption;
+    }
     try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_NINJA_MOVE_INDICIES[0..], 0, 1);
     if (state.gamePhase == .shopping and player.availableMovePieces.items.len == 0 and player.moveOptions.items.len == 0) {
         try resetPieces(player);

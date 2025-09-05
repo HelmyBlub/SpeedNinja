@@ -1,9 +1,6 @@
 Tasks:
 - equipment
     - head:
-        - image: blindfold
-            - x2 damage
-            - blind => don't display selected move piece
         - image: eyepatch
             - x1.5
             - can not choose move piece, but order of next 2 are displayed instead

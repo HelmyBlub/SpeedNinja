@@ -34,7 +34,8 @@ const EquipmentHeadData = struct {
     imageIndexLayer1: ?u8 = null,
     earImageIndex: u8 = imageZig.IMAGE_DOG_EAR,
     offset: main.Position = .{ .x = 0, .y = 0 },
-    eyes: bool = true,
+    leftEye: bool = true,
+    rightEye: bool = true,
 };
 
 const EquipmentEffectType = enum {
@@ -67,6 +68,7 @@ const SecondaryEffect = enum {
     kunai,
     gold,
     blind,
+    oneMovePieceChoice,
 };
 
 pub const EquipmentShopOptions = struct {
@@ -164,7 +166,24 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
             .slotTypeData = .{
                 .head = .{
                     .bandana = false,
-                    .eyes = false,
+                    .leftEye = false,
+                    .rightEye = false,
+                    .earImageIndex = imageZig.IMAGE_DOG_EAR,
+                    .imageIndexLayer1 = imageZig.IMAGE_DOG_HEAD,
+                },
+            },
+        },
+    },
+    .{
+        .basePrice = 10,
+        .shopDisplayImage = imageZig.IMAGE_EYEPATCH,
+        .equipment = .{
+            .effectType = .{ .damagePerCent = .{ .factor = 0.5, .effect = .oneMovePieceChoice } },
+            .imageIndex = imageZig.IMAGE_EYEPATCH,
+            .slotTypeData = .{
+                .head = .{
+                    .bandana = false,
+                    .rightEye = false,
                     .earImageIndex = imageZig.IMAGE_DOG_EAR,
                     .imageIndexLayer1 = imageZig.IMAGE_DOG_HEAD,
                 },
@@ -274,14 +293,16 @@ fn equipHead(optHead: ?EquipmentData, preventDowngrade: bool, player: *main.Play
         player.paintData.earImageIndex = head.slotTypeData.head.earImageIndex;
         player.paintData.headLayer2Offset = head.slotTypeData.head.offset;
         player.paintData.hasBandana = head.slotTypeData.head.bandana;
-        player.paintData.drawEyes = head.slotTypeData.head.eyes;
+        player.paintData.drawLeftEye = head.slotTypeData.head.leftEye;
+        player.paintData.drawRightEye = head.slotTypeData.head.rightEye;
     } else {
         player.paintData.headLayer1ImageIndex = null;
         player.paintData.headLayer2ImageIndex = imageZig.IMAGE_DOG_HEAD;
         player.paintData.earImageIndex = imageZig.IMAGE_DOG_EAR;
         player.paintData.headLayer2Offset = .{ .x = 0, .y = 0 };
         player.paintData.hasBandana = false;
-        player.paintData.drawEyes = true;
+        player.paintData.drawLeftEye = true;
+        player.paintData.drawRightEye = true;
     }
     return true;
 }
@@ -386,6 +407,9 @@ fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType:
                 .blind => {
                     player.hasBlindfold = false;
                 },
+                .oneMovePieceChoice => {
+                    player.hasEyePatch = false;
+                },
                 .none => {},
             }
         }
@@ -417,6 +441,9 @@ fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType:
                 },
                 .blind => {
                     player.hasBlindfold = true;
+                },
+                .oneMovePieceChoice => {
+                    player.hasEyePatch = true;
                 },
                 .none => {},
             }
