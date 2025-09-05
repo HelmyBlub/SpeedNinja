@@ -1,9 +1,12 @@
 Tasks:
 - equipment
-    - head:
-        - image: eyepatch
-            - x1.5
-            - can not choose move piece, but order of next 2 are displayed instead
+    - feet/boots: 
+        - roller blades
+            - 20% damage
+            - can not move backwards (opposide to last direction)
+        - time shoes
+            - increase round time limit
+    - display secondary effects in shop
 - time measurement save by game
     - like speedrun tools
     - disabled when using debug keys
@@ -37,27 +40,7 @@ Play Times:    best split | best total
 
 Next ideas:
 - buy equippment which is visualized on character
-    - feet/boots: 
-        - some military boots
-            - +hp
-        - roller blades
-            - short fire immunity after move
-            - can not move backwards (opposide to last direction)
-        - time shoes
-            - increase round time limit for required rounds
-        - barefoot
-            - +damage
-    - head:
-        - image: bandana over eyes
-            - x2 damage
-            - blind => don't display selected move piece
-        - image: eyepatch
-            - +damage
-            - can not choose move piece, but order of next 2 are displayed instead
     - body/chest
-        - always one option for +hp?
-           +1 hp
-           +2 hp
         - +damage
 
     
