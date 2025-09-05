@@ -1,13 +1,20 @@
 Tasks:
+- on shop phase spawn player in own grid
 - equipment
-    - weapons
-        - gold weapon  
-            - increase money gained
-            - less damage
-    - shop should have one weapon buy option always
-- check: prevent player from buying downgrades?
+    - head:
+        - image: bandana over eyes
+            - x2 damage
+            - blind => don't display selected move piece
+        - image: eyepatch
+            - x1.5
+            - can not choose move piece, but order of next 2 are displayed instead
+- time measurement save by game
+    - like speedrun tools
+    - disabled when using debug keys
+    - key to reset as i often change stuff making old times not compareable
 - when bought new equipment, place old equipment at position to be able to switch back
 - boss split: split correct amount of times even for high damage values
+- shop should have one weapon buy option always
 
 - think: change random position to single function instead of duplicate with small differenes?
 - waller enemy
@@ -45,24 +52,12 @@ Next ideas:
         - barefoot
             - +damage
     - head:
-        - some military helmet
-            - +hp
         - image: bandana over eyes
             - x2 damage
             - blind => don't display selected move piece
         - image: eyepatch
             - +damage
             - can not choose move piece, but order of next 2 are displayed instead
-    - weapon    
-        - blade
-            - a bit bonus damage
-        - big hammer
-            - aoe at move piece end
-        - kunai
-            - throw kunai each move piece edge for 2 pieces far
-        - gold weapon  
-            - increase money gained
-            - less damage
     - body/chest
         - always one option for +hp?
            +1 hp
