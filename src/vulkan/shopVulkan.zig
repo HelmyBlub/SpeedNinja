@@ -41,7 +41,7 @@ pub fn setupVertices(state: *main.GameState) !void {
                 .x = @floatFromInt(buyOption.tilePosition.x * main.TILESIZE),
                 .y = @floatFromInt(buyOption.tilePosition.y * main.TILESIZE),
             };
-            paintVulkanZig.verticesForComplexSpriteDefault(buyOptionGamePosition, buyOption.imageIndex, state);
+            paintVulkanZig.verticesForComplexSprite(buyOptionGamePosition, buyOption.imageIndex, buyOption.imageScale, buyOption.imageScale, 1, 0, false, false, state);
             const startingInfoTopLeftDisplayPos: main.Position = .{
                 .x = buyOptionGamePosition.x - main.TILESIZE / 2,
                 .y = buyOptionGamePosition.y + main.TILESIZE / 2,

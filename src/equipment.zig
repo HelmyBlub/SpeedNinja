@@ -97,6 +97,7 @@ pub const SecondaryEffect = enum {
 pub const EquipmentShopOptions = struct {
     basePrice: u32,
     shopDisplayImage: u8,
+    imageScale: f32 = 1.5,
     equipment: EquipmentSlotData,
 };
 

@@ -66,6 +66,7 @@ pub const ShopBuyOption = struct {
     tilePosition: main.TilePosition,
     price: u32,
     imageIndex: u8,
+    imageScale: f32 = 1,
     equipment: equipmentZig.EquipmentSlotData,
 };
 
@@ -240,6 +241,7 @@ fn randomizeBuyableEquipment(maxShopOptions: usize, state: *main.GameState) !voi
             .price = state.level * randomEquip.basePrice,
             .tilePosition = .{ .x = 6 + @as(i32, @intCast(i * 2)), .y = 3 },
             .imageIndex = randomEquip.shopDisplayImage,
+            .imageScale = randomEquip.imageScale,
             .equipment = randomEquip.equipment,
         });
         if (availableIndexesLength == 0) break;
