@@ -1,6 +1,5 @@
 Tasks:
 - equipment
-    - display secondary effects in shop
     - display weapon damage different to see weapon and bonus damage
         - like 3 + 1(x%)
     - scaling for certain images of shop display

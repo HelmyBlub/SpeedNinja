@@ -28,7 +28,15 @@ pub fn setupVertices(state: *main.GameState) !void {
         .x = 0.5,
         .y = 0.9,
     };
-    _ = try fontVulkanZig.paintNumber(main.getPlayerDamage(&state.players.items[0]), damageDisplayTextPos, fontSize, &state.vkState.verticeData.font);
+    const playerTotalDamage = main.getPlayerDamage(&state.players.items[0]);
+    const playerWeaponDamage = state.players.items[0].damage;
+    const bonusDamage = playerTotalDamage - playerWeaponDamage;
+    var damageTextWidth: f32 = 0;
+    damageTextWidth += try fontVulkanZig.paintNumber(playerWeaponDamage, damageDisplayTextPos, fontSize, &state.vkState.verticeData.font);
+    if (bonusDamage > 0) {
+        damageTextWidth += fontVulkanZig.paintText("+", .{ .x = damageDisplayTextPos.x + damageTextWidth, .y = damageDisplayTextPos.y }, fontSize, &state.vkState.verticeData.font);
+        _ = try fontVulkanZig.paintNumber(bonusDamage, .{ .x = damageDisplayTextPos.x + damageTextWidth, .y = damageDisplayTextPos.y }, fontSize, &state.vkState.verticeData.font);
+    }
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const damageDisplayIconPos: main.Position = .{
