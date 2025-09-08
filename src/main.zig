@@ -12,6 +12,7 @@ const bossZig = @import("boss/boss.zig");
 const imageZig = @import("image.zig");
 const mapTileZig = @import("mapTile.zig");
 const equipmentZig = @import("equipment.zig");
+const statsZig = @import("stats.zig");
 
 pub const GamePhase = enum {
     combat,
@@ -49,6 +50,7 @@ pub const GameState = struct {
     shop: shopZig.ShopData,
     lastBossDefeatedTime: i64 = 0,
     timerStarted: bool = false,
+    statistics: statsZig.Statistics,
 };
 
 pub const Player = struct {
@@ -476,6 +478,7 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
         .bosses = std.ArrayList(bossZig.Boss).init(allocator),
         .shop = .{ .buyOptions = std.ArrayList(shopZig.ShopBuyOption).init(allocator) },
         .mapData = try mapTileZig.createMapData(allocator),
+        .statistics = statsZig.createStatistics(allocator),
     };
     state.allocator = allocator;
     try windowSdlZig.initWindowSdl();
@@ -528,6 +531,7 @@ fn destroyGameState(state: *GameState) void {
     state.shop.buyOptions.deinit();
     state.spriteCutAnimations.deinit();
     state.mapObjects.deinit();
+    statsZig.destoryStatistics(state);
     mapTileZig.deinit(state);
     enemyZig.destroyEnemyData(state);
 }

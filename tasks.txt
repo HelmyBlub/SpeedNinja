@@ -1,10 +1,14 @@
 Tasks:
-- equipment
-    - shop should always offer one weapon on first slot and one none weapon on second slot, every other slot is random
 - time measurement save by game
-    - like speedrun tools
+    - save best time per level
+    - save best pace until level
+    - save highest round reached on level
+    - taking damage counter for level
     - disabled when using debug keys
+    - measure shopping times
+    -
     - key to reset as i often change stuff making old times not compareable
+
 - when bought new equipment, place old equipment at position to be able to switch back
 - boss split: split correct amount of times even for high damage values
 - shop should have one weapon buy option always
@@ -36,6 +40,8 @@ Next ideas:
 - retries for money?
     - each retry gets more expensive
 - after level 50 start new game+, repeat bosses but stuff gets harder, faster
+- when out of pieces, instead of losing instantly, projectile will drop on player, player takes damage and gets two move pieces back if he has HP
+- instead of losing instantly on time over, make sudden death, projectiles will drop on every tile slowly growing inwards
 
 - game modifier
     - can be choosen -> more money per round, but harder or different
