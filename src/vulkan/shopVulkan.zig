@@ -10,6 +10,7 @@ const fontVulkanZig = @import("fontVulkan.zig");
 const shopZig = @import("../shop.zig");
 const movePieceUxVulkanZig = @import("movePieceUxVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
+const equipmentZig = @import("../equipment.zig");
 
 pub fn setupVertices(state: *main.GameState) !void {
     const verticeData = &state.vkState.verticeData;
@@ -41,37 +42,41 @@ pub fn setupVertices(state: *main.GameState) !void {
                 .y = @floatFromInt(buyOption.tilePosition.y * main.TILESIZE),
             };
             paintVulkanZig.verticesForComplexSpriteDefault(buyOptionGamePosition, buyOption.imageIndex, state);
-            var moneyDisplayPos: main.Position = .{
+            const startingInfoTopLeftDisplayPos: main.Position = .{
                 .x = buyOptionGamePosition.x - main.TILESIZE / 2,
                 .y = buyOptionGamePosition.y + main.TILESIZE / 2,
             };
+            var moneyDisplayPos: main.Position = startingInfoTopLeftDisplayPos;
             const fontSize = 8;
             moneyDisplayPos.x += fontVulkanZig.paintTextGameMap("$", moneyDisplayPos, fontSize, &state.vkState.verticeData.font, state);
             _ = try fontVulkanZig.paintNumberGameMap(buyOption.price, moneyDisplayPos, fontSize, &state.vkState.verticeData.font, state);
+            var secondaryEffect: ?equipmentZig.SecondaryEffect = null;
             switch (buyOption.equipment.effectType) {
-                .hp => |hp| {
+                .hp => |data| {
                     const hpDisplayTextPos: main.Position = .{
                         .x = moneyDisplayPos.x,
                         .y = moneyDisplayPos.y + fontSize + 1,
                     };
-                    const textWidth = try fontVulkanZig.paintNumberGameMap(hp.hp, hpDisplayTextPos, fontSize, &state.vkState.verticeData.font, state);
+                    const textWidth = try fontVulkanZig.paintNumberGameMap(data.hp, hpDisplayTextPos, fontSize, &state.vkState.verticeData.font, state);
                     const hpDisplayIconPos: main.Position = .{
                         .x = hpDisplayTextPos.x + textWidth / 2,
                         .y = hpDisplayTextPos.y + fontSize / 2,
                     };
                     paintVulkanZig.verticesForComplexSprite(hpDisplayIconPos, imageZig.IMAGE_ICON_HP, 2.5, 2.5, 1, 0, false, false, state);
+                    secondaryEffect = data.effect;
                 },
-                .damage => |damage| {
+                .damage => |data| {
                     const damageDisplayTextPos: main.Position = .{
                         .x = moneyDisplayPos.x + 2,
                         .y = moneyDisplayPos.y + fontSize + 1,
                     };
-                    _ = try fontVulkanZig.paintNumberGameMap(damage.damage, damageDisplayTextPos, fontSize, &state.vkState.verticeData.font, state);
+                    _ = try fontVulkanZig.paintNumberGameMap(data.damage, damageDisplayTextPos, fontSize, &state.vkState.verticeData.font, state);
                     const DamageDisplayIconPos: main.Position = .{
                         .x = damageDisplayTextPos.x - 2.5,
                         .y = damageDisplayTextPos.y + fontSize / 2,
                     };
                     paintVulkanZig.verticesForComplexSprite(DamageDisplayIconPos, imageZig.IMAGE_ICON_DAMAGE, 2, 2, 1, 0, false, false, state);
+                    secondaryEffect = data.effect;
                 },
                 .damagePerCent => |data| {
                     const damageDisplayTextPos: main.Position = .{
@@ -85,8 +90,16 @@ pub fn setupVertices(state: *main.GameState) !void {
                         .y = damageDisplayTextPos.y + fontSize / 2,
                     };
                     paintVulkanZig.verticesForComplexSprite(DamageDisplayIconPos, imageZig.IMAGE_ICON_DAMAGE, 2, 2, 1, 0, false, false, state);
+                    secondaryEffect = data.effect;
                 },
                 else => {},
+            }
+            if (secondaryEffect) |secEffect| {
+                const secEffectDisplayPos: main.Position = .{
+                    .x = startingInfoTopLeftDisplayPos.x,
+                    .y = startingInfoTopLeftDisplayPos.y + (fontSize + 1) * 2,
+                };
+                equipmentZig.setupVerticesForShopEquipmentSecondaryEffect(secEffectDisplayPos, secEffect, fontSize, state);
             }
         }
     }

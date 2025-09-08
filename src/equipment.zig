@@ -1,6 +1,8 @@
 const std = @import("std");
 const imageZig = @import("image.zig");
 const main = @import("main.zig");
+const paintVulkanZig = @import("vulkan/paintVulkan.zig");
+const fontVulkanZig = @import("vulkan/fontVulkan.zig");
 
 pub const EquipmentSlotTypes = enum {
     head,
@@ -79,7 +81,7 @@ const EquipEffectHpData = struct {
     effect: SecondaryEffect = .none,
 };
 
-const SecondaryEffect = enum {
+pub const SecondaryEffect = enum {
     none,
     hammer,
     kunai,
@@ -266,6 +268,49 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
         },
     },
 };
+
+pub fn setupVerticesForShopEquipmentSecondaryEffect(topLeft: main.Position, secEffect: SecondaryEffect, fontSize: f32, state: *main.GameState) void {
+    if (secEffect == .none) return;
+    var textWidth: f32 = 0;
+    if (secEffect != .gold) textWidth = fontVulkanZig.paintTextGameMap("+", topLeft, fontSize, &state.vkState.verticeData.font, state);
+    const iconPos: main.Position = .{
+        .x = topLeft.x + textWidth + 5,
+        .y = topLeft.y + fontSize / 2,
+    };
+    switch (secEffect) {
+        .kunai => {
+            paintVulkanZig.verticesForComplexSprite(iconPos, imageZig.IMAGE_KUNAI_TILE_INDICATOR, 0.5, 0.5, 1, 0, false, false, state);
+        },
+        .hammer => {
+            paintVulkanZig.verticesForComplexSprite(iconPos, imageZig.IMAGE_HAMMER_TILE_INDICATOR, 0.5, 0.5, 1, 0, false, false, state);
+        },
+        .gold => {
+            _ = fontVulkanZig.paintTextGameMap("$x1.5", .{ .x = topLeft.x, .y = topLeft.y }, fontSize, &state.vkState.verticeData.font, state);
+        },
+        .noBackMovement => {
+            paintVulkanZig.verticesForComplexSprite(iconPos, imageZig.IMAGE_ARROW_RIGHT, 0.5, 0.5, 1, std.math.pi / 2.0, false, false, state);
+            paintVulkanZig.verticesForComplexSprite(iconPos, imageZig.IMAGE_WARNING_TILE, 0.5, 0.5, 1, 0, false, false, state);
+        },
+        .noLeftMovement => {
+            paintVulkanZig.verticesForComplexSprite(iconPos, imageZig.IMAGE_ARROW_RIGHT, 0.5, 0.5, 1, std.math.pi, false, false, state);
+            paintVulkanZig.verticesForComplexSprite(iconPos, imageZig.IMAGE_WARNING_TILE, 0.5, 0.5, 1, 0, false, false, state);
+        },
+        .noRightMovement => {
+            paintVulkanZig.verticesForComplexSprite(iconPos, imageZig.IMAGE_ARROW_RIGHT, 0.5, 0.5, 1, 0, false, false, state);
+            paintVulkanZig.verticesForComplexSprite(iconPos, imageZig.IMAGE_WARNING_TILE, 0.5, 0.5, 1, 0, false, false, state);
+        },
+        .bonusTime => {
+            paintVulkanZig.verticesForComplexSprite(iconPos, imageZig.IMAGE_CLOCK, 2, 2, 1, 0, false, false, state);
+        },
+        .blind => {
+            paintVulkanZig.verticesForComplexSprite(iconPos, imageZig.IMAGE_BLIND_ICON, 3, 3, 1, 0, false, false, state);
+        },
+        .oneMovePieceChoice => {
+            paintVulkanZig.verticesForComplexSprite(.{ .x = iconPos.x + 6, .y = iconPos.y }, imageZig.IMAGE_NO_CHOICE, 2, 2, 1, 0, false, false, state);
+        },
+        .none => {},
+    }
+}
 
 pub fn getEquipmentOptionByIndexScaledToLevel(index: usize, level: u32) EquipmentShopOptions {
     var option = EQUIPMENT_SHOP_OPTIONS[index];
@@ -487,8 +532,8 @@ fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType:
                 .blind => player.equipment.hasBlindfold = false,
                 .oneMovePieceChoice => player.equipment.hasEyePatch = false,
                 .noBackMovement => player.equipment.hasRollerblades = false,
-                .noLeftMovement => player.equipment.hasPirateLegLeft = false,
-                .noRightMovement => player.equipment.hasPirateLegRight = false,
+                .noLeftMovement => player.equipment.hasPirateLegRight = false,
+                .noRightMovement => player.equipment.hasPirateLegLeft = false,
                 .bonusTime => player.equipment.hasTimeShoes = false,
                 .none => {},
             }
@@ -518,8 +563,8 @@ fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType:
                 .blind => player.equipment.hasBlindfold = true,
                 .oneMovePieceChoice => player.equipment.hasEyePatch = true,
                 .noBackMovement => player.equipment.hasRollerblades = true,
-                .noLeftMovement => player.equipment.hasPirateLegLeft = true,
-                .noRightMovement => player.equipment.hasPirateLegRight = true,
+                .noLeftMovement => player.equipment.hasPirateLegRight = true,
+                .noRightMovement => player.equipment.hasPirateLegLeft = true,
                 .bonusTime => player.equipment.hasTimeShoes = true,
                 .none => {},
             }

@@ -1,12 +1,11 @@
 Tasks:
 - equipment
-    - body/chest
-        - +damage
     - display secondary effects in shop
     - display weapon damage different to see weapon and bonus damage
         - like 3 + 1(x%)
     - scaling for certain images of shop display
         - roleblades are tiny
+    - shop should always offer one weapon on first slot and one none weapon on second slot, every other slot is random
 - time measurement save by game
     - like speedrun tools
     - disabled when using debug keys
