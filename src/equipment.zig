@@ -69,6 +69,7 @@ const SecondaryEffect = enum {
     gold,
     blind,
     oneMovePieceChoice,
+    noBackMovement,
 };
 
 pub const EquipmentShopOptions = struct {
@@ -89,15 +90,6 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
     },
     .{
         .basePrice = 10,
-        .shopDisplayImage = imageZig.IMAGE_NINJA_CHEST_ARMOR_2,
-        .equipment = .{
-            .effectType = .{ .hp = 2 },
-            .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_2,
-            .slotTypeData = .body,
-        },
-    },
-    .{
-        .basePrice = 10,
         .shopDisplayImage = imageZig.IMAGE_MILITARY_HELMET,
         .equipment = .{
             .effectType = .{ .hp = 2 },
@@ -114,10 +106,70 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
     },
     .{
         .basePrice = 10,
+        .shopDisplayImage = imageZig.IMAGE_BLINDFOLD,
+        .equipment = .{
+            .effectType = .{ .damagePerCent = .{ .factor = 1, .effect = .blind } },
+            .imageIndex = imageZig.IMAGE_BLINDFOLD,
+            .slotTypeData = .{
+                .head = .{
+                    .bandana = false,
+                    .leftEye = false,
+                    .rightEye = false,
+                    .earImageIndex = imageZig.IMAGE_DOG_EAR,
+                    .imageIndexLayer1 = imageZig.IMAGE_DOG_HEAD,
+                },
+            },
+        },
+    },
+    .{
+        .basePrice = 10,
+        .shopDisplayImage = imageZig.IMAGE_EYEPATCH,
+        .equipment = .{
+            .effectType = .{ .damagePerCent = .{ .factor = 0.5, .effect = .oneMovePieceChoice } },
+            .imageIndex = imageZig.IMAGE_EYEPATCH,
+            .slotTypeData = .{
+                .head = .{
+                    .bandana = false,
+                    .rightEye = false,
+                    .earImageIndex = imageZig.IMAGE_DOG_EAR,
+                    .imageIndexLayer1 = imageZig.IMAGE_DOG_HEAD,
+                },
+            },
+        },
+    },
+    .{
+        .basePrice = 5,
+        .shopDisplayImage = imageZig.IMAGE_NINJA_CHEST_ARMOR_1,
+        .equipment = .{
+            .effectType = .{ .hp = 1 },
+            .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_1,
+            .slotTypeData = .body,
+        },
+    },
+    .{
+        .basePrice = 10,
+        .shopDisplayImage = imageZig.IMAGE_NINJA_CHEST_ARMOR_2,
+        .equipment = .{
+            .effectType = .{ .hp = 2 },
+            .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_2,
+            .slotTypeData = .body,
+        },
+    },
+    .{
+        .basePrice = 10,
         .shopDisplayImage = imageZig.IMAGE_MILITARY_BOOTS,
         .equipment = .{
             .effectType = .{ .hp = 2 },
             .imageIndex = imageZig.IMAGE_MILITARY_BOOTS,
+            .slotTypeData = .feet,
+        },
+    },
+    .{
+        .basePrice = 10,
+        .shopDisplayImage = imageZig.IMAGE_ROLLERBLADES,
+        .equipment = .{
+            .effectType = .{ .damagePerCent = .{ .factor = 0.5, .effect = .noBackMovement } },
+            .imageIndex = imageZig.IMAGE_ROLLERBLADES,
             .slotTypeData = .feet,
         },
     },
@@ -155,39 +207,6 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
             .effectType = .{ .damage = .{ .damage = 5, .effect = .gold } },
             .imageIndex = imageZig.IMAGE_GOLD_BLADE,
             .slotTypeData = .weapon,
-        },
-    },
-    .{
-        .basePrice = 10,
-        .shopDisplayImage = imageZig.IMAGE_BLINDFOLD,
-        .equipment = .{
-            .effectType = .{ .damagePerCent = .{ .factor = 1, .effect = .blind } },
-            .imageIndex = imageZig.IMAGE_BLINDFOLD,
-            .slotTypeData = .{
-                .head = .{
-                    .bandana = false,
-                    .leftEye = false,
-                    .rightEye = false,
-                    .earImageIndex = imageZig.IMAGE_DOG_EAR,
-                    .imageIndexLayer1 = imageZig.IMAGE_DOG_HEAD,
-                },
-            },
-        },
-    },
-    .{
-        .basePrice = 10,
-        .shopDisplayImage = imageZig.IMAGE_EYEPATCH,
-        .equipment = .{
-            .effectType = .{ .damagePerCent = .{ .factor = 0.5, .effect = .oneMovePieceChoice } },
-            .imageIndex = imageZig.IMAGE_EYEPATCH,
-            .slotTypeData = .{
-                .head = .{
-                    .bandana = false,
-                    .rightEye = false,
-                    .earImageIndex = imageZig.IMAGE_DOG_EAR,
-                    .imageIndexLayer1 = imageZig.IMAGE_DOG_HEAD,
-                },
-            },
         },
     },
 };
@@ -410,6 +429,9 @@ fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType:
                 .oneMovePieceChoice => {
                     player.hasEyePatch = false;
                 },
+                .noBackMovement => {
+                    player.hasRollerblades = false;
+                },
                 .none => {},
             }
         }
@@ -444,6 +466,9 @@ fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType:
                 },
                 .oneMovePieceChoice => {
                     player.hasEyePatch = true;
+                },
+                .noBackMovement => {
+                    player.hasRollerblades = true;
                 },
                 .none => {},
             }

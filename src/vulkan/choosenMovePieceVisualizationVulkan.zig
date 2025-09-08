@@ -36,6 +36,11 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
         const pieceTotalSteps = movePieceZig.getMovePieceTotalStepes(movePiece);
         const highlightModLimit = @max(5, pieceTotalSteps + 1);
         for (0..4) |direction| {
+            if (player.hasRollerblades and player.lastMoveDirection != null) {
+                if (player.lastMoveDirection.? == @mod(direction + 1, 4)) {
+                    continue;
+                }
+            }
             var gamePositionWithCameraOffset: main.Position = .{
                 .x = player.position.x - state.camera.position.x,
                 .y = player.position.y - state.camera.position.y,

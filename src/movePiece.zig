@@ -413,6 +413,7 @@ pub fn executeMovePieceWithCallbackPerStep(
 
 pub fn movePlayerByMovePiece(player: *main.Player, movePieceIndex: usize, directionInput: u8, state: *main.GameState) !void {
     if (player.executeMovePiece != null) return;
+    if (player.hasRollerblades and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(directionInput + 2, 4)) return;
     if (!player.hasEyePatch or state.gamePhase == .shopping) player.choosenMoveOptionIndex = null;
     player.executeMovePiece = player.moveOptions.items[movePieceIndex];
     player.executeDirection = directionInput;
@@ -425,6 +426,7 @@ pub fn movePlayerByMovePiece(player: *main.Player, movePieceIndex: usize, direct
         }
         player.moveOptions.items[player.moveOptions.items.len - 1] = newOption;
     }
+    player.lastMoveDirection = directionInput;
     try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_NINJA_MOVE_INDICIES[0..], 0, 1);
     if (state.gamePhase == .shopping and player.availableMovePieces.items.len == 0 and player.moveOptions.items.len == 0) {
         try resetPieces(player);

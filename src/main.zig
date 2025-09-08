@@ -80,6 +80,8 @@ pub const Player = struct {
     hasWeaponKunai: bool = false,
     hasBlindfold: bool = false,
     hasEyePatch: bool = false,
+    hasRollerblades: bool = false,
+    lastMoveDirection: ?u8 = null,
 };
 
 pub const MapObjectType = enum {
@@ -341,6 +343,7 @@ pub fn startNextLevel(state: *GameState) !void {
     bossZig.clearBosses(state);
     for (state.players.items) |*player| {
         try movePieceZig.resetPieces(player);
+        player.lastMoveDirection = null;
     }
     try enemyZig.setupSpawnEnemiesOnLevelChange(state);
     if (bossZig.isBossLevel(state.level)) {
@@ -439,6 +442,7 @@ pub fn restart(state: *GameState) !void {
         player.shop.selectedOption = .none;
         player.immunUntilTime = 0;
         player.choosenMoveOptionIndex = null;
+        player.lastMoveDirection = null;
         equipmentZig.equipStarterEquipment(player);
         try movePieceZig.setupMovePieces(player, state);
     }
