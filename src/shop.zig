@@ -66,7 +66,7 @@ pub const ShopBuyOption = struct {
     tilePosition: main.TilePosition,
     price: u32,
     imageIndex: u8,
-    equipment: equipmentZig.EquipmentData,
+    equipment: equipmentZig.EquipmentSlotData,
 };
 
 pub const ShopData = struct {

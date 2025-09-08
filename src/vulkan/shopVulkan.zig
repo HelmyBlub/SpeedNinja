@@ -54,7 +54,7 @@ pub fn setupVertices(state: *main.GameState) !void {
                         .x = moneyDisplayPos.x,
                         .y = moneyDisplayPos.y + fontSize + 1,
                     };
-                    const textWidth = try fontVulkanZig.paintNumberGameMap(hp, hpDisplayTextPos, fontSize, &state.vkState.verticeData.font, state);
+                    const textWidth = try fontVulkanZig.paintNumberGameMap(hp.hp, hpDisplayTextPos, fontSize, &state.vkState.verticeData.font, state);
                     const hpDisplayIconPos: main.Position = .{
                         .x = hpDisplayTextPos.x + textWidth / 2,
                         .y = hpDisplayTextPos.y + fontSize / 2,

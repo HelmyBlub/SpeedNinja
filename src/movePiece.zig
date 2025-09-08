@@ -114,7 +114,7 @@ pub fn setMoveOptionIndex(player: *main.Player, index: usize, state: *main.GameS
     if (!state.timerStarted) state.timerStarted = true;
     if (player.moveOptions.items.len > index) {
         player.choosenMoveOptionIndex = index;
-        if (player.hasEyePatch) player.choosenMoveOptionIndex = 0;
+        if (player.equipment.hasEyePatch) player.choosenMoveOptionIndex = 0;
         ninjaDogVulkanZig.swordHandsCentered(player, state);
         player.choosenMoveOptionVisualizationOverlapping = choosenMovePieceVisualizationVulkanZig.isChoosenPieceVisualizationOverlapping(player.moveOptions.items[player.choosenMoveOptionIndex.?]);
     }
@@ -341,7 +341,7 @@ fn stepAndCheckEnemyHitAndProjectileHitAndTiles(player: *main.Player, stepCount:
                 currIndex -= 1;
             }
         }
-        if (player.hasWeaponKunai and (currIndex == stepCount or tileType == .wall)) {
+        if (player.equipment.hasWeaponKunai and (currIndex == stepCount or tileType == .wall)) {
             const playerTilePosition = main.gamePositionToTilePosition(player.position);
             const tileDirection = getStepDirectionTile(direction);
             var hitArea: main.TileRectangle = .{
@@ -364,7 +364,7 @@ fn stepAndCheckEnemyHitAndProjectileHitAndTiles(player: *main.Player, stepCount:
                 try resetPieces(player);
             }
         }
-        if (player.hasWeaponHammer and (currIndex == stepCount or tileType == .wall) and player.executeMovePiece.?.steps.len == 1) {
+        if (player.equipment.hasWeaponHammer and (currIndex == stepCount or tileType == .wall) and player.executeMovePiece.?.steps.len == 1) {
             const playerTilePosition = main.gamePositionToTilePosition(player.position);
             const hitArea: main.TileRectangle = .{ .pos = .{ .x = playerTilePosition.x - 1, .y = playerTilePosition.y - 1 }, .height = 3, .width = 3 };
             if (try checkEnemyHitOnMoveStepWithHitArea(player, direction, hitArea, state)) {
@@ -413,15 +413,15 @@ pub fn executeMovePieceWithCallbackPerStep(
 
 pub fn movePlayerByMovePiece(player: *main.Player, movePieceIndex: usize, directionInput: u8, state: *main.GameState) !void {
     if (player.executeMovePiece != null) return;
-    if (player.hasPirateLegRight and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(directionInput + 1, 4)) return;
-    if (player.hasRollerblades and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(directionInput + 2, 4)) return;
-    if (player.hasPirateLegLeft and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(directionInput + 3, 4)) return;
-    if (!player.hasEyePatch or state.gamePhase == .shopping) player.choosenMoveOptionIndex = null;
+    if (player.equipment.hasPirateLegRight and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(directionInput + 1, 4)) return;
+    if (player.equipment.hasRollerblades and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(directionInput + 2, 4)) return;
+    if (player.equipment.hasPirateLegLeft and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(directionInput + 3, 4)) return;
+    if (!player.equipment.hasEyePatch or state.gamePhase == .shopping) player.choosenMoveOptionIndex = null;
     player.executeMovePiece = player.moveOptions.items[movePieceIndex];
     player.executeDirection = directionInput;
 
     try setRandomMovePiece(player, movePieceIndex);
-    if (player.hasEyePatch and player.moveOptions.items.len > 0) {
+    if (player.equipment.hasEyePatch and player.moveOptions.items.len > 0) {
         const newOption = player.moveOptions.items[0];
         for (0..player.moveOptions.items.len - 1) |index| {
             player.moveOptions.items[index] = player.moveOptions.items[index + 1];

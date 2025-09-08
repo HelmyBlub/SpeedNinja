@@ -10,10 +10,22 @@ pub const EquipmentSlotTypes = enum {
 };
 
 pub const EquipmentSlotsData = struct {
-    head: ?EquipmentData = null,
-    body: ?EquipmentData = null,
-    feet: ?EquipmentData = null,
-    weapon: ?EquipmentData = null,
+    head: ?EquipmentSlotData = null,
+    body: ?EquipmentSlotData = null,
+    feet: ?EquipmentSlotData = null,
+    weapon: ?EquipmentSlotData = null,
+};
+
+pub const EquipmentData = struct {
+    equipmentSlotsData: EquipmentSlotsData = .{},
+    hasWeaponHammer: bool = false,
+    hasWeaponKunai: bool = false,
+    hasBlindfold: bool = false,
+    hasEyePatch: bool = false,
+    hasRollerblades: bool = false,
+    hasPirateLegLeft: bool = false,
+    hasPirateLegRight: bool = false,
+    hasTimeShoes: bool = false,
 };
 
 const EquipmentSlotTypeData = union(EquipmentSlotTypes) {
@@ -23,7 +35,7 @@ const EquipmentSlotTypeData = union(EquipmentSlotTypes) {
     weapon,
 };
 
-pub const EquipmentData = struct {
+pub const EquipmentSlotData = struct {
     effectType: EquipmentEffectTypeData,
     imageIndex: u8,
     slotTypeData: EquipmentSlotTypeData,
@@ -47,7 +59,7 @@ const EquipmentEffectType = enum {
 
 const EquipmentEffectTypeData = union(EquipmentEffectType) {
     none,
-    hp: u8,
+    hp: EquipEffectHpData,
     damage: EquipEffectDamageData,
     damagePerCent: EquipEffectDamagePerCentData,
 };
@@ -62,6 +74,11 @@ const EquipEffectDamagePerCentData = struct {
     effect: SecondaryEffect = .none,
 };
 
+const EquipEffectHpData = struct {
+    hp: u8,
+    effect: SecondaryEffect = .none,
+};
+
 const SecondaryEffect = enum {
     none,
     hammer,
@@ -72,12 +89,13 @@ const SecondaryEffect = enum {
     noBackMovement,
     noLeftMovement,
     noRightMovement,
+    bonusTime,
 };
 
 pub const EquipmentShopOptions = struct {
     basePrice: u32,
     shopDisplayImage: u8,
-    equipment: EquipmentData,
+    equipment: EquipmentSlotData,
 };
 
 pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
@@ -85,7 +103,7 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
         .basePrice = 5,
         .shopDisplayImage = imageZig.IMAGE_NINJA_HEAD,
         .equipment = .{
-            .effectType = .{ .hp = 1 },
+            .effectType = .{ .hp = .{ .hp = 1 } },
             .imageIndex = imageZig.IMAGE_NINJA_HEAD,
             .slotTypeData = .{ .head = .{ .bandana = true, .earImageIndex = imageZig.IMAGE_NINJA_EAR } },
         },
@@ -94,7 +112,7 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
         .basePrice = 10,
         .shopDisplayImage = imageZig.IMAGE_MILITARY_HELMET,
         .equipment = .{
-            .effectType = .{ .hp = 2 },
+            .effectType = .{ .hp = .{ .hp = 2 } },
             .imageIndex = imageZig.IMAGE_MILITARY_HELMET,
             .slotTypeData = .{
                 .head = .{
@@ -143,7 +161,7 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
         .basePrice = 5,
         .shopDisplayImage = imageZig.IMAGE_NINJA_CHEST_ARMOR_1,
         .equipment = .{
-            .effectType = .{ .hp = 1 },
+            .effectType = .{ .hp = .{ .hp = 1 } },
             .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_1,
             .slotTypeData = .body,
         },
@@ -152,7 +170,7 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
         .basePrice = 10,
         .shopDisplayImage = imageZig.IMAGE_NINJA_CHEST_ARMOR_2,
         .equipment = .{
-            .effectType = .{ .hp = 2 },
+            .effectType = .{ .hp = .{ .hp = 2 } },
             .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_2,
             .slotTypeData = .body,
         },
@@ -161,7 +179,7 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
         .basePrice = 10,
         .shopDisplayImage = imageZig.IMAGE_MILITARY_BOOTS,
         .equipment = .{
-            .effectType = .{ .hp = 2 },
+            .effectType = .{ .hp = .{ .hp = 2 } },
             .imageIndex = imageZig.IMAGE_MILITARY_BOOTS,
             .slotTypeData = .feet,
         },
@@ -190,6 +208,15 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
         .equipment = .{
             .effectType = .{ .damagePerCent = .{ .factor = 0.5, .effect = .noRightMovement } },
             .imageIndex = imageZig.IMAGE_PIRATE_LEG_RIGHT,
+            .slotTypeData = .feet,
+        },
+    },
+    .{
+        .basePrice = 10,
+        .shopDisplayImage = imageZig.IMAGE_TIME_SHOES,
+        .equipment = .{
+            .effectType = .{ .hp = .{ .hp = 1, .effect = .bonusTime } },
+            .imageIndex = imageZig.IMAGE_TIME_SHOES,
             .slotTypeData = .feet,
         },
     },
@@ -240,19 +267,28 @@ pub fn getEquipmentOptionByIndexScaledToLevel(index: usize, level: u32) Equipmen
     return option;
 }
 
+pub fn getTimeShoesBonusRoundTime(state: *main.GameState) i32 {
+    const timePerShoes: i32 = @intCast(@divFloor(120_000, state.players.items.len));
+    var bonusTime: i32 = 0;
+    for (state.players.items) |player| {
+        if (player.equipment.hasTimeShoes) bonusTime += timePerShoes;
+    }
+    return bonusTime;
+}
+
 pub fn equipStarterEquipment(player: *main.Player) void {
     _ = equip(.{
-        .effectType = .{ .hp = 1 },
+        .effectType = .{ .hp = .{ .hp = 1 } },
         .imageIndex = imageZig.IMAGE_NINJA_HEAD,
         .slotTypeData = .{ .head = .{ .bandana = true, .earImageIndex = imageZig.IMAGE_NINJA_EAR } },
     }, false, player);
-    _ = equip(.{ .effectType = .{ .hp = 1 }, .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_1, .slotTypeData = .body }, false, player);
+    _ = equip(.{ .effectType = .{ .hp = .{ .hp = 1 } }, .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_1, .slotTypeData = .body }, false, player);
     _ = equip(.{ .effectType = .none, .imageIndex = imageZig.IMAGE_NINJA_FEET, .slotTypeData = .feet }, false, player);
     _ = equip(.{ .effectType = .{ .damage = .{ .damage = 1 } }, .imageIndex = imageZig.IMAGE_BLADE, .slotTypeData = .weapon }, false, player);
 }
 
 /// return true if item equipted
-pub fn equip(equipment: EquipmentData, preventDowngrade: bool, player: *main.Player) bool {
+pub fn equip(equipment: EquipmentSlotData, preventDowngrade: bool, player: *main.Player) bool {
     switch (equipment.slotTypeData) {
         .body => {
             return equipBody(equipment, preventDowngrade, player);
@@ -290,13 +326,13 @@ pub fn damageTakenByEquipment(player: *main.Player, state: *main.GameState) !boo
     var equipBrokenImageIndex: ?u8 = null;
     var equipTookDamage = false;
     inline for (@typeInfo(EquipmentSlotsData).@"struct".fields) |field| {
-        const valPtr: *?EquipmentData = &@field(player.equipment, field.name);
+        const valPtr: *?EquipmentSlotData = &@field(player.equipment.equipmentSlotsData, field.name);
         if (valPtr.* != null) {
             const effectType: EquipmentEffectTypeData = valPtr.*.?.effectType;
             if (effectType == .hp) {
-                valPtr.*.?.effectType.hp -= 1;
+                valPtr.*.?.effectType.hp.hp -= 1;
                 equipTookDamage = true;
-                if (valPtr.*.?.effectType.hp == 0) {
+                if (valPtr.*.?.effectType.hp.hp == 0) {
                     equipBrokenImageIndex = valPtr.*.?.imageIndex;
                     unequip(valPtr.*.?.slotTypeData, player);
                 }
@@ -318,14 +354,14 @@ pub fn damageTakenByEquipment(player: *main.Player, state: *main.GameState) !boo
     return equipTookDamage;
 }
 
-fn equipHead(optHead: ?EquipmentData, preventDowngrade: bool, player: *main.Player) bool {
-    const optOld = player.equipment.head;
+fn equipHead(optHead: ?EquipmentSlotData, preventDowngrade: bool, player: *main.Player) bool {
+    const optOld = player.equipment.equipmentSlotsData.head;
     const optOldEffectType = if (optOld) |old| old.effectType else null;
     const optNewEffectType = if (optHead) |new| new.effectType else null;
     if (preventDowngrade and isDowngrade(optOldEffectType, optNewEffectType)) return false;
     equipmentEffect(optNewEffectType, optOldEffectType, player);
 
-    player.equipment.head = optHead;
+    player.equipment.equipmentSlotsData.head = optHead;
     if (optHead) |head| {
         player.paintData.headLayer1ImageIndex = head.slotTypeData.head.imageIndexLayer1;
         player.paintData.headLayer2ImageIndex = head.imageIndex;
@@ -346,13 +382,13 @@ fn equipHead(optHead: ?EquipmentData, preventDowngrade: bool, player: *main.Play
     return true;
 }
 
-fn equipBody(optBody: ?EquipmentData, preventDowngrade: bool, player: *main.Player) bool {
-    const optOld = player.equipment.body;
+fn equipBody(optBody: ?EquipmentSlotData, preventDowngrade: bool, player: *main.Player) bool {
+    const optOld = player.equipment.equipmentSlotsData.body;
     const optOldEffectType = if (optOld) |old| old.effectType else null;
     const optNewEffectType = if (optBody) |new| new.effectType else null;
     if (preventDowngrade and isDowngrade(optOldEffectType, optNewEffectType)) return false;
     equipmentEffect(optNewEffectType, optOldEffectType, player);
-    player.equipment.body = optBody;
+    player.equipment.equipmentSlotsData.body = optBody;
     if (optBody) |body| {
         player.paintData.chestArmorImageIndex = body.imageIndex;
     } else {
@@ -366,17 +402,17 @@ fn isDowngrade(optOldEffectType: ?EquipmentEffectTypeData, optNewEffectType: ?Eq
         if (@as(EquipmentEffectType, optOldEffectType.?) == @as(EquipmentEffectType, optNewEffectType.?)) {
             switch (optOldEffectType.?) {
                 .damage => |damage| {
-                    if (damage.damage >= optNewEffectType.?.damage.damage and @as(SecondaryEffect, optOldEffectType.?.damage.effect) == @as(SecondaryEffect, optNewEffectType.?.damage.effect)) {
+                    if (damage.damage >= optNewEffectType.?.damage.damage and @as(SecondaryEffect, damage.effect) == @as(SecondaryEffect, optNewEffectType.?.damage.effect)) {
                         return true;
                     }
                 },
                 .damagePerCent => |data| {
-                    if (data.factor >= optNewEffectType.?.damagePerCent.factor and @as(SecondaryEffect, optOldEffectType.?.damagePerCent.effect) == @as(SecondaryEffect, optNewEffectType.?.damagePerCent.effect)) {
+                    if (data.factor >= optNewEffectType.?.damagePerCent.factor and @as(SecondaryEffect, data.effect) == @as(SecondaryEffect, optNewEffectType.?.damagePerCent.effect)) {
                         return true;
                     }
                 },
                 .hp => |hp| {
-                    if (hp >= optNewEffectType.?.hp) {
+                    if (hp.hp >= optNewEffectType.?.hp.hp and @as(SecondaryEffect, hp.effect) == @as(SecondaryEffect, optNewEffectType.?.hp.effect)) {
                         return true;
                     }
                 },
@@ -387,13 +423,13 @@ fn isDowngrade(optOldEffectType: ?EquipmentEffectTypeData, optNewEffectType: ?Eq
     return false;
 }
 
-fn equipFeet(optFeet: ?EquipmentData, preventDowngrade: bool, player: *main.Player) bool {
-    const optOld = player.equipment.feet;
+fn equipFeet(optFeet: ?EquipmentSlotData, preventDowngrade: bool, player: *main.Player) bool {
+    const optOld = player.equipment.equipmentSlotsData.feet;
     const optOldEffectType = if (optOld) |old| old.effectType else null;
     const optNewEffectType = if (optFeet) |new| new.effectType else null;
     if (preventDowngrade and isDowngrade(optOldEffectType, optNewEffectType)) return false;
     equipmentEffect(optNewEffectType, optOldEffectType, player);
-    player.equipment.feet = optFeet;
+    player.equipment.equipmentSlotsData.feet = optFeet;
     if (optFeet) |feet| {
         player.paintData.feetImageIndex = feet.imageIndex;
     } else {
@@ -402,13 +438,13 @@ fn equipFeet(optFeet: ?EquipmentData, preventDowngrade: bool, player: *main.Play
     return true;
 }
 
-fn equipWeapon(optWeapon: ?EquipmentData, preventDowngrade: bool, player: *main.Player) bool {
-    const optOld = player.equipment.weapon;
+fn equipWeapon(optWeapon: ?EquipmentSlotData, preventDowngrade: bool, player: *main.Player) bool {
+    const optOld = player.equipment.equipmentSlotsData.weapon;
     const optOldEffectType = if (optOld) |old| old.effectType else null;
     const optNewEffectType = if (optWeapon) |new| new.effectType else null;
     if (preventDowngrade and isDowngrade(optOldEffectType, optNewEffectType)) return false;
     equipmentEffect(optNewEffectType, optOldEffectType, player);
-    player.equipment.weapon = optWeapon;
+    player.equipment.equipmentSlotsData.weapon = optWeapon;
     if (optWeapon) |weapon| {
         player.paintData.weaponImageIndex = weapon.imageIndex;
     } else {
@@ -430,18 +466,21 @@ fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType:
                 player.damagePerCentFactor -= data.factor;
                 optSecondaryEffect = data.effect;
             },
-            .hp => {},
+            .hp => |data| {
+                optSecondaryEffect = data.effect;
+            },
         }
         if (optSecondaryEffect) |secEffect| {
             switch (secEffect) {
-                .hammer => player.hasWeaponHammer = false,
-                .kunai => player.hasWeaponKunai = false,
+                .hammer => player.equipment.hasWeaponHammer = false,
+                .kunai => player.equipment.hasWeaponKunai = false,
                 .gold => player.moneyBonusPerCent = 0,
-                .blind => player.hasBlindfold = false,
-                .oneMovePieceChoice => player.hasEyePatch = false,
-                .noBackMovement => player.hasRollerblades = false,
-                .noLeftMovement => player.hasPirateLegLeft = false,
-                .noRightMovement => player.hasPirateLegRight = false,
+                .blind => player.equipment.hasBlindfold = false,
+                .oneMovePieceChoice => player.equipment.hasEyePatch = false,
+                .noBackMovement => player.equipment.hasRollerblades = false,
+                .noLeftMovement => player.equipment.hasPirateLegLeft = false,
+                .noRightMovement => player.equipment.hasPirateLegRight = false,
+                .bonusTime => player.equipment.hasTimeShoes = false,
                 .none => {},
             }
         }
@@ -458,18 +497,21 @@ fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType:
                 player.damagePerCentFactor += data.factor;
                 optSecondaryEffect = data.effect;
             },
-            .hp => {},
+            .hp => |data| {
+                optSecondaryEffect = data.effect;
+            },
         }
         if (optSecondaryEffect) |secEffect| {
             switch (secEffect) {
-                .hammer => player.hasWeaponHammer = true,
-                .kunai => player.hasWeaponKunai = true,
+                .hammer => player.equipment.hasWeaponHammer = true,
+                .kunai => player.equipment.hasWeaponKunai = true,
                 .gold => player.moneyBonusPerCent = 0.5,
-                .blind => player.hasBlindfold = true,
-                .oneMovePieceChoice => player.hasEyePatch = true,
-                .noBackMovement => player.hasRollerblades = true,
-                .noLeftMovement => player.hasPirateLegLeft = true,
-                .noRightMovement => player.hasPirateLegRight = true,
+                .blind => player.equipment.hasBlindfold = true,
+                .oneMovePieceChoice => player.equipment.hasEyePatch = true,
+                .noBackMovement => player.equipment.hasRollerblades = true,
+                .noLeftMovement => player.equipment.hasPirateLegLeft = true,
+                .noRightMovement => player.equipment.hasPirateLegRight = true,
+                .bonusTime => player.equipment.hasTimeShoes = true,
                 .none => {},
             }
         }

@@ -85,6 +85,7 @@ pub const IMAGE_EYEPATCH = 77;
 pub const IMAGE_ROLLERBLADES = 78;
 pub const IMAGE_PIRATE_LEG_LEFT = 79;
 pub const IMAGE_PIRATE_LEG_RIGHT = 80;
+pub const IMAGE_TIME_SHOES = 81;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaFeet.png" },
@@ -168,6 +169,7 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/rollerblades.png" },
     .{ .path = "images/pirateLegLeft.png" },
     .{ .path = "images/pirateLegRight.png" },
+    .{ .path = "images/timeShoes.png" },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 pub const IMAGE_DOG__CENTER_BODY: main.Position = .{ .x = 99, .y = 128 };

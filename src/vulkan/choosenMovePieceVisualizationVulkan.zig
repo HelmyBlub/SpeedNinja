@@ -24,7 +24,7 @@ pub fn setupVertices(state: *main.GameState) void {
 }
 
 fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataVulkanZig.VkColoredVertexes, triangles: *dataVulkanZig.VkColoredVertexes, state: *main.GameState) void {
-    if (player.hasBlindfold) return;
+    if (player.equipment.hasBlindfold) return;
     if (player.choosenMoveOptionIndex != null and player.moveOptions.items.len > 0) {
         const index = player.choosenMoveOptionIndex.?;
         const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
@@ -36,9 +36,9 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
         const pieceTotalSteps = movePieceZig.getMovePieceTotalStepes(movePiece);
         const highlightModLimit = @max(5, pieceTotalSteps + 1);
         for (0..4) |direction| {
-            if (player.hasPirateLegRight and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(direction, 4)) continue;
-            if (player.hasRollerblades and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(direction + 1, 4)) continue;
-            if (player.hasPirateLegLeft and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(direction + 2, 4)) continue;
+            if (player.equipment.hasPirateLegRight and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(direction, 4)) continue;
+            if (player.equipment.hasRollerblades and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(direction + 1, 4)) continue;
+            if (player.equipment.hasPirateLegLeft and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(direction + 2, 4)) continue;
             var gamePositionWithCameraOffset: main.Position = .{
                 .x = player.position.x - state.camera.position.x,
                 .y = player.position.y - state.camera.position.y,
@@ -192,7 +192,7 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
                         }
                     }
                 }
-                if (player.hasWeaponKunai) {
+                if (player.equipment.hasWeaponKunai) {
                     const kunaiRange = 2;
                     for (1..kunaiRange + 1) |i| {
                         const fi: f32 = @floatFromInt(i);
@@ -204,7 +204,7 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
                     }
                 }
             }
-            if (player.hasWeaponHammer) {
+            if (player.equipment.hasWeaponHammer) {
                 const hammerPositionOffsets = [_]main.Position{
                     .{ .x = -main.TILESIZE, .y = -main.TILESIZE },
                     .{ .x = 0, .y = -main.TILESIZE },

@@ -1,11 +1,8 @@
 Tasks:
 - equipment
     - feet/boots: 
-        - pirtate leg left and right
-            - can not move left or right
-            - +50% damage
         - time shoes
-            - remove round time limit
+            - +round time limit (+2min single player, time divided by player count)
     - display secondary effects in shop
 - scaling for certain images of shop display
     - roleblades are tiny

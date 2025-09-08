@@ -74,15 +74,8 @@ pub const Player = struct {
     fallVelocity: f32 = 0,
     startedFallingState: ?i64 = null,
     fallingStateDamageDelay: i32 = 1500,
-    equipment: equipmentZig.EquipmentSlotsData = .{},
+    equipment: equipmentZig.EquipmentData = .{},
     moneyBonusPerCent: f32 = 0,
-    hasWeaponHammer: bool = false,
-    hasWeaponKunai: bool = false,
-    hasBlindfold: bool = false,
-    hasEyePatch: bool = false,
-    hasRollerblades: bool = false,
-    hasPirateLegLeft: bool = false,
-    hasPirateLegRight: bool = false,
     lastMoveDirection: ?u8 = null,
 };
 
@@ -305,9 +298,10 @@ fn tickClouds(state: *GameState, passedTime: i64) void {
 
 pub fn startNextRound(state: *GameState) !void {
     state.enemyData.enemies.clearRetainingCapacity();
-    const maxTime = state.gameTime + state.minimalTimePerRequiredRounds;
+    const timeShoesBonusTime = equipmentZig.getTimeShoesBonusRoundTime(state);
+    const maxTime = state.gameTime + state.minimalTimePerRequiredRounds + timeShoesBonusTime;
     if (state.round == 1) {
-        state.roundEndTimeMS = state.gameTime + state.levelInitialTime;
+        state.roundEndTimeMS = state.gameTime + state.levelInitialTime + timeShoesBonusTime;
     } else {
         state.roundEndTimeMS += state.bonusTimePerRoundFinished;
         if (state.roundEndTimeMS > maxTime) {
