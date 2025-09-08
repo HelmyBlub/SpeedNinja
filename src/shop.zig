@@ -230,21 +230,25 @@ fn randomizeBuyableEquipment(maxShopOptions: usize, state: *main.GameState) !voi
     for (0..availableIndexes.len) |i| {
         availableIndexes[i] = i;
     }
-    for (0..maxShopOptions) |i| {
+    var shopOptionsCount: usize = 0;
+    while (shopOptionsCount < maxShopOptions) {
         const randomIndex = std.crypto.random.intRangeLessThan(usize, 0, availableIndexesLength);
         const randomEquipIndex = availableIndexes[randomIndex];
+        const randomEquip = equipmentZig.getEquipmentOptionByIndexScaledToLevel(randomEquipIndex, state.level);
+        if (shopOptionsCount == 0 and randomEquip.equipment.slotTypeData != .weapon) continue;
+        if (shopOptionsCount == 1 and randomEquip.equipment.slotTypeData == .weapon) continue;
         availableIndexesLength -= 1;
         availableIndexes[randomIndex] = availableIndexes[availableIndexesLength];
 
-        const randomEquip = equipmentZig.getEquipmentOptionByIndexScaledToLevel(randomEquipIndex, state.level);
         try state.shop.buyOptions.append(.{
             .price = state.level * randomEquip.basePrice,
-            .tilePosition = .{ .x = 6 + @as(i32, @intCast(i * 2)), .y = 3 },
+            .tilePosition = .{ .x = 6 + @as(i32, @intCast(shopOptionsCount * 2)), .y = 3 },
             .imageIndex = randomEquip.shopDisplayImage,
             .imageScale = randomEquip.imageScale,
             .equipment = randomEquip.equipment,
         });
         if (availableIndexesLength == 0) break;
+        shopOptionsCount += 1;
     }
 }
 
