@@ -1,11 +1,12 @@
 Tasks:
 - equipment
-    - feet/boots: 
-        - time shoes
-            - +round time limit (+2min single player, time divided by player count)
+    - body/chest
+        - +damage
     - display secondary effects in shop
-- scaling for certain images of shop display
-    - roleblades are tiny
+    - display weapon damage different to see weapon and bonus damage
+        - like 3 + 1(x%)
+    - scaling for certain images of shop display
+        - roleblades are tiny
 - time measurement save by game
     - like speedrun tools
     - disabled when using debug keys
@@ -38,11 +39,6 @@ Play Times:    best split | best total
     lvl 50 best in 8:15 total 54:17
 
 Next ideas:
-- buy equippment which is visualized on character
-    - body/chest
-        - +damage
-
-    
 - retries for money?
     - each retry gets more expensive
 - after level 50 start new game+, repeat bosses but stuff gets harder, faster

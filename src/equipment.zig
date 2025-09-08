@@ -177,6 +177,15 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
     },
     .{
         .basePrice = 10,
+        .shopDisplayImage = imageZig.IMAGE_BODY_SIXPACK,
+        .equipment = .{
+            .effectType = .{ .damagePerCent = .{ .factor = 0.3 } },
+            .imageIndex = imageZig.IMAGE_BODY_SIXPACK,
+            .slotTypeData = .body,
+        },
+    },
+    .{
+        .basePrice = 10,
         .shopDisplayImage = imageZig.IMAGE_MILITARY_BOOTS,
         .equipment = .{
             .effectType = .{ .hp = .{ .hp = 2 } },
