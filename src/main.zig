@@ -81,6 +81,8 @@ pub const Player = struct {
     hasBlindfold: bool = false,
     hasEyePatch: bool = false,
     hasRollerblades: bool = false,
+    hasPirateLegLeft: bool = false,
+    hasPirateLegRight: bool = false,
     lastMoveDirection: ?u8 = null,
 };
 

@@ -70,6 +70,8 @@ const SecondaryEffect = enum {
     blind,
     oneMovePieceChoice,
     noBackMovement,
+    noLeftMovement,
+    noRightMovement,
 };
 
 pub const EquipmentShopOptions = struct {
@@ -170,6 +172,24 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
         .equipment = .{
             .effectType = .{ .damagePerCent = .{ .factor = 0.5, .effect = .noBackMovement } },
             .imageIndex = imageZig.IMAGE_ROLLERBLADES,
+            .slotTypeData = .feet,
+        },
+    },
+    .{
+        .basePrice = 10,
+        .shopDisplayImage = imageZig.IMAGE_PIRATE_LEG_LEFT,
+        .equipment = .{
+            .effectType = .{ .damagePerCent = .{ .factor = 0.5, .effect = .noLeftMovement } },
+            .imageIndex = imageZig.IMAGE_PIRATE_LEG_LEFT,
+            .slotTypeData = .feet,
+        },
+    },
+    .{
+        .basePrice = 10,
+        .shopDisplayImage = imageZig.IMAGE_PIRATE_LEG_RIGHT,
+        .equipment = .{
+            .effectType = .{ .damagePerCent = .{ .factor = 0.5, .effect = .noRightMovement } },
+            .imageIndex = imageZig.IMAGE_PIRATE_LEG_RIGHT,
             .slotTypeData = .feet,
         },
     },
@@ -414,24 +434,14 @@ fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType:
         }
         if (optSecondaryEffect) |secEffect| {
             switch (secEffect) {
-                .hammer => {
-                    player.hasWeaponHammer = false;
-                },
-                .kunai => {
-                    player.hasWeaponKunai = false;
-                },
-                .gold => {
-                    player.moneyBonusPerCent = 0;
-                },
-                .blind => {
-                    player.hasBlindfold = false;
-                },
-                .oneMovePieceChoice => {
-                    player.hasEyePatch = false;
-                },
-                .noBackMovement => {
-                    player.hasRollerblades = false;
-                },
+                .hammer => player.hasWeaponHammer = false,
+                .kunai => player.hasWeaponKunai = false,
+                .gold => player.moneyBonusPerCent = 0,
+                .blind => player.hasBlindfold = false,
+                .oneMovePieceChoice => player.hasEyePatch = false,
+                .noBackMovement => player.hasRollerblades = false,
+                .noLeftMovement => player.hasPirateLegLeft = false,
+                .noRightMovement => player.hasPirateLegRight = false,
                 .none => {},
             }
         }
@@ -452,24 +462,14 @@ fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType:
         }
         if (optSecondaryEffect) |secEffect| {
             switch (secEffect) {
-                .hammer => {
-                    player.hasWeaponHammer = true;
-                },
-                .kunai => {
-                    player.hasWeaponKunai = true;
-                },
-                .gold => {
-                    player.moneyBonusPerCent = 0.5;
-                },
-                .blind => {
-                    player.hasBlindfold = true;
-                },
-                .oneMovePieceChoice => {
-                    player.hasEyePatch = true;
-                },
-                .noBackMovement => {
-                    player.hasRollerblades = true;
-                },
+                .hammer => player.hasWeaponHammer = true,
+                .kunai => player.hasWeaponKunai = true,
+                .gold => player.moneyBonusPerCent = 0.5,
+                .blind => player.hasBlindfold = true,
+                .oneMovePieceChoice => player.hasEyePatch = true,
+                .noBackMovement => player.hasRollerblades = true,
+                .noLeftMovement => player.hasPirateLegLeft = true,
+                .noRightMovement => player.hasPirateLegRight = true,
                 .none => {},
             }
         }

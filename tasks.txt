@@ -1,14 +1,11 @@
 Tasks:
 - equipment
     - feet/boots: 
-        - roller blades
-            - +25% damage
-            - can not move backwards (opposide to last direction)
+        - pirtate leg left and right
+            - can not move left or right
+            - +50% damage
         - time shoes
             - remove round time limit
-        - pirtate leg
-            - can not move left or right
-            - +25% damage
     - display secondary effects in shop
 - scaling for certain images of shop display
     - roleblades are tiny
