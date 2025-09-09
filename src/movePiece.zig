@@ -111,7 +111,6 @@ pub fn getMovePieceTotalStepes(movePiece: MovePiece) usize {
 }
 
 pub fn setMoveOptionIndex(player: *main.Player, index: usize, state: *main.GameState) void {
-    if (!state.timerStarted) state.timerStarted = true;
     if (player.moveOptions.items.len > index) {
         player.choosenMoveOptionIndex = index;
         if (player.equipment.hasEyePatch) player.choosenMoveOptionIndex = 0;

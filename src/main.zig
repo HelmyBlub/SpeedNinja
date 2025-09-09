@@ -49,7 +49,6 @@ pub const GameState = struct {
     gamePhase: GamePhase = .combat,
     shop: shopZig.ShopData,
     lastBossDefeatedTime: i64 = 0,
-    timerStarted: bool = false,
     statistics: statsZig.Statistics,
 };
 
@@ -224,7 +223,6 @@ fn mainLoop(state: *GameState) !void {
         if (passedTime > 16) {
             passedTime = 16;
         }
-        if (!state.timerStarted) passedTime = 0;
         state.gameTime += passedTime;
     }
 }
@@ -412,7 +410,6 @@ pub fn restart(state: *GameState) !void {
     state.round = 0;
     state.gamePhase = .combat;
     state.gameTime = 0;
-    state.timerStarted = false;
     state.roundStartedTime = 0;
     state.lastBossDefeatedTime = 0;
     if (state.enemyData.movePieceEnemyMovePiece) |movePiece| {
