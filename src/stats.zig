@@ -59,7 +59,8 @@ pub fn statsSaveOnRestart(state: *main.GameState) !void {
     if (!state.statistics.active) return;
     if (state.level == 0) return;
     const levelDatas: []LevelStatistics = try getLevelDatas(state);
-    for (levelDatas) |*levelData| {
+    for (levelDatas, 0..) |*levelData, index| {
+        if (state.level - 1 <= index) break;
         if (levelData.currentRound > levelData.highestRound) levelData.highestRound = levelData.currentRound;
         if (levelData.fastestTime == null or levelData.currentTime < levelData.fastestTime.?) levelData.fastestTime = levelData.currentTime;
         if (levelData.fastestTotalTime == null or levelData.currentTotalTime < levelData.fastestTotalTime.?) levelData.fastestTotalTime = levelData.currentTotalTime;
@@ -105,7 +106,13 @@ pub fn setupVertices(state: *main.GameState) !void {
         textWidth += fontVulkanZig.paintText("Level: ", .{ .x = topLeft.x + textWidth, .y = topLeft.y + offsetY }, fontSize, &state.vkState.verticeData.font);
         textWidth += try fontVulkanZig.paintNumber(level, .{ .x = topLeft.x + textWidth, .y = topLeft.y + offsetY }, fontSize, &state.vkState.verticeData.font);
         textWidth += fontVulkanZig.paintText(" Time: ", .{ .x = topLeft.x + textWidth, .y = topLeft.y + offsetY }, fontSize, &state.vkState.verticeData.font);
-        textWidth += try fontVulkanZig.paintTime(levelData.currentTotalTime, .{ .x = topLeft.x + textWidth, .y = topLeft.y + offsetY }, fontSize, &state.vkState.verticeData.font);
+        textWidth += try fontVulkanZig.paintTime(levelData.currentTotalTime, .{ .x = topLeft.x + textWidth, .y = topLeft.y + offsetY }, fontSize, true, &state.vkState.verticeData.font);
+        if (levelData.fastestTotalTime != null and levelData.fastestTime != null) {
+            textWidth += fontVulkanZig.paintText(" DiffTotal: ", .{ .x = topLeft.x + textWidth, .y = topLeft.y + offsetY }, fontSize, &state.vkState.verticeData.font);
+            textWidth += try fontVulkanZig.paintTime(levelData.currentTotalTime - levelData.fastestTotalTime.?, .{ .x = topLeft.x + textWidth, .y = topLeft.y + offsetY }, fontSize, true, &state.vkState.verticeData.font);
+            textWidth += fontVulkanZig.paintText(" Diff: ", .{ .x = topLeft.x + textWidth, .y = topLeft.y + offsetY }, fontSize, &state.vkState.verticeData.font);
+            textWidth += try fontVulkanZig.paintTime(levelData.currentTime - levelData.fastestTime.?, .{ .x = topLeft.x + textWidth, .y = topLeft.y + offsetY }, fontSize, true, &state.vkState.verticeData.font);
+        }
     }
 }
 

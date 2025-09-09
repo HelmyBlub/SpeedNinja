@@ -1,10 +1,10 @@
 Tasks:
 - time measurement save by game
     - save best time per level
-    - save best pace until level
-    - save highest round reached on level
+    - save best total time until level
     - measure shopping times
     
+    - save highest round reached on level
     - taking damage counter for level
     - save to file
     - key to reset as i often change stuff making old times not compareable

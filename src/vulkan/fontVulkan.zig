@@ -74,22 +74,31 @@ pub fn paintNumberGameMap(number: anytype, gamePosition: main.Position, fontSize
 }
 
 /// time in hh:mm:ss format
-pub fn paintTime(timeMilli: i64, vulkanSurfacePosition: main.Position, fontSize: f32, vkFont: *dataVulkanZig.VkFont) !f32 {
+pub fn paintTime(timeMilli: i64, vulkanSurfacePosition: main.Position, fontSize: f32, showOneMilli: bool, vkFont: *dataVulkanZig.VkFont) !f32 {
     var zeroPrefix = false;
     var textWidth: f32 = 0;
-    if (timeMilli >= 60 * 60 * 1000) {
-        const hours = @divFloor(timeMilli, 1000 * 60 * 60);
+    const absTimeMilli = @abs(timeMilli);
+    if (timeMilli < 0) {
+        textWidth += paintText("-", .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont);
+    }
+    if (absTimeMilli >= 60 * 60 * 1000) {
+        const hours = @divFloor(absTimeMilli, 1000 * 60 * 60);
         textWidth += try paintNumber(hours, .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont);
         textWidth += paintText(":", .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont);
         zeroPrefix = true;
     }
-    if (timeMilli >= 60 * 1000) {
-        const minutes = @divFloor(timeMilli, 1000 * 60);
+    if (absTimeMilli >= 60 * 1000) {
+        const minutes = @mod(@divFloor(absTimeMilli, 1000 * 60), 60);
         textWidth += try paintNumberWithZeroPrefix(minutes, .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont, zeroPrefix);
         textWidth += paintText(":", .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont);
         zeroPrefix = true;
     }
-    textWidth += try paintNumberWithZeroPrefix(@mod(@divFloor(timeMilli, 1000), 60), .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont, zeroPrefix);
+    textWidth += try paintNumberWithZeroPrefix(@mod(@divFloor(absTimeMilli, 1000), 60), .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont, zeroPrefix);
+    if (showOneMilli) {
+        const milli = @mod(@divFloor(absTimeMilli, 100), 10);
+        textWidth += paintText(".", .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont);
+        textWidth += try paintNumberWithZeroPrefix(milli, .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont, false);
+    }
     return textWidth;
 }
 
