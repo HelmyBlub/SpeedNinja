@@ -2,6 +2,7 @@ const std = @import("std");
 const main = @import("main.zig");
 const fontVulkanZig = @import("vulkan/fontVulkan.zig");
 const windowSdlZig = @import("windowSdl.zig");
+const fileSaveZig = @import("fileSave.zig");
 
 pub const Statistics = struct {
     active: bool = true,
@@ -16,7 +17,6 @@ const LevelStatiscticsWithPlayerCount = struct {
 };
 
 const LevelStatistics = struct {
-    reachedCounter: u32 = 0,
     fastestTime: ?i64 = null,
     currentTime: i64 = 0,
     fastestTotalTime: ?i64 = null,
@@ -26,6 +26,9 @@ const LevelStatistics = struct {
     currentShoppingTime: i64 = 0,
     tookDamageCounter: u32 = 0,
 };
+
+const FILE_NAME_STATISTICS_DATA = "statistics.dat";
+const SAFE_FILE_VERSION: u8 = 1;
 
 pub fn statsOnLevelFinished(state: *main.GameState) !void {
     if (!state.statistics.active) return;
@@ -59,11 +62,24 @@ pub fn statsSaveOnRestart(state: *main.GameState) !void {
     if (!state.statistics.active) return;
     if (state.level == 0) return;
     const levelDatas: []LevelStatistics = try getLevelDatas(state);
+    var saveToFile = false;
     for (levelDatas, 0..) |*levelData, index| {
         if (state.level - 1 <= index) break;
-        if (levelData.currentRound > levelData.highestRound) levelData.highestRound = levelData.currentRound;
-        if (levelData.fastestTime == null or levelData.currentTime < levelData.fastestTime.?) levelData.fastestTime = levelData.currentTime;
-        if (levelData.fastestTotalTime == null or levelData.currentTotalTime < levelData.fastestTotalTime.?) levelData.fastestTotalTime = levelData.currentTotalTime;
+        if (levelData.currentRound > levelData.highestRound) {
+            levelData.highestRound = levelData.currentRound;
+            saveToFile = true;
+        }
+        if (levelData.fastestTime == null or levelData.currentTime < levelData.fastestTime.?) {
+            levelData.fastestTime = levelData.currentTime;
+            saveToFile = true;
+        }
+        if (levelData.fastestTotalTime == null or levelData.currentTotalTime < levelData.fastestTotalTime.?) {
+            levelData.fastestTotalTime = levelData.currentTotalTime;
+            saveToFile = true;
+        }
+    }
+    if (saveToFile) {
+        try saveStatisticsDataToFile(state);
     }
     state.statistics.active = true;
     if (state.gameTime > 1000) {
@@ -84,7 +100,9 @@ pub fn createStatistics(allocator: std.mem.Allocator) Statistics {
     };
 }
 
-pub fn destoryStatistics(state: *main.GameState) void {
+pub fn destroyAndSave(state: *main.GameState) !void {
+    try statsSaveOnRestart(state);
+
     for (state.statistics.levelDataWithPlayerCount.items) |*forPlayerCount| {
         forPlayerCount.levelDatas.deinit();
     }
@@ -135,4 +153,61 @@ fn getLevelDatas(state: *main.GameState) ![]LevelStatistics {
     }
 
     return optLevelDatas.?.items;
+}
+
+pub fn loadStatisticsDataFromFile(state: *main.GameState) void {
+    const filepath = fileSaveZig.getSavePath(state.allocator, FILE_NAME_STATISTICS_DATA) catch return;
+    defer state.allocator.free(filepath);
+
+    loadFromFile(state, filepath) catch {
+        //ignore for now
+    };
+}
+
+fn loadFromFile(state: *main.GameState, filepath: []const u8) !void {
+    const file = std.fs.cwd().openFile(filepath, .{}) catch return;
+    defer file.close();
+
+    const reader = file.reader();
+    const safeFileVersion = try reader.readByte();
+    _ = safeFileVersion;
+
+    const statisticsForPlayerCountLength: usize = try reader.readInt(usize, .little);
+    for (0..statisticsForPlayerCountLength) |_| {
+        const playerCount = try reader.readInt(u32, .little);
+        const levelDataLength: usize = try reader.readInt(usize, .little);
+        try state.statistics.levelDataWithPlayerCount.append(.{
+            .levelDatas = std.ArrayList(LevelStatistics).init(state.allocator),
+            .playerCount = playerCount,
+        });
+        const levelDatas = &state.statistics.levelDataWithPlayerCount.items[state.statistics.levelDataWithPlayerCount.items.len - 1];
+        for (0..levelDataLength) |levelDataIndex| {
+            try levelDatas.levelDatas.append(.{});
+            const levelData: *LevelStatistics = &levelDatas.levelDatas.items[levelDataIndex];
+            levelData.fastestTime = try reader.readInt(i64, .little);
+            if (levelData.fastestTime.? < 0) levelData.fastestTime = null;
+            levelData.fastestTotalTime = try reader.readInt(i64, .little);
+            if (levelData.fastestTotalTime.? < 0) levelData.fastestTotalTime = null;
+        }
+    }
+}
+
+fn saveStatisticsDataToFile(state: *main.GameState) !void {
+    const filepath = try fileSaveZig.getSavePath(state.allocator, FILE_NAME_STATISTICS_DATA);
+    defer state.allocator.free(filepath);
+
+    const file = try std.fs.cwd().createFile(filepath, .{ .truncate = true });
+    defer file.close();
+
+    const writer = file.writer();
+    _ = try writer.writeByte(SAFE_FILE_VERSION);
+    _ = try writer.writeInt(usize, state.statistics.levelDataWithPlayerCount.items.len, .little);
+    for (state.statistics.levelDataWithPlayerCount.items) |statisticsForPlayerCount| {
+        _ = try writer.writeInt(u32, statisticsForPlayerCount.playerCount, .little);
+        _ = try writer.writeInt(usize, statisticsForPlayerCount.levelDatas.items.len, .little);
+        for (statisticsForPlayerCount.levelDatas.items) |levelStatistics| {
+            _ = try writer.writeInt(i64, if (levelStatistics.fastestTime) |ft| ft else -1, .little);
+            _ = try writer.writeInt(i64, if (levelStatistics.fastestTotalTime) |ftt| ftt else -1, .little);
+        }
+    }
 }

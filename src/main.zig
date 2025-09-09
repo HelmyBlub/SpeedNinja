@@ -169,8 +169,8 @@ fn startGame(allocator: std.mem.Allocator) !void {
     std.debug.print("game run start\n", .{});
     var state: GameState = undefined;
     try createGameState(&state, allocator);
-    defer destroyGameState(&state);
     try mainLoop(&state);
+    try destroyGameState(&state);
 }
 
 fn debugTextAfterBossLevelFinished(state: *GameState) void {
@@ -478,6 +478,7 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
     state.spriteCutAnimations = std.ArrayList(CutSpriteAnimation).init(state.allocator);
     state.mapObjects = std.ArrayList(MapObject).init(state.allocator);
     try state.players.append(createPlayer(allocator));
+    statsZig.loadStatisticsDataFromFile(state);
     try restart(state);
 }
 
@@ -490,7 +491,7 @@ fn createPlayer(allocator: std.mem.Allocator) Player {
     };
 }
 
-fn destroyGameState(state: *GameState) void {
+fn destroyGameState(state: *GameState) !void {
     initVulkanZig.destroyPaintVulkan(&state.vkState, state.allocator) catch {
         std.debug.print("failed to destroy window and vulkan\n", .{});
     };
@@ -521,7 +522,7 @@ fn destroyGameState(state: *GameState) void {
     state.shop.buyOptions.deinit();
     state.spriteCutAnimations.deinit();
     state.mapObjects.deinit();
-    statsZig.destoryStatistics(state);
+    try statsZig.destroyAndSave(state);
     mapTileZig.deinit(state);
     enemyZig.destroyEnemyData(state);
 }

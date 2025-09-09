@@ -1,12 +1,11 @@
 Tasks:
 - time measurement save by game
-    - save best time per level
-    - save best total time until level
-    - measure shopping times
-    
+    - save/load to file
+        - what format? json? my own text?
+
+    - measure shopping times    
     - save highest round reached on level
     - taking damage counter for level
-    - save to file
     - key to reset as i often change stuff making old times not compareable
 
 - when bought new equipment, place old equipment at position to be able to switch back
