@@ -102,16 +102,22 @@ pub fn handleEvents(state: *main.GameState) !void {
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_3) {
                     movePieceZig.setMoveOptionIndex(player, 2, state);
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_F1) {
+                    state.statistics.active = false;
                     try main.startNextLevel(state);
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_F2) {
                     if (state.gamePhase == .combat) {
+                        state.statistics.active = false;
                         try main.startNextRound(state);
                     }
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_F3) {
-                    if (state.gamePhase != .shopping) try shopZig.startShoppingPhase(state);
+                    if (state.gamePhase != .shopping) {
+                        state.statistics.active = false;
+                        try shopZig.startShoppingPhase(state);
+                    }
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_F4) {
                     try main.restart(state);
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_F5) {
+                    state.statistics.active = false;
                     state.level = 49;
                     try main.startNextLevel(state);
                 }

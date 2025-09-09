@@ -16,6 +16,7 @@ const choosenMovePieceVulkanZig = @import("choosenMovePieceVisualizationVulkan.z
 const gameInfoUxZig = @import("gameInfoUxVulkan.zig");
 const enemyObjectZig = @import("../enemy/enemyObject.zig");
 const mapTileZig = @import("../mapTile.zig");
+const statsZig = @import("../stats.zig");
 
 pub fn drawFrame(state: *main.GameState) !void {
     const vkState = &state.vkState;
@@ -37,6 +38,7 @@ pub fn drawFrame(state: *main.GameState) !void {
     enemyObjectZig.setupVertices(state);
     verticesForFrontCloud(state);
     try movePieceUxVulkanZig.setupVertices(state);
+    try statsZig.setupVertices(state);
     try gameInfoUxZig.setupVertices(state);
     try setupVertexDataForGPU(vkState);
 

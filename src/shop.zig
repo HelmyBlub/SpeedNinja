@@ -5,6 +5,7 @@ const movePieceZig = @import("movePiece.zig");
 const bossZig = @import("boss/boss.zig");
 const mapTileZig = @import("mapTile.zig");
 const equipmentZig = @import("equipment.zig");
+const statsZig = @import("stats.zig");
 
 const ShopOption = enum {
     none,
@@ -177,6 +178,7 @@ pub fn isPlayerInEarlyShopTrigger(player: *main.Player, state: *main.GameState) 
 }
 
 pub fn startShoppingPhase(state: *main.GameState) !void {
+    try statsZig.statsOnLevelFinished(state);
     state.camera.position = .{ .x = 0, .y = 0 };
     mapTileZig.setMapType(.default, state);
     state.gamePhase = .shopping;

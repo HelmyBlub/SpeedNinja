@@ -73,6 +73,26 @@ pub fn paintNumberGameMap(number: anytype, gamePosition: main.Position, fontSize
     return vulkanWidth / onePixelXInVulkan / state.camera.zoom;
 }
 
+/// time in hh:mm:ss format
+pub fn paintTime(timeMilli: i64, vulkanSurfacePosition: main.Position, fontSize: f32, vkFont: *dataVulkanZig.VkFont) !f32 {
+    var zeroPrefix = false;
+    var textWidth: f32 = 0;
+    if (timeMilli >= 60 * 60 * 1000) {
+        const hours = @divFloor(timeMilli, 1000 * 60 * 60);
+        textWidth += try paintNumber(hours, .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont);
+        textWidth += paintText(":", .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont);
+        zeroPrefix = true;
+    }
+    if (timeMilli >= 60 * 1000) {
+        const minutes = @divFloor(timeMilli, 1000 * 60);
+        textWidth += try paintNumberWithZeroPrefix(minutes, .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont, zeroPrefix);
+        textWidth += paintText(":", .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont);
+        zeroPrefix = true;
+    }
+    textWidth += try paintNumberWithZeroPrefix(@mod(@divFloor(timeMilli, 1000), 60), .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont, zeroPrefix);
+    return textWidth;
+}
+
 pub fn paintNumber(number: anytype, vulkanSurfacePosition: main.Position, fontSize: f32, vkFont: *dataVulkanZig.VkFont) !f32 {
     return paintNumberWithZeroPrefix(number, vulkanSurfacePosition, fontSize, vkFont, false);
 }

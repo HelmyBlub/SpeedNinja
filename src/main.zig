@@ -30,7 +30,7 @@ pub const GameState = struct {
     camera: Camera = .{ .position = .{ .x = 0, .y = 0 }, .zoom = 1 },
     gameTime: i64 = 0,
     round: u32 = 1,
-    level: u32 = 1,
+    level: u32 = 0,
     roundToReachForNextLevel: usize = 5,
     bonusTimePerRoundFinished: i32 = 5000,
     minimalTimePerRequiredRounds: i32 = 60_000,
@@ -326,6 +326,7 @@ pub fn startNextRound(state: *GameState) !void {
 
 pub fn endShoppingPhase(state: *GameState) !void {
     state.gamePhase = .combat;
+    try statsZig.statsOnLevelShopFinishedAndNextLevelStart(state);
     try startNextLevel(state);
 }
 
@@ -404,15 +405,7 @@ fn allPlayerOutOfMoveOptions(state: *GameState) bool {
 }
 
 pub fn restart(state: *GameState) !void {
-    if (state.gameTime > 1000) {
-        std.debug.print("ended on lvl {d} in time: ", .{state.level});
-        const totalSecondsPassed = @divFloor(state.gameTime, 1000);
-        const totalSeconds = @mod(totalSecondsPassed, 60);
-        const totalMinutes = @divFloor(totalSecondsPassed, 60);
-        if (totalMinutes > 0) std.debug.print("{d}:", .{totalMinutes});
-        if (totalSeconds < 10) std.debug.print("0", .{});
-        std.debug.print("{d}\n", .{totalSeconds});
-    }
+    try statsZig.statsSaveOnRestart(state);
     mapTileZig.setMapType(.default, state);
     state.camera.position = .{ .x = 0, .y = 0 };
     state.level = 0;
