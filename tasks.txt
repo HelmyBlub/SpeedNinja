@@ -1,8 +1,5 @@
 Tasks:
 - time measurement save by game
-    - save/load to file
-        - what format? json? my own text?
-
     - measure shopping times    
     - save highest round reached on level
     - taking damage counter for level
