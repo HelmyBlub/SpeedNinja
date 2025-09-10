@@ -21,10 +21,8 @@ const LevelStatistics = struct {
     currentTime: i64 = 0,
     fastestTotalTime: ?i64 = null,
     currentTotalTime: i64 = 0,
-    highestRound: u32 = 0,
     currentRound: u32 = 0,
     currentShoppingTime: i64 = 0,
-    tookDamageCounter: u32 = 0,
 };
 
 const FILE_NAME_STATISTICS_DATA = "statistics.dat";
@@ -65,10 +63,6 @@ pub fn statsSaveOnRestart(state: *main.GameState) !void {
     var saveToFile = false;
     for (levelDatas, 0..) |*levelData, index| {
         if (state.level - 1 <= index) break;
-        if (levelData.currentRound > levelData.highestRound) {
-            levelData.highestRound = levelData.currentRound;
-            saveToFile = true;
-        }
         if (levelData.fastestTime == null or levelData.currentTime < levelData.fastestTime.?) {
             levelData.fastestTime = levelData.currentTime;
             saveToFile = true;
