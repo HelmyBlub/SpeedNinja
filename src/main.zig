@@ -7,6 +7,7 @@ const ninjaDogVulkanZig = @import("vulkan/ninjaDogVulkan.zig");
 const soundMixerZig = @import("soundMixer.zig");
 const enemyZig = @import("enemy/enemy.zig");
 const enemyObjectZig = @import("enemy/enemyObject.zig");
+const enemyObjectFallDownZig = @import("enemy/enemyObjectFallDown.zig");
 const shopZig = @import("shop.zig");
 const bossZig = @import("boss/boss.zig");
 const imageZig = @import("image.zig");
@@ -33,9 +34,8 @@ pub const GameState = struct {
     level: u32 = 0,
     roundToReachForNextLevel: usize = 5,
     bonusTimePerRoundFinished: i32 = 5000,
-    minimalTimePerRequiredRounds: i32 = 60_000,
+    minimalTimePerRequiredRounds: i32 = 6_000,
     mapData: mapTileZig.MapData,
-    levelInitialTime: i32 = 60_000,
     roundEndTimeMS: i64 = 0,
     roundStartedTime: i64 = 0,
     playerImmunityFrames: i64 = 1000,
@@ -50,6 +50,8 @@ pub const GameState = struct {
     shop: shopZig.ShopData,
     lastBossDefeatedTime: i64 = 0,
     statistics: statsZig.Statistics,
+    suddenDeath: u32 = 0,
+    gameOver: bool = false,
 };
 
 pub const Player = struct {
@@ -157,6 +159,7 @@ pub fn playerHit(player: *Player, state: *GameState) !void {
     if (player.isDead) return;
     if (!try equipmentZig.damageTakenByEquipment(player, state)) {
         player.isDead = true;
+        state.gameOver = isGameOver(state);
         try ninjaDogDeathCutSprites(player, state);
     } else {
         try movePieceZig.resetPieces(player);
@@ -223,6 +226,8 @@ fn mainLoop(state: *GameState) !void {
                 }
             }
             try shopZig.startShoppingPhase(state);
+        } else if (state.roundEndTimeMS < state.gameTime) {
+            try suddenDeath(state);
         }
         try windowSdlZig.handleEvents(state);
         try tickPlayers(state, passedTime);
@@ -239,6 +244,34 @@ fn mainLoop(state: *GameState) !void {
             passedTime = 16;
         }
         state.gameTime += passedTime;
+    }
+}
+
+fn suddenDeath(state: *GameState) !void {
+    if (state.gameOver) return;
+    if (state.round <= 1) return;
+    if (state.gamePhase != .combat) return;
+    const overTime = state.gameTime - state.roundEndTimeMS;
+    const spawnInterval = 1050;
+    if (@divFloor(overTime, spawnInterval) >= state.suddenDeath) {
+        state.suddenDeath += 1;
+        const size = state.mapData.tileRadius * 2 + 3;
+        const fRadius: f32 = @floatFromInt(state.mapData.tileRadius + 1);
+        const fillWidth = @min(state.suddenDeath - 1, @divFloor(size, 2) + 1);
+        for (0..size) |i| {
+            for (0..size) |j| {
+                if (i > fillWidth and i < size - fillWidth - 1 and j > fillWidth and j < size - fillWidth - 1) continue;
+                const x: f32 = (@as(f32, @floatFromInt(i)) - fRadius) * TILESIZE;
+                const y: f32 = (@as(f32, @floatFromInt(j)) - fRadius) * TILESIZE;
+                try enemyObjectFallDownZig.spawnFallDown(.{ .x = x, .y = y }, spawnInterval, false, state);
+            }
+        }
+    }
+    for (state.players.items) |*player| {
+        const playerTile = gamePositionToTilePosition(player.position);
+        if (@abs(playerTile.x) > state.mapData.tileRadius + 1 or @abs(playerTile.y) > state.mapData.tileRadius + 1) {
+            try playerHit(player, state);
+        }
     }
 }
 
@@ -316,17 +349,16 @@ pub fn startNextRound(state: *GameState) !void {
     state.enemyData.enemies.clearRetainingCapacity();
     const timeShoesBonusTime = equipmentZig.getTimeShoesBonusRoundTime(state);
     const maxTime = state.gameTime + state.minimalTimePerRequiredRounds + timeShoesBonusTime;
-    if (state.round == 1) {
-        state.roundEndTimeMS = state.gameTime + state.levelInitialTime + timeShoesBonusTime;
+    if (state.round < state.roundToReachForNextLevel) {
+        state.roundEndTimeMS = maxTime;
     } else {
+        if (state.roundEndTimeMS < state.gameTime) state.roundEndTimeMS = state.gameTime;
         state.roundEndTimeMS += state.bonusTimePerRoundFinished;
         if (state.roundEndTimeMS > maxTime) {
             state.roundEndTimeMS = maxTime;
         }
     }
-    if (state.roundEndTimeMS < maxTime and state.round < state.roundToReachForNextLevel) {
-        state.roundEndTimeMS = maxTime;
-    }
+    state.suddenDeath = 0;
     state.roundStartedTime = state.gameTime;
     state.round += 1;
     if (state.round > 1) {
@@ -346,6 +378,7 @@ pub fn endShoppingPhase(state: *GameState) !void {
 
 pub fn startNextLevel(state: *GameState) !void {
     mapTileZig.setMapType(.default, state);
+    state.suddenDeath = 0;
     state.camera.position = .{ .x = 0, .y = 0 };
     state.enemyData.enemies.clearRetainingCapacity();
     state.enemyData.enemyObjects.clearRetainingCapacity();
@@ -390,7 +423,6 @@ pub fn getDirectionFromTo(fromPosition: Position, toPosition: Position) u8 {
 }
 
 fn shouldEndLevel(state: *GameState) bool {
-    if (state.gamePhase == .combat and state.round >= state.roundToReachForNextLevel and state.roundEndTimeMS < state.gameTime) return true;
     if (state.gamePhase == .boss and state.bosses.items.len == 0) return true;
     return false;
 }
@@ -413,6 +445,7 @@ fn allPlayerOutOfMoveOptions(state: *GameState) bool {
 pub fn restart(state: *GameState) !void {
     try statsZig.statsSaveOnRestart(state);
     mapTileZig.setMapType(.default, state);
+    state.gameOver = false;
     state.camera.position = .{ .x = 0, .y = 0 };
     state.level = 0;
     state.round = 0;
@@ -468,6 +501,13 @@ pub fn getClosestPlayer(position: Position, state: *GameState) struct { player: 
         }
     }
     return .{ .player = closestPlayer, .distance = closestDistance };
+}
+
+fn isGameOver(state: *GameState) bool {
+    for (state.players.items) |*player| {
+        if (!player.isDead) return false;
+    }
+    return true;
 }
 
 fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {

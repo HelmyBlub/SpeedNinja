@@ -17,6 +17,7 @@ const gameInfoUxZig = @import("gameInfoUxVulkan.zig");
 const enemyObjectZig = @import("../enemy/enemyObject.zig");
 const mapTileZig = @import("../mapTile.zig");
 const statsZig = @import("../stats.zig");
+const shopZig = @import("../shop.zig");
 
 pub fn drawFrame(state: *main.GameState) !void {
     const vkState = &state.vkState;
@@ -27,6 +28,7 @@ pub fn drawFrame(state: *main.GameState) !void {
     mapGridVulkanZig.setupVertices(state);
     try shopVulkanZig.setupVertices(state);
     try enemyVulkanZig.setupVerticesGround(state);
+    verticesForSuddenDeathFire(state);
     verticesForMapObjects(state);
     enemyObjectZig.setupVerticesGround(state);
     try addDataVerticeDrawCut(&state.vkState.verticeData);
@@ -95,6 +97,29 @@ pub fn drawFrame(state: *main.GameState) !void {
     }
 
     vkState.currentFrame = (vkState.currentFrame + 1) % initVulkanZig.VkState.MAX_FRAMES_IN_FLIGHT;
+}
+
+fn verticesForSuddenDeathFire(state: *main.GameState) void {
+    if (state.suddenDeath == 0) return;
+    const animatePerCent: f32 = @mod(@as(f32, @floatFromInt(state.gameTime)) / 500, 1);
+    const insideSize = state.mapData.tileRadius * 2 + 3;
+    const fireTileSize = 3;
+    const outsideSize = insideSize + fireTileSize * 2;
+    const fRadius: f32 = @floatFromInt(@divFloor(outsideSize, 2));
+    for (0..outsideSize) |i| {
+        for (0..outsideSize) |j| {
+            if (i >= fireTileSize and i <= outsideSize - fireTileSize - 1 and j >= fireTileSize and j <= outsideSize - fireTileSize - 1) continue;
+            const pos: main.Position = .{
+                .x = (@as(f32, @floatFromInt(i)) - fRadius) * main.TILESIZE,
+                .y = (@as(f32, @floatFromInt(j)) - fRadius) * main.TILESIZE,
+            };
+            const shopTrigger = shopZig.getShopEarlyTriggerPosition(state);
+            if (shopTrigger != null and main.isTilePositionInTileRectangle(main.gamePositionToTilePosition(pos), shopTrigger.?)) {
+                continue;
+            }
+            verticesForComplexSpriteAnimated(pos, imageZig.IMAGE_FIRE_ANIMATION, animatePerCent, 2, state);
+        }
+    }
 }
 
 fn verticesForBackCloud(state: *main.GameState) void {

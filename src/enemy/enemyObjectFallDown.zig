@@ -10,6 +10,7 @@ const enemyObjectZig = @import("enemyObject.zig");
 pub const EnemyFallDown = struct {
     hitTime: i64,
     delay: i32,
+    onlyStationaryHit: bool,
     hitCalcDone: bool = false,
 };
 
@@ -22,12 +23,13 @@ pub fn createEnemyObjectFunctions() enemyObjectZig.EnemyObjectFunctions {
     };
 }
 
-pub fn spawnFallDown(position: main.Position, hitDelay: i32, state: *main.GameState) !void {
+pub fn spawnFallDown(position: main.Position, hitDelay: i32, onlyStationaryHit: bool, state: *main.GameState) !void {
     try state.enemyData.enemyObjects.append(.{
         .position = position,
         .typeData = .{ .fallDown = .{
             .hitTime = state.gameTime + hitDelay,
             .delay = hitDelay,
+            .onlyStationaryHit = onlyStationaryHit,
         } },
     });
 }
@@ -50,7 +52,11 @@ fn tick(object: *enemyObjectZig.EnemyObject, passedTime: i64, state: *main.GameS
             .x = object.position.x,
             .y = object.position.y,
         };
-        try enemyZig.checkStationaryPlayerHit(hitPosition, state);
+        if (fallDown.onlyStationaryHit) {
+            try enemyZig.checkStationaryPlayerHit(hitPosition, state);
+        } else {
+            try enemyZig.checkPlayerHit(hitPosition, state);
+        }
         fallDown.hitCalcDone = true;
     }
 }

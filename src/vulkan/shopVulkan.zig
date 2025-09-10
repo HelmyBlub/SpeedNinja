@@ -107,16 +107,16 @@ pub fn setupVertices(state: *main.GameState) !void {
 }
 
 fn verticesForEarlyShopTrigger(state: *main.GameState) void {
-    const optTilePosition = shopZig.getShopEarlyTriggerPosition(state);
-    if (optTilePosition == null) return;
+    const optTileRectangle = shopZig.getShopEarlyTriggerPosition(state);
+    if (optTileRectangle == null) return;
     const textColor: [3]f32 = .{ 1, 1, 1 };
     const verticeData = &state.vkState.verticeData;
-    const tilePosition = optTilePosition.?;
+    const tileRectangle = optTileRectangle.?;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const gridEarlyShopTopLeft: main.Position = .{
-        .x = @floatFromInt(tilePosition.x * main.TILESIZE),
-        .y = @floatFromInt(tilePosition.y * main.TILESIZE),
+        .x = @floatFromInt(tileRectangle.pos.x * main.TILESIZE),
+        .y = @floatFromInt(tileRectangle.pos.y * main.TILESIZE),
     };
     const vulkan: main.Position = .{
         .x = (-state.camera.position.x + gridEarlyShopTopLeft.x) * state.camera.zoom * onePixelXInVulkan,

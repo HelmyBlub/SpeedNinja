@@ -1,9 +1,9 @@
 Tasks:
-- Game over
-    - taking damage resets move pieces
-    - when out of pieces, instead of losing instantly, projectile will drop on player
-    
+- Game over    
     - instead of losing instantly on time over, make sudden death, projectiles will drop on every tile slowly growing inwards
+        - when time up sudden death begins
+        - early shop => continue to shop
+        - player has to enter always
 
 - when bought new equipment, place old equipment at position to be able to switch back
 - boss split: split correct amount of times even for high damage values

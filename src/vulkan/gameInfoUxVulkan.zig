@@ -54,16 +54,9 @@ pub fn setupVertices(state: *main.GameState) !void {
             }
         }
     }
-    if (isGameOver(state)) {
+    if (state.gameOver) {
         _ = fontVulkanZig.paintText("GAME OVER", .{ .x = -0.4, .y = -0.1 }, 120, textColor, fontVertices);
     }
-}
-
-fn isGameOver(state: *main.GameState) bool {
-    for (state.players.items) |*player| {
-        if (!player.isDead) return false;
-    }
-    return true;
 }
 
 fn setupVerticesBossHpBar(boss: *bossZig.Boss, top: f32, left: f32, height: f32, width: f32, state: *main.GameState) !void {

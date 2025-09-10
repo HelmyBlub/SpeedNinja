@@ -142,7 +142,7 @@ pub fn tickPlayerMovePiece(player: *main.Player, state: *main.GameState) !void {
                 }
             }
             if (player.moveOptions.items.len == 0) {
-                try enemyObjectFallDownZig.spawnFallDown(player.position, 2000, state);
+                try enemyObjectFallDownZig.spawnFallDown(player.position, 2000, true, state);
             }
         }
         if (player.executeMovePiece == null) {

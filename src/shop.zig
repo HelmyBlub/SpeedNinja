@@ -159,26 +159,30 @@ pub fn executeShopActionForPlayer(player: *main.Player, state: *main.GameState) 
     }
 }
 
-pub fn getShopEarlyTriggerPosition(state: *main.GameState) ?main.TilePosition {
+pub fn getShopEarlyTriggerPosition(state: *main.GameState) ?main.TileRectangle {
     if (state.gamePhase == .shopping) return null;
     if (state.round < state.roundToReachForNextLevel) return null;
-    return main.TilePosition{
-        .x = @intCast(state.mapData.tileRadius + 2),
-        .y = @intCast(@divFloor(state.mapData.tileRadius, 2) - 1),
+    return main.TileRectangle{
+        .pos = .{
+            .x = @intCast(state.mapData.tileRadius + 2),
+            .y = @intCast(@divFloor(state.mapData.tileRadius, 2) - 1),
+        },
+        .height = EARLY_SHOP_GRID_SIZE,
+        .width = EARLY_SHOP_GRID_SIZE,
     };
 }
 
 pub fn isPlayerInEarlyShopTrigger(player: *main.Player, state: *main.GameState) bool {
-    const optTilePosition = getShopEarlyTriggerPosition(state);
-    if (optTilePosition == null) return false;
-    const tilePosition = optTilePosition.?;
+    const optTileRectangle = getShopEarlyTriggerPosition(state);
+    if (optTileRectangle == null) return false;
+    const tileRectangle = optTileRectangle.?;
     const playerTile = main.gamePositionToTilePosition(player.position);
-    return tilePosition.x <= playerTile.x and tilePosition.x + EARLY_SHOP_GRID_SIZE > playerTile.x and
-        tilePosition.y <= playerTile.y and tilePosition.y + EARLY_SHOP_GRID_SIZE > playerTile.y;
+    return main.isTilePositionInTileRectangle(playerTile, tileRectangle);
 }
 
 pub fn startShoppingPhase(state: *main.GameState) !void {
     try statsZig.statsOnLevelFinished(state);
+    state.suddenDeath = 0;
     state.camera.position = .{ .x = 0, .y = 0 };
     mapTileZig.setMapType(.default, state);
     state.gamePhase = .shopping;
