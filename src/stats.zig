@@ -57,7 +57,10 @@ pub fn statsOnLevelShopFinishedAndNextLevelStart(state: *main.GameState) !void {
 pub fn statsSaveOnRestart(state: *main.GameState) !void {
     state.statistics.runStartedTime = std.time.milliTimestamp();
     state.statistics.totalShoppingTime = 0;
-    if (!state.statistics.active) return;
+    if (!state.statistics.active) {
+        state.statistics.active = true;
+        return;
+    }
     if (state.level == 0) return;
     const levelDatas: []LevelStatistics = try getLevelDatas(state);
     var saveToFile = false;

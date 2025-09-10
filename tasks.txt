@@ -1,8 +1,10 @@
 Tasks:
-- time measurement save by game
-    - measure shopping times    
-    - taking damage counter for level
+- color font
+    - red and green for time display
 - death screen
+    - death animation
+        - dog split pieces
+        - display you died
     - display times
 
 - when bought new equipment, place old equipment at position to be able to switch back
