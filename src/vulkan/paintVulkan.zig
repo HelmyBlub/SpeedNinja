@@ -474,7 +474,6 @@ fn resetVerticeData(state: *main.GameState) !void {
         verticeData.spritesComplex.vertexBufferCleanUp[vkState.currentFrame] = verticeData.spritesComplex.vertexBuffer;
         verticeData.spritesComplex.vertexBufferMemoryCleanUp[vkState.currentFrame] = verticeData.spritesComplex.vertexBufferMemory;
         try initVulkanZig.createVertexBufferSpritesComplex(vkState, &verticeData.spritesComplex, verticeData.spritesComplex.vertices.len + increaseBy * 6, state.allocator);
-        std.debug.print("complex sprites buffer increased\n", .{});
     }
     verticeData.spritesComplex.verticeCount = 0;
 

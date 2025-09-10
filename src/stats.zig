@@ -79,15 +79,6 @@ pub fn statsSaveOnRestart(state: *main.GameState) !void {
         try saveStatisticsDataToFile(state);
     }
     state.statistics.active = true;
-    if (state.gameTime > 1000) {
-        std.debug.print("ended on lvl {d} in time: ", .{state.level});
-        const totalSecondsPassed = @divFloor(state.gameTime, 1000);
-        const totalSeconds = @mod(totalSecondsPassed, 60);
-        const totalMinutes = @divFloor(totalSecondsPassed, 60);
-        if (totalMinutes > 0) std.debug.print("{d}:", .{totalMinutes});
-        if (totalSeconds < 10) std.debug.print("0", .{});
-        std.debug.print("{d}\n", .{totalSeconds});
-    }
 }
 
 pub fn createStatistics(allocator: std.mem.Allocator) Statistics {

@@ -1,11 +1,7 @@
 Tasks:
-- death screen
-    - death animation
-        - dog split pieces
-        - display Game Over
-    - display times
-- when out of pieces, instead of losing instantly, projectile will drop on player, player takes damage and gets two move pieces back if he has HP
-- instead of losing instantly on time over, make sudden death, projectiles will drop on every tile slowly growing inwards
+- Game over
+    - when out of pieces, instead of losing instantly, projectile will drop on player, player takes damage and gets two move pieces back if he has HP
+    - instead of losing instantly on time over, make sudden death, projectiles will drop on every tile slowly growing inwards
 
 - when bought new equipment, place old equipment at position to be able to switch back
 - boss split: split correct amount of times even for high damage values
