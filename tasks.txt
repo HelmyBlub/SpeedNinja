@@ -1,7 +1,8 @@
 Tasks:
-- when bought new equipment, place old equipment at position to be able to switch back
-
 - think: change random position to single function instead of duplicate with small differenes?
+- boss: waller
+    - a bomb has to be thrown close at least each x throws
+- shop item probability based on far in the past an item appeared last time
 - waller enemy
     - unreachable wall closed up
         - possible, but hard to prevent?
@@ -23,4 +24,5 @@ Next ideas:
 - improve move options UX
 - improve shop UX
 - multiplayer
-
+- no vulkan support alternative
+    - validation layer case
