@@ -3,23 +3,27 @@ const main = @import("../main.zig");
 const enemyObjectProjectileZig = @import("enemyObjectProjectile.zig");
 const enemyObjectFireZig = @import("enemyObjectFire.zig");
 const enemyObjectBombZig = @import("enemyObjectBomb.zig");
+const enemyObjectFallDownZig = @import("enemyObjectFallDown.zig");
 
 const EnemyObjectTypes = enum {
     projectile,
     fire,
     bomb,
+    fallDown,
 };
 
 const EnemyObjectTypeData = union(EnemyObjectTypes) {
     projectile: enemyObjectProjectileZig.EnemyProjectile,
     fire: enemyObjectFireZig.EnemyFire,
     bomb: enemyObjectBombZig.EnemyBomb,
+    fallDown: enemyObjectFallDownZig.EnemyFallDown,
 };
 
 pub const ENEMY_OBJECT_FUNCTIONS = std.EnumArray(EnemyObjectTypes, EnemyObjectFunctions).init(.{
     .projectile = enemyObjectProjectileZig.createEnemyObjectFunctions(),
     .fire = enemyObjectFireZig.createEnemyObjectFunctions(),
     .bomb = enemyObjectBombZig.createEnemyObjectFunctions(),
+    .fallDown = enemyObjectFallDownZig.createEnemyObjectFunctions(),
 });
 
 pub const EnemyObject = struct {

@@ -158,6 +158,8 @@ pub fn playerHit(player: *Player, state: *GameState) !void {
     if (!try equipmentZig.damageTakenByEquipment(player, state)) {
         player.isDead = true;
         try ninjaDogDeathCutSprites(player, state);
+    } else {
+        try movePieceZig.resetPieces(player);
     }
     player.immunUntilTime = state.gameTime + state.playerImmunityFrames;
     try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_PLAYER_HIT, 0, 1);

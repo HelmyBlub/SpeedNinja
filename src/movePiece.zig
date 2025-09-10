@@ -7,6 +7,8 @@ const choosenMovePieceVisualizationVulkanZig = @import("vulkan/choosenMovePieceV
 const bossZig = @import("boss/boss.zig");
 const enemyZig = @import("enemy/enemy.zig");
 const enemyObjectZig = @import("enemy/enemyObject.zig");
+const enemyObjectFallDownZig = @import("enemy/enemyObjectFallDown.zig");
+
 const mapTileZig = @import("mapTile.zig");
 
 pub const MovePiece = struct {
@@ -138,6 +140,9 @@ pub fn tickPlayerMovePiece(player: *main.Player, state: *main.GameState) !void {
                 } else {
                     player.startedFallingState = null;
                 }
+            }
+            if (player.moveOptions.items.len == 0) {
+                try enemyObjectFallDownZig.spawnFallDown(player.position, 2000, state);
             }
         }
         if (player.executeMovePiece == null) {

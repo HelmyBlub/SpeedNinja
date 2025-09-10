@@ -1,6 +1,8 @@
 Tasks:
 - Game over
-    - when out of pieces, instead of losing instantly, projectile will drop on player, player takes damage and gets two move pieces back if he has HP
+    - taking damage resets move pieces
+    - when out of pieces, instead of losing instantly, projectile will drop on player
+    
     - instead of losing instantly on time over, make sudden death, projectiles will drop on every tile slowly growing inwards
 
 - when bought new equipment, place old equipment at position to be able to switch back
