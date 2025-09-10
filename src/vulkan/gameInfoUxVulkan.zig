@@ -12,6 +12,7 @@ pub fn setupVertices(state: *main.GameState) !void {
     const fontVertices = &verticeData.font;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const textColor: [3]f32 = .{ 1, 1, 1 };
 
     if (state.gamePhase == .boss) {
         if (state.bosses.items.len == 0) return;
@@ -26,7 +27,6 @@ pub fn setupVertices(state: *main.GameState) !void {
             currentLeft += width + spacingX;
         }
     } else {
-        const textColor: [3]f32 = .{ 1, 1, 1 };
         textWidthRound -= 0.2;
         if (state.gamePhase == .combat) {
             textWidthRound += fontVulkanZig.paintText("Round: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, textColor, fontVertices);
@@ -54,6 +54,16 @@ pub fn setupVertices(state: *main.GameState) !void {
             }
         }
     }
+    if (isGameOver(state)) {
+        _ = fontVulkanZig.paintText("GAME OVER", .{ .x = -0.4, .y = -0.1 }, 120, textColor, fontVertices);
+    }
+}
+
+fn isGameOver(state: *main.GameState) bool {
+    for (state.players.items) |*player| {
+        if (!player.isDead) return false;
+    }
+    return true;
 }
 
 fn setupVerticesBossHpBar(boss: *bossZig.Boss, top: f32, left: f32, height: f32, width: f32, state: *main.GameState) !void {

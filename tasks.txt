@@ -1,12 +1,11 @@
 Tasks:
-- color font
-    - red and green for time display
-    - display + for being behind in time
 - death screen
     - death animation
         - dog split pieces
-        - display you died
+        - display Game Over
     - display times
+- when out of pieces, instead of losing instantly, projectile will drop on player, player takes damage and gets two move pieces back if he has HP
+- instead of losing instantly on time over, make sudden death, projectiles will drop on every tile slowly growing inwards
 
 - when bought new equipment, place old equipment at position to be able to switch back
 - boss split: split correct amount of times even for high damage values
@@ -26,8 +25,6 @@ Next ideas:
 - retries for money?
     - each retry gets more expensive
 - after level 50 start new game+, repeat bosses but stuff gets harder, faster
-- when out of pieces, instead of losing instantly, projectile will drop on player, player takes damage and gets two move pieces back if he has HP
-- instead of losing instantly on time over, make sudden death, projectiles will drop on every tile slowly growing inwards
 
 - game modifier
     - can be choosen -> more money per round, but harder or different

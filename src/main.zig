@@ -154,11 +154,44 @@ pub fn main() !void {
 
 pub fn playerHit(player: *Player, state: *GameState) !void {
     if (player.immunUntilTime >= state.gameTime) return;
+    if (player.isDead) return;
     if (!try equipmentZig.damageTakenByEquipment(player, state)) {
         player.isDead = true;
+        try ninjaDogDeathCutSprites(player, state);
     }
     player.immunUntilTime = state.gameTime + state.playerImmunityFrames;
     try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_PLAYER_HIT, 0, 1);
+}
+
+fn ninjaDogDeathCutSprites(player: *Player, state: *GameState) !void {
+    try state.spriteCutAnimations.append(.{
+        .colorOrImageIndex = .{ .imageIndex = player.paintData.chestArmorImageIndex },
+        .cutAngle = 1,
+        .deathTime = state.gameTime,
+        .force = 0.9,
+        .position = player.position,
+    });
+    try state.spriteCutAnimations.append(.{
+        .colorOrImageIndex = .{ .imageIndex = player.paintData.headLayer2ImageIndex },
+        .cutAngle = 1,
+        .deathTime = state.gameTime,
+        .force = 0.9,
+        .position = .{ .x = player.position.x, .y = player.position.y - 8 },
+    });
+    try state.spriteCutAnimations.append(.{
+        .colorOrImageIndex = .{ .imageIndex = player.paintData.feetImageIndex },
+        .cutAngle = 1,
+        .deathTime = state.gameTime,
+        .force = 0.9,
+        .position = .{ .x = player.position.x, .y = player.position.y + 8 },
+    });
+    try state.spriteCutAnimations.append(.{
+        .colorOrImageIndex = .{ .imageIndex = player.paintData.weaponImageIndex },
+        .cutAngle = 1,
+        .deathTime = state.gameTime,
+        .force = 0.9,
+        .position = player.position,
+    });
 }
 
 pub fn getPlayerDamage(player: *Player) u32 {
@@ -206,8 +239,6 @@ fn mainLoop(state: *GameState) !void {
                 }
             }
             try shopZig.startShoppingPhase(state);
-        } else if (shouldRestart(state)) {
-            try restart(state);
         }
         try windowSdlZig.handleEvents(state);
         try tickPlayers(state, passedTime);
@@ -250,6 +281,7 @@ fn tickMapObjects(state: *GameState, passedTime: i64) void {
 
 fn tickPlayers(state: *GameState, passedTime: i64) !void {
     for (state.players.items) |*player| {
+        if (player.isDead) continue;
         if (player.inAirHeight > 0) {
             const fPassedTime = @as(f32, @floatFromInt(passedTime));
             player.fallVelocity = @min(5, player.fallVelocity + fPassedTime * 0.001);
@@ -376,14 +408,6 @@ pub fn getDirectionFromTo(fromPosition: Position, toPosition: Position) u8 {
 fn shouldEndLevel(state: *GameState) bool {
     if (state.gamePhase == .combat and state.round >= state.roundToReachForNextLevel and state.roundEndTimeMS < state.gameTime) return true;
     if (state.gamePhase == .boss and state.bosses.items.len == 0) return true;
-    return false;
-}
-
-fn shouldRestart(state: *GameState) bool {
-    if (state.gamePhase == .shopping) return false;
-    if (allPlayerOutOfMoveOptions(state)) return true;
-    if (allPlayerNoHp(state)) return true;
-    if (state.round > 1 and state.roundEndTimeMS < state.gameTime) return true;
     return false;
 }
 
