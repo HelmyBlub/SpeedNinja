@@ -146,12 +146,19 @@ pub fn executeShopActionForPlayer(player: *main.Player, state: *main.GameState) 
         return;
     }
 
-    for (state.shop.buyOptions.items, 0..) |buyOption, buyIndex| {
+    for (state.shop.buyOptions.items, 0..) |*buyOption, buyIndex| {
         if (buyOption.tilePosition.x == playerTile.x and buyOption.tilePosition.y == playerTile.y) {
             if (player.money >= buyOption.price) {
+                const optOldEquip = equipmentZig.getEquipSlot(buyOption.equipment.slotTypeData, player);
                 if (equipmentZig.equip(buyOption.equipment, true, player)) {
                     player.money -= buyOption.price;
-                    _ = state.shop.buyOptions.swapRemove(buyIndex);
+                    if (optOldEquip) |old| {
+                        buyOption.price = 0;
+                        buyOption.equipment = old;
+                        buyOption.imageIndex = old.imageIndex;
+                    } else {
+                        _ = state.shop.buyOptions.swapRemove(buyIndex);
+                    }
                 }
             }
             return;

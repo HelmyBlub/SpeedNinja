@@ -49,8 +49,10 @@ pub fn setupVertices(state: *main.GameState) !void {
             };
             var moneyDisplayPos: main.Position = startingInfoTopLeftDisplayPos;
             const fontSize = 8;
-            moneyDisplayPos.x += fontVulkanZig.paintTextGameMap("$", moneyDisplayPos, fontSize, textColor, &state.vkState.verticeData.font, state);
-            _ = try fontVulkanZig.paintNumberGameMap(buyOption.price, moneyDisplayPos, fontSize, textColor, &state.vkState.verticeData.font, state);
+            if (buyOption.price > 0) {
+                moneyDisplayPos.x += fontVulkanZig.paintTextGameMap("$", moneyDisplayPos, fontSize, textColor, &state.vkState.verticeData.font, state);
+                _ = try fontVulkanZig.paintNumberGameMap(buyOption.price, moneyDisplayPos, fontSize, textColor, &state.vkState.verticeData.font, state);
+            }
             var secondaryEffect: ?equipmentZig.SecondaryEffect = null;
             switch (buyOption.equipment.effectType) {
                 .hp => |data| {

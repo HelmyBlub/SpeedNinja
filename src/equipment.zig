@@ -361,6 +361,23 @@ pub fn equip(equipment: EquipmentSlotData, preventDowngrade: bool, player: *main
     }
 }
 
+pub fn getEquipSlot(slotType: EquipmentSlotTypes, player: *main.Player) ?EquipmentSlotData {
+    switch (slotType) {
+        .body => {
+            return player.equipment.equipmentSlotsData.body;
+        },
+        .feet => {
+            return player.equipment.equipmentSlotsData.feet;
+        },
+        .head => {
+            return player.equipment.equipmentSlotsData.head;
+        },
+        .weapon => {
+            return player.equipment.equipmentSlotsData.weapon;
+        },
+    }
+}
+
 fn unequip(slotType: EquipmentSlotTypes, player: *main.Player) void {
     switch (slotType) {
         .body => {

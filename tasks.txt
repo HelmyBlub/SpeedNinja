@@ -1,13 +1,5 @@
 Tasks:
-- Game over    
-    - instead of losing instantly on time over, make sudden death, projectiles will drop on every tile slowly growing inwards
-        - when time up sudden death begins
-        - early shop => continue to shop
-        - player has to enter always
-
 - when bought new equipment, place old equipment at position to be able to switch back
-- boss split: split correct amount of times even for high damage values
-- shop should have one weapon buy option always
 
 - think: change random position to single function instead of duplicate with small differenes?
 - waller enemy
@@ -20,16 +12,15 @@ Tasks:
         - if one is not reachable?
 
 Next ideas:
-- retries for money?
-    - each retry gets more expensive
-- after level 50 start new game+, repeat bosses but stuff gets harder, faster
+- continues
+    - for money
+        - each retry gets more expensive
+    - for acing bosses
+        - one retry for first ace, second retry for 3 bosses aced, third retry for 6 bosses aced
 
-- game modifier
-    - can be choosen -> more money per round, but harder or different
-    - no choice but more damage
-    - no refresh
-        - turn more into puzzle game
-        - can only use each pice once
-        - no time limit, but piece limit
-    - only one piece and copies of it
-    - chunky enemies: more hp -> no/easier attack pattens
+- after level 50 start new game+, repeat bosses but stuff gets harder, faster
+- sound for sudden death
+- improve move options UX
+- improve shop UX
+- multiplayer
+

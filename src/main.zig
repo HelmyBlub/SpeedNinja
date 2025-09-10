@@ -34,7 +34,7 @@ pub const GameState = struct {
     level: u32 = 0,
     roundToReachForNextLevel: usize = 5,
     bonusTimePerRoundFinished: i32 = 5000,
-    minimalTimePerRequiredRounds: i32 = 6_000,
+    minimalTimePerRequiredRounds: i32 = 60_000,
     mapData: mapTileZig.MapData,
     roundEndTimeMS: i64 = 0,
     roundStartedTime: i64 = 0,
