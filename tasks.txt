@@ -1,6 +1,7 @@
 Tasks:
 - color font
     - red and green for time display
+    - display + for being behind in time
 - death screen
     - death animation
         - dog split pieces

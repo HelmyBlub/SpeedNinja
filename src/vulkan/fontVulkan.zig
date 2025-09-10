@@ -14,7 +14,7 @@ pub const VkFontData = struct {
 };
 
 /// returns game width of text
-pub fn paintTextGameMap(chars: []const u8, gamePosition: main.Position, fontSize: f32, vkFont: *dataVulkanZig.VkFont, state: *main.GameState) f32 {
+pub fn paintTextGameMap(chars: []const u8, gamePosition: main.Position, fontSize: f32, color: [3]f32, vkFont: *dataVulkanZig.VkFont, state: *main.GameState) f32 {
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const vulkanPos: main.Position = .{
@@ -22,12 +22,12 @@ pub fn paintTextGameMap(chars: []const u8, gamePosition: main.Position, fontSize
         .y = (-state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
     };
     const zoomedFontSize = fontSize * state.camera.zoom;
-    const vulkanWidth = paintText(chars, vulkanPos, zoomedFontSize, vkFont);
+    const vulkanWidth = paintText(chars, vulkanPos, zoomedFontSize, color, vkFont);
     return vulkanWidth / onePixelXInVulkan / state.camera.zoom;
 }
 
 /// returns vulkan surface width of text
-pub fn paintText(chars: []const u8, vulkanSurfacePosition: main.Position, fontSize: f32, vkFont: *dataVulkanZig.VkFont) f32 {
+pub fn paintText(chars: []const u8, vulkanSurfacePosition: main.Position, fontSize: f32, color: [3]f32, vkFont: *dataVulkanZig.VkFont) f32 {
     var texX: f32 = 0;
     var texWidth: f32 = 0;
     var xOffset: f32 = 0;
@@ -36,7 +36,7 @@ pub fn paintText(chars: []const u8, vulkanSurfacePosition: main.Position, fontSi
         charToTexCoords(char, &texX, &texWidth);
         vkFont.vertices[vkFont.verticeCount] = .{
             .pos = .{ vulkanSurfacePosition.x + xOffset, vulkanSurfacePosition.y },
-            .color = .{ 1, 0, 0 },
+            .color = color,
             .texX = texX,
             .texWidth = texWidth,
             .size = fontSize,
@@ -47,21 +47,8 @@ pub fn paintText(chars: []const u8, vulkanSurfacePosition: main.Position, fontSi
     return xOffset;
 }
 
-pub fn getCharFontVertex(char: u8, vulkanSurfacePosition: main.Position, fontSize: f32) dataVulkanZig.FontVertex {
-    var texX: f32 = 0;
-    var texWidth: f32 = 0;
-    charToTexCoords(char, &texX, &texWidth);
-    return .{
-        .pos = .{ vulkanSurfacePosition.x, vulkanSurfacePosition.y },
-        .color = .{ 1, 0, 0 },
-        .texX = texX,
-        .texWidth = texWidth,
-        .size = fontSize,
-    };
-}
-
 /// returns game width of text
-pub fn paintNumberGameMap(number: anytype, gamePosition: main.Position, fontSize: f32, vkFont: *dataVulkanZig.VkFont, state: *main.GameState) !f32 {
+pub fn paintNumberGameMap(number: anytype, gamePosition: main.Position, fontSize: f32, color: [3]f32, vkFont: *dataVulkanZig.VkFont, state: *main.GameState) !f32 {
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const vulkanPos: main.Position = .{
@@ -69,44 +56,44 @@ pub fn paintNumberGameMap(number: anytype, gamePosition: main.Position, fontSize
         .y = (-state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
     };
     const zoomedFontSize = fontSize * state.camera.zoom;
-    const vulkanWidth = try paintNumber(number, vulkanPos, zoomedFontSize, vkFont);
+    const vulkanWidth = try paintNumber(number, vulkanPos, zoomedFontSize, color, vkFont);
     return vulkanWidth / onePixelXInVulkan / state.camera.zoom;
 }
 
 /// time in hh:mm:ss format
-pub fn paintTime(timeMilli: i64, vulkanSurfacePosition: main.Position, fontSize: f32, showOneMilli: bool, vkFont: *dataVulkanZig.VkFont) !f32 {
+pub fn paintTime(timeMilli: i64, vulkanSurfacePosition: main.Position, fontSize: f32, showOneMilli: bool, color: [3]f32, vkFont: *dataVulkanZig.VkFont) !f32 {
     var zeroPrefix = false;
     var textWidth: f32 = 0;
     const absTimeMilli = @abs(timeMilli);
     if (timeMilli < 0) {
-        textWidth += paintText("-", .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont);
+        textWidth += paintText("-", .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, color, vkFont);
     }
     if (absTimeMilli >= 60 * 60 * 1000) {
         const hours = @divFloor(absTimeMilli, 1000 * 60 * 60);
-        textWidth += try paintNumber(hours, .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont);
-        textWidth += paintText(":", .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont);
+        textWidth += try paintNumber(hours, .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, color, vkFont);
+        textWidth += paintText(":", .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, color, vkFont);
         zeroPrefix = true;
     }
     if (absTimeMilli >= 60 * 1000) {
         const minutes = @mod(@divFloor(absTimeMilli, 1000 * 60), 60);
-        textWidth += try paintNumberWithZeroPrefix(minutes, .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont, zeroPrefix);
-        textWidth += paintText(":", .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont);
+        textWidth += try paintNumberWithZeroPrefix(minutes, .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, color, vkFont, zeroPrefix);
+        textWidth += paintText(":", .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, color, vkFont);
         zeroPrefix = true;
     }
-    textWidth += try paintNumberWithZeroPrefix(@mod(@divFloor(absTimeMilli, 1000), 60), .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont, zeroPrefix);
+    textWidth += try paintNumberWithZeroPrefix(@mod(@divFloor(absTimeMilli, 1000), 60), .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, color, vkFont, zeroPrefix);
     if (showOneMilli) {
         const milli = @mod(@divFloor(absTimeMilli, 100), 10);
-        textWidth += paintText(".", .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont);
-        textWidth += try paintNumberWithZeroPrefix(milli, .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, vkFont, false);
+        textWidth += paintText(".", .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, color, vkFont);
+        textWidth += try paintNumberWithZeroPrefix(milli, .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, color, vkFont, false);
     }
     return textWidth;
 }
 
-pub fn paintNumber(number: anytype, vulkanSurfacePosition: main.Position, fontSize: f32, vkFont: *dataVulkanZig.VkFont) !f32 {
-    return paintNumberWithZeroPrefix(number, vulkanSurfacePosition, fontSize, vkFont, false);
+pub fn paintNumber(number: anytype, vulkanSurfacePosition: main.Position, fontSize: f32, color: [3]f32, vkFont: *dataVulkanZig.VkFont) !f32 {
+    return paintNumberWithZeroPrefix(number, vulkanSurfacePosition, fontSize, color, vkFont, false);
 }
 
-pub fn paintNumberWithZeroPrefix(number: anytype, vulkanSurfacePosition: main.Position, fontSize: f32, vkFont: *dataVulkanZig.VkFont, singleZeroPrefixWhenSmallerTen: bool) !f32 {
+pub fn paintNumberWithZeroPrefix(number: anytype, vulkanSurfacePosition: main.Position, fontSize: f32, color: [3]f32, vkFont: *dataVulkanZig.VkFont, singleZeroPrefixWhenSmallerTen: bool) !f32 {
     const max_len = 20;
     var buf: [max_len]u8 = undefined;
     var numberAsString: []u8 = undefined;
@@ -128,7 +115,7 @@ pub fn paintNumberWithZeroPrefix(number: anytype, vulkanSurfacePosition: main.Po
         charToTexCoords(char, &texX, &texWidth);
         vkFont.vertices[vkFont.verticeCount] = .{
             .pos = .{ vulkanSurfacePosition.x + xOffset, vulkanSurfacePosition.y },
-            .color = .{ 1, 0, 0 },
+            .color = color,
             .texX = texX,
             .texWidth = texWidth,
             .size = fontSize,

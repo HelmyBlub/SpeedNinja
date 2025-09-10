@@ -7,5 +7,9 @@ layout(location = 0) out vec4 outColor;
 layout(binding = 2) uniform sampler2D texSampler;
 
 void main() {
-    outColor = texture(texSampler, fragTexCoord);
+    vec4 tempOutColor = texture(texSampler, fragTexCoord);
+    if(tempOutColor[3] > 0){
+        tempOutColor.rgb = mix(vec3(0.0), inColor.rgb, tempOutColor[0]);
+    }
+    outColor = tempOutColor;
 }

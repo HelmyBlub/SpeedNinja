@@ -109,26 +109,43 @@ pub fn destroyAndSave(state: *main.GameState) !void {
 pub fn setupVertices(state: *main.GameState) !void {
     if (!state.statistics.active) return;
     if (state.level <= 1) return;
+    const textColor: [3]f32 = .{ 1, 1, 1 };
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const topLeft: main.Position = .{ .x = -0.99, .y = -0.5 };
     const levelDatas: []LevelStatistics = try getLevelDatas(state);
     const fontSize = 16;
     const firstDisplayLevel = if (state.level > 10) state.level - 10 else 1;
-    const levelTextWidth = fontVulkanZig.paintText("Level  ", .{ .x = topLeft.x, .y = topLeft.y }, fontSize, &state.vkState.verticeData.font);
+    const levelTextWidth = fontVulkanZig.paintText("Level  ", .{ .x = topLeft.x, .y = topLeft.y }, fontSize, textColor, &state.vkState.verticeData.font);
     const offsetX1 = topLeft.x + levelTextWidth;
-    const timeTextWidth = fontVulkanZig.paintText("Time      ", .{ .x = offsetX1, .y = topLeft.y }, fontSize, &state.vkState.verticeData.font);
+    const timeTextWidth = fontVulkanZig.paintText("Time      ", .{ .x = offsetX1, .y = topLeft.y }, fontSize, textColor, &state.vkState.verticeData.font);
     const offsetX2 = offsetX1 + timeTextWidth;
-    const diffTotalTextWidth = fontVulkanZig.paintText("DiffTotal  ", .{ .x = offsetX2, .y = topLeft.y }, fontSize, &state.vkState.verticeData.font);
+    const diffTotalTextWidth = fontVulkanZig.paintText("DiffTotal  ", .{ .x = offsetX2, .y = topLeft.y }, fontSize, textColor, &state.vkState.verticeData.font);
     const offsetX3 = offsetX2 + diffTotalTextWidth;
-    _ = fontVulkanZig.paintText("DiffLevel", .{ .x = offsetX3, .y = topLeft.y }, fontSize, &state.vkState.verticeData.font);
+    _ = fontVulkanZig.paintText("DiffLevel", .{ .x = offsetX3, .y = topLeft.y }, fontSize, textColor, &state.vkState.verticeData.font);
+    const red: [3]f32 = .{ 0.7, 0, 0 };
+    const green: [3]f32 = .{ 0.1, 1, 0.1 };
     for (firstDisplayLevel..state.level) |level| {
         const levelData = levelDatas[level - 1];
         const offsetY = onePixelYInVulkan * @as(f32, @floatFromInt(fontSize * (level - firstDisplayLevel + 1)));
-        _ = try fontVulkanZig.paintNumber(level, .{ .x = topLeft.x, .y = topLeft.y + offsetY }, fontSize, &state.vkState.verticeData.font);
-        _ = try fontVulkanZig.paintTime(levelData.currentTotalTime, .{ .x = offsetX1, .y = topLeft.y + offsetY }, fontSize, true, &state.vkState.verticeData.font);
+        _ = try fontVulkanZig.paintNumber(level, .{ .x = topLeft.x, .y = topLeft.y + offsetY }, fontSize, textColor, &state.vkState.verticeData.font);
+        _ = try fontVulkanZig.paintTime(levelData.currentTotalTime, .{ .x = offsetX1, .y = topLeft.y + offsetY }, fontSize, true, textColor, &state.vkState.verticeData.font);
         if (levelData.fastestTotalTime != null and levelData.fastestTime != null) {
-            _ = try fontVulkanZig.paintTime(levelData.currentTotalTime - levelData.fastestTotalTime.?, .{ .x = offsetX2, .y = topLeft.y + offsetY }, fontSize, true, &state.vkState.verticeData.font);
-            _ = try fontVulkanZig.paintTime(levelData.currentTime - levelData.fastestTime.?, .{ .x = offsetX3, .y = topLeft.y + offsetY }, fontSize, true, &state.vkState.verticeData.font);
+            const diffTotal = levelData.currentTotalTime - levelData.fastestTotalTime.?;
+            var color: [3]f32 = if (diffTotal > 0) red else green;
+            if (diffTotal > 0) {
+                const plusWidth = fontVulkanZig.paintText("+", .{ .x = offsetX2, .y = topLeft.y + offsetY }, fontSize, color, &state.vkState.verticeData.font);
+                _ = try fontVulkanZig.paintTime(diffTotal, .{ .x = offsetX2 + plusWidth, .y = topLeft.y + offsetY }, fontSize, true, color, &state.vkState.verticeData.font);
+            } else {
+                _ = try fontVulkanZig.paintTime(diffTotal, .{ .x = offsetX2, .y = topLeft.y + offsetY }, fontSize, true, color, &state.vkState.verticeData.font);
+            }
+            const diff = levelData.currentTime - levelData.fastestTime.?;
+            color = if (diff > 0) red else green;
+            if (diff > 0) {
+                const plusWidth = fontVulkanZig.paintText("+", .{ .x = offsetX3, .y = topLeft.y + offsetY }, fontSize, color, &state.vkState.verticeData.font);
+                _ = try fontVulkanZig.paintTime(diff, .{ .x = offsetX3 + plusWidth, .y = topLeft.y + offsetY }, fontSize, true, color, &state.vkState.verticeData.font);
+            } else {
+                _ = try fontVulkanZig.paintTime(diff, .{ .x = offsetX3, .y = topLeft.y + offsetY }, fontSize, true, color, &state.vkState.verticeData.font);
+            }
         }
     }
 }

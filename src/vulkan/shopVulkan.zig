@@ -14,6 +14,7 @@ const equipmentZig = @import("../equipment.zig");
 
 pub fn setupVertices(state: *main.GameState) !void {
     const verticeData = &state.vkState.verticeData;
+    const textColor: [3]f32 = .{ 1, 1, 1 };
     if (state.gamePhase != .shopping) {
         verticesForEarlyShopTrigger(state);
     } else {
@@ -48,8 +49,8 @@ pub fn setupVertices(state: *main.GameState) !void {
             };
             var moneyDisplayPos: main.Position = startingInfoTopLeftDisplayPos;
             const fontSize = 8;
-            moneyDisplayPos.x += fontVulkanZig.paintTextGameMap("$", moneyDisplayPos, fontSize, &state.vkState.verticeData.font, state);
-            _ = try fontVulkanZig.paintNumberGameMap(buyOption.price, moneyDisplayPos, fontSize, &state.vkState.verticeData.font, state);
+            moneyDisplayPos.x += fontVulkanZig.paintTextGameMap("$", moneyDisplayPos, fontSize, textColor, &state.vkState.verticeData.font, state);
+            _ = try fontVulkanZig.paintNumberGameMap(buyOption.price, moneyDisplayPos, fontSize, textColor, &state.vkState.verticeData.font, state);
             var secondaryEffect: ?equipmentZig.SecondaryEffect = null;
             switch (buyOption.equipment.effectType) {
                 .hp => |data| {
@@ -57,7 +58,7 @@ pub fn setupVertices(state: *main.GameState) !void {
                         .x = moneyDisplayPos.x,
                         .y = moneyDisplayPos.y + fontSize + 1,
                     };
-                    const textWidth = try fontVulkanZig.paintNumberGameMap(data.hp, hpDisplayTextPos, fontSize, &state.vkState.verticeData.font, state);
+                    const textWidth = try fontVulkanZig.paintNumberGameMap(data.hp, hpDisplayTextPos, fontSize, textColor, &state.vkState.verticeData.font, state);
                     const hpDisplayIconPos: main.Position = .{
                         .x = hpDisplayTextPos.x + textWidth / 2,
                         .y = hpDisplayTextPos.y + fontSize / 2,
@@ -70,7 +71,7 @@ pub fn setupVertices(state: *main.GameState) !void {
                         .x = moneyDisplayPos.x + 2,
                         .y = moneyDisplayPos.y + fontSize + 1,
                     };
-                    _ = try fontVulkanZig.paintNumberGameMap(data.damage, damageDisplayTextPos, fontSize, &state.vkState.verticeData.font, state);
+                    _ = try fontVulkanZig.paintNumberGameMap(data.damage, damageDisplayTextPos, fontSize, textColor, &state.vkState.verticeData.font, state);
                     const DamageDisplayIconPos: main.Position = .{
                         .x = damageDisplayTextPos.x - 2.5,
                         .y = damageDisplayTextPos.y + fontSize / 2,
@@ -83,8 +84,8 @@ pub fn setupVertices(state: *main.GameState) !void {
                         .x = moneyDisplayPos.x + 2,
                         .y = moneyDisplayPos.y + fontSize + 1,
                     };
-                    const textWidth = fontVulkanZig.paintTextGameMap("x", damageDisplayTextPos, fontSize, &state.vkState.verticeData.font, state);
-                    _ = try fontVulkanZig.paintNumberGameMap((data.factor + 1), .{ .x = damageDisplayTextPos.x + textWidth, .y = damageDisplayTextPos.y }, fontSize, &state.vkState.verticeData.font, state);
+                    const textWidth = fontVulkanZig.paintTextGameMap("x", damageDisplayTextPos, fontSize, textColor, &state.vkState.verticeData.font, state);
+                    _ = try fontVulkanZig.paintNumberGameMap((data.factor + 1), .{ .x = damageDisplayTextPos.x + textWidth, .y = damageDisplayTextPos.y }, fontSize, textColor, &state.vkState.verticeData.font, state);
                     const DamageDisplayIconPos: main.Position = .{
                         .x = damageDisplayTextPos.x - 2.5,
                         .y = damageDisplayTextPos.y + fontSize / 2,
@@ -108,6 +109,7 @@ pub fn setupVertices(state: *main.GameState) !void {
 fn verticesForEarlyShopTrigger(state: *main.GameState) void {
     const optTilePosition = shopZig.getShopEarlyTriggerPosition(state);
     if (optTilePosition == null) return;
+    const textColor: [3]f32 = .{ 1, 1, 1 };
     const verticeData = &state.vkState.verticeData;
     const tilePosition = optTilePosition.?;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
@@ -127,8 +129,8 @@ fn verticesForEarlyShopTrigger(state: *main.GameState) void {
     const left = vulkan.x - halveVulkanTileSizeX;
     const top = vulkan.y - halveVulkanTileSizeY;
     const fontSize = 26;
-    _ = fontVulkanZig.paintText("early", .{ .x = left, .y = top }, fontSize, &verticeData.font);
-    _ = fontVulkanZig.paintText("shop", .{ .x = left, .y = top + fontSize * onePixelYInVulkan }, fontSize, &verticeData.font);
+    _ = fontVulkanZig.paintText("early", .{ .x = left, .y = top }, fontSize, textColor, &verticeData.font);
+    _ = fontVulkanZig.paintText("shop", .{ .x = left, .y = top + fontSize * onePixelYInVulkan }, fontSize, textColor, &verticeData.font);
     paintVulkanZig.verticesForRectangle(left, top, width, height, .{ 1, 1, 1 }, &verticeData.lines, &verticeData.triangles);
 }
 

@@ -15,14 +15,14 @@ pub fn setupVertices(state: *main.GameState) !void {
     for (state.players.items) |*player| {
         verticesForMoveOptions(player, verticeData);
     }
-
+    const textColor: [3]f32 = .{ 1, 1, 1 };
     const fontSize = 30;
     const player = state.players.items[0];
     const remainingPieces = player.availableMovePieces.items.len + player.moveOptions.items.len;
     const totalPieces = player.totalMovePieces.items.len;
-    var textWidthPieces = try fontVulkanZig.paintNumber(remainingPieces, .{ .x = 0.5, .y = 0.8 }, fontSize, &verticeData.font);
-    textWidthPieces += fontVulkanZig.paintText(":", .{ .x = 0.5 + textWidthPieces, .y = 0.8 }, fontSize, &verticeData.font);
-    _ = try fontVulkanZig.paintNumber(totalPieces, .{ .x = 0.5 + textWidthPieces, .y = 0.8 }, fontSize, &verticeData.font);
+    var textWidthPieces = try fontVulkanZig.paintNumber(remainingPieces, .{ .x = 0.5, .y = 0.8 }, fontSize, textColor, &verticeData.font);
+    textWidthPieces += fontVulkanZig.paintText(":", .{ .x = 0.5 + textWidthPieces, .y = 0.8 }, fontSize, textColor, &verticeData.font);
+    _ = try fontVulkanZig.paintNumber(totalPieces, .{ .x = 0.5 + textWidthPieces, .y = 0.8 }, fontSize, textColor, &verticeData.font);
 
     const damageDisplayTextPos: main.Position = .{
         .x = 0.5,
@@ -32,10 +32,10 @@ pub fn setupVertices(state: *main.GameState) !void {
     const playerWeaponDamage = state.players.items[0].damage;
     const bonusDamage = playerTotalDamage - playerWeaponDamage;
     var damageTextWidth: f32 = 0;
-    damageTextWidth += try fontVulkanZig.paintNumber(playerWeaponDamage, damageDisplayTextPos, fontSize, &state.vkState.verticeData.font);
+    damageTextWidth += try fontVulkanZig.paintNumber(playerWeaponDamage, damageDisplayTextPos, fontSize, textColor, &state.vkState.verticeData.font);
     if (bonusDamage > 0) {
-        damageTextWidth += fontVulkanZig.paintText("+", .{ .x = damageDisplayTextPos.x + damageTextWidth, .y = damageDisplayTextPos.y }, fontSize, &state.vkState.verticeData.font);
-        _ = try fontVulkanZig.paintNumber(bonusDamage, .{ .x = damageDisplayTextPos.x + damageTextWidth, .y = damageDisplayTextPos.y }, fontSize, &state.vkState.verticeData.font);
+        damageTextWidth += fontVulkanZig.paintText("+", .{ .x = damageDisplayTextPos.x + damageTextWidth, .y = damageDisplayTextPos.y }, fontSize, textColor, &state.vkState.verticeData.font);
+        _ = try fontVulkanZig.paintNumber(bonusDamage, .{ .x = damageDisplayTextPos.x + damageTextWidth, .y = damageDisplayTextPos.y }, fontSize, textColor, &state.vkState.verticeData.font);
     }
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
