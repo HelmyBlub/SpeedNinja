@@ -475,6 +475,9 @@ pub fn restart(state: *GameState) !void {
         equipmentZig.equipStarterEquipment(player);
         try movePieceZig.setupMovePieces(player, state);
     }
+    for (0..state.shop.equipOptionsLastLevelInShop.len) |i| {
+        state.shop.equipOptionsLastLevelInShop[i] = 0;
+    }
     bossZig.clearBosses(state);
     state.spriteCutAnimations.clearRetainingCapacity();
     state.mapObjects.clearAndFree();

@@ -73,6 +73,7 @@ pub const ShopBuyOption = struct {
 
 pub const ShopData = struct {
     buyOptions: std.ArrayList(ShopBuyOption),
+    equipOptionsLastLevelInShop: [equipmentZig.EQUIPMENT_SHOP_OPTIONS.len]u32 = undefined,
 };
 
 pub const SHOP_BUTTONS = [_]PlayerShopButton{
@@ -238,20 +239,15 @@ pub fn randomizeShop(state: *main.GameState) !void {
 
 fn randomizeBuyableEquipment(maxShopOptions: usize, state: *main.GameState) !void {
     state.shop.buyOptions.clearRetainingCapacity();
-    var availableIndexes: [equipmentZig.EQUIPMENT_SHOP_OPTIONS.len]usize = undefined;
-    var availableIndexesLength = availableIndexes.len;
-    for (0..availableIndexes.len) |i| {
-        availableIndexes[i] = i;
-    }
+    var blacklistedIndexes: std.ArrayList(usize) = std.ArrayList(usize).init(state.allocator);
+    defer blacklistedIndexes.deinit();
+
     var shopOptionsCount: usize = 0;
     while (shopOptionsCount < maxShopOptions) {
-        const randomIndex = std.crypto.random.intRangeLessThan(usize, 0, availableIndexesLength);
-        const randomEquipIndex = availableIndexes[randomIndex];
-        const randomEquip = equipmentZig.getEquipmentOptionByIndexScaledToLevel(randomEquipIndex, state.level);
-        if (shopOptionsCount == 0 and randomEquip.equipment.slotTypeData != .weapon) continue;
-        if (shopOptionsCount == 1 and randomEquip.equipment.slotTypeData == .weapon) continue;
-        availableIndexesLength -= 1;
-        availableIndexes[randomIndex] = availableIndexes[availableIndexesLength];
+        const optRandomEquipIndex = getRandomEquipmentIndexForShop(blacklistedIndexes.items, shopOptionsCount, state);
+        if (optRandomEquipIndex == null) break;
+        const randomEquip = equipmentZig.getEquipmentOptionByIndexScaledToLevel(optRandomEquipIndex.?, state.level);
+        try blacklistedIndexes.append(optRandomEquipIndex.?);
 
         try state.shop.buyOptions.append(.{
             .price = state.level * randomEquip.basePrice,
@@ -260,9 +256,40 @@ fn randomizeBuyableEquipment(maxShopOptions: usize, state: *main.GameState) !voi
             .imageScale = randomEquip.imageScale,
             .equipment = randomEquip.equipment,
         });
-        if (availableIndexesLength == 0) break;
+        state.shop.equipOptionsLastLevelInShop[optRandomEquipIndex.?] = state.level;
         shopOptionsCount += 1;
     }
+}
+
+///mode=0 only weapons
+///mode=1 no weapons
+///mode>1 everything
+fn getRandomEquipmentIndexForShop(blacklistedIndexes: []usize, mode: usize, state: *main.GameState) ?usize {
+    var totalProbability: u32 = 0;
+    main: for (0..state.shop.equipOptionsLastLevelInShop.len) |index| {
+        if (mode == 0 and equipmentZig.EQUIPMENT_SHOP_OPTIONS[index].equipment.slotTypeData != .weapon) continue;
+        if (mode == 1 and equipmentZig.EQUIPMENT_SHOP_OPTIONS[index].equipment.slotTypeData == .weapon) continue;
+        for (blacklistedIndexes) |blacklisted| {
+            if (blacklisted == index) continue :main;
+        }
+        const level = state.shop.equipOptionsLastLevelInShop[index];
+        totalProbability += state.level - level;
+    }
+    const random = std.crypto.random.intRangeLessThan(usize, 0, totalProbability);
+    totalProbability = 0;
+    main: for (0..state.shop.equipOptionsLastLevelInShop.len) |index| {
+        if (mode == 0 and equipmentZig.EQUIPMENT_SHOP_OPTIONS[index].equipment.slotTypeData != .weapon) continue;
+        if (mode == 1 and equipmentZig.EQUIPMENT_SHOP_OPTIONS[index].equipment.slotTypeData == .weapon) continue;
+        for (blacklistedIndexes) |blacklisted| {
+            if (blacklisted == index) continue :main;
+        }
+        const level = state.shop.equipOptionsLastLevelInShop[index];
+        totalProbability += state.level - level;
+        if (random <= totalProbability) {
+            return index;
+        }
+    }
+    return null;
 }
 
 pub fn executeGridTile(player: *main.Player, state: *main.GameState) !void {

@@ -1,6 +1,4 @@
 Tasks:
-- boss: waller
-    - a bomb has to be thrown close at least each x throws
 - shop item probability based on far in the past an item appeared last time
 - waller enemy
     - unreachable wall closed up
