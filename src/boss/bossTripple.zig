@@ -195,7 +195,7 @@ fn executeAttack(boss: *bossZig.Boss, player: *main.Player, hitDirection: u8, st
         try enemyObjectFireZig.spawnFire(.{
             .x = boss.position.x + stepDirection.x * main.TILESIZE,
             .y = boss.position.y + stepDirection.y * main.TILESIZE,
-        }, trippleData.fireDuration, state);
+        }, trippleData.fireDuration, true, state);
     }
     if (trippleData.enabledShuriken) {
         trippleData.shurikenThrowTime = state.gameTime + trippleData.shurikenDelay;

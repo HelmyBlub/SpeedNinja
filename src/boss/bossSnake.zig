@@ -60,7 +60,7 @@ fn startBoss(state: *main.GameState) !void {
     for (0..SNAKE_MAX_PARTS - 1) |_| {
         try snakeBoss.typeData.snake.snakeBodyParts.append(.{ .pos = .{ .x = 0, .y = 0 }, .rotation = 0 });
     }
-    try enemyObjectFireZig.spawnFire(snakeBoss.position, snakeBoss.typeData.snake.fireDuration, state);
+    try enemyObjectFireZig.spawnFire(snakeBoss.position, snakeBoss.typeData.snake.fireDuration, false, state);
     try state.bosses.append(snakeBoss);
     try mapTileZig.setMapRadius(6, state);
     main.adjustZoom(state);
@@ -77,7 +77,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             .y = boss.position.y + stepDirection.y * main.TILESIZE,
         };
         try enemyZig.checkPlayerHit(movePosition, state);
-        try enemyObjectFireZig.spawnFire(movePosition, snakeData.fireDuration, state);
+        try enemyObjectFireZig.spawnFire(movePosition, snakeData.fireDuration, false, state);
         var rotation: f32 = @as(f32, @floatFromInt(snakeData.nextMoveDirection)) * std.math.pi / 2.0;
         if (snakeData.snakeBodyParts.items.len > 0) {
             const beforePart = snakeData.snakeBodyParts.getLast();

@@ -36,14 +36,26 @@ pub fn spawnFlyingEternalFire(spawnPosition: main.Position, flyToPosition: main.
     });
 }
 
-pub fn spawnFire(position: main.Position, duration: i32, state: *main.GameState) !void {
-    try state.enemyData.enemyObjects.append(.{
-        .position = position,
-        .typeData = .{ .fire = .{
-            .imageIndex = imageZig.IMAGE_FIRE_ANIMATION,
-            .removeTime = state.gameTime + duration,
-        } },
-    });
+pub fn spawnFire(position: main.Position, duration: i32, fallDown: bool, state: *main.GameState) !void {
+    if (fallDown) {
+        try state.enemyData.enemyObjects.append(.{
+            .position = position,
+            .typeData = .{ .fire = .{
+                .imageIndex = imageZig.IMAGE_FIRE_ANIMATION,
+                .removeTime = state.gameTime + duration,
+                .flyToPosition = position,
+                .inAirHeight = 100,
+            } },
+        });
+    } else {
+        try state.enemyData.enemyObjects.append(.{
+            .position = position,
+            .typeData = .{ .fire = .{
+                .imageIndex = imageZig.IMAGE_FIRE_ANIMATION,
+                .removeTime = state.gameTime + duration,
+            } },
+        });
+    }
 }
 
 fn setupVertices(object: *enemyObjectZig.EnemyObject, state: *main.GameState) void {
