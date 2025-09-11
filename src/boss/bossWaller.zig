@@ -31,6 +31,7 @@ pub const BossWallerData = struct {
     bombFlyTime: i32 = 1000,
     bombExplodeDelay: i32 = 2000,
     bombs: std.ArrayList(BombPositionDelayed),
+    counterForNoneCloseBombs: u8 = 0,
 };
 
 const BOSS_NAME = "Waller";
@@ -106,7 +107,12 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     if (data.bombNextTime != null) {
         if (data.bombNextTime.? <= state.gameTime) {
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_THROW_INDICIES[0..], 0, 0.5);
-            const length: f32 = @floatFromInt(state.mapData.tileRadius * 2 + 1);
+            var tileRadius = state.mapData.tileRadius;
+            if (data.counterForNoneCloseBombs > 4) {
+                tileRadius = 1;
+            }
+
+            const length: f32 = @floatFromInt(tileRadius * 2 + 1);
             const randomTileX: i16 = @as(i16, @intFromFloat(std.crypto.random.float(f32) * length - length / 2));
             const randomTileY: i16 = @as(i16, @intFromFloat(std.crypto.random.float(f32) * length - length / 2));
             const randomPos: main.Position = .{
@@ -120,6 +126,11 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                 .position = boss.position,
             });
             data.bombNextTime = state.gameTime + data.bombThrowInterval;
+            if (@abs(randomTileX) > 1 or @abs(randomTileY) > 1) {
+                data.counterForNoneCloseBombs += 1;
+            } else {
+                data.counterForNoneCloseBombs = 0;
+            }
         }
     } else {
         data.bombNextTime = state.gameTime + data.bombThrowInterval;
