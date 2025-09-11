@@ -1,5 +1,4 @@
 Tasks:
-- shop item probability based on far in the past an item appeared last time
 - waller enemy
     - unreachable wall closed up
         - possible, but hard to prevent?

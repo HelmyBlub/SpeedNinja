@@ -14,6 +14,7 @@ const imageZig = @import("image.zig");
 const mapTileZig = @import("mapTile.zig");
 const equipmentZig = @import("equipment.zig");
 const statsZig = @import("stats.zig");
+const verifyMapZig = @import("verifyMap.zig");
 
 pub const GamePhase = enum {
     combat,
@@ -52,6 +53,7 @@ pub const GameState = struct {
     statistics: statsZig.Statistics,
     suddenDeath: u32 = 0,
     gameOver: bool = false,
+    verifyMapReachable: bool = false,
 };
 
 pub const Player = struct {
@@ -235,6 +237,7 @@ fn mainLoop(state: *GameState) !void {
         try enemyZig.tickEnemies(passedTime, state);
         try bossZig.tickBosses(state, passedTime);
         tickMapObjects(state, passedTime);
+        if (state.verifyMapReachable) try verifyMapZig.checkAndModifyMapIfNotEverythingReachable(state);
         try paintVulkanZig.drawFrame(state);
         std.Thread.sleep(5_000_000);
         lastTime = currentTime;
