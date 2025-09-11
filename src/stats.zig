@@ -64,13 +64,16 @@ pub fn statsSaveOnRestart(state: *main.GameState) !void {
     if (state.level == 0) return;
     const levelDatas: []LevelStatistics = try getLevelDatas(state);
     var saveToFile = false;
+    const isNewBestTotalTime = checkIfIsNewBestTotalTime(levelDatas, state);
+
     for (levelDatas, 0..) |*levelData, index| {
-        if (state.level - 1 <= index) break;
+        const shopping: u8 = if (state.gamePhase == .shopping) 1 else 0;
+        if (state.level - 1 + shopping <= index) break;
         if (levelData.fastestTime == null or levelData.currentTime < levelData.fastestTime.?) {
             levelData.fastestTime = levelData.currentTime;
             saveToFile = true;
         }
-        if (levelData.fastestTotalTime == null or levelData.currentTotalTime < levelData.fastestTotalTime.?) {
+        if (isNewBestTotalTime) {
             levelData.fastestTotalTime = levelData.currentTotalTime;
             saveToFile = true;
         }
@@ -79,6 +82,41 @@ pub fn statsSaveOnRestart(state: *main.GameState) !void {
         try saveStatisticsDataToFile(state);
     }
     state.statistics.active = true;
+}
+
+fn checkIfIsNewBestTotalTime(levelDatas: []LevelStatistics, state: *main.GameState) bool {
+    var isNewBestTotal: bool = false;
+    if (state.gamePhase == .shopping) {
+        var hasReachedHigherLevelBefore = false;
+        if (levelDatas.len > state.level) {
+            const nextLevelData = levelDatas[state.level];
+            if (nextLevelData.fastestTotalTime != null) {
+                hasReachedHigherLevelBefore = true;
+            }
+        }
+        if (!hasReachedHigherLevelBefore) {
+            const levelData = levelDatas[state.level - 1];
+            if (levelData.fastestTotalTime == null or levelData.currentTotalTime < levelData.fastestTotalTime.?) {
+                isNewBestTotal = true;
+            }
+        }
+    } else {
+        var hasReachedHigherLevelBefore = false;
+        const currentLevelData = levelDatas[state.level - 1];
+        if (currentLevelData.fastestTotalTime != null) {
+            hasReachedHigherLevelBefore = true;
+        }
+        if (!hasReachedHigherLevelBefore) {
+            const highestDefeatedLevelData = levelDatas[state.level - 2];
+            if (highestDefeatedLevelData.fastestTotalTime == null or highestDefeatedLevelData.currentTotalTime < highestDefeatedLevelData.fastestTotalTime.?) {
+                isNewBestTotal = true;
+            }
+        }
+    }
+    if (isNewBestTotal) {
+        std.debug.print("new best score\n", .{});
+    }
+    return isNewBestTotal;
 }
 
 pub fn createStatistics(allocator: std.mem.Allocator) Statistics {
