@@ -54,11 +54,11 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
 
             var lastGamePosition: main.Position = gamePositionWithCameraOffset;
             var lastMoveDirection: usize = 0;
-            var moveDirection: usize = 0;
+            var moveDirection: u8 = 0;
             var totalStepCount: usize = 0;
             for (movePiece.steps, 0..) |moveStep, moveStepIndex| {
                 lastMoveDirection = moveDirection;
-                moveDirection = @mod(moveStep.direction + direction, 4);
+                moveDirection = @mod(moveStep.direction + @as(u8, @intCast(direction)), 4);
                 const moveX: f32 = if (moveDirection == 0) main.TILESIZE else if (moveDirection == 2) -main.TILESIZE else 0;
                 const moveY: f32 = if (moveDirection == 1) main.TILESIZE else if (moveDirection == 3) -main.TILESIZE else 0;
                 var stepCount: usize = 0;
@@ -216,7 +216,10 @@ fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataV
                     .{ .x = 0, .y = main.TILESIZE },
                     .{ .x = main.TILESIZE, .y = main.TILESIZE },
                 };
+                const oppositeMoveDirection = @mod(moveDirection + 2, 4);
+                const stepDirection = movePieceZig.getStepDirection(oppositeMoveDirection);
                 for (0..hammerPositionOffsets.len) |i| {
+                    if (hammerPositionOffsets[i].x == stepDirection.x * main.TILESIZE and hammerPositionOffsets[i].y == stepDirection.y * main.TILESIZE) continue;
                     const gamePosition: main.Position = .{
                         .x = gamePositionWithCameraOffset.x + state.camera.position.x + hammerPositionOffsets[i].x,
                         .y = gamePositionWithCameraOffset.y + state.camera.position.y + hammerPositionOffsets[i].y,

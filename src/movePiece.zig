@@ -370,8 +370,27 @@ fn stepAndCheckEnemyHitAndProjectileHitAndTiles(player: *main.Player, stepCount:
         }
         if (player.equipment.hasWeaponHammer and (currIndex == stepCount or tileType == .wall) and player.executeMovePiece.?.steps.len == 1) {
             const playerTilePosition = main.gamePositionToTilePosition(player.position);
-            const hitArea: main.TileRectangle = .{ .pos = .{ .x = playerTilePosition.x - 1, .y = playerTilePosition.y - 1 }, .height = 3, .width = 3 };
-            if (try checkEnemyHitOnMoveStepWithHitArea(player, direction, hitArea, state)) {
+            const hammerPositionOffsets = [_]main.TilePosition{
+                .{ .x = -1, .y = -1 },
+                .{ .x = 0, .y = -1 },
+                .{ .x = 1, .y = -1 },
+                .{ .x = -1, .y = 0 },
+                .{ .x = 1, .y = 0 },
+                .{ .x = -1, .y = 1 },
+                .{ .x = 0, .y = 1 },
+                .{ .x = 1, .y = 1 },
+            };
+            var hitSomethingWithHammer = false;
+            const tileStepDirection = getStepDirectionTile(direction);
+            for (0..hammerPositionOffsets.len) |i| {
+                const offset = hammerPositionOffsets[i];
+                if (offset.x == -tileStepDirection.x and offset.y == -tileStepDirection.y) continue;
+                const hitArea: main.TileRectangle = .{ .pos = .{ .x = playerTilePosition.x + offset.x, .y = playerTilePosition.y - offset.y }, .height = 1, .width = 1 };
+                if (try checkEnemyHitOnMoveStepWithHitArea(player, direction, hitArea, state)) {
+                    hitSomethingWithHammer = true;
+                }
+            }
+            if (hitSomethingWithHammer) {
                 try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_HAMMER_INDICIES[0..], currIndex * 25, 1);
                 try resetPieces(player);
             }
