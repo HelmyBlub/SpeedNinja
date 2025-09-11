@@ -1,5 +1,7 @@
 Tasks:
-- think: change random position to single function instead of duplicate with small differenes?
+- snake check, was not short when killed
+- hammer should not have double damage hits
+- time measure total just need to be best time from furthest
 - boss: waller
     - a bomb has to be thrown close at least each x throws
 - shop item probability based on far in the past an item appeared last time
@@ -11,6 +13,7 @@ Tasks:
     - idea: onTileChange (limit by only once per x seconds)
         - pathfind from player to all enemies
         - if one is not reachable?
+- think: change random position to single function instead of duplicate with small differenes?
 
 Next ideas:
 - continues

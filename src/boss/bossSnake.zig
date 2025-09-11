@@ -24,6 +24,7 @@ const BodyPart = struct {
 };
 
 const BOSS_NAME = "Snake";
+const SNAKE_MAX_PARTS = 10;
 
 pub fn createBoss() bossZig.LevelBossData {
     return bossZig.LevelBossData{
@@ -56,7 +57,7 @@ fn startBoss(state: *main.GameState) !void {
             .snakeBodyParts = std.ArrayList(BodyPart).init(state.allocator),
         } },
     };
-    for (0..9) |_| {
+    for (0..SNAKE_MAX_PARTS - 1) |_| {
         try snakeBoss.typeData.snake.snakeBodyParts.append(.{ .pos = .{ .x = 0, .y = 0 }, .rotation = 0 });
     }
     try enemyObjectFireZig.spawnFire(snakeBoss.position, snakeBoss.typeData.snake.fireDuration, state);
@@ -131,13 +132,19 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
 
 fn checkLooseBodyPart(boss: *bossZig.Boss, hitPosition: main.Position, cutRotation: f32, state: *main.GameState) !void {
     const snakeData = &boss.typeData.snake;
-    const loosePartOnHp: usize = snakeData.snakeBodyParts.items.len * 2;
-    if (boss.hp <= loosePartOnHp and snakeData.snakeBodyParts.items.len > 1) {
-        _ = snakeData.snakeBodyParts.orderedRemove(0);
-        if (boss.hp > 0) {
-            try state.spriteCutAnimations.append(
-                .{ .deathTime = state.gameTime, .position = hitPosition, .cutAngle = cutRotation, .force = 1.2, .colorOrImageIndex = .{ .imageIndex = imageZig.IMAGE_BOSS_SNAKE_BODY } },
-            );
+    const loosePartPerHpAmount: f32 = @as(f32, @floatFromInt(boss.maxHp)) / @as(f32, @floatFromInt(SNAKE_MAX_PARTS));
+    var lostAPart = true;
+    while (lostAPart) {
+        lostAPart = false;
+        const loosePartOnHp: usize = @intFromFloat(@as(f32, @floatFromInt(snakeData.snakeBodyParts.items.len)) * loosePartPerHpAmount);
+        if (boss.hp <= loosePartOnHp and snakeData.snakeBodyParts.items.len > 1) {
+            _ = snakeData.snakeBodyParts.orderedRemove(0);
+            lostAPart = true;
+            if (boss.hp > 0) {
+                try state.spriteCutAnimations.append(
+                    .{ .deathTime = state.gameTime, .position = hitPosition, .cutAngle = cutRotation, .force = 1.2, .colorOrImageIndex = .{ .imageIndex = imageZig.IMAGE_BOSS_SNAKE_BODY } },
+                );
+            }
         }
     }
 }
