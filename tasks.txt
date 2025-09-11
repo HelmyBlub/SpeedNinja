@@ -2,6 +2,7 @@ Tasks:
 - hammer should not have double damage hits
 - time measure total just need to be best time from furthest
 - change block enemy to block hammer based on center tile
+- tripple boss fire fall down delay
 - boss: waller
     - a bomb has to be thrown close at least each x throws
 - shop item probability based on far in the past an item appeared last time

@@ -385,8 +385,26 @@ fn stepAndCheckEnemyHitAndProjectileHitAndTiles(player: *main.Player, stepCount:
             for (0..hammerPositionOffsets.len) |i| {
                 const offset = hammerPositionOffsets[i];
                 if (offset.x == -tileStepDirection.x and offset.y == -tileStepDirection.y) continue;
-                const hitArea: main.TileRectangle = .{ .pos = .{ .x = playerTilePosition.x + offset.x, .y = playerTilePosition.y - offset.y }, .height = 1, .width = 1 };
-                if (try checkEnemyHitOnMoveStepWithHitArea(player, direction, hitArea, state)) {
+                const hitArea: main.TileRectangle = .{ .pos = .{ .x = playerTilePosition.x + offset.x, .y = playerTilePosition.y + offset.y }, .height = 1, .width = 1 };
+                var hammerHitDirection = direction;
+                if (tileStepDirection.x != 0) {
+                    if (tileStepDirection.x != offset.x) {
+                        if (offset.y > 0) {
+                            hammerHitDirection = DIRECTION_DOWN;
+                        } else {
+                            hammerHitDirection = DIRECTION_UP;
+                        }
+                    }
+                } else {
+                    if (tileStepDirection.y != offset.y) {
+                        if (offset.x > 0) {
+                            hammerHitDirection = DIRECTION_RIGHT;
+                        } else {
+                            hammerHitDirection = DIRECTION_LEFT;
+                        }
+                    }
+                }
+                if (try checkEnemyHitOnMoveStepWithHitArea(player, hammerHitDirection, hitArea, state)) {
                     hitSomethingWithHammer = true;
                 }
             }
