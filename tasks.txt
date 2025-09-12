@@ -1,13 +1,8 @@
 Tasks:
-- waller enemy
-    - continue: 
-        - check debug output for more cases
-        - modify map to make it reachable
-    - unreachable wall closed up
-        - possible, but hard to prevent?
-    - unreachable with ice
-        - possible, but hard to prevent
-- think: change random position to single function instead of duplicate with small differenes?
+- display timer in shop for current level
+- dragon boss
+    - player start position not in air
+    - player fall down shoud not end up in air where player can not see
 
 Next ideas:
 - continues
@@ -23,3 +18,10 @@ Next ideas:
 - multiplayer
 - no vulkan support alternative
     - validation layer case
+- shop move piece 
+    - pricing change
+    - visualize shop correctly
+- vulkan changes
+    - fallback visulize when not supported
+    - console log when having validation layers on
+

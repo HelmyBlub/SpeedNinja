@@ -45,11 +45,8 @@ pub fn checkAndModifyMapIfNotEverythingReachable(state: *main.GameState) !void {
     }
 
     try handleOpenNodes(mapData, &openNodes, mapSize, state);
-    std.debug.print("analyzed map\n", .{});
-    printMapData(mapData, mapSize);
     for (mapData, 0..) |data, index| {
         if (data == .notVisited or data == .notVisitedIce) {
-            std.debug.print("notReachableIndex: {}\n", .{index});
             try fixUnreachableIndex(mapData, index, mapSize, &openNodes, state);
         }
     }
@@ -73,7 +70,6 @@ fn fixUnreachableIndex(mapData: []SearchDataTypes, index: usize, mapSize: u32, o
                 mapData[movedIndex] = .visited;
                 try openNodes.append(movedIndex);
                 state.mapData.tiles[movedIndex] = .normal;
-                std.debug.print("removed ice to make reachable\n", .{});
                 break;
             },
             .blocking => {
@@ -87,14 +83,12 @@ fn fixUnreachableIndex(mapData: []SearchDataTypes, index: usize, mapSize: u32, o
                     if (neighborOffset2.y > 0 and movedIndex >= mapData.len - mapSize) continue;
                     const movedIndex2 = @as(u32, @intCast(@as(i32, @intCast(movedIndex)) + neighborOffset2.x + neighborOffset2.y * @as(i32, @intCast(mapSize))));
                     if (mapData[movedIndex2] == .visited or mapData[movedIndex2] == .visitedIceStationary) {
-                        std.debug.print("removed wall to make reachable\n", .{});
                         wallRemovalMadeIndexAccessible = true;
                         try openNodes.append(movedIndex2);
                         break;
                     }
                 }
                 if (!wallRemovalMadeIndexAccessible) {
-                    std.debug.print("removed wall recursion\n", .{});
                     try fixUnreachableIndex(mapData, movedIndex, mapSize, openNodes, state);
                 }
                 break;
@@ -159,23 +153,5 @@ fn appendNodeIndex(mapData: []SearchDataTypes, index: usize, stepDirection: main
             }
         },
         else => {},
-    }
-}
-
-fn printMapData(mapData: []SearchDataTypes, mapSize: u32) void {
-    for (0..mapSize) |y| {
-        for (0..mapSize) |x| {
-            var value: u8 = 0;
-            switch (mapData[x + y * mapSize]) {
-                .blocking => value = 0,
-                .visited => value = 1,
-                .visitedIceSliding => value = 2,
-                .visitedIceStationary => value = 3,
-                .notVisited => value = 9,
-                .notVisitedIce => value = 8,
-            }
-            std.debug.print("{} ", .{value});
-        }
-        std.debug.print("\n", .{});
     }
 }

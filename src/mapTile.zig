@@ -76,7 +76,6 @@ pub fn setMapTilePositionType(tile: main.TilePosition, tileType: MapTileType, ma
     if (index == null or index.? >= mapData.tiles.len) return;
     mapData.tiles[index.?] = tileType;
     if (checkReachable and !state.verifyMapData.checkReachable) {
-        std.debug.print("check reachable\n", .{});
         state.verifyMapData.checkReachable = true;
     }
 }
