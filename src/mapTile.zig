@@ -71,10 +71,14 @@ pub fn getMapTilePositionType(tile: main.TilePosition, mapData: *MapData) MapTil
     return mapData.tiles[index.?];
 }
 
-pub fn setMapTilePositionType(tile: main.TilePosition, tileType: MapTileType, mapData: *MapData) void {
+pub fn setMapTilePositionType(tile: main.TilePosition, tileType: MapTileType, mapData: *MapData, checkReachable: bool, state: *main.GameState) void {
     const index = tilePositionToTileIndex(tile, mapData.tileRadius);
     if (index == null or index.? >= mapData.tiles.len) return;
     mapData.tiles[index.?] = tileType;
+    if (checkReachable and !state.verifyMapData.checkReachable) {
+        std.debug.print("check reachable\n", .{});
+        state.verifyMapData.checkReachable = true;
+    }
 }
 
 fn tilePositionToTileIndex(tilePosition: main.TilePosition, tileRadius: u32) ?usize {

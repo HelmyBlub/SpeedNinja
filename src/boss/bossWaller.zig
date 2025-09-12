@@ -96,7 +96,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                 }
             }
             if (main.isTileEmpty(attackTile.pos, state)) {
-                mapTileZig.setMapTilePositionType(attackTile.pos, .wall, &state.mapData);
+                mapTileZig.setMapTilePositionType(attackTile.pos, .wall, &state.mapData, false, state);
             }
             _ = data.wallAttackTiles.swapRemove(currentWallAttackIndex);
         } else {
@@ -167,7 +167,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             }
             for (0..@intCast(damageTileRectangle.width)) |x| {
                 for (0..@intCast(damageTileRectangle.height)) |y| {
-                    mapTileZig.setMapTilePositionType(.{ .x = damageTileRectangle.pos.x + @as(i32, @intCast(x)), .y = damageTileRectangle.pos.y + @as(i32, @intCast(y)) }, .normal, &state.mapData);
+                    mapTileZig.setMapTilePositionType(.{ .x = damageTileRectangle.pos.x + @as(i32, @intCast(x)), .y = damageTileRectangle.pos.y + @as(i32, @intCast(y)) }, .normal, &state.mapData, false, state);
                 }
             }
             _ = data.bombs.swapRemove(currentBombIndex);

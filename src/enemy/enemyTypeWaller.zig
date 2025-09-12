@@ -45,7 +45,7 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
             if (!data.placedWall) {
                 const tilePosition = main.gamePositionToTilePosition(hitPosition);
                 if (main.isTileEmpty(tilePosition, state)) {
-                    mapTileZig.setMapTilePositionType(tilePosition, .wall, &state.mapData);
+                    mapTileZig.setMapTilePositionType(tilePosition, .wall, &state.mapData, true, state);
                 }
                 data.placedWall = true;
             }
@@ -109,7 +109,7 @@ fn removeOneRandomAdjacentWall(tilePosition: main.TilePosition, state: *main.Gam
         .x = tilePosition.x + stepDirection.x,
         .y = tilePosition.y + stepDirection.y,
     };
-    mapTileZig.setMapTilePositionType(hitTilePosition, .normal, &state.mapData);
+    mapTileZig.setMapTilePositionType(hitTilePosition, .normal, &state.mapData, false, state);
 }
 
 fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) !void {

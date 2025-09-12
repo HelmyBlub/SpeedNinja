@@ -1,12 +1,12 @@
 Tasks:
 - waller enemy
+    - continue: 
+        - check debug output for more cases
+        - modify map to make it reachable
     - unreachable wall closed up
         - possible, but hard to prevent?
     - unreachable with ice
         - possible, but hard to prevent
-    - idea: onTileChange (limit by only once per x seconds)
-        - pathfind from player to all enemies
-        - if one is not reachable?
 - think: change random position to single function instead of duplicate with small differenes?
 
 Next ideas:

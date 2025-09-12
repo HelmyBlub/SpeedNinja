@@ -27,7 +27,7 @@ pub fn createEnemyObjectFunctions() enemyObjectZig.EnemyObjectFunctions {
 }
 
 pub fn spawnProjectile(position: main.Position, direction: u8, imageIndex: u8, moveInterval: i32, ice: bool, state: *main.GameState) !void {
-    if (ice) mapTileZig.setMapTilePositionType(main.gamePositionToTilePosition(position), .ice, &state.mapData);
+    if (ice) mapTileZig.setMapTilePositionType(main.gamePositionToTilePosition(position), .ice, &state.mapData, true, state);
     try state.enemyData.enemyObjects.append(.{
         .position = position,
         .typeData = .{ .projectile = .{
@@ -68,7 +68,7 @@ fn tick(object: *enemyObjectZig.EnemyObject, passedTime: i64, state: *main.GameS
             .x = object.position.x + stepDirection.x * main.TILESIZE,
             .y = object.position.y + stepDirection.y * main.TILESIZE,
         };
-        if (projectileData.ice) mapTileZig.setMapTilePositionType(main.gamePositionToTilePosition(object.position), .ice, &state.mapData);
+        if (projectileData.ice) mapTileZig.setMapTilePositionType(main.gamePositionToTilePosition(object.position), .ice, &state.mapData, true, state);
     }
     try enemyZig.checkPlayerHit(object.position, state);
 }

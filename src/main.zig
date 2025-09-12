@@ -53,7 +53,7 @@ pub const GameState = struct {
     statistics: statsZig.Statistics,
     suddenDeath: u32 = 0,
     gameOver: bool = false,
-    verifyMapReachable: bool = false,
+    verifyMapData: verifyMapZig.VerifyMapData = .{},
 };
 
 pub const Player = struct {
@@ -237,7 +237,7 @@ fn mainLoop(state: *GameState) !void {
         try enemyZig.tickEnemies(passedTime, state);
         try bossZig.tickBosses(state, passedTime);
         tickMapObjects(state, passedTime);
-        if (state.verifyMapReachable) try verifyMapZig.checkAndModifyMapIfNotEverythingReachable(state);
+        if (state.verifyMapData.checkReachable) try verifyMapZig.checkAndModifyMapIfNotEverythingReachable(state);
         try paintVulkanZig.drawFrame(state);
         std.Thread.sleep(5_000_000);
         lastTime = currentTime;
@@ -484,6 +484,8 @@ pub fn restart(state: *GameState) !void {
     bossZig.clearBosses(state);
     state.spriteCutAnimations.clearRetainingCapacity();
     state.mapObjects.clearAndFree();
+    state.verifyMapData.lastCheckTime = 0;
+    state.verifyMapData.checkReachable = false;
     try startNextLevel(state);
 }
 

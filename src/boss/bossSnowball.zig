@@ -68,9 +68,9 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             const tilePos = main.gamePositionToTilePosition(boss.position);
             const tileType = mapTileZig.getMapTilePositionType(tilePos, &state.mapData);
             if (tileType == .ice) {
-                mapTileZig.setMapTilePositionType(tilePos, .normal, &state.mapData);
+                mapTileZig.setMapTilePositionType(tilePos, .normal, &state.mapData, false, state);
             } else if (tileType == .normal) {
-                mapTileZig.setMapTilePositionType(tilePos, .ice, &state.mapData);
+                mapTileZig.setMapTilePositionType(tilePos, .ice, &state.mapData, false, state);
             }
             if (!canRollInDirection(boss, data.rollDirection, state)) {
                 data.state = .stationary;

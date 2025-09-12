@@ -131,7 +131,7 @@ fn verticesForEarlyShopTrigger(state: *main.GameState) void {
     const left = vulkan.x - halveVulkanTileSizeX;
     const top = vulkan.y - halveVulkanTileSizeY;
     const fontSize = 26;
-    _ = fontVulkanZig.paintText("early", .{ .x = left, .y = top }, fontSize, textColor, &verticeData.font);
+    _ = fontVulkanZig.paintText("continue", .{ .x = left, .y = top }, fontSize, textColor, &verticeData.font);
     _ = fontVulkanZig.paintText("shop", .{ .x = left, .y = top + fontSize * onePixelYInVulkan }, fontSize, textColor, &verticeData.font);
     paintVulkanZig.verticesForRectangle(left, top, width, height, .{ 1, 1, 1 }, &verticeData.lines, &verticeData.triangles);
 }
