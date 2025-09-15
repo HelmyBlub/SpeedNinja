@@ -507,6 +507,9 @@ fn tickTransitionFlyingPhase(flyingData: *TransitionFlyingData, boss: *bossZig.B
                 }
                 for (state.players.items) |*player| {
                     player.inAirHeight -= FLYING_TRANSITION_CAMERA_OFFSET_Y;
+                    if (player.startedFallingState != null) {
+                        player.startedFallingState = state.gameTime + 3000;
+                    }
                 }
                 state.mapData.paintData.frontCloud.position.y += FLYING_TRANSITION_CAMERA_OFFSET_Y;
             } else if (flyingData.keepCameraUntilTime.? <= state.gameTime) {

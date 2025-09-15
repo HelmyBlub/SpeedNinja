@@ -1,6 +1,5 @@
 Tasks:
 - dragon boss
-    - player start position not in air
     - player fall down shoud not end up in air where player can not see
 
 Next ideas:
