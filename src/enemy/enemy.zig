@@ -271,11 +271,17 @@ pub fn setupEnemies(state: *main.GameState) !void {
         };
         if (main.isPositionEmpty(randomPos, state)) {
             const randomFloat = std.crypto.random.float(f32);
-            for (state.enemyData.enemySpawnData.enemyEntries.items) |entry| {
-                if (randomFloat >= entry.calcedProbabilityStart and randomFloat < entry.calcedProbabilityEnd) {
-                    var enemy = entry.enemy;
-                    enemy.position = randomPos;
-                    try enemies.append(enemy);
+            if (enemies.items.len < state.enemyData.enemySpawnData.enemyEntries.items.len) {
+                var enemy = state.enemyData.enemySpawnData.enemyEntries.items[enemies.items.len].enemy;
+                enemy.position = randomPos;
+                try enemies.append(enemy);
+            } else {
+                for (state.enemyData.enemySpawnData.enemyEntries.items) |entry| {
+                    if (randomFloat >= entry.calcedProbabilityStart and randomFloat < entry.calcedProbabilityEnd) {
+                        var enemy = entry.enemy;
+                        enemy.position = randomPos;
+                        try enemies.append(enemy);
+                    }
                 }
             }
         }
