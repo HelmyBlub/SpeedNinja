@@ -400,6 +400,25 @@ pub fn startNextLevel(state: *GameState) !void {
     } else {
         try startNextRound(state);
     }
+    movePlayerToLevelSpawnPosition(state);
+}
+
+pub fn movePlayerToLevelSpawnPosition(state: *GameState) void {
+    const playerSpawnOffsets = [_]Position{
+        .{ .x = -1, .y = -1 },
+        .{ .x = 1, .y = 1 },
+        .{ .x = 1, .y = -1 },
+        .{ .x = -1, .y = 1 },
+        .{ .x = 0, .y = -1 },
+        .{ .x = 0, .y = 1 },
+        .{ .x = 1, .y = 0 },
+        .{ .x = 0, .y = 1 },
+    };
+    const mapRadius: f32 = @as(f32, @floatFromInt(state.mapData.tileRadius)) * TILESIZE;
+    for (state.players.items, 0..) |*player, index| {
+        player.position.x = playerSpawnOffsets[@mod(index, playerSpawnOffsets.len)].x * mapRadius;
+        player.position.y = playerSpawnOffsets[@mod(index, playerSpawnOffsets.len)].y * mapRadius;
+    }
 }
 
 pub fn findClosestPlayer(position: Position, state: *GameState) *Player {
