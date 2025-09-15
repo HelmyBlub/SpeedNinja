@@ -49,7 +49,7 @@ fn deinit(boss: *bossZig.Boss, allocator: std.mem.Allocator) void {
 
 fn startBoss(state: *main.GameState) !void {
     const scaledHp = bossZig.getHpScalingForLevel(10, state.level);
-    try state.bosses.append(.{
+    var boss: bossZig.Boss = .{
         .hp = scaledHp,
         .maxHp = scaledHp,
         .imageIndex = imageZig.IMAGE_BOSS_ROTATE,
@@ -58,7 +58,13 @@ fn startBoss(state: *main.GameState) !void {
         .typeData = .{ .rotate = .{
             .attackTiles = std.ArrayList(main.TilePosition).init(state.allocator),
         } },
-    });
+    };
+    const newGamePlus = main.getNewGamePlus(state.level);
+    if (newGamePlus > 0) {
+        boss.typeData.rotate.rebuildTime = @divFloor(boss.typeData.rotate.rebuildTime, @as(i32, @intCast(newGamePlus + 1)));
+        boss.typeData.rotate.attackInterval = @divFloor(boss.typeData.rotate.attackInterval, @as(i32, @intCast(newGamePlus + 1)));
+    }
+    try state.bosses.append(boss);
     try mapTileZig.setMapRadius(6, state);
     main.adjustZoom(state);
 }

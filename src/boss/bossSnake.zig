@@ -61,6 +61,10 @@ fn startBoss(state: *main.GameState) !void {
         try snakeBoss.typeData.snake.snakeBodyParts.append(.{ .pos = .{ .x = 0, .y = 0 }, .rotation = 0 });
     }
     try enemyObjectFireZig.spawnFire(snakeBoss.position, snakeBoss.typeData.snake.fireDuration, false, state);
+    const newGamePlus = main.getNewGamePlus(state.level);
+    if (newGamePlus > 0) {
+        snakeBoss.typeData.snake.moveInterval = @divFloor(snakeBoss.typeData.snake.moveInterval, @as(i32, @intCast(newGamePlus + 1)));
+    }
     try state.bosses.append(snakeBoss);
     try mapTileZig.setMapRadius(6, state);
     main.adjustZoom(state);

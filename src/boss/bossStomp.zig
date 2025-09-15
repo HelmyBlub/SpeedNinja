@@ -40,14 +40,22 @@ pub fn createBoss() bossZig.LevelBossData {
 
 fn startBoss(state: *main.GameState) !void {
     const scaledHp = bossZig.getHpScalingForLevel(10, state.level);
-    try state.bosses.append(.{
+    var boss: bossZig.Boss = .{
         .hp = scaledHp,
         .maxHp = scaledHp,
         .imageIndex = imageZig.IMAGE_EVIL_TOWER,
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
         .typeData = .{ .stomp = .{} },
-    });
+    };
+    const newGamePlus = main.getNewGamePlus(state.level);
+    if (newGamePlus > 0) {
+        boss.typeData.stomp.attackChargeTime = @divFloor(boss.typeData.stomp.attackChargeTime, @as(i32, @intCast(newGamePlus + 1)));
+        boss.typeData.stomp.idleAfterAttackTime = @divFloor(boss.typeData.stomp.idleAfterAttackTime, @as(i32, @intCast(newGamePlus + 1)));
+        boss.typeData.stomp.speed += @floatFromInt(newGamePlus);
+        boss.typeData.stomp.attackTileRadius += @intCast(newGamePlus);
+    }
+    try state.bosses.append(boss);
     try mapTileZig.setMapRadius(6, state);
     main.adjustZoom(state);
 }

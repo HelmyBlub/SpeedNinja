@@ -67,7 +67,7 @@ fn onPlayerMoved(boss: *bossZig.Boss, player: *main.Player, state: *main.GameSta
 
 fn startBoss(state: *main.GameState) !void {
     const scaledHp = bossZig.getHpScalingForLevel(10, state.level);
-    try state.bosses.append(.{
+    var boss: bossZig.Boss = .{
         .hp = scaledHp,
         .maxHp = scaledHp,
         .imageIndex = imageZig.IMAGE_BOSS_ROLL,
@@ -81,7 +81,13 @@ fn startBoss(state: *main.GameState) !void {
             .moveAttackTiles = std.ArrayList(enemyZig.MoveAttackWarningTile).init(state.allocator),
             .attackTilePositions = std.ArrayList(AttackDelayed).init(state.allocator),
         } },
-    });
+    };
+    const newGamePlus = main.getNewGamePlus(state.level);
+    if (newGamePlus > 0) {
+        boss.typeData.roll.moveChargeTime = @divFloor(boss.typeData.roll.moveChargeTime, @as(i32, @intCast(newGamePlus + 1)));
+        boss.typeData.roll.attackDelay = @divFloor(boss.typeData.roll.attackDelay, @as(i32, @intCast(newGamePlus + 1)));
+    }
+    try state.bosses.append(boss);
     try mapTileZig.setMapRadius(6, state);
     main.adjustZoom(state);
 }

@@ -1,6 +1,6 @@
 Tasks:
+- bug: visualization missing boss rotate shield
 - after level 50 start new game+, repeat bosses but stuff gets harder, faster
-    - make enemies scale based on + amount
     - slightly changes bosses
     - on ++ (level 100+)
         - give bosses sudden death timer

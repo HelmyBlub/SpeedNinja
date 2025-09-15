@@ -18,16 +18,20 @@ const AttackDelayed = struct {
 pub const BossTrippleData = struct {
     direction: u8,
     lastTurnTime: i64 = 0,
+    attacksPerBeingHit: u32 = 1,
     minTurnInterval: i32 = 4000,
     enabledShuriken: bool = false,
+    shurikenRepeat: u32 = 0,
     shurikenDelay: i32 = 2000,
     shurikenMoveInterval: i32 = 1000,
     shurikenThrowTime: ?i64 = null,
     enabledFire: bool = false,
     fireDuration: i32 = 12000,
     enabledAirAttack: bool = false,
+    airAttackRepeat: u32 = 0,
     airAttackPosition: std.ArrayList(AttackDelayed),
     airAttackPlayerOnStationary: ?*main.Player = null,
+    airAttackRepeatNextTime: i64 = 0,
     airAttackDelay: i32 = 2000,
 };
 
@@ -52,7 +56,7 @@ fn deinit(boss: *bossZig.Boss, allocator: std.mem.Allocator) void {
 fn startBoss(state: *main.GameState) !void {
     const scaledHp = bossZig.getHpScalingForLevel(5, state.level);
     const bossHp = scaledHp;
-    try state.bosses.append(.{
+    var boss1: bossZig.Boss = .{
         .hp = bossHp,
         .maxHp = bossHp,
         .imageIndex = imageZig.IMAGE_BOSS_TRIPPLE,
@@ -63,8 +67,11 @@ fn startBoss(state: *main.GameState) !void {
             .airAttackPosition = std.ArrayList(AttackDelayed).init(state.allocator),
             .enabledAirAttack = true,
         } },
-    });
-    try state.bosses.append(.{
+    };
+    const newGamePlus = main.getNewGamePlus(state.level);
+    scaleBossToNewGamePlus(&boss1.typeData.tripple, newGamePlus);
+    try state.bosses.append(boss1);
+    var boss2: bossZig.Boss = .{
         .hp = bossHp,
         .maxHp = bossHp,
         .imageIndex = imageZig.IMAGE_BOSS_TRIPPLE,
@@ -75,8 +82,10 @@ fn startBoss(state: *main.GameState) !void {
             .airAttackPosition = std.ArrayList(AttackDelayed).init(state.allocator),
             .enabledFire = true,
         } },
-    });
-    try state.bosses.append(.{
+    };
+    scaleBossToNewGamePlus(&boss2.typeData.tripple, newGamePlus);
+    try state.bosses.append(boss2);
+    var boss3: bossZig.Boss = .{
         .hp = bossHp,
         .maxHp = bossHp,
         .imageIndex = imageZig.IMAGE_BOSS_TRIPPLE,
@@ -87,9 +96,21 @@ fn startBoss(state: *main.GameState) !void {
             .airAttackPosition = std.ArrayList(AttackDelayed).init(state.allocator),
             .enabledShuriken = true,
         } },
-    });
+    };
+    scaleBossToNewGamePlus(&boss3.typeData.tripple, newGamePlus);
+    try state.bosses.append(boss3);
     try mapTileZig.setMapRadius(6, state);
     main.adjustZoom(state);
+}
+
+fn scaleBossToNewGamePlus(tripple: *BossTrippleData, newGamePlus: u32) void {
+    if (newGamePlus == 0) return;
+    tripple.minTurnInterval = @divFloor(tripple.minTurnInterval, @as(i32, @intCast(newGamePlus + 1)));
+    tripple.shurikenDelay = @divFloor(tripple.shurikenDelay, @as(i32, @intCast(newGamePlus + 1)));
+    tripple.shurikenMoveInterval = @divFloor(tripple.shurikenMoveInterval, @as(i32, @intCast(newGamePlus + 1)));
+    tripple.airAttackDelay = @divFloor(tripple.airAttackDelay, @as(i32, @intCast(newGamePlus + 1)));
+    tripple.fireDuration += @intCast(newGamePlus * 6000);
+    tripple.attacksPerBeingHit += newGamePlus;
 }
 
 fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
@@ -122,15 +143,27 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                     state,
                 );
             }
-            trippleData.shurikenThrowTime = null;
+            trippleData.shurikenRepeat -|= 1;
+            if (trippleData.shurikenRepeat > 0) {
+                trippleData.shurikenThrowTime = state.gameTime + trippleData.shurikenDelay;
+            } else {
+                trippleData.shurikenThrowTime = null;
+            }
         }
     }
 
     if (trippleData.airAttackPlayerOnStationary) |player| {
         if (player.executeMovePiece == null) {
-            const targetTile = main.gamePositionToTilePosition(player.position);
-            try trippleData.airAttackPosition.append(.{ .hitTime = state.gameTime + trippleData.airAttackDelay, .targetPosition = targetTile });
-            trippleData.airAttackPlayerOnStationary = null;
+            if (trippleData.airAttackRepeatNextTime < state.gameTime) {
+                const targetTile = main.gamePositionToTilePosition(player.position);
+                try trippleData.airAttackPosition.append(.{ .hitTime = state.gameTime + trippleData.airAttackDelay, .targetPosition = targetTile });
+                trippleData.airAttackRepeat -|= 1;
+                if (trippleData.airAttackRepeat == 0) {
+                    trippleData.airAttackPlayerOnStationary = null;
+                } else {
+                    trippleData.airAttackRepeatNextTime = state.gameTime + trippleData.airAttackDelay;
+                }
+            }
         }
     }
     var airAttackIndex: usize = 0;
@@ -188,6 +221,7 @@ fn executeAttack(boss: *bossZig.Boss, player: *main.Player, hitDirection: u8, st
     const trippleData = &boss.typeData.tripple;
     if (trippleData.enabledAirAttack and trippleData.airAttackPlayerOnStationary == null) {
         trippleData.airAttackPlayerOnStationary = player;
+        trippleData.airAttackRepeat += trippleData.attacksPerBeingHit;
     }
     if (trippleData.enabledFire) {
         const hitDirectionTurned = @mod(hitDirection + 2, 4);
@@ -198,7 +232,10 @@ fn executeAttack(boss: *bossZig.Boss, player: *main.Player, hitDirection: u8, st
         }, trippleData.fireDuration, true, state);
     }
     if (trippleData.enabledShuriken) {
-        trippleData.shurikenThrowTime = state.gameTime + trippleData.shurikenDelay;
+        trippleData.shurikenRepeat += trippleData.attacksPerBeingHit;
+        if (trippleData.shurikenThrowTime == null) {
+            trippleData.shurikenThrowTime = state.gameTime + trippleData.shurikenDelay;
+        }
     }
 }
 

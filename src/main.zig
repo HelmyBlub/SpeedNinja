@@ -24,6 +24,7 @@ pub const GamePhase = enum {
 pub const COLOR_TILE_GREEN: [3]f32 = colorConv(0.533, 0.80, 0.231);
 pub const COLOR_SKY_BLUE: [3]f32 = colorConv(0.529, 0.808, 0.922);
 pub const COLOR_STONE_WALL: [3]f32 = colorConv(0.573, 0.522, 0.451);
+pub const LEVEL_COUNT = 50;
 
 pub const TILESIZE = 20;
 pub const GameState = struct {
@@ -399,6 +400,10 @@ pub fn endShoppingPhase(state: *GameState) !void {
     try startNextLevel(state);
 }
 
+pub fn getNewGamePlus(level: u32) u32 {
+    return @as(u32, @intCast(@max(0, @divFloor(@as(i32, @intCast(level)) - 1, LEVEL_COUNT))));
+}
+
 pub fn startNextLevel(state: *GameState) !void {
     mapTileZig.setMapType(.default, state);
     state.playerTookDamageOnLevel = false;
@@ -408,8 +413,7 @@ pub fn startNextLevel(state: *GameState) !void {
     state.enemyData.enemyObjects.clearRetainingCapacity();
     mapTileZig.resetMapTiles(state.mapData.tiles);
     state.gamePhase = .combat;
-    if (@mod(state.level, 50) == 0 and state.enemyData.movePieceEnemyMovePiece != null) {
-        std.debug.print("reset enemy moev piece\n", .{});
+    if (@mod(state.level, LEVEL_COUNT) == 0 and state.enemyData.movePieceEnemyMovePiece != null) {
         state.allocator.free(state.enemyData.movePieceEnemyMovePiece.?.steps);
         state.enemyData.movePieceEnemyMovePiece = null;
     }

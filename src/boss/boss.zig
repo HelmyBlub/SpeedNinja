@@ -97,15 +97,17 @@ pub fn clearBosses(state: *main.GameState) void {
 }
 
 pub fn isBossLevel(level: u32) bool {
+    const levelMod = @mod(@as(i32, @intCast(level - 1)), main.LEVEL_COUNT) + 1;
     for (LEVEL_BOSS_DATA.values) |bossData| {
-        if (bossData.appearsOnLevel == level) return true;
+        if (bossData.appearsOnLevel == levelMod) return true;
     }
     return false;
 }
 
 pub fn startBossLevel(state: *main.GameState) !void {
+    const levelMod = @mod(@as(i32, @intCast(state.level - 1)), main.LEVEL_COUNT) + 1;
     for (LEVEL_BOSS_DATA.values) |bossData| {
-        if (bossData.appearsOnLevel == state.level) {
+        if (bossData.appearsOnLevel == levelMod) {
             try bossData.startLevel(state);
             state.gamePhase = .boss;
         }
@@ -113,7 +115,8 @@ pub fn startBossLevel(state: *main.GameState) !void {
 }
 
 pub fn getHpScalingForLevel(hp: u32, level: u32) u32 {
-    return hp * (1 + @divFloor(level, 5));
+    const newGamePlusFactor: u32 = main.getNewGamePlus(level) + 1;
+    return hp * (1 + @divFloor(level, 5)) * newGamePlusFactor;
 }
 
 pub fn isBossHit(hitArea: main.TileRectangle, player: *main.Player, hitDirection: u8, state: *main.GameState) !bool {

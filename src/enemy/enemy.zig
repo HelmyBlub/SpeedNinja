@@ -188,7 +188,7 @@ pub fn initEnemy(state: *main.GameState) !void {
 
 pub fn setupSpawnEnemiesOnLevelChange(state: *main.GameState) !void {
     const enemySpawnData = &state.enemyData.enemySpawnData;
-    const level = @mod(state.level, 50);
+    const level = @mod(state.level, main.LEVEL_COUNT);
     if (level == 0 or level == 1) {
         enemySpawnData.enemyEntries.clearRetainingCapacity();
     }
@@ -209,7 +209,7 @@ pub fn setupSpawnEnemiesOnLevelChange(state: *main.GameState) !void {
 }
 
 fn scaleEnemiesProbabilityToLevel(state: *main.GameState) void {
-    const level = @mod(state.level, 50);
+    const level = @mod(state.level, main.LEVEL_COUNT);
     for (state.enemyData.enemySpawnData.enemyEntries.items) |*entry| {
         for (ENEMY_TYPE_SPAWN_LEVEL_DATA) |data| {
             if (entry.enemy.enemyTypeData == data.enemyType) {
@@ -277,8 +277,8 @@ pub fn setupEnemies(state: *main.GameState) !void {
             if (enemies.items.len < state.enemyData.enemySpawnData.enemyEntries.items.len) {
                 var enemy = state.enemyData.enemySpawnData.enemyEntries.items[enemies.items.len].enemy;
                 enemy.position = randomPos;
-                if (state.level > 50) {
-                    if (ENEMY_FUNCTIONS.get(enemy.enemyTypeData).scaleEnemyForNewGamePlus) |scale| scale(&enemy, @divFloor(state.level, 50));
+                if (state.level > main.LEVEL_COUNT) {
+                    if (ENEMY_FUNCTIONS.get(enemy.enemyTypeData).scaleEnemyForNewGamePlus) |scale| scale(&enemy, main.getNewGamePlus(state.level));
                 }
                 try enemies.append(enemy);
             } else {
@@ -286,8 +286,8 @@ pub fn setupEnemies(state: *main.GameState) !void {
                     if (randomFloat >= entry.calcedProbabilityStart and randomFloat < entry.calcedProbabilityEnd) {
                         var enemy = entry.enemy;
                         enemy.position = randomPos;
-                        if (state.level > 50) {
-                            if (ENEMY_FUNCTIONS.get(enemy.enemyTypeData).scaleEnemyForNewGamePlus) |scale| scale(&enemy, @divFloor(state.level, 50));
+                        if (state.level > main.LEVEL_COUNT) {
+                            if (ENEMY_FUNCTIONS.get(enemy.enemyTypeData).scaleEnemyForNewGamePlus) |scale| scale(&enemy, main.getNewGamePlus(state.level));
                         }
                         try enemies.append(enemy);
                     }
