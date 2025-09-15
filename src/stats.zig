@@ -153,13 +153,27 @@ pub fn setupVertices(state: *main.GameState) !void {
     _ = fontVulkanZig.paintText("DiffLevel", .{ .x = offsetX3, .y = topLeft.y }, fontSize, textColor, &state.vkState.verticeData.font);
     const red: [3]f32 = .{ 0.7, 0, 0 };
     const green: [3]f32 = .{ 0.1, 1, 0.1 };
-    for (firstDisplayLevel..state.level) |level| {
+    const currentTime = std.time.milliTimestamp();
+    for (firstDisplayLevel..state.level + 1) |level| {
         const levelData = levelDatas[level - 1];
         const offsetY = onePixelYInVulkan * @as(f32, @floatFromInt(fontSize * (level - firstDisplayLevel + 1)));
         _ = try fontVulkanZig.paintNumber(level, .{ .x = topLeft.x, .y = topLeft.y + offsetY }, fontSize, textColor, &state.vkState.verticeData.font);
-        _ = try fontVulkanZig.paintTime(levelData.currentTotalTime, .{ .x = offsetX1, .y = topLeft.y + offsetY }, fontSize, true, textColor, &state.vkState.verticeData.font);
+        var currentTotalTime = levelData.currentTotalTime;
+        if (currentTotalTime == 0) {
+            currentTotalTime = state.gameTime;
+        }
+        _ = try fontVulkanZig.paintTime(currentTotalTime, .{ .x = offsetX1, .y = topLeft.y + offsetY }, fontSize, true, textColor, &state.vkState.verticeData.font);
         if (levelData.fastestTotalTime != null and levelData.fastestTime != null) {
-            const diffTotal = levelData.currentTotalTime - levelData.fastestTotalTime.?;
+            var levelCurrentTime = levelData.currentTime;
+            if (levelCurrentTime == 0) {
+                if (level > 1) {
+                    const lastLevelData = &levelDatas[level - 2];
+                    levelCurrentTime = currentTime - lastLevelData.currentTotalTime - lastLevelData.currentShoppingTime;
+                } else {
+                    levelCurrentTime = currentTime;
+                }
+            }
+            const diffTotal = currentTotalTime - levelData.fastestTotalTime.?;
             var color: [3]f32 = if (diffTotal > 0) red else green;
             if (diffTotal > 0) {
                 const plusWidth = fontVulkanZig.paintText("+", .{ .x = offsetX2, .y = topLeft.y + offsetY }, fontSize, color, &state.vkState.verticeData.font);
@@ -167,7 +181,7 @@ pub fn setupVertices(state: *main.GameState) !void {
             } else {
                 _ = try fontVulkanZig.paintTime(diffTotal, .{ .x = offsetX2, .y = topLeft.y + offsetY }, fontSize, true, color, &state.vkState.verticeData.font);
             }
-            const diff = levelData.currentTime - levelData.fastestTime.?;
+            const diff = levelCurrentTime - levelData.fastestTime.?;
             color = if (diff > 0) red else green;
             if (diff > 0) {
                 const plusWidth = fontVulkanZig.paintText("+", .{ .x = offsetX3, .y = topLeft.y + offsetY }, fontSize, color, &state.vkState.verticeData.font);

@@ -1,5 +1,6 @@
 Tasks:
 - display timer in shop for current level
+- one enemy of each type spawned
 - dragon boss
     - player start position not in air
     - player fall down shoud not end up in air where player can not see
