@@ -45,6 +45,7 @@ pub const GameState = struct {
     spriteCutAnimations: std.ArrayList(CutSpriteAnimation) = undefined,
     mapObjects: std.ArrayList(MapObject) = undefined,
     players: std.ArrayList(Player),
+    playerTookDamageOnLevel: bool = false,
     soundMixer: ?soundMixerZig.SoundMixer = null,
     gameEnded: bool = false,
     gamePhase: GamePhase = .combat,
@@ -54,6 +55,7 @@ pub const GameState = struct {
     suddenDeath: u32 = 0,
     gameOver: bool = false,
     verifyMapData: verifyMapZig.VerifyMapData = .{},
+    continueData: ContinueData = .{},
 };
 
 pub const Player = struct {
@@ -82,6 +84,14 @@ pub const Player = struct {
     equipment: equipmentZig.EquipmentData = .{},
     moneyBonusPerCent: f32 = 0,
     lastMoveDirection: ?u8 = null,
+};
+
+const ContinueData = struct {
+    freeContinues: u32 = 0,
+    bossesAced: u32 = 0,
+    nextBossAceFreeContinue: u32 = 1,
+    nextBossAceFreeContinueIncrease: u32 = 2,
+    paidContinues: u32 = 0,
 };
 
 pub const MapObjectType = enum {
@@ -167,6 +177,7 @@ pub fn playerHit(player: *Player, state: *GameState) !void {
         try movePieceZig.resetPieces(player);
     }
     player.immunUntilTime = state.gameTime + state.playerImmunityFrames;
+    state.playerTookDamageOnLevel = true;
     try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_PLAYER_HIT, 0, 1);
 }
 
@@ -225,6 +236,15 @@ fn mainLoop(state: *GameState) !void {
                 state.lastBossDefeatedTime = state.gameTime;
                 for (state.players.items) |*player| {
                     player.money += @as(u32, @intFromFloat(@as(f32, @floatFromInt(state.level)) * 10.0 * (1.0 + player.moneyBonusPerCent)));
+                }
+                if (state.playerTookDamageOnLevel == false) {
+                    state.continueData.bossesAced += 1;
+                    if (state.continueData.bossesAced >= state.continueData.nextBossAceFreeContinue) {
+                        state.continueData.freeContinues += 1;
+                        std.debug.print("free continue\n", .{});
+                        state.continueData.nextBossAceFreeContinue += state.continueData.nextBossAceFreeContinueIncrease;
+                        state.continueData.nextBossAceFreeContinueIncrease += 1;
+                    }
                 }
             }
             try shopZig.startShoppingPhase(state);
@@ -381,6 +401,7 @@ pub fn endShoppingPhase(state: *GameState) !void {
 
 pub fn startNextLevel(state: *GameState) !void {
     mapTileZig.setMapType(.default, state);
+    state.playerTookDamageOnLevel = false;
     state.suddenDeath = 0;
     state.camera.position = .{ .x = 0, .y = 0 };
     state.enemyData.enemies.clearRetainingCapacity();
@@ -600,6 +621,57 @@ fn destroyGameState(state: *GameState) !void {
     try statsZig.destroyAndSave(state);
     mapTileZig.deinit(state);
     enemyZig.destroyEnemyData(state);
+}
+
+pub fn executeContinue(state: *GameState) !void {
+    const optCost = getMoneyCostsForContinue(state);
+    if (optCost == null) return;
+    var openMoney = optCost.?;
+    if (openMoney > 0) {
+        const averagePlayerCosts = @divFloor(openMoney, state.players.items.len);
+        for (state.players.items) |*player| {
+            const pay = @min(averagePlayerCosts, player.money);
+            player.money -|= pay;
+            openMoney -|= pay;
+        }
+        if (openMoney > 0) {
+            for (state.players.items) |*player| {
+                const pay = @min(openMoney, player.money);
+                player.money -|= pay;
+                openMoney -|= pay;
+                if (openMoney == 0) break;
+            }
+        }
+        state.continueData.paidContinues +|= 1;
+    } else {
+        state.continueData.freeContinues -|= 1;
+    }
+    state.level -= 1;
+    for (state.players.items) |*player| {
+        if (player.equipment.equipmentSlotsData.head == null) {
+            _ = equipmentZig.equip(equipmentZig.getEquipmentOptionByIndexScaledToLevel(0, state.level).equipment, true, player);
+        }
+        if (player.equipment.equipmentSlotsData.body == null) {
+            _ = equipmentZig.equip(equipmentZig.getEquipmentOptionByIndexScaledToLevel(4, state.level).equipment, true, player);
+        }
+        player.isDead = false;
+    }
+    try shopZig.startShoppingPhase(state);
+    state.gameOver = false;
+}
+
+/// returns null if players have not enough money for continue
+pub fn getMoneyCostsForContinue(state: *GameState) ?u32 {
+    if (state.continueData.freeContinues > 0) {
+        return 0;
+    }
+    const costs: u32 = (state.continueData.paidContinues + 1) * state.level * 5 * @as(u32, @intCast(state.players.items.len));
+    var maxPlayerMoney: u32 = 0;
+    for (state.players.items) |*player| {
+        maxPlayerMoney += player.money;
+    }
+    if (maxPlayerMoney < costs) return null;
+    return costs;
 }
 
 pub fn isPositionEmpty(position: Position, state: *GameState) bool {

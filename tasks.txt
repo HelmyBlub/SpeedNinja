@@ -1,6 +1,8 @@
 Tasks:
-- dragon boss
-    - player fall down shoud not end up in air where player can not see
+- continues
+    - game over screen continue option
+    - costs money (first cheap, second expesive)
+    - can get free ones for acing bosses
 
 Next ideas:
 - continues

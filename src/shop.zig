@@ -189,7 +189,7 @@ pub fn isPlayerInEarlyShopTrigger(player: *main.Player, state: *main.GameState) 
 }
 
 pub fn startShoppingPhase(state: *main.GameState) !void {
-    try statsZig.statsOnLevelFinished(state);
+    if (!state.gameOver) try statsZig.statsOnLevelFinished(state);
     state.suddenDeath = 0;
     state.camera.position = .{ .x = 0, .y = 0 };
     mapTileZig.setMapType(.default, state);
@@ -273,7 +273,7 @@ fn getRandomEquipmentIndexForShop(blacklistedIndexes: []usize, mode: usize, stat
             if (blacklisted == index) continue :main;
         }
         const level = state.shop.equipOptionsLastLevelInShop[index];
-        totalProbability += state.level - level;
+        totalProbability += @max(1, state.level - level);
     }
     const random = std.crypto.random.intRangeLessThan(usize, 0, totalProbability);
     totalProbability = 0;
@@ -284,7 +284,7 @@ fn getRandomEquipmentIndexForShop(blacklistedIndexes: []usize, mode: usize, stat
             if (blacklisted == index) continue :main;
         }
         const level = state.shop.equipOptionsLastLevelInShop[index];
-        totalProbability += state.level - level;
+        totalProbability += @max(1, state.level - level);
         if (random <= totalProbability) {
             return index;
         }

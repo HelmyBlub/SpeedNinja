@@ -55,7 +55,14 @@ pub fn setupVertices(state: *main.GameState) !void {
         }
     }
     if (state.gameOver) {
-        _ = fontVulkanZig.paintText("GAME OVER", .{ .x = -0.4, .y = -0.1 }, 120, textColor, fontVertices);
+        const gameOverPos: main.Position = .{ .x = -0.4, .y = -0.1 };
+        _ = fontVulkanZig.paintText("GAME OVER", gameOverPos, 120, textColor, fontVertices);
+        const optContinueCosts = main.getMoneyCostsForContinue(state);
+        if (optContinueCosts) |continueCosts| {
+            const continuePos: main.Position = .{ .x = gameOverPos.x, .y = gameOverPos.y + 120 * onePixelYInVulkan };
+            const offsetX = fontVulkanZig.paintText("Continue: $", continuePos, 60, textColor, fontVertices);
+            _ = try fontVulkanZig.paintNumber(continueCosts, .{ .x = continuePos.x + offsetX, .y = continuePos.y }, 60, textColor, fontVertices);
+        }
     }
 }
 

@@ -97,6 +97,9 @@ pub fn handleEvents(state: *main.GameState) !void {
                     }
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_1) {
                     movePieceZig.setMoveOptionIndex(player, 0, state);
+                    if (state.gameOver) {
+                        try main.executeContinue(state);
+                    }
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_2) {
                     movePieceZig.setMoveOptionIndex(player, 1, state);
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_3) {
