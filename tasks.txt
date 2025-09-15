@@ -1,17 +1,14 @@
 Tasks:
-- continues
-    - game over screen continue option
-    - costs money (first cheap, second expesive)
-    - can get free ones for acing bosses
+- after level 50 start new game+, repeat bosses but stuff gets harder, faster
+    - make enemies scale based on + amount
+    - slightly changes bosses
+    - on ++ (level 100+)
+        - give bosses sudden death timer
+    - measure time from 1-50. from 51 to 100
+    - option to start on level 51
+
 
 Next ideas:
-- continues
-    - for money
-        - each retry gets more expensive
-    - for acing bosses
-        - one retry for first ace, second retry for 3 bosses aced, third retry for 6 bosses aced
-
-- after level 50 start new game+, repeat bosses but stuff gets harder, faster
 - sound for sudden death
 - improve move options UX
 - improve shop UX

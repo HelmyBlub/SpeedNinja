@@ -20,7 +20,15 @@ pub fn create() enemyZig.EnemyFunctions {
         .createSpawnEnemyEntryEnemy = createSpawnEnemyEntryEnemy,
         .tick = tick,
         .setupVerticesGround = setupVerticesGround,
+        .scaleEnemyForNewGamePlus = scaleEnemyForNewGamePlus,
     };
+}
+
+fn scaleEnemyForNewGamePlus(enemy: *enemyZig.Enemy, newGamePlus: u32) void {
+    const data = &enemy.enemyTypeData.ice;
+    data.delay = @divFloor(data.delay, @as(i32, @intCast(newGamePlus + 1)));
+    data.cooldown = @divFloor(data.cooldown, @as(i32, @intCast(newGamePlus + 1)));
+    data.attackMovementInterval = @divFloor(data.attackMovementInterval, @as(i32, @intCast(newGamePlus + 1)));
 }
 
 fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {

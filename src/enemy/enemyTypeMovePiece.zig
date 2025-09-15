@@ -64,7 +64,7 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
     _ = passedTime;
     const data = &enemy.enemyTypeData.movePiece;
     if (state.enemyData.movePieceEnemyMovePiece == null) {
-        state.enemyData.movePieceEnemyMovePiece = try createRandomMovePiece(state.allocator);
+        state.enemyData.movePieceEnemyMovePiece = try createRandomMovePiece(state);
     }
     if (data.spawnDelay == null) data.spawnDelay = state.gameTime + 64;
     if (data.spawnDelay.? > state.gameTime) return;
@@ -112,9 +112,10 @@ fn setupVerticesGroundStepFunction(pos: main.TilePosition, visualizedDirection: 
     enemyVulkanZig.addRedArrowTileSprites(attackPosition, 1, rotation, state);
 }
 
-pub fn createRandomMovePiece(allocator: std.mem.Allocator) !movePieceZig.MovePiece {
-    const stepsLength: usize = @intFromFloat(std.crypto.random.float(f32) * 2.0 + 2);
-    const steps: []movePieceZig.MoveStep = try allocator.alloc(movePieceZig.MoveStep, stepsLength);
+fn createRandomMovePiece(state: *main.GameState) !movePieceZig.MovePiece {
+    const newGamePlus = @min(@divFloor(state.level, 50), 2);
+    const stepsLength: usize = std.crypto.random.intRangeLessThan(usize, 0, 2) + 2 + newGamePlus;
+    const steps: []movePieceZig.MoveStep = try state.allocator.alloc(movePieceZig.MoveStep, stepsLength);
     const movePiece: movePieceZig.MovePiece = .{ .steps = steps };
     var currDirection: u8 = movePieceZig.DIRECTION_UP;
     for (movePiece.steps) |*step| {

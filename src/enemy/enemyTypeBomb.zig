@@ -18,7 +18,14 @@ pub fn create() enemyZig.EnemyFunctions {
         .createSpawnEnemyEntryEnemy = createSpawnEnemyEntryEnemy,
         .tick = tick,
         .setupVerticesGround = setupVerticesGround,
+        .scaleEnemyForNewGamePlus = scaleEnemyForNewGamePlus,
     };
+}
+
+fn scaleEnemyForNewGamePlus(enemy: *enemyZig.Enemy, newGamePlus: u32) void {
+    const data = &enemy.enemyTypeData.bomb;
+    data.bombExplodeDelay = @divFloor(data.bombExplodeDelay, @as(i32, @intCast(newGamePlus + 1)));
+    data.moveInterval = @divFloor(data.moveInterval, @as(i32, @intCast(newGamePlus + 1)));
 }
 
 pub fn setupMovePiece(state: *main.GameState) !void {

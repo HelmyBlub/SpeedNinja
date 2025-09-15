@@ -408,6 +408,11 @@ pub fn startNextLevel(state: *GameState) !void {
     state.enemyData.enemyObjects.clearRetainingCapacity();
     mapTileZig.resetMapTiles(state.mapData.tiles);
     state.gamePhase = .combat;
+    if (@mod(state.level, 50) == 0 and state.enemyData.movePieceEnemyMovePiece != null) {
+        std.debug.print("reset enemy moev piece\n", .{});
+        state.allocator.free(state.enemyData.movePieceEnemyMovePiece.?.steps);
+        state.enemyData.movePieceEnemyMovePiece = null;
+    }
     state.level += 1;
     state.round = 0;
     bossZig.clearBosses(state);

@@ -23,6 +23,7 @@ pub fn create() enemyZig.EnemyFunctions {
         .setupVerticesGround = setupVerticesGround,
         .setupVertices = setupVertices,
         .isEnemyHit = isEnemyHit,
+        .scaleEnemyForNewGamePlus = scaleEnemyForNewGamePlus,
     };
 }
 
@@ -36,6 +37,12 @@ fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
             },
         },
     };
+}
+
+fn scaleEnemyForNewGamePlus(enemy: *enemyZig.Enemy, newGamePlus: u32) void {
+    const data = &enemy.enemyTypeData.block;
+    data.aoeAttackDelay = @divFloor(data.aoeAttackDelay, @as(i32, @intCast(newGamePlus + 1)));
+    data.minTurnInterval = @divFloor(data.minTurnInterval, @as(i32, @intCast(newGamePlus + 1)));
 }
 
 fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {

@@ -18,6 +18,7 @@ pub fn create() enemyZig.EnemyFunctions {
         .createSpawnEnemyEntryEnemy = createSpawnEnemyEntryEnemy,
         .tick = tick,
         .setupVerticesGround = setupVerticesGround,
+        .scaleEnemyForNewGamePlus = scaleEnemyForNewGamePlus,
     };
 }
 
@@ -31,6 +32,11 @@ fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
             },
         },
     };
+}
+
+fn scaleEnemyForNewGamePlus(enemy: *enemyZig.Enemy, newGamePlus: u32) void {
+    const data = &enemy.enemyTypeData.putFire;
+    data.delay = @divFloor(data.delay, @as(i32, @intCast(newGamePlus + 1)));
 }
 
 fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {

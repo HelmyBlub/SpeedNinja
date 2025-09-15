@@ -6,11 +6,19 @@ const imageZig = @import("../image.zig");
 const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const enemyObjectProjectileZig = @import("enemyObjectProjectile.zig");
 
+pub const EnemyTypeDelayedProjectileActionData = struct {
+    delay: i64 = 5000,
+    direction: u8 = 0,
+    moveInterval: i32 = 1000,
+    startTime: ?i64 = null,
+};
+
 pub fn create() enemyZig.EnemyFunctions {
     return enemyZig.EnemyFunctions{
         .createSpawnEnemyEntryEnemy = createSpawnEnemyEntryEnemy,
         .tick = tick,
         .setupVerticesGround = setupVerticesGround,
+        .scaleEnemyForNewGamePlus = scaleEnemyForNewGamePlus,
     };
 }
 
@@ -19,11 +27,15 @@ fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
         .imageIndex = imageZig.IMAGE_ENEMY_SHURIKEN_THROWER,
         .position = .{ .x = 0, .y = 0 },
         .enemyTypeData = .{
-            .projectileAttack = .{
-                .delay = 5000,
-            },
+            .projectileAttack = .{},
         },
     };
+}
+
+fn scaleEnemyForNewGamePlus(enemy: *enemyZig.Enemy, newGamePlus: u32) void {
+    const data = &enemy.enemyTypeData.projectileAttack;
+    data.delay = @divFloor(data.delay, @as(i32, @intCast(newGamePlus + 1)));
+    data.moveInterval = @divFloor(data.moveInterval, @as(i32, @intCast(newGamePlus + 1)));
 }
 
 fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
@@ -40,7 +52,7 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
                 spawnPosition,
                 data.direction,
                 imageZig.IMAGE_SHURIKEN,
-                1000,
+                data.moveInterval,
                 false,
                 state,
             );

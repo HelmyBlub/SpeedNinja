@@ -31,6 +31,7 @@ pub const EnemyFunctions = struct {
     setupVertices: ?*const fn (enemy: *Enemy, state: *main.GameState) void = null,
     setupVerticesGround: ?*const fn (enemy: *Enemy, state: *main.GameState) anyerror!void = null,
     isEnemyHit: ?*const fn (enemy: *Enemy, hitArea: main.TileRectangle, hitDirection: u8, state: *main.GameState) anyerror!bool = null,
+    scaleEnemyForNewGamePlus: ?*const fn (enemy: *Enemy, newGamePlus: u32) void = null,
 };
 
 pub const EnemyType = enum {
@@ -52,7 +53,7 @@ pub const EnemyTypeData = union(EnemyType) {
     attack: EnemyTypeDelayedActionData,
     move: EnemyTypeDelayedActionData,
     moveWithPlayer: enemyTypeMoveWithPlayerZig.EnemyTypeMoveWithPlayerData,
-    projectileAttack: EnemyTypeDelayedActionData,
+    projectileAttack: enemyTypeProjectileAttackZig.EnemyTypeDelayedProjectileActionData,
     putFire: enemyTypePutFireZig.EnemyTypePutFireData,
     block: enemyTypeBlockZig.EnemyTypeBlockData,
     ice: enemyTypeIceAttackZig.DelayedAttackWithCooldown,
@@ -187,14 +188,15 @@ pub fn initEnemy(state: *main.GameState) !void {
 
 pub fn setupSpawnEnemiesOnLevelChange(state: *main.GameState) !void {
     const enemySpawnData = &state.enemyData.enemySpawnData;
-    if (state.level == 1) {
+    const level = @mod(state.level, 50);
+    if (level == 0 or level == 1) {
         enemySpawnData.enemyEntries.clearRetainingCapacity();
     }
     for (ENEMY_TYPE_SPAWN_LEVEL_DATA) |data| {
-        if (data.startingLevel == state.level) {
+        if (data.startingLevel == level) {
             try enemySpawnData.enemyEntries.append(.{ .probability = 1, .enemy = createSpawnEnemyEntryEnemy(data.enemyType) });
         }
-        if (data.leavingLevel == state.level) {
+        if (data.leavingLevel == level) {
             for (enemySpawnData.enemyEntries.items, 0..) |entry, index| {
                 if (entry.enemy.enemyTypeData == data.enemyType) {
                     _ = enemySpawnData.enemyEntries.swapRemove(index);
@@ -203,15 +205,16 @@ pub fn setupSpawnEnemiesOnLevelChange(state: *main.GameState) !void {
             }
         }
     }
-    scaleEnemiesToLevel(state);
+    scaleEnemiesProbabilityToLevel(state);
 }
 
-fn scaleEnemiesToLevel(state: *main.GameState) void {
+fn scaleEnemiesProbabilityToLevel(state: *main.GameState) void {
+    const level = @mod(state.level, 50);
     for (state.enemyData.enemySpawnData.enemyEntries.items) |*entry| {
         for (ENEMY_TYPE_SPAWN_LEVEL_DATA) |data| {
             if (entry.enemy.enemyTypeData == data.enemyType) {
                 const baseProbability = data.baseProbability;
-                const enemyLevel = state.level - data.startingLevel + 1;
+                const enemyLevel = level - data.startingLevel + 1;
                 const levelDependentProbability = @min(1, @as(f32, @floatFromInt(enemyLevel)) / 10.0);
                 entry.probability = baseProbability * levelDependentProbability;
                 break;
@@ -274,12 +277,18 @@ pub fn setupEnemies(state: *main.GameState) !void {
             if (enemies.items.len < state.enemyData.enemySpawnData.enemyEntries.items.len) {
                 var enemy = state.enemyData.enemySpawnData.enemyEntries.items[enemies.items.len].enemy;
                 enemy.position = randomPos;
+                if (state.level > 50) {
+                    if (ENEMY_FUNCTIONS.get(enemy.enemyTypeData).scaleEnemyForNewGamePlus) |scale| scale(&enemy, @divFloor(state.level, 50));
+                }
                 try enemies.append(enemy);
             } else {
                 for (state.enemyData.enemySpawnData.enemyEntries.items) |entry| {
                     if (randomFloat >= entry.calcedProbabilityStart and randomFloat < entry.calcedProbabilityEnd) {
                         var enemy = entry.enemy;
                         enemy.position = randomPos;
+                        if (state.level > 50) {
+                            if (ENEMY_FUNCTIONS.get(enemy.enemyTypeData).scaleEnemyForNewGamePlus) |scale| scale(&enemy, @divFloor(state.level, 50));
+                        }
                         try enemies.append(enemy);
                     }
                 }
