@@ -242,10 +242,10 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
         },
     },
     .{
-        .basePrice = 10,
+        .basePrice = 15,
         .shopDisplayImage = imageZig.IMAGE_HAMMER,
         .equipment = .{
-            .effectType = .{ .damage = .{ .damage = 4, .effect = .hammer } },
+            .effectType = .{ .damage = .{ .damage = 3, .effect = .hammer } },
             .imageIndex = imageZig.IMAGE_HAMMER,
             .slotTypeData = .weapon,
         },

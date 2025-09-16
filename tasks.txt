@@ -1,11 +1,13 @@
 Tasks:
-- bug: visualization missing boss rotate shield
 - after level 50 start new game+, repeat bosses but stuff gets harder, faster
     - slightly changes bosses
+        - continue: tripple
+            - change fire to spawn on more tiles for each new game plus
     - on ++ (level 100+)
         - give bosses sudden death timer
     - measure time from 1-50. from 51 to 100
     - option to start on level 51
+- bug: visualization missing boss rotate shield
 
 
 Next ideas:
