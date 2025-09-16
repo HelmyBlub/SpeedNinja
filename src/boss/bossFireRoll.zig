@@ -15,6 +15,7 @@ pub const BossFireRollData = struct {
     movePieceIndex: usize = 0,
     moveDirection: u8 = 0,
     fireDuration: i32 = 10_000,
+    maxEternalFire: i32 = 5,
 };
 
 const BOSS_NAME = "Fire Roll";
@@ -60,12 +61,26 @@ fn attackMoveWithFirePlacing(boss: *bossZig.Boss, movePiece: movePieceZig.MovePi
 fn attackMoveWithFirePlacingCallback(hitPosition: main.TilePosition, visualizedDirection: u8, boss: *bossZig.Boss, state: *main.GameState) !void {
     try movePieceZig.moveEnemyAndCheckPlayerHitOnMoveStep(hitPosition, visualizedDirection, &boss.position, state);
     const data = &boss.typeData.fireRoll;
-    try enemyObjectFireZig.spawnFire(boss.position, data.fireDuration, false, state);
+    try enemyObjectFireZig.spawnEternalFire(boss.position, null, 0, state);
+    if (state.enemyData.enemyObjects.items.len > data.maxEternalFire) {
+        var eternalFireCount: u32 = 0;
+        for (0..state.enemyData.enemyObjects.items.len) |i| {
+            const index = state.enemyData.enemyObjects.items.len - 1 - i;
+            const object = &state.enemyData.enemyObjects.items[index];
+            if (object.typeData == .fire) {
+                if (eternalFireCount < data.maxEternalFire) {
+                    eternalFireCount += 1;
+                } else if (object.typeData.fire.removeTime == null) {
+                    object.typeData.fire.removeTime = state.gameTime + data.fireDuration;
+                }
+            }
+        }
+    }
 }
 
 fn startBoss(state: *main.GameState) !void {
     const scaledHp = bossZig.getHpScalingForLevel(10, state.level);
-    try state.bosses.append(.{
+    var boss: bossZig.Boss = .{
         .hp = scaledHp,
         .maxHp = scaledHp,
         .imageIndex = imageZig.IMAGE_BOSS_FIREROLL,
@@ -77,7 +92,12 @@ fn startBoss(state: *main.GameState) !void {
                 try movePieceZig.createRandomMovePiece(state.allocator),
             },
         } },
-    });
+    };
+    const newGamePlus = main.getNewGamePlus(state.level);
+    if (newGamePlus > 0) {
+        boss.typeData.fireRoll.maxEternalFire += @min(newGamePlus * 15, 60);
+    }
+    try state.bosses.append(boss);
     try mapTileZig.setMapRadius(6, state);
     main.adjustZoom(state);
 }

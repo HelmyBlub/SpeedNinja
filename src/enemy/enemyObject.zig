@@ -57,7 +57,7 @@ pub fn tick(passedTime: i64, state: *main.GameState) !void {
         const object = &state.enemyData.enemyObjects.items[currentIndex];
         const functions = ENEMY_OBJECT_FUNCTIONS.get(object.typeData);
         if (functions.shouldBeRemoved(object, state)) {
-            _ = state.enemyData.enemyObjects.swapRemove(currentIndex);
+            _ = state.enemyData.enemyObjects.orderedRemove(currentIndex);
         } else {
             try functions.tick(object, passedTime, state);
             currentIndex += 1;

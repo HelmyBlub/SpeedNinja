@@ -66,7 +66,7 @@ fn onPlayerMoveEachTile(boss: *bossZig.Boss, player: *main.Player, state: *main.
 
 fn startBoss(state: *main.GameState) !void {
     const scaledHp = bossZig.getHpScalingForLevel(10, state.level);
-    try state.bosses.append(.{
+    var boss: bossZig.Boss = .{
         .hp = scaledHp,
         .maxHp = scaledHp,
         .imageIndex = imageZig.IMAGE_BOSS_WALLER,
@@ -76,7 +76,15 @@ fn startBoss(state: *main.GameState) !void {
             .bombs = std.ArrayList(BombPositionDelayed).init(state.allocator),
             .wallAttackTiles = std.ArrayList(PositionDelayed).init(state.allocator),
         } },
-    });
+    };
+    const newGamePlus = main.getNewGamePlus(state.level);
+    if (newGamePlus > 0) {
+        boss.typeData.waller.wallDelay = @divFloor(boss.typeData.waller.wallDelay, @as(i32, @intCast(newGamePlus + 1)));
+        boss.typeData.waller.bombThrowInterval = @divFloor(boss.typeData.waller.bombThrowInterval, @as(i32, @intCast(newGamePlus + 1)));
+        boss.typeData.waller.bombFlyTime = @divFloor(boss.typeData.waller.bombFlyTime, @as(i32, @intCast(newGamePlus + 1)));
+        boss.typeData.waller.bombExplodeDelay = @divFloor(boss.typeData.waller.bombExplodeDelay, @as(i32, @intCast(newGamePlus + 1)));
+    }
+    try state.bosses.append(boss);
     try mapTileZig.setMapRadius(6, state);
     main.adjustZoom(state);
 }

@@ -24,14 +24,14 @@ pub fn createEnemyObjectFunctions() enemyObjectZig.EnemyObjectFunctions {
     };
 }
 
-pub fn spawnFlyingEternalFire(spawnPosition: main.Position, flyToPosition: main.Position, inAirHeight: f32, state: *main.GameState) !void {
+pub fn spawnEternalFire(spawnPosition: main.Position, flyToPosition: ?main.Position, inAirHeight: ?f32, state: *main.GameState) !void {
     try state.enemyData.enemyObjects.append(.{
         .position = spawnPosition,
         .typeData = .{ .fire = .{
             .imageIndex = imageZig.IMAGE_FIRE_ANIMATION,
             .removeTime = null,
             .flyToPosition = flyToPosition,
-            .inAirHeight = inAirHeight,
+            .inAirHeight = if (flyToPosition != null) inAirHeight.? else 0,
         } },
     });
 }

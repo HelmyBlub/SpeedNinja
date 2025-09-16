@@ -65,13 +65,15 @@ const DragonMoveData = struct {
 };
 
 const LandingStompData = struct {
-    stompTime: i64,
+    stompTime: ?i64 = null,
     stompHeight: f32 = 0,
+    delay: i32 = 2000,
 };
 
 const BodyStompData = struct {
     stompTime: ?i64 = null,
     standUpMaxPerCent: f32 = 0,
+    delay: i32 = 1500,
 };
 
 const TransitionFlyingData = struct {
@@ -83,6 +85,7 @@ const TransitionFlyingData = struct {
 };
 
 pub const BossDragonData = struct {
+    newGamePlus: u32 = 0,
     action: DragonActionData,
     phase: DragonPhase = .phase1,
     nextStateTime: ?i64 = null,
@@ -117,11 +120,9 @@ pub const BossDragonData = struct {
 
 const DEFAULT_FYLING_HEIGHT = 150;
 const BOSS_NAME = "Dragon";
-const LANDING_STOMP_DELAY = 2000;
 const LANDING_STOMP_AREA_RADIUS_X = 2;
 const LANDING_STOMP_AREA_RADIUS_Y = 1;
 const LANDING_STOMP_AREA_OFFSET: main.Position = .{ .x = 0, .y = -main.TILESIZE };
-const BODY_STOMP_DELAY = 1500;
 const BODY_STOMP_AREA_RADIUS_X = 2;
 const BODY_STOMP_AREA_RADIUS_Y = 2;
 const STAND_UP_SPEED = 0.0005;
@@ -178,6 +179,7 @@ fn startBoss(state: *main.GameState) !void {
             .attackTiles = std.ArrayList(main.TilePosition).init(state.allocator),
         } },
     };
+    boss.typeData.dragon.newGamePlus = main.getNewGamePlus(state.level);
     boss.typeData.dragon.paint.wingsFlapStarted = state.gameTime;
     boss.typeData.dragon.paint.stopWings = false;
     try mapTileZig.setMapRadius(6, state);
@@ -194,7 +196,7 @@ fn onPlayerMoveEachTile(boss: *bossZig.Boss, player: *main.Player, state: *main.
                 if (player == &state.players.items[fireBreathData.targetPlayerIndex]) {
                     fireBreathData.nextFireSpitTickTime = state.gameTime + fireBreathData.spitInterval;
                     const targetPos = player.position;
-                    try enemyObjectFireZig.spawnFlyingEternalFire(boss.position, targetPos, 100, state);
+                    try enemyObjectFireZig.spawnEternalFire(boss.position, targetPos, 100, state);
                 }
             }
         },
@@ -223,12 +225,13 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             }
             if (distanceToTarget <= landingSpeed * 16) {
                 boss.position = actionData.targetPos;
-                data.action = .{ .landingStomp = .{ .stompTime = state.gameTime + LANDING_STOMP_DELAY } };
+                setAction(.{ .landingStomp = .{} }, boss);
                 data.paint.stopWings = true;
             }
         },
         .landingStomp => |*stompData| {
-            const stompPerCent: f32 = 1 - @max(0, @as(f32, @floatFromInt(stompData.stompTime - state.gameTime)) / LANDING_STOMP_DELAY);
+            if (stompData.stompTime == null) stompData.stompTime = state.gameTime + stompData.delay;
+            const stompPerCent: f32 = 1 - @max(0, @as(f32, @floatFromInt(stompData.stompTime.? - state.gameTime)) / @as(f32, @floatFromInt(stompData.delay)));
             const stompStartPerCent = 0.9;
             if (stompPerCent < stompStartPerCent) {
                 const distanceUp: f32 = 0.02 * @as(f32, @floatFromInt(passedTime));
@@ -237,7 +240,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             } else {
                 data.inAirHeight = stompData.stompHeight * @sqrt((1 - stompPerCent) / (1 - stompStartPerCent));
             }
-            if (stompData.stompTime <= state.gameTime) {
+            if (stompData.stompTime.? <= state.gameTime) {
                 data.inAirHeight = 0;
                 try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_STOMP_INDICIES[0..], 0, 1);
                 const attackTileCenter = main.gamePositionToTilePosition(.{ .x = boss.position.x + LANDING_STOMP_AREA_OFFSET.x, .y = boss.position.y + LANDING_STOMP_AREA_OFFSET.y });
@@ -401,7 +404,7 @@ fn tickFireBreathAction(fireBreathData: *FireBreathData, boss: *bossZig.Boss, pa
         if (fireBreathData.nextFireSpitTickTime.? <= state.gameTime) {
             fireBreathData.nextFireSpitTickTime = state.gameTime + fireBreathData.spitInterval;
             const targetPos = state.players.items[fireBreathData.targetPlayerIndex].position;
-            try enemyObjectFireZig.spawnFlyingEternalFire(boss.position, targetPos, 100, state);
+            try enemyObjectFireZig.spawnEternalFire(boss.position, targetPos, 100, state);
         }
         if (fireBreathData.spitEndTime <= state.gameTime) {
             data.openMouth = false;
@@ -478,7 +481,37 @@ fn chooseNextAttack(boss: *bossZig.Boss) void {
         allowedAttacksCount += 1;
     }
     const randomIndex = std.crypto.random.intRangeLessThan(usize, 0, allowedAttacksCount);
-    data.action = allowedAttacks[randomIndex].?;
+    setAction(allowedAttacks[randomIndex].?, boss);
+}
+
+fn setAction(action: DragonActionData, boss: *bossZig.Boss) void {
+    boss.typeData.dragon.action = action;
+    scaleAttackForNewGamePlus(boss);
+}
+
+fn scaleAttackForNewGamePlus(boss: *bossZig.Boss) void {
+    if (boss.typeData.dragon.newGamePlus == 0) return;
+    switch (boss.typeData.dragon.action) {
+        .bodyStomp => |*data| {
+            data.delay = @divFloor(data.delay, @as(i32, @intCast(boss.typeData.dragon.newGamePlus + 1)));
+        },
+        .landingStomp => |*data| {
+            data.delay = @divFloor(data.delay, @as(i32, @intCast(boss.typeData.dragon.newGamePlus + 1)));
+        },
+        .wingBlast => |*data| {
+            data.firstMoveTickDelay = @divFloor(data.firstMoveTickDelay, @as(i32, @intCast(boss.typeData.dragon.newGamePlus + 1)));
+            data.moveInterval = @divFloor(data.moveInterval, @as(i32, @intCast(boss.typeData.dragon.newGamePlus + 1)));
+            data.maxMoveTicks += @min(50, (boss.typeData.dragon.newGamePlus + 1) * 5);
+        },
+        .fireBreath => |*data| {
+            data.firstFireSpitDelay = @divFloor(data.firstFireSpitDelay, @as(i32, @intCast(boss.typeData.dragon.newGamePlus + 1)));
+            data.spitDuration += @intCast(boss.typeData.dragon.newGamePlus * 500);
+        },
+        .tailAttack => |*data| {
+            data.tailAttackDelay = @divFloor(data.tailAttackDelay, @as(i32, @intCast(boss.typeData.dragon.newGamePlus + 1)));
+        },
+        else => {},
+    }
 }
 
 fn moveBossTick(boss: *bossZig.Boss, targetPos: main.Position, passedTime: i64, speed: f32) bool {
@@ -558,7 +591,7 @@ fn tickTransitionFlyingPhase(flyingData: *TransitionFlyingData, boss: *bossZig.B
                     flyingData.fireSpawnTile.? -= 1;
                     const flyToPosition = main.tilePositionToGamePosition(main.gamePositionToTilePosition(boss.position));
                     const fireSpawn: main.Position = .{ .x = boss.position.x, .y = boss.position.y };
-                    try enemyObjectFireZig.spawnFlyingEternalFire(fireSpawn, flyToPosition, data.inAirHeight, state);
+                    try enemyObjectFireZig.spawnEternalFire(fireSpawn, flyToPosition, data.inAirHeight, state);
                     if (data.phase == .phase3) {
                         var secondFireFlyToPos: main.Position = flyToPosition;
                         if (boss.position.y < 0) {
@@ -566,7 +599,7 @@ fn tickTransitionFlyingPhase(flyingData: *TransitionFlyingData, boss: *bossZig.B
                         } else {
                             secondFireFlyToPos.y -= main.TILESIZE;
                         }
-                        try enemyObjectFireZig.spawnFlyingEternalFire(fireSpawn, secondFireFlyToPos, data.inAirHeight, state);
+                        try enemyObjectFireZig.spawnEternalFire(fireSpawn, secondFireFlyToPos, data.inAirHeight, state);
                     }
                 }
             }
@@ -575,7 +608,7 @@ fn tickTransitionFlyingPhase(flyingData: *TransitionFlyingData, boss: *bossZig.B
                     flyingData.fireSpawnTile.? -= 1;
                     const flyToPosition = main.tilePositionToGamePosition(main.gamePositionToTilePosition(boss.position));
                     const fireSpawn: main.Position = .{ .x = boss.position.x, .y = boss.position.y };
-                    try enemyObjectFireZig.spawnFlyingEternalFire(fireSpawn, flyToPosition, data.inAirHeight, state);
+                    try enemyObjectFireZig.spawnEternalFire(fireSpawn, flyToPosition, data.inAirHeight, state);
                     if (data.phase == .phase3) {
                         var secondFireFlyToPos: main.Position = flyToPosition;
                         if (boss.position.x < 0) {
@@ -583,7 +616,7 @@ fn tickTransitionFlyingPhase(flyingData: *TransitionFlyingData, boss: *bossZig.B
                         } else {
                             secondFireFlyToPos.x -= main.TILESIZE;
                         }
-                        try enemyObjectFireZig.spawnFlyingEternalFire(fireSpawn, secondFireFlyToPos, data.inAirHeight, state);
+                        try enemyObjectFireZig.spawnEternalFire(fireSpawn, secondFireFlyToPos, data.inAirHeight, state);
                     }
                 }
             }
@@ -681,12 +714,12 @@ fn tickBodyStomp(stompData: *BodyStompData, boss: *bossZig.Boss, passedTime: i64
                 const moveDistance: f32 = data.moveSpeed * @as(f32, @floatFromInt(passedTime));
                 boss.position = main.moveByDirectionAndDistance(boss.position, data.direction, moveDistance);
             } else {
-                stompData.stompTime = state.gameTime + BODY_STOMP_DELAY;
+                stompData.stompTime = state.gameTime + stompData.delay;
             }
         }
     } else {
         const stompTime = stompData.stompTime.?;
-        const stompPerCent: f32 = 1 - @max(0, @as(f32, @floatFromInt(stompTime - state.gameTime)) / BODY_STOMP_DELAY);
+        const stompPerCent: f32 = 1 - @max(0, @as(f32, @floatFromInt(stompTime - state.gameTime)) / @as(f32, @floatFromInt(stompData.delay)));
 
         const stompStartPerCent = 0.5;
         if (stompPerCent > stompStartPerCent) {
@@ -806,23 +839,25 @@ fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) !void {
     const data = boss.typeData.dragon;
     switch (data.action) {
         .landingStomp => |stompData| {
-            const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(stompData.stompTime - state.gameTime)) / LANDING_STOMP_DELAY));
-            const sizeX: usize = @intCast(LANDING_STOMP_AREA_RADIUS_X * 2 + 1);
-            const sizeY: usize = @intCast(LANDING_STOMP_AREA_RADIUS_Y * 2 + 1);
-            for (0..sizeX) |i| {
-                const offsetX: f32 = @as(f32, @floatFromInt(@as(i32, @intCast(i)) - LANDING_STOMP_AREA_RADIUS_X)) * main.TILESIZE + LANDING_STOMP_AREA_OFFSET.x;
-                for (0..sizeY) |j| {
-                    const offsetY: f32 = @as(f32, @floatFromInt(@as(i32, @intCast(j)) - LANDING_STOMP_AREA_RADIUS_Y)) * main.TILESIZE + LANDING_STOMP_AREA_OFFSET.y;
-                    enemyVulkanZig.addWarningTileSprites(.{
-                        .x = boss.position.x + offsetX,
-                        .y = boss.position.y + offsetY,
-                    }, fillPerCent, state);
+            if (stompData.stompTime) |stompTime| {
+                const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(stompTime - state.gameTime)) / @as(f32, @floatFromInt(stompData.delay))));
+                const sizeX: usize = @intCast(LANDING_STOMP_AREA_RADIUS_X * 2 + 1);
+                const sizeY: usize = @intCast(LANDING_STOMP_AREA_RADIUS_Y * 2 + 1);
+                for (0..sizeX) |i| {
+                    const offsetX: f32 = @as(f32, @floatFromInt(@as(i32, @intCast(i)) - LANDING_STOMP_AREA_RADIUS_X)) * main.TILESIZE + LANDING_STOMP_AREA_OFFSET.x;
+                    for (0..sizeY) |j| {
+                        const offsetY: f32 = @as(f32, @floatFromInt(@as(i32, @intCast(j)) - LANDING_STOMP_AREA_RADIUS_Y)) * main.TILESIZE + LANDING_STOMP_AREA_OFFSET.y;
+                        enemyVulkanZig.addWarningTileSprites(.{
+                            .x = boss.position.x + offsetX,
+                            .y = boss.position.y + offsetY,
+                        }, fillPerCent, state);
+                    }
                 }
             }
         },
         .bodyStomp => |stompData| {
             if (stompData.stompTime) |stompTime| {
-                const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(stompTime - state.gameTime)) / BODY_STOMP_DELAY));
+                const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(stompTime - state.gameTime)) / @as(f32, @floatFromInt(stompData.delay))));
                 const sizeX: usize = @intCast(BODY_STOMP_AREA_RADIUS_X * 2 + 1);
                 const sizeY: usize = @intCast(BODY_STOMP_AREA_RADIUS_Y * 2 + 1);
                 for (0..sizeX) |i| {

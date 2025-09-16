@@ -110,7 +110,7 @@ fn scaleBossToNewGamePlus(tripple: *BossTrippleData, newGamePlus: u32) void {
     tripple.shurikenMoveInterval = @divFloor(tripple.shurikenMoveInterval, @as(i32, @intCast(newGamePlus + 1)));
     tripple.airAttackDelay = @divFloor(tripple.airAttackDelay, @as(i32, @intCast(newGamePlus + 1)));
     tripple.fireDuration += @intCast(newGamePlus * 6000);
-    tripple.attacksPerBeingHit += newGamePlus;
+    tripple.attacksPerBeingHit += @min(newGamePlus, 3);
 }
 
 fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
@@ -226,10 +226,13 @@ fn executeAttack(boss: *bossZig.Boss, player: *main.Player, hitDirection: u8, st
     if (trippleData.enabledFire) {
         const hitDirectionTurned = @mod(hitDirection + 2, 4);
         const stepDirection = movePieceZig.getStepDirection(hitDirectionTurned);
-        try enemyObjectFireZig.spawnFire(.{
-            .x = boss.position.x + stepDirection.x * main.TILESIZE,
-            .y = boss.position.y + stepDirection.y * main.TILESIZE,
-        }, trippleData.fireDuration, true, state);
+        for (0..trippleData.attacksPerBeingHit) |i| {
+            const fi: f32 = @floatFromInt(i + 1);
+            try enemyObjectFireZig.spawnFire(.{
+                .x = boss.position.x + stepDirection.x * main.TILESIZE * fi,
+                .y = boss.position.y + stepDirection.y * main.TILESIZE * fi,
+            }, trippleData.fireDuration, true, state);
+        }
     }
     if (trippleData.enabledShuriken) {
         trippleData.shurikenRepeat += trippleData.attacksPerBeingHit;
