@@ -1,8 +1,6 @@
 Tasks:
-- after level 50 start new game+, repeat bosses but stuff gets harder, faster
-    - measure time from 1-50. from 51 to 100
-    - option to start on new game plus
-    - stats need to be related to newGamePlus value
+- beat new game+1
+
 - bug: visualization missing boss rotate shield
 - boss dragon fire sound for flying phase
 - bug: game endless loop on wave 148
@@ -12,9 +10,16 @@ Tasks:
 
 Next ideas:
 - sound for sudden death
-- improve move options UX
-- improve shop UX
+- imrpove UX
+    - move options
+    - shop
+    - gameInfo
+        - new game+
+    - when "continue shop" opens
+    - stairs image for "continue shop"
+    - player hp    
 - multiplayer
+    - boss hp scaling
     - player stats?
 - no vulkan support alternative
     - validation layer case
