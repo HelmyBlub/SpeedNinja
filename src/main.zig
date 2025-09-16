@@ -34,6 +34,7 @@ pub const GameState = struct {
     gameTime: i64 = 0,
     round: u32 = 1,
     level: u32 = 0,
+    newGamePlus: u32 = 0,
     roundToReachForNextLevel: usize = 5,
     bonusTimePerRoundFinished: i32 = 5000,
     minimalTimePerRequiredRounds: i32 = 60_000,
@@ -402,11 +403,11 @@ pub fn endShoppingPhase(state: *GameState) !void {
     try startNextLevel(state);
 }
 
-pub fn getNewGamePlus(level: u32) u32 {
-    return @as(u32, @intCast(@max(0, @divFloor(@as(i32, @intCast(level)) - 1, LEVEL_COUNT))));
-}
-
 pub fn startNextLevel(state: *GameState) !void {
+    if (state.level >= LEVEL_COUNT) {
+        try restart(state, state.newGamePlus + 1);
+        return;
+    }
     mapTileZig.setMapType(.default, state);
     state.playerTookDamageOnLevel = false;
     state.suddenDeath = 0;
@@ -502,13 +503,14 @@ fn allPlayerOutOfMoveOptions(state: *GameState) bool {
     return true;
 }
 
-pub fn restart(state: *GameState) !void {
+pub fn restart(state: *GameState, newGamePlus: u32) anyerror!void {
     try statsZig.statsSaveOnRestart(state);
     mapTileZig.setMapType(.default, state);
     state.gameOver = false;
     state.camera.position = .{ .x = 0, .y = 0 };
     state.level = 0;
     state.round = 0;
+    state.newGamePlus = newGamePlus;
     state.gamePhase = .combat;
     state.gameTime = 0;
     state.roundStartedTime = 0;
@@ -592,7 +594,7 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
     state.mapObjects = std.ArrayList(MapObject).init(state.allocator);
     try state.players.append(createPlayer(allocator));
     statsZig.loadStatisticsDataFromFile(state);
-    try restart(state);
+    try restart(state, 0);
 }
 
 fn createPlayer(allocator: std.mem.Allocator) Player {

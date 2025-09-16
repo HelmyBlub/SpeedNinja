@@ -1,14 +1,13 @@
 Tasks:
-- bug: game endless loop on wave 148
-    - what could be reason?
 - after level 50 start new game+, repeat bosses but stuff gets harder, faster
-    - on ++ (level 100+)
-        - give bosses sudden death timer
-        - instead of timer: dragon boss gets p3 stomp slowly destroys size of platform 
     - measure time from 1-50. from 51 to 100
-    - option to start on level 51
+    - option to start on new game plus
+    - stats need to be related to newGamePlus value
 - bug: visualization missing boss rotate shield
 - boss dragon fire sound for flying phase
+- bug: game endless loop on wave 148
+    - found one case for 141-144, but should not be the case for 148 as it required walls
+    - what could be reason?
 
 
 Next ideas:
@@ -16,6 +15,7 @@ Next ideas:
 - improve move options UX
 - improve shop UX
 - multiplayer
+    - player stats?
 - no vulkan support alternative
     - validation layer case
 - shop move piece 

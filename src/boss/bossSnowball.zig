@@ -39,7 +39,7 @@ pub fn createBoss() bossZig.LevelBossData {
 }
 
 fn startBoss(state: *main.GameState) !void {
-    const scaledHp = bossZig.getHpScalingForLevel(10, state.level);
+    const scaledHp = bossZig.getHpScalingForLevel(10, state);
     try state.bosses.append(.{
         .hp = scaledHp,
         .maxHp = scaledHp,

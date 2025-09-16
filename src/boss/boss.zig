@@ -114,9 +114,9 @@ pub fn startBossLevel(state: *main.GameState) !void {
     }
 }
 
-pub fn getHpScalingForLevel(hp: u32, level: u32) u32 {
-    const newGamePlusFactor: u32 = main.getNewGamePlus(level) + 1;
-    return hp * (1 + @divFloor(level, 5)) * newGamePlusFactor;
+pub fn getHpScalingForLevel(hp: u32, state: *main.GameState) u32 {
+    const newGamePlusFactor: u32 = state.newGamePlus + 1;
+    return hp * (1 + @divFloor(state.level, 5)) * newGamePlusFactor;
 }
 
 pub fn isBossHit(hitArea: main.TileRectangle, player: *main.Player, hitDirection: u8, state: *main.GameState) !bool {

@@ -48,7 +48,7 @@ fn deinit(boss: *bossZig.Boss, allocator: std.mem.Allocator) void {
 }
 
 fn startBoss(state: *main.GameState) !void {
-    const scaledHp = bossZig.getHpScalingForLevel(10, state.level);
+    const scaledHp = bossZig.getHpScalingForLevel(10, state);
     var boss: bossZig.Boss = .{
         .hp = scaledHp,
         .maxHp = scaledHp,
@@ -59,10 +59,9 @@ fn startBoss(state: *main.GameState) !void {
             .attackTiles = std.ArrayList(main.TilePosition).init(state.allocator),
         } },
     };
-    const newGamePlus = main.getNewGamePlus(state.level);
-    if (newGamePlus > 0) {
-        boss.typeData.rotate.rebuildTime = @divFloor(boss.typeData.rotate.rebuildTime, @as(i32, @intCast(newGamePlus + 1)));
-        boss.typeData.rotate.attackInterval = @divFloor(boss.typeData.rotate.attackInterval, @as(i32, @intCast(newGamePlus + 1)));
+    if (state.newGamePlus > 0) {
+        boss.typeData.rotate.rebuildTime = @divFloor(boss.typeData.rotate.rebuildTime, @as(i32, @intCast(state.newGamePlus + 1)));
+        boss.typeData.rotate.attackInterval = @divFloor(boss.typeData.rotate.attackInterval, @as(i32, @intCast(state.newGamePlus + 1)));
     }
     try state.bosses.append(boss);
     try mapTileZig.setMapRadius(6, state);

@@ -106,7 +106,7 @@ fn setupVerticesGroundStepFunction(pos: main.TilePosition, visualizedDirection: 
 }
 
 fn createRandomMovePiece(state: *main.GameState) !movePieceZig.MovePiece {
-    const newGamePlusBonusLength = @min(main.getNewGamePlus(state.level), 2);
+    const newGamePlusBonusLength = @min(state.newGamePlus, 2);
     const stepsLength: usize = std.crypto.random.intRangeLessThan(usize, 0, 2) + 2 + newGamePlusBonusLength;
     const steps: []movePieceZig.MoveStep = try state.allocator.alloc(movePieceZig.MoveStep, stepsLength);
     const movePiece: movePieceZig.MovePiece = .{ .steps = steps };

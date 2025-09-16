@@ -167,7 +167,7 @@ fn deinit(boss: *bossZig.Boss, allocator: std.mem.Allocator) void {
 
 fn startBoss(state: *main.GameState) !void {
     const baseHp = 50;
-    const scaledHp = bossZig.getHpScalingForLevel(baseHp, state.level);
+    const scaledHp = bossZig.getHpScalingForLevel(baseHp, state);
     var boss: bossZig.Boss = .{
         .hp = scaledHp,
         .maxHp = scaledHp,
@@ -179,7 +179,7 @@ fn startBoss(state: *main.GameState) !void {
             .attackTiles = std.ArrayList(main.TilePosition).init(state.allocator),
         } },
     };
-    boss.typeData.dragon.newGamePlus = main.getNewGamePlus(state.level);
+    boss.typeData.dragon.newGamePlus = state.newGamePlus;
     boss.typeData.dragon.paint.wingsFlapStarted = state.gameTime;
     boss.typeData.dragon.paint.stopWings = false;
     try mapTileZig.setMapRadius(6, state);

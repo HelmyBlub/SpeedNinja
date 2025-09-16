@@ -54,7 +54,7 @@ fn deinit(boss: *bossZig.Boss, allocator: std.mem.Allocator) void {
 }
 
 fn startBoss(state: *main.GameState) !void {
-    const scaledHp = bossZig.getHpScalingForLevel(5, state.level);
+    const scaledHp = bossZig.getHpScalingForLevel(5, state);
     const bossHp = scaledHp;
     var boss1: bossZig.Boss = .{
         .hp = bossHp,
@@ -68,8 +68,7 @@ fn startBoss(state: *main.GameState) !void {
             .enabledAirAttack = true,
         } },
     };
-    const newGamePlus = main.getNewGamePlus(state.level);
-    scaleBossToNewGamePlus(&boss1.typeData.tripple, newGamePlus);
+    scaleBossToNewGamePlus(&boss1.typeData.tripple, state.newGamePlus);
     try state.bosses.append(boss1);
     var boss2: bossZig.Boss = .{
         .hp = bossHp,
@@ -83,7 +82,7 @@ fn startBoss(state: *main.GameState) !void {
             .enabledFire = true,
         } },
     };
-    scaleBossToNewGamePlus(&boss2.typeData.tripple, newGamePlus);
+    scaleBossToNewGamePlus(&boss2.typeData.tripple, state.newGamePlus);
     try state.bosses.append(boss2);
     var boss3: bossZig.Boss = .{
         .hp = bossHp,
@@ -97,7 +96,7 @@ fn startBoss(state: *main.GameState) !void {
             .enabledShuriken = true,
         } },
     };
-    scaleBossToNewGamePlus(&boss3.typeData.tripple, newGamePlus);
+    scaleBossToNewGamePlus(&boss3.typeData.tripple, state.newGamePlus);
     try state.bosses.append(boss3);
     try mapTileZig.setMapRadius(6, state);
     main.adjustZoom(state);

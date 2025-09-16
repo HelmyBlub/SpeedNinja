@@ -47,7 +47,7 @@ pub fn createBoss() bossZig.LevelBossData {
 }
 
 fn startBoss(state: *main.GameState) !void {
-    const scaledHp = bossZig.getHpScalingForLevel(10, state.level);
+    const scaledHp = bossZig.getHpScalingForLevel(10, state);
     const maxSplits = 3;
     var bossTypeData: BossSplitData = .{
         .splits = std.ArrayList(BossSplitPartData).init(state.allocator),
@@ -70,10 +70,9 @@ fn startBoss(state: *main.GameState) !void {
         .name = BOSS_NAME,
         .typeData = .{ .split = bossTypeData },
     };
-    const newGamePlus = main.getNewGamePlus(state.level);
-    if (newGamePlus > 0) {
-        boss.typeData.split.shurikenMoveInterval = @divFloor(boss.typeData.split.shurikenMoveInterval, @as(i32, @intCast(newGamePlus + 1)));
-        scaleSplitToNewGamePlus(&boss.typeData.split.splits.items[0], newGamePlus);
+    if (state.newGamePlus > 0) {
+        boss.typeData.split.shurikenMoveInterval = @divFloor(boss.typeData.split.shurikenMoveInterval, @as(i32, @intCast(state.newGamePlus + 1)));
+        scaleSplitToNewGamePlus(&boss.typeData.split.splits.items[0], state.newGamePlus);
     }
     try state.bosses.append(boss);
     try mapTileZig.setMapRadius(6, state);
@@ -215,7 +214,7 @@ fn checkAndSplitBoss(splitData: *BossSplitData, bossSplit: *BossSplitPartData, s
             .remainingSpltits = bossSplit.remainingSpltits,
             .flyCutStart = state.gameTime,
         };
-        scaleSplitToNewGamePlus(&bossSplit2, main.getNewGamePlus(state.level));
+        scaleSplitToNewGamePlus(&bossSplit2, state.newGamePlus);
         const distance2 = main.calculateDistance(bossSplit.position, bossSplit2.flyToPosition.?);
         bossSplit2.flyCutDuration = @intFromFloat(distance2 * timePerDistance);
         try splitData.splits.append(bossSplit2);

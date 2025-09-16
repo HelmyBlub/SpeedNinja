@@ -13,6 +13,7 @@ pub const Statistics = struct {
 
 const LevelStatiscticsWithPlayerCount = struct {
     playerCount: u32,
+    newGamePlus: u32,
     levelDatas: std.ArrayList(LevelStatistics),
 };
 
@@ -26,7 +27,7 @@ const LevelStatistics = struct {
 };
 
 const FILE_NAME_STATISTICS_DATA = "statistics.dat";
-const SAFE_FILE_VERSION: u8 = 1;
+const SAFE_FILE_VERSION: u8 = 0;
 
 pub fn statsOnLevelFinished(state: *main.GameState) !void {
     if (!state.statistics.active) return;
@@ -106,7 +107,7 @@ fn checkIfIsNewBestTotalTime(levelDatas: []LevelStatistics, state: *main.GameSta
         if (currentLevelData.fastestTotalTime != null) {
             hasReachedHigherLevelBefore = true;
         }
-        if (!hasReachedHigherLevelBefore) {
+        if (!hasReachedHigherLevelBefore and state.level > 1) {
             const highestDefeatedLevelData = levelDatas[state.level - 2];
             if (highestDefeatedLevelData.fastestTotalTime == null or highestDefeatedLevelData.currentTotalTime < highestDefeatedLevelData.fastestTotalTime.?) {
                 isNewBestTotal = true;
@@ -196,7 +197,7 @@ pub fn setupVertices(state: *main.GameState) !void {
 fn getLevelDatas(state: *main.GameState) ![]LevelStatistics {
     var optLevelDatas: ?*std.ArrayList(LevelStatistics) = null;
     for (state.statistics.levelDataWithPlayerCount.items) |*levelDataForPlayerCount| {
-        if (state.players.items.len == levelDataForPlayerCount.playerCount) {
+        if (state.players.items.len == levelDataForPlayerCount.playerCount and state.newGamePlus == levelDataForPlayerCount.newGamePlus) {
             optLevelDatas = &levelDataForPlayerCount.levelDatas;
         }
     }
@@ -204,6 +205,7 @@ fn getLevelDatas(state: *main.GameState) ![]LevelStatistics {
         try state.statistics.levelDataWithPlayerCount.append(.{
             .levelDatas = std.ArrayList(LevelStatistics).init(state.allocator),
             .playerCount = @intCast(state.players.items.len),
+            .newGamePlus = state.newGamePlus,
         });
         optLevelDatas = &state.statistics.levelDataWithPlayerCount.items[state.statistics.levelDataWithPlayerCount.items.len - 1].levelDatas;
     }
@@ -229,15 +231,19 @@ fn loadFromFile(state: *main.GameState, filepath: []const u8) !void {
 
     const reader = file.reader();
     const safeFileVersion = try reader.readByte();
-    _ = safeFileVersion;
+    if (safeFileVersion != SAFE_FILE_VERSION) {
+        // std.debug.print("not loading outdated save file version");
+    }
 
     const statisticsForPlayerCountLength: usize = try reader.readInt(usize, .little);
     for (0..statisticsForPlayerCountLength) |_| {
         const playerCount = try reader.readInt(u32, .little);
+        const newGamePlus = try reader.readInt(u32, .little);
         const levelDataLength: usize = try reader.readInt(usize, .little);
         try state.statistics.levelDataWithPlayerCount.append(.{
             .levelDatas = std.ArrayList(LevelStatistics).init(state.allocator),
             .playerCount = playerCount,
+            .newGamePlus = newGamePlus,
         });
         const levelDatas = &state.statistics.levelDataWithPlayerCount.items[state.statistics.levelDataWithPlayerCount.items.len - 1];
         for (0..levelDataLength) |levelDataIndex| {
@@ -263,6 +269,7 @@ fn saveStatisticsDataToFile(state: *main.GameState) !void {
     _ = try writer.writeInt(usize, state.statistics.levelDataWithPlayerCount.items.len, .little);
     for (state.statistics.levelDataWithPlayerCount.items) |statisticsForPlayerCount| {
         _ = try writer.writeInt(u32, statisticsForPlayerCount.playerCount, .little);
+        _ = try writer.writeInt(u32, statisticsForPlayerCount.newGamePlus, .little);
         _ = try writer.writeInt(usize, statisticsForPlayerCount.levelDatas.items.len, .little);
         for (statisticsForPlayerCount.levelDatas.items) |levelStatistics| {
             _ = try writer.writeInt(i64, if (levelStatistics.fastestTime) |ft| ft else -1, .little);

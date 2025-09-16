@@ -65,7 +65,7 @@ fn onPlayerMoveEachTile(boss: *bossZig.Boss, player: *main.Player, state: *main.
 }
 
 fn startBoss(state: *main.GameState) !void {
-    const scaledHp = bossZig.getHpScalingForLevel(10, state.level);
+    const scaledHp = bossZig.getHpScalingForLevel(10, state);
     var boss: bossZig.Boss = .{
         .hp = scaledHp,
         .maxHp = scaledHp,
@@ -77,12 +77,11 @@ fn startBoss(state: *main.GameState) !void {
             .wallAttackTiles = std.ArrayList(PositionDelayed).init(state.allocator),
         } },
     };
-    const newGamePlus = main.getNewGamePlus(state.level);
-    if (newGamePlus > 0) {
-        boss.typeData.waller.wallDelay = @divFloor(boss.typeData.waller.wallDelay, @as(i32, @intCast(newGamePlus + 1)));
-        boss.typeData.waller.bombThrowInterval = @divFloor(boss.typeData.waller.bombThrowInterval, @as(i32, @intCast(newGamePlus + 1)));
-        boss.typeData.waller.bombFlyTime = @divFloor(boss.typeData.waller.bombFlyTime, @as(i32, @intCast(newGamePlus + 1)));
-        boss.typeData.waller.bombExplodeDelay = @divFloor(boss.typeData.waller.bombExplodeDelay, @as(i32, @intCast(newGamePlus + 1)));
+    if (state.newGamePlus > 0) {
+        boss.typeData.waller.wallDelay = @divFloor(boss.typeData.waller.wallDelay, @as(i32, @intCast(state.newGamePlus + 1)));
+        boss.typeData.waller.bombThrowInterval = @divFloor(boss.typeData.waller.bombThrowInterval, @as(i32, @intCast(state.newGamePlus + 1)));
+        boss.typeData.waller.bombFlyTime = @divFloor(boss.typeData.waller.bombFlyTime, @as(i32, @intCast(state.newGamePlus + 1)));
+        boss.typeData.waller.bombExplodeDelay = @divFloor(boss.typeData.waller.bombExplodeDelay, @as(i32, @intCast(state.newGamePlus + 1)));
     }
     try state.bosses.append(boss);
     try mapTileZig.setMapRadius(6, state);

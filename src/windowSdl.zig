@@ -118,11 +118,9 @@ pub fn handleEvents(state: *main.GameState) !void {
                         try shopZig.startShoppingPhase(state);
                     }
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_F4) {
-                    try main.restart(state);
+                    try main.restart(state, 0);
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_F5) {
-                    state.statistics.active = false;
-                    state.level = 149;
-                    try main.startNextLevel(state);
+                    try main.restart(state, state.newGamePlus + 1);
                 }
             }
         }

@@ -79,7 +79,7 @@ fn attackMoveWithFirePlacingCallback(hitPosition: main.TilePosition, visualizedD
 }
 
 fn startBoss(state: *main.GameState) !void {
-    const scaledHp = bossZig.getHpScalingForLevel(10, state.level);
+    const scaledHp = bossZig.getHpScalingForLevel(10, state);
     var boss: bossZig.Boss = .{
         .hp = scaledHp,
         .maxHp = scaledHp,
@@ -93,9 +93,8 @@ fn startBoss(state: *main.GameState) !void {
             },
         } },
     };
-    const newGamePlus = main.getNewGamePlus(state.level);
-    if (newGamePlus > 0) {
-        boss.typeData.fireRoll.maxEternalFire += @min(newGamePlus * 15, 60);
+    if (state.newGamePlus > 0) {
+        boss.typeData.fireRoll.maxEternalFire += @min(state.newGamePlus * 15, 60);
     }
     try state.bosses.append(boss);
     try mapTileZig.setMapRadius(6, state);
