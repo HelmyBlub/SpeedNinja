@@ -38,7 +38,7 @@ pub const GameState = struct {
     bonusTimePerRoundFinished: i32 = 5000,
     minimalTimePerRequiredRounds: i32 = 60_000,
     mapData: mapTileZig.MapData,
-    roundEndTimeMS: i64 = 0,
+    suddenDeathTimeMs: i64 = 0,
     roundStartedTime: i64 = 0,
     playerImmunityFrames: i64 = 1000,
     bosses: std.ArrayList(bossZig.Boss) = undefined,
@@ -249,7 +249,7 @@ fn mainLoop(state: *GameState) !void {
                 }
             }
             try shopZig.startShoppingPhase(state);
-        } else if (state.roundEndTimeMS < state.gameTime) {
+        } else if (state.suddenDeathTimeMs < state.gameTime) {
             try suddenDeath(state);
         }
         try windowSdlZig.handleEvents(state);
@@ -273,9 +273,11 @@ fn mainLoop(state: *GameState) !void {
 
 fn suddenDeath(state: *GameState) !void {
     if (state.gameOver) return;
-    if (state.round <= 1) return;
-    if (state.gamePhase != .combat) return;
-    const overTime = state.gameTime - state.roundEndTimeMS;
+    if (state.gamePhase == .shopping) return;
+    if (state.gamePhase != .combat and state.level <= LEVEL_COUNT * 2) return;
+    if (state.level > LEVEL_COUNT * 2 and @mod(state.level, LEVEL_COUNT) == 0) return;
+    if (state.round <= 1 and state.gamePhase == .combat) return;
+    const overTime = state.gameTime - state.suddenDeathTimeMs;
     const spawnInterval = 1050;
     if (@divFloor(overTime, spawnInterval) >= state.suddenDeath) {
         state.suddenDeath += 1;
@@ -374,12 +376,12 @@ pub fn startNextRound(state: *GameState) !void {
     const timeShoesBonusTime = equipmentZig.getTimeShoesBonusRoundTime(state);
     const maxTime = state.gameTime + state.minimalTimePerRequiredRounds + timeShoesBonusTime;
     if (state.round < state.roundToReachForNextLevel) {
-        state.roundEndTimeMS = maxTime;
+        state.suddenDeathTimeMs = maxTime;
     } else {
-        if (state.roundEndTimeMS < state.gameTime) state.roundEndTimeMS = state.gameTime;
-        state.roundEndTimeMS += state.bonusTimePerRoundFinished;
-        if (state.roundEndTimeMS > maxTime) {
-            state.roundEndTimeMS = maxTime;
+        if (state.suddenDeathTimeMs < state.gameTime) state.suddenDeathTimeMs = state.gameTime;
+        state.suddenDeathTimeMs += state.bonusTimePerRoundFinished;
+        if (state.suddenDeathTimeMs > maxTime) {
+            state.suddenDeathTimeMs = maxTime;
         }
     }
     state.suddenDeath = 0;
@@ -426,6 +428,12 @@ pub fn startNextLevel(state: *GameState) !void {
     }
     try enemyZig.setupSpawnEnemiesOnLevelChange(state);
     if (bossZig.isBossLevel(state.level)) {
+        if (state.level > 100) {
+            const timeShoesBonusTime = equipmentZig.getTimeShoesBonusRoundTime(state);
+            const maxTime = state.gameTime + state.minimalTimePerRequiredRounds * 2 + timeShoesBonusTime;
+            state.suddenDeathTimeMs = maxTime;
+        }
+
         try bossZig.startBossLevel(state);
     } else {
         try startNextRound(state);

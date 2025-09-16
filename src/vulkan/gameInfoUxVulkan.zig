@@ -26,6 +26,11 @@ pub fn setupVertices(state: *main.GameState) !void {
             try setupVerticesBossHpBar(boss, top, currentLeft, height, width, state);
             currentLeft += width + spacingX;
         }
+        if (state.level > main.LEVEL_COUNT * 2 and @mod(state.level, main.LEVEL_COUNT) != 0) {
+            const textWidthTime = fontVulkanZig.paintText("Time: ", .{ .x = 0, .y = -0.9 }, fontSize, textColor, fontVertices);
+            const remainingTime: i64 = @max(0, @divFloor(state.suddenDeathTimeMs - state.gameTime, 1000));
+            _ = try fontVulkanZig.paintNumber(remainingTime, .{ .x = textWidthTime, .y = -0.9 }, fontSize, textColor, fontVertices);
+        }
     } else {
         textWidthRound -= 0.2;
         if (state.gamePhase == .combat) {
@@ -46,12 +51,10 @@ pub fn setupVertices(state: *main.GameState) !void {
         }
         _ = try fontVulkanZig.paintNumberWithZeroPrefix(@mod(@divFloor(state.gameTime, 1000), 60), .{ .x = textWidthRound, .y = -0.99 }, fontSize, textColor, fontVertices, zeroPrefix);
 
-        if (state.round > 1) {
-            if (state.gamePhase == .combat) {
-                const textWidthTime = fontVulkanZig.paintText("Time: ", .{ .x = 0, .y = -0.9 }, fontSize, textColor, fontVertices);
-                const remainingTime: i64 = @max(0, @divFloor(state.roundEndTimeMS - state.gameTime, 1000));
-                _ = try fontVulkanZig.paintNumber(remainingTime, .{ .x = textWidthTime, .y = -0.9 }, fontSize, textColor, fontVertices);
-            }
+        if (state.round > 1 and state.gamePhase == .combat) {
+            const textWidthTime = fontVulkanZig.paintText("Time: ", .{ .x = 0, .y = -0.9 }, fontSize, textColor, fontVertices);
+            const remainingTime: i64 = @max(0, @divFloor(state.suddenDeathTimeMs - state.gameTime, 1000));
+            _ = try fontVulkanZig.paintNumber(remainingTime, .{ .x = textWidthTime, .y = -0.9 }, fontSize, textColor, fontVertices);
         }
     }
     if (state.gameOver) {

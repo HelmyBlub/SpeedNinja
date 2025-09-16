@@ -83,14 +83,7 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
 fn chooseDirection(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
     const movePiece = state.enemyData.movePieceEnemyMovePiece.?;
     const data = &enemy.enemyTypeData.movePiece;
-    const gridBorder: f32 = @floatFromInt(state.mapData.tileRadius * main.TILESIZE);
-    var validMovePosition = false;
-    while (!validMovePosition) {
-        var bossPositionAfterPiece = enemy.position;
-        data.direction = std.crypto.random.intRangeLessThan(u8, 0, 4);
-        try movePieceZig.movePositionByPiece(&bossPositionAfterPiece, movePiece, data.direction.?, state);
-        validMovePosition = bossPositionAfterPiece.x >= -gridBorder and bossPositionAfterPiece.x <= gridBorder and bossPositionAfterPiece.y >= -gridBorder and bossPositionAfterPiece.y <= gridBorder;
-    }
+    data.direction = try movePieceZig.getRandomValidMoveDirectionForMovePiece(enemy.position, movePiece, state);
 }
 
 fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
@@ -113,8 +106,8 @@ fn setupVerticesGroundStepFunction(pos: main.TilePosition, visualizedDirection: 
 }
 
 fn createRandomMovePiece(state: *main.GameState) !movePieceZig.MovePiece {
-    const newGamePlus = @min(main.getNewGamePlus(state.level), 2);
-    const stepsLength: usize = std.crypto.random.intRangeLessThan(usize, 0, 2) + 2 + newGamePlus;
+    const newGamePlusBonusLength = @min(main.getNewGamePlus(state.level), 2);
+    const stepsLength: usize = std.crypto.random.intRangeLessThan(usize, 0, 2) + 2 + newGamePlusBonusLength;
     const steps: []movePieceZig.MoveStep = try state.allocator.alloc(movePieceZig.MoveStep, stepsLength);
     const movePiece: movePieceZig.MovePiece = .{ .steps = steps };
     var currDirection: u8 = movePieceZig.DIRECTION_UP;

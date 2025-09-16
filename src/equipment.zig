@@ -334,13 +334,13 @@ pub fn getTimeShoesBonusRoundTime(state: *main.GameState) i32 {
 
 pub fn equipStarterEquipment(player: *main.Player) void {
     _ = equip(.{
-        .effectType = .{ .hp = .{ .hp = 20 } },
+        .effectType = .{ .hp = .{ .hp = 1 } },
         .imageIndex = imageZig.IMAGE_NINJA_HEAD,
         .slotTypeData = .{ .head = .{ .bandana = true, .earImageIndex = imageZig.IMAGE_NINJA_EAR } },
     }, false, player);
     _ = equip(.{ .effectType = .{ .hp = .{ .hp = 1 } }, .imageIndex = imageZig.IMAGE_NINJA_CHEST_ARMOR_1, .slotTypeData = .body }, false, player);
     _ = equip(.{ .effectType = .none, .imageIndex = imageZig.IMAGE_NINJA_FEET, .slotTypeData = .feet }, false, player);
-    _ = equip(.{ .effectType = .{ .damage = .{ .damage = 100 } }, .imageIndex = imageZig.IMAGE_BLADE, .slotTypeData = .weapon }, false, player);
+    _ = equip(.{ .effectType = .{ .damage = .{ .damage = 1 } }, .imageIndex = imageZig.IMAGE_BLADE, .slotTypeData = .weapon }, false, player);
 }
 
 /// return true if item equipted

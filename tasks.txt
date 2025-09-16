@@ -1,13 +1,14 @@
 Tasks:
+- bug: game endless loop on wave 148
+    - what could be reason?
 - after level 50 start new game+, repeat bosses but stuff gets harder, faster
-    - slightly changes bosses
-        - continue: tripple
-            - change fire to spawn on more tiles for each new game plus
     - on ++ (level 100+)
         - give bosses sudden death timer
+        - instead of timer: dragon boss gets p3 stomp slowly destroys size of platform 
     - measure time from 1-50. from 51 to 100
     - option to start on level 51
 - bug: visualization missing boss rotate shield
+- boss dragon fire sound for flying phase
 
 
 Next ideas:

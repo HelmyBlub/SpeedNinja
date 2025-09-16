@@ -273,7 +273,7 @@ fn getRandomEquipmentIndexForShop(blacklistedIndexes: []usize, mode: usize, stat
             if (blacklisted == index) continue :main;
         }
         const level = state.shop.equipOptionsLastLevelInShop[index];
-        totalProbability += @max(1, state.level - level);
+        totalProbability += @max(1, state.level -| level);
     }
     const random = std.crypto.random.intRangeLessThan(usize, 0, totalProbability);
     totalProbability = 0;
@@ -284,7 +284,7 @@ fn getRandomEquipmentIndexForShop(blacklistedIndexes: []usize, mode: usize, stat
             if (blacklisted == index) continue :main;
         }
         const level = state.shop.equipOptionsLastLevelInShop[index];
-        totalProbability += @max(1, state.level - level);
+        totalProbability += @max(1, state.level -| level);
         if (random <= totalProbability) {
             return index;
         }

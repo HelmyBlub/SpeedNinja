@@ -40,6 +40,27 @@ pub fn setRandomMovePiece(player: *main.Player, index: usize) !void {
     }
 }
 
+///valid = end of move piece is in grid for returned direction
+/// returned null => there is no possible move direction ending up in grid
+pub fn getRandomValidMoveDirectionForMovePiece(position: main.Position, movePiece: MovePiece, state: *main.GameState) !?u8 {
+    const gridBorder: f32 = @floatFromInt(state.mapData.tileRadius * main.TILESIZE);
+    var direction: u8 = 0;
+    var validMovePosition = false;
+    var directionOptions = [_]u8{ 0, 1, 2, 3 };
+    var directionOptionCount: usize = 4;
+    while (!validMovePosition) {
+        if (directionOptionCount == 0) return null;
+        var bossPositionAfterPiece = position;
+        const randomIndex = std.crypto.random.intRangeLessThan(usize, 0, directionOptionCount);
+        direction = directionOptions[randomIndex];
+        directionOptionCount -|= 1;
+        directionOptions[randomIndex] = directionOptions[directionOptionCount];
+        try movePositionByPiece(&bossPositionAfterPiece, movePiece, direction, state);
+        validMovePosition = bossPositionAfterPiece.x >= -gridBorder and bossPositionAfterPiece.x <= gridBorder and bossPositionAfterPiece.y >= -gridBorder and bossPositionAfterPiece.y <= gridBorder;
+    }
+    return direction;
+}
+
 pub fn setupMovePieces(player: *main.Player, state: *main.GameState) !void {
     var done = false;
     while (!done) {
