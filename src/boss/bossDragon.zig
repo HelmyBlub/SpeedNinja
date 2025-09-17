@@ -582,6 +582,7 @@ fn tickTransitionFlyingPhase(flyingData: *TransitionFlyingData, boss: *bossZig.B
             if (moveBossTick(boss, currentTargetPos, passedTime, DEFAULT_FLYING_SPEED)) {
                 flyingData.dragonFlyPositionIndex += 1;
                 if (flyingData.dragonFlyPositionIndex == 1 or flyingData.dragonFlyPositionIndex == 3) {
+                    try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BREATH_IN, 0, 1);
                     flyingData.fireSpawnTile = @intCast(state.mapData.tileRadius);
                 }
             }
@@ -592,6 +593,10 @@ fn tickTransitionFlyingPhase(flyingData: *TransitionFlyingData, boss: *bossZig.B
                     const flyToPosition = main.tilePositionToGamePosition(main.gamePositionToTilePosition(boss.position));
                     const fireSpawn: main.Position = .{ .x = boss.position.x, .y = boss.position.y };
                     try enemyObjectFireZig.spawnEternalFire(fireSpawn, flyToPosition, data.inAirHeight, state);
+                    if (data.soundData.lastFireBreathTime == null or data.soundData.lastFireBreathTime.? + 650 < state.gameTime) {
+                        try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_FIRE_BREATH, 0, 1);
+                        data.soundData.lastFireBreathTime = state.gameTime;
+                    }
                     if (data.phase == .phase3) {
                         var secondFireFlyToPos: main.Position = flyToPosition;
                         if (boss.position.y < 0) {
@@ -609,6 +614,10 @@ fn tickTransitionFlyingPhase(flyingData: *TransitionFlyingData, boss: *bossZig.B
                     const flyToPosition = main.tilePositionToGamePosition(main.gamePositionToTilePosition(boss.position));
                     const fireSpawn: main.Position = .{ .x = boss.position.x, .y = boss.position.y };
                     try enemyObjectFireZig.spawnEternalFire(fireSpawn, flyToPosition, data.inAirHeight, state);
+                    if (data.soundData.lastFireBreathTime == null or data.soundData.lastFireBreathTime.? + 650 < state.gameTime) {
+                        try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_FIRE_BREATH, 0, 1);
+                        data.soundData.lastFireBreathTime = state.gameTime;
+                    }
                     if (data.phase == .phase3) {
                         var secondFireFlyToPos: main.Position = flyToPosition;
                         if (boss.position.x < 0) {
