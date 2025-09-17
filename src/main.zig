@@ -98,8 +98,8 @@ pub const Player = struct {
 
 const PlayerUxData = struct {
     vulkanTopLeft: Position = .{ .x = 0, .y = 0 },
-    vulkanScale: f32 = 0.5,
-    vertical: bool = true,
+    vulkanScale: f32 = 0.4,
+    vertical: bool = false,
 };
 
 const ContinueData = struct {
@@ -230,6 +230,21 @@ fn ninjaDogDeathCutSprites(player: *Player, state: *GameState) !void {
 
 pub fn getPlayerDamage(player: *Player) u32 {
     return @as(u32, @intFromFloat(@round(@as(f32, @floatFromInt(player.damage)) * player.damagePerCentFactor)));
+}
+
+pub fn getPlayerTotalHp(player: *Player) u32 {
+    if (player.isDead) return 0;
+    var hp: u32 = 1;
+    if (player.equipment.equipmentSlotsData.body != null and player.equipment.equipmentSlotsData.body.?.effectType == .hp) {
+        hp += player.equipment.equipmentSlotsData.body.?.effectType.hp.hp;
+    }
+    if (player.equipment.equipmentSlotsData.head != null and player.equipment.equipmentSlotsData.head.?.effectType == .hp) {
+        hp += player.equipment.equipmentSlotsData.head.?.effectType.hp.hp;
+    }
+    if (player.equipment.equipmentSlotsData.feet != null and player.equipment.equipmentSlotsData.feet.?.effectType == .hp) {
+        hp += player.equipment.equipmentSlotsData.feet.?.effectType.hp.hp;
+    }
+    return hp;
 }
 
 fn startGame(allocator: std.mem.Allocator) !void {
@@ -594,6 +609,7 @@ pub fn adjustZoom(state: *GameState) void {
     const heightPerCent = mapSize / windowSdlZig.windowData.heightFloat;
     const biggerPerCent = @max(widthPerCent, heightPerCent);
     state.camera.zoom = targetMapScreenPerCent / biggerPerCent;
+    determinePlayerUxPositions(state);
 }
 
 pub fn getClosestPlayer(position: Position, state: *GameState) struct { player: ?*Player, distance: f32 } {
@@ -633,6 +649,7 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
     state.mapObjects = std.ArrayList(MapObject).init(state.allocator);
     try state.players.append(createPlayer(allocator));
     statsZig.loadStatisticsDataFromFile(state);
+    determinePlayerUxPositions(state);
     try restart(state, 0);
 }
 
@@ -843,4 +860,33 @@ pub fn tilePositionToGamePosition(tilePosition: TilePosition) Position {
 
 pub fn colorConv(r: f32, g: f32, b: f32) [3]f32 {
     return .{ std.math.pow(f32, r, 2.2), std.math.pow(f32, g, 2.2), std.math.pow(f32, b, 2.2) };
+}
+
+pub fn determinePlayerUxPositions(state: *GameState) void {
+    const scale: comptime_float = 1;
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const isVertical = windowSdlZig.windowData.widthFloat < windowSdlZig.windowData.heightFloat;
+
+    const height = scale / 4.0;
+    const width = height / onePixelYInVulkan * onePixelXInVulkan;
+    const playerPosX = [_]f32{ -0.99, 0.99 - width };
+    const playerPosY = [_]f32{ -1 + scale / 2.0, -1, 0 };
+
+    for (state.players.items, 0..) |*player, index| {
+        player.uxData.vulkanScale = scale;
+        player.uxData.vertical = true;
+        player.uxData.vulkanTopLeft.x = playerPosX[@mod(index, 2)];
+        if (state.players.items.len <= 2) {
+            player.uxData.vulkanTopLeft.y = playerPosY[0];
+        } else {
+            player.uxData.vulkanTopLeft.y = playerPosY[@mod(@divFloor(index, 2), 2) + 1];
+        }
+        if (isVertical) {
+            player.uxData.vertical = false;
+            const tempX = player.uxData.vulkanTopLeft.x;
+            player.uxData.vulkanTopLeft.x = player.uxData.vulkanTopLeft.y;
+            player.uxData.vulkanTopLeft.y = tempX;
+        }
+    }
 }

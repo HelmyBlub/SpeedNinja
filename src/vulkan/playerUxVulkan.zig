@@ -14,31 +14,60 @@ pub fn setupVertices(state: *main.GameState) !void {
 
     for (state.players.items) |*player| {
         verticesForMoveOptions(player, verticeData);
+        try verticesForPlayerData(player, verticeData, state);
     }
-    const textColor: [3]f32 = .{ 1, 1, 1 };
-    const fontSize = 30;
-    const player = state.players.items[0];
-    const remainingPieces = player.availableMovePieces.items.len + player.moveOptions.items.len;
-    const totalPieces = player.totalMovePieces.items.len;
-    var textWidthPieces = try fontVulkanZig.paintNumber(remainingPieces, .{ .x = 0.5, .y = 0.8 }, fontSize, textColor, &verticeData.font);
-    textWidthPieces += fontVulkanZig.paintText(":", .{ .x = 0.5 + textWidthPieces, .y = 0.8 }, fontSize, textColor, &verticeData.font);
-    _ = try fontVulkanZig.paintNumber(totalPieces, .{ .x = 0.5 + textWidthPieces, .y = 0.8 }, fontSize, textColor, &verticeData.font);
+}
 
-    const damageDisplayTextPos: main.Position = .{
-        .x = 0.5,
-        .y = 0.9,
-    };
-    const playerTotalDamage = main.getPlayerDamage(&state.players.items[0]);
-    const playerWeaponDamage = state.players.items[0].damage;
-    const bonusDamage = playerTotalDamage - playerWeaponDamage;
-    var damageTextWidth: f32 = 0;
-    damageTextWidth += try fontVulkanZig.paintNumber(playerWeaponDamage, damageDisplayTextPos, fontSize, textColor, &state.vkState.verticeData.font);
-    if (bonusDamage > 0) {
-        damageTextWidth += fontVulkanZig.paintText("+", .{ .x = damageDisplayTextPos.x + damageTextWidth, .y = damageDisplayTextPos.y }, fontSize, textColor, &state.vkState.verticeData.font);
-        _ = try fontVulkanZig.paintNumber(bonusDamage, .{ .x = damageDisplayTextPos.x + damageTextWidth, .y = damageDisplayTextPos.y }, fontSize, textColor, &state.vkState.verticeData.font);
-    }
+fn verticesForPlayerData(player: *main.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) !void {
+    const textColor: [3]f32 = .{ 1, 1, 1 };
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const remainingPieces = player.availableMovePieces.items.len + player.moveOptions.items.len;
+    const totalPieces = player.totalMovePieces.items.len;
+
+    var vulkanPos: main.Position = player.uxData.vulkanTopLeft;
+    var width: f32 = 0;
+    var height: f32 = 0;
+    const spacingFactor = 1.1;
+    if (player.uxData.vertical) {
+        height = player.uxData.vulkanScale / 4 / spacingFactor;
+        width = height / onePixelYInVulkan * onePixelXInVulkan;
+    } else {
+        width = player.uxData.vulkanScale / 4 / spacingFactor;
+        height = width / onePixelXInVulkan * onePixelYInVulkan;
+    }
+    const fontSize = height / 3 / onePixelYInVulkan;
+    if (player.uxData.vertical) {
+        const pieceYSpacing = height * spacingFactor;
+        vulkanPos.y += pieceYSpacing * 3;
+    } else {
+        const pieceXSpacing = width * spacingFactor;
+        vulkanPos.x += pieceXSpacing * 3;
+    }
+
+    var textWidthPieces = try fontVulkanZig.paintNumber(remainingPieces, vulkanPos, fontSize, textColor, &verticeData.font);
+    textWidthPieces += fontVulkanZig.paintText(":", .{ .x = vulkanPos.x + textWidthPieces, .y = vulkanPos.y }, fontSize, textColor, &verticeData.font);
+    _ = try fontVulkanZig.paintNumber(totalPieces, .{ .x = vulkanPos.x + textWidthPieces, .y = vulkanPos.y }, fontSize, textColor, &verticeData.font);
+
+    const damageDisplayTextPos: main.Position = .{
+        .x = vulkanPos.x + fontSize * onePixelXInVulkan,
+        .y = vulkanPos.y + fontSize * onePixelYInVulkan,
+    };
+    const playerTotalDamage = main.getPlayerDamage(player);
+    const playerWeaponDamage = player.damage;
+    const bonusDamage = playerTotalDamage - playerWeaponDamage;
+    var damageTextWidth: f32 = 0;
+    damageTextWidth += try fontVulkanZig.paintNumber(playerWeaponDamage, damageDisplayTextPos, fontSize, textColor, &verticeData.font);
+    if (bonusDamage > 0) {
+        damageTextWidth += fontVulkanZig.paintText("+", .{
+            .x = damageDisplayTextPos.x + damageTextWidth,
+            .y = damageDisplayTextPos.y,
+        }, fontSize, textColor, &verticeData.font);
+        _ = try fontVulkanZig.paintNumber(bonusDamage, .{
+            .x = damageDisplayTextPos.x + damageTextWidth,
+            .y = damageDisplayTextPos.y,
+        }, fontSize, textColor, &verticeData.font);
+    }
     const damageDisplayIconPos: main.Position = .{
         .x = damageDisplayTextPos.x - onePixelXInVulkan * fontSize / 2,
         .y = damageDisplayTextPos.y + onePixelYInVulkan * fontSize / 2,
@@ -54,28 +83,100 @@ pub fn setupVertices(state: *main.GameState) !void {
         false,
         state,
     );
+
+    const hpDisplayTextPos: main.Position = .{
+        .x = vulkanPos.x + fontSize * onePixelXInVulkan,
+        .y = vulkanPos.y + fontSize * onePixelYInVulkan * 2,
+    };
+    const playerHp = main.getPlayerTotalHp(player);
+    _ = try fontVulkanZig.paintNumber(playerHp, hpDisplayTextPos, fontSize * 0.8, textColor, &verticeData.font);
+    const hpDisplayIconPos: main.Position = .{
+        .x = hpDisplayTextPos.x + onePixelXInVulkan * fontSize / 4,
+        .y = hpDisplayTextPos.y + onePixelYInVulkan * fontSize / 3,
+    };
+    paintVulkanZig.verticesForComplexSpriteVulkan(
+        hpDisplayIconPos,
+        imageZig.IMAGE_ICON_HP,
+        fontSize * 1.3,
+        fontSize * 1.3,
+        1,
+        0,
+        false,
+        false,
+        state,
+    );
 }
 
 fn verticesForMoveOptions(player: *main.Player, verticeData: *dataVulkanZig.VkVerticeData) void {
-    if (player.moveOptions.items.len == 0) return;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-    const size = main.TILESIZE;
-    const width = size * onePixelXInVulkan;
-    const height = size * onePixelYInVulkan;
-    const pieceXSpacing = width * 8;
-    const someWidth = @as(f32, @floatFromInt(player.moveOptions.items.len - 1)) * pieceXSpacing - width / 2;
-    var startX: f32 = -someWidth / 2;
-    const startY = 0.9;
+    var width: f32 = 0;
+    var height: f32 = 0;
+    const spacingFactor = 1.1;
+    if (player.uxData.vertical) {
+        height = player.uxData.vulkanScale / 4 / spacingFactor;
+        width = height / onePixelYInVulkan * onePixelXInVulkan;
+    } else {
+        width = player.uxData.vulkanScale / 4 / spacingFactor;
+        height = width / onePixelXInVulkan * onePixelYInVulkan;
+    }
+
+    const pieceXSpacing = width * spacingFactor;
+    const pieceYSpacing = height * spacingFactor;
+    var startX = player.uxData.vulkanTopLeft.x;
+    var startY = player.uxData.vulkanTopLeft.y;
 
     const lines = &verticeData.lines;
     const triangles = &verticeData.triangles;
-    for (player.moveOptions.items, 0..) |option, index| {
-        const fillColor: [3]f32 = .{ 0.25, 0.25, 0.25 };
-        const selctedColor: [3]f32 = .{ 0.07, 0.07, 0.07 };
-        const rectFillColor = if (player.choosenMoveOptionIndex != null and player.choosenMoveOptionIndex.? == index) selctedColor else fillColor;
-        _ = verticesForMovePiece(option, rectFillColor, startX, startY, width, height, 0, false, lines, triangles);
-        startX += pieceXSpacing;
+    const fillColor: [3]f32 = .{ 0.25, 0.25, 0.25 };
+    const selctedColor: [3]f32 = .{ 0.07, 0.07, 0.07 };
+    for (0..3) |index| {
+        if (player.moveOptions.items.len <= index) {
+            paintVulkanZig.verticesForRectangle(startX, startY, width, height, .{ 0.8, 0, 0 }, lines, triangles);
+        } else {
+            const option = player.moveOptions.items[index];
+            const boundingBox = movePieceZig.getBoundingBox(option);
+            var rectPieceFillColor = fillColor;
+            var rectFillColor: [3]f32 = .{ 1.0, 1.0, 1.0 };
+            if (player.choosenMoveOptionIndex != null and player.choosenMoveOptionIndex.? == index) {
+                rectPieceFillColor = selctedColor;
+                rectFillColor = .{ 0.2, 0.2, 0.8 };
+            }
+            paintVulkanZig.verticesForRectangle(startX, startY, width, height, rectFillColor, lines, triangles);
+            var pieceDownScale: f32 = 4;
+            if (boundingBox.width > 4 or boundingBox.height > 4) {
+                pieceDownScale = @floatFromInt(@max(boundingBox.height, boundingBox.width));
+            }
+            const stepWidth = width / pieceDownScale;
+            const stepHeight = height / pieceDownScale;
+            var offsetX: f32 = @as(f32, @floatFromInt(boundingBox.pos.x)) * stepWidth;
+            var offsetY: f32 = @as(f32, @floatFromInt(boundingBox.pos.y)) * stepHeight;
+            if (pieceDownScale > @as(f32, @floatFromInt(boundingBox.width))) {
+                const diffX = pieceDownScale - @as(f32, @floatFromInt(boundingBox.width));
+                offsetX -= diffX / 2 * stepWidth;
+            }
+            if (pieceDownScale > @as(f32, @floatFromInt(boundingBox.height))) {
+                const diffY = pieceDownScale - @as(f32, @floatFromInt(boundingBox.height));
+                offsetY -= diffY / 2 * stepHeight;
+            }
+            _ = verticesForMovePiece(
+                option,
+                rectPieceFillColor,
+                startX - offsetX,
+                startY - offsetY,
+                stepWidth,
+                stepHeight,
+                0,
+                false,
+                lines,
+                triangles,
+            );
+        }
+        if (player.uxData.vertical) {
+            startY += pieceYSpacing;
+        } else {
+            startX += pieceXSpacing;
+        }
     }
 }
 

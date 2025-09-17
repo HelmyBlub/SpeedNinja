@@ -512,7 +512,7 @@ pub fn getBoundingBox(movePiece: MovePiece) main.TileRectangle {
         if (x < left) left = x else if (x > right) right = x;
         if (y < top) top = y else if (y > bottom) bottom = y;
     }
-    return main.TileRectangle{ .height = bottom - top, .width = right - left, .pos = .{ .x = left, .y = top } };
+    return main.TileRectangle{ .height = bottom - top + 1, .width = right - left + 1, .pos = .{ .x = left, .y = top } };
 }
 
 pub fn resetPieces(player: *main.Player) !void {

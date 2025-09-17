@@ -8,7 +8,6 @@ Tasks:
         - have vertical/horizontal options
         - have scaling option to change size
         - move piece should be centered and no go outside of display area. scale it so it fits in its box
-            - change design to white background but with alpha
         - display hp
         - auto determine where to place player UX for multiplayer
     - display player info
@@ -19,7 +18,7 @@ Tasks:
         - damage
         - vertical and horizontal options?
         - for multiple players
-    - sound when last 3 move pieces
+    - sound when last 2 move pieces
 
 - new game plus
     - check snowball being to slow?

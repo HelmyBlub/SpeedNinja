@@ -131,6 +131,7 @@ fn debugKeys(event: sdl.SDL_Event, state: *main.GameState) !void {
         try main.restart(state, state.newGamePlus + 1);
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F6) {
         try state.players.append(main.createPlayer(state.allocator));
+        try main.restart(state, 0);
     }
 }
 
