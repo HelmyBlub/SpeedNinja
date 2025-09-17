@@ -629,7 +629,7 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
     try restart(state, 0);
 }
 
-fn createPlayer(allocator: std.mem.Allocator) Player {
+pub fn createPlayer(allocator: std.mem.Allocator) Player {
     return .{
         .moveOptions = std.ArrayList(movePieceZig.MovePiece).init(allocator),
         .availableMovePieces = std.ArrayList(movePieceZig.MovePiece).init(allocator),

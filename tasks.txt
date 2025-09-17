@@ -1,17 +1,25 @@
 Tasks:
 - beat new game+1 (reached 25boss with hammer)
+- add simple multiplayer player so i can work with UX
+- improve move options UX
+    - display player info
+        - moveOptions
+            - 3choices
+            - no choice
+        - hp
+        - damage
+        - vertical and horizontal options?
+        - for multiple players
 
-- sound for sudden death
-    - last 3seconds ticking sounds
-    - last 10 seconds warning sound
-    - suddenDeath started sound
+
+
 - bug: game endless loop on wave 148 (could not reproduce anymore)
     - found one case for 141-144, but should not be the case for 148 as it required walls
     - what could be reason?
 
 
 Next ideas:
-- imrpove UX
+- improve UX
     - move options
     - shop
     - gameInfo

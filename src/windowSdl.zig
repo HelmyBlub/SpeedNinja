@@ -66,6 +66,7 @@ pub fn handleEvents(state: *main.GameState) !void {
             state.gameEnded = true;
         }
         if (event.type == sdl.SDL_EVENT_KEY_DOWN) {
+            try debugKeys(event, state);
             for (state.players.items) |*player| {
                 if (event.key.scancode == sdl.SDL_SCANCODE_LEFT or event.key.scancode == sdl.SDL_SCANCODE_A) {
                     if (player.choosenMoveOptionIndex) |index| {
@@ -104,26 +105,32 @@ pub fn handleEvents(state: *main.GameState) !void {
                     movePieceZig.setMoveOptionIndex(player, 1, state);
                 } else if (event.key.scancode == sdl.SDL_SCANCODE_3) {
                     movePieceZig.setMoveOptionIndex(player, 2, state);
-                } else if (event.key.scancode == sdl.SDL_SCANCODE_F1) {
-                    state.statistics.active = false;
-                    try main.startNextLevel(state);
-                } else if (event.key.scancode == sdl.SDL_SCANCODE_F2) {
-                    if (state.gamePhase == .combat) {
-                        state.statistics.active = false;
-                        try main.startNextRound(state);
-                    }
-                } else if (event.key.scancode == sdl.SDL_SCANCODE_F3) {
-                    if (state.gamePhase != .shopping) {
-                        state.statistics.active = false;
-                        try shopZig.startShoppingPhase(state);
-                    }
-                } else if (event.key.scancode == sdl.SDL_SCANCODE_F4) {
-                    try main.restart(state, 0);
-                } else if (event.key.scancode == sdl.SDL_SCANCODE_F5) {
-                    try main.restart(state, state.newGamePlus + 1);
                 }
             }
         }
+    }
+}
+
+fn debugKeys(event: sdl.SDL_Event, state: *main.GameState) !void {
+    if (event.key.scancode == sdl.SDL_SCANCODE_F1) {
+        state.statistics.active = false;
+        try main.startNextLevel(state);
+    } else if (event.key.scancode == sdl.SDL_SCANCODE_F2) {
+        if (state.gamePhase == .combat) {
+            state.statistics.active = false;
+            try main.startNextRound(state);
+        }
+    } else if (event.key.scancode == sdl.SDL_SCANCODE_F3) {
+        if (state.gamePhase != .shopping) {
+            state.statistics.active = false;
+            try shopZig.startShoppingPhase(state);
+        }
+    } else if (event.key.scancode == sdl.SDL_SCANCODE_F4) {
+        try main.restart(state, 0);
+    } else if (event.key.scancode == sdl.SDL_SCANCODE_F5) {
+        try main.restart(state, state.newGamePlus + 1);
+    } else if (event.key.scancode == sdl.SDL_SCANCODE_F6) {
+        try state.players.append(main.createPlayer(state.allocator));
     }
 }
 
