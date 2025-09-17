@@ -4,7 +4,7 @@ const imageZig = @import("../image.zig");
 const initVulkanZig = @import("initVulkan.zig");
 const dataVulkanZig = @import("dataVulkan.zig");
 const vk = initVulkanZig.vk;
-const movePieceUxVulkanZig = @import("movePieceUxVulkan.zig");
+const playerUxVulkanZig = @import("playerUxVulkan.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 const fontVulkanZig = @import("fontVulkan.zig");
 const mapGridVulkanZig = @import("mapGridVulkan.zig");
@@ -39,7 +39,7 @@ pub fn drawFrame(state: *main.GameState) !void {
     enemyVulkanZig.setupVerticesForBosses(state);
     enemyObjectZig.setupVertices(state);
     verticesForFrontCloud(state);
-    try movePieceUxVulkanZig.setupVertices(state);
+    try playerUxVulkanZig.setupVertices(state);
     try statsZig.setupVertices(state);
     try gameInfoUxZig.setupVertices(state);
     try setupVertexDataForGPU(vkState);

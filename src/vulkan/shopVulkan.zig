@@ -8,7 +8,7 @@ const windowSdlZig = @import("../windowSdl.zig");
 const movePieceZig = @import("../movePiece.zig");
 const fontVulkanZig = @import("fontVulkan.zig");
 const shopZig = @import("../shop.zig");
-const movePieceUxVulkanZig = @import("movePieceUxVulkan.zig");
+const playerUxVulkanZig = @import("playerUxVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 const equipmentZig = @import("../equipment.zig");
 
@@ -205,7 +205,7 @@ fn paintMovePieceInGrid(player: *main.Player, gridGameTopLeft: main.Position, st
     var left = vulkan.x - width / 2;
     var top = vulkan.y - height / 2;
 
-    const endPos = movePieceUxVulkanZig.verticesForMovePiece(
+    const endPos = playerUxVulkanZig.verticesForMovePiece(
         gridDisplayPiece,
         .{ 0.25, 0.25, 0.25 },
         left,
@@ -223,7 +223,7 @@ fn paintMovePieceInGrid(player: *main.Player, gridGameTopLeft: main.Position, st
     if (player.shop.selectedOption == .combine and player.shop.selectedOption.combine.pieceIndex2 != null) {
         const displayPiece2 = player.totalMovePieces.items[player.shop.selectedOption.combine.pieceIndex2.?];
         const directionChange = player.shop.selectedOption.combine.direction;
-        _ = movePieceUxVulkanZig.verticesForMovePiece(
+        _ = playerUxVulkanZig.verticesForMovePiece(
             displayPiece2,
             .{ 0.25, 0.25, 0.25 },
             left,

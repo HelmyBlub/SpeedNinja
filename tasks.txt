@@ -1,7 +1,16 @@
 Tasks:
-- beat new game+1 (reached 25boss with hammer)
-- add simple multiplayer player so i can work with UX
+- new game+1 
+    - defeat dragon boss
+    - try complete run
 - improve move options UX
+    - dev steps:
+        - have top left value to move playerUX around
+        - have vertical/horizontal options
+        - have scaling option to change size
+        - move piece should be centered and no go outside of display area. scale it so it fits in its box
+            - change design to white background but with alpha
+        - display hp
+        - auto determine where to place player UX for multiplayer
     - display player info
         - moveOptions
             - 3choices
@@ -10,8 +19,11 @@ Tasks:
         - damage
         - vertical and horizontal options?
         - for multiple players
+    - sound when last 3 move pieces
 
-
+- new game plus
+    - check snowball being to slow?
+    - check tripple air strike not correct count?
 
 - bug: game endless loop on wave 148 (could not reproduce anymore)
     - found one case for 141-144, but should not be the case for 148 as it required walls

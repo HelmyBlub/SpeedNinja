@@ -93,6 +93,13 @@ pub const Player = struct {
     equipment: equipmentZig.EquipmentData = .{},
     moneyBonusPerCent: f32 = 0,
     lastMoveDirection: ?u8 = null,
+    uxData: PlayerUxData = .{},
+};
+
+const PlayerUxData = struct {
+    vulkanTopLeft: Position = .{ .x = 0, .y = 0 },
+    vulkanScale: f32 = 0.5,
+    vertical: bool = true,
 };
 
 const ContinueData = struct {
