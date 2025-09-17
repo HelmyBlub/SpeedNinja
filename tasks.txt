@@ -1,14 +1,16 @@
 Tasks:
-- beat new game+1 (reached 25boss)
+- beat new game+1 (reached 25boss with hammer)
 
-- boss dragon fire sound for flying phase
-- bug: game endless loop on wave 148
+- sound for sudden death
+    - last 3seconds ticking sounds
+    - last 10 seconds warning sound
+    - suddenDeath started sound
+- bug: game endless loop on wave 148 (could not reproduce anymore)
     - found one case for 141-144, but should not be the case for 148 as it required walls
     - what could be reason?
 
 
 Next ideas:
-- sound for sudden death
 - imrpove UX
     - move options
     - shop

@@ -58,6 +58,13 @@ pub const GameState = struct {
     gameOver: bool = false,
     verifyMapData: verifyMapZig.VerifyMapData = .{},
     continueData: ContinueData = .{},
+    soundData: SoundData = .{},
+};
+
+pub const SoundData = struct {
+    suddenDeathPlayed: bool = false,
+    warningSoundPlayed: bool = false,
+    tickSoundPlayedCounter: u32 = 0,
 };
 
 pub const Player = struct {
@@ -250,9 +257,8 @@ fn mainLoop(state: *GameState) !void {
                 }
             }
             try shopZig.startShoppingPhase(state);
-        } else if (state.suddenDeathTimeMs < state.gameTime) {
-            try suddenDeath(state);
         }
+        try suddenDeath(state);
         try windowSdlZig.handleEvents(state);
         try tickPlayers(state, passedTime);
         tickClouds(state, passedTime);
@@ -275,9 +281,30 @@ fn mainLoop(state: *GameState) !void {
 fn suddenDeath(state: *GameState) !void {
     if (state.gameOver) return;
     if (state.gamePhase == .shopping) return;
-    if (state.gamePhase != .combat and state.level <= LEVEL_COUNT * 2) return;
-    if (state.level > LEVEL_COUNT * 2 and @mod(state.level, LEVEL_COUNT) == 0) return;
+    if (state.gamePhase == .boss and state.newGamePlus < 2) return;
+    if (state.newGamePlus >= 2 and state.level == LEVEL_COUNT) return;
     if (state.round <= 1 and state.gamePhase == .combat) return;
+
+    const timeUntilSuddenDeath = state.suddenDeathTimeMs - state.gameTime;
+    if (timeUntilSuddenDeath <= 0) {
+        if (!state.soundData.suddenDeathPlayed) {
+            try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_SUDDEN_DEATH, 0, 1);
+            state.soundData.suddenDeathPlayed = true;
+        }
+    } else {
+        if (timeUntilSuddenDeath < 10_000) {
+            if (!state.soundData.warningSoundPlayed) {
+                try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_TIME_WARNING, 0, 1);
+                state.soundData.warningSoundPlayed = true;
+            }
+            if (timeUntilSuddenDeath < 3000 - state.soundData.tickSoundPlayedCounter * 1000) {
+                try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_LAST_SECONDS, 0, 1);
+                state.soundData.tickSoundPlayedCounter += 1;
+            }
+        }
+        return;
+    }
+
     const overTime = state.gameTime - state.suddenDeathTimeMs;
     const spawnInterval = 1050;
     if (@divFloor(overTime, spawnInterval) >= state.suddenDeath) {
@@ -285,6 +312,9 @@ fn suddenDeath(state: *GameState) !void {
         const size = state.mapData.tileRadius * 2 + 3;
         const fRadius: f32 = @floatFromInt(state.mapData.tileRadius + 1);
         const fillWidth = @min(state.suddenDeath - 1, @divFloor(size, 2) + 1);
+        if (state.suddenDeath > 1) {
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BALL_GROUND_INDICIES[0..], 0, 1);
+        }
         for (0..size) |i| {
             for (0..size) |j| {
                 if (i > fillWidth and i < size - fillWidth - 1 and j > fillWidth and j < size - fillWidth - 1) continue;
@@ -386,6 +416,9 @@ pub fn startNextRound(state: *GameState) !void {
         }
     }
     state.suddenDeath = 0;
+    state.soundData.suddenDeathPlayed = false;
+    state.soundData.tickSoundPlayedCounter = 0;
+    state.soundData.warningSoundPlayed = false;
     state.roundStartedTime = state.gameTime;
     state.round += 1;
     if (state.round > 1) {
@@ -411,15 +444,14 @@ pub fn startNextLevel(state: *GameState) !void {
     mapTileZig.setMapType(.default, state);
     state.playerTookDamageOnLevel = false;
     state.suddenDeath = 0;
+    state.soundData.suddenDeathPlayed = false;
+    state.soundData.tickSoundPlayedCounter = 0;
+    state.soundData.warningSoundPlayed = false;
     state.camera.position = .{ .x = 0, .y = 0 };
     state.enemyData.enemies.clearRetainingCapacity();
     state.enemyData.enemyObjects.clearRetainingCapacity();
     mapTileZig.resetMapTiles(state.mapData.tiles);
     state.gamePhase = .combat;
-    if (@mod(state.level, LEVEL_COUNT) == 0 and state.enemyData.movePieceEnemyMovePiece != null) {
-        state.allocator.free(state.enemyData.movePieceEnemyMovePiece.?.steps);
-        state.enemyData.movePieceEnemyMovePiece = null;
-    }
     state.level += 1;
     state.round = 0;
     bossZig.clearBosses(state);
@@ -429,7 +461,7 @@ pub fn startNextLevel(state: *GameState) !void {
     }
     try enemyZig.setupSpawnEnemiesOnLevelChange(state);
     if (bossZig.isBossLevel(state.level)) {
-        if (state.level > 100) {
+        if (state.newGamePlus >= 2) {
             const timeShoesBonusTime = equipmentZig.getTimeShoesBonusRoundTime(state);
             const maxTime = state.gameTime + state.minimalTimePerRequiredRounds * 2 + timeShoesBonusTime;
             state.suddenDeathTimeMs = maxTime;

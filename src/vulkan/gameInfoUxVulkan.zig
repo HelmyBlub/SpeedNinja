@@ -26,7 +26,7 @@ pub fn setupVertices(state: *main.GameState) !void {
             try setupVerticesBossHpBar(boss, top, currentLeft, height, width, state);
             currentLeft += width + spacingX;
         }
-        if (state.level > main.LEVEL_COUNT * 2 and @mod(state.level, main.LEVEL_COUNT) != 0) {
+        if (state.newGamePlus >= 2 and state.level != main.LEVEL_COUNT) {
             const textWidthTime = fontVulkanZig.paintText("Time: ", .{ .x = 0, .y = -0.9 }, fontSize, textColor, fontVertices);
             const remainingTime: i64 = @max(0, @divFloor(state.suddenDeathTimeMs - state.gameTime, 1000));
             _ = try fontVulkanZig.paintNumber(remainingTime, .{ .x = textWidthTime, .y = -0.9 }, fontSize, textColor, fontVertices);
