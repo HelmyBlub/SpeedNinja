@@ -2,23 +2,19 @@ Tasks:
 - new game+1 
     - defeat dragon boss
     - try complete run
+- bug: dragon boss fire and wing blast moving fire in air end in air fire will try to fly back
 - improve move options UX
     - dev steps:
-        - have top left value to move playerUX around
-        - have vertical/horizontal options
-        - have scaling option to change size
-        - move piece should be centered and no go outside of display area. scale it so it fits in its box
-        - display hp
-        - auto determine where to place player UX for multiplayer
-    - display player info
-        - moveOptions
-            - 3choices
-            - no choice
-        - hp
-        - damage
-        - vertical and horizontal options?
-        - for multiple players
+        - speedrun timer over display
+        - display key to press
+            - change something for no choice?
+        - option to scale for single player
     - sound when last 2 move pieces
+- multiplayer
+    - on entering shop
+        - every player needs to enter
+        - revive dead players
+        - check move piece reset in shop for other player
 
 - new game plus
     - check snowball being to slow?
