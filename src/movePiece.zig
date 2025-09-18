@@ -164,6 +164,8 @@ pub fn tickPlayerMovePiece(player: *main.Player, state: *main.GameState) !void {
             }
             if (player.moveOptions.items.len == 0) {
                 try enemyObjectFallDownZig.spawnFallDown(player.position, 2000, true, state);
+            } else if (player.moveOptions.items.len == 2 and state.gamePhase != .shopping) {
+                try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_MOVE_PIECE_WARNING, 0, 1);
             }
         }
         if (player.executeMovePiece == null) {

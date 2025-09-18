@@ -3,11 +3,9 @@ Tasks:
     - try complete run
 
 - improve player UX
-    - dev steps:
-        - visualize losing hp with -1
     - sound when last 2 move pieces
 - controller inputs
-    - display key to press
+    - display key to press in playerUX
         - change something for no choice?
 - sound: play sound when "continue shop" opens
 - bug: dragon boss can target dead players
