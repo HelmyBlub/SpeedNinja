@@ -5,11 +5,10 @@ Tasks:
 
 - improve move options UX
     - dev steps:
-        - speedrun timer over display
         - display key to press
             - change something for no choice?
-        - option to scale for single player
     - sound when last 2 move pieces
+
 - bug: dragon boss can target dead players
 - multiplayer
     - on entering shop
@@ -34,10 +33,14 @@ Next ideas:
         - new game+
     - when "continue shop" opens
     - stairs image for "continue shop"
-    - player hp    
+    - +money on finishing round
+    - movepiece reset
+    - speedrun stats
 - multiplayer
     - boss hp scaling
-    - player stats?
+    - player speedrun stats?
+        - multiplayer don't display?
+            - only when run over?
 - no vulkan support alternative
     - validation layer case
 - shop move piece 

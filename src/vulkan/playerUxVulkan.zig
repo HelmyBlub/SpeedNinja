@@ -36,7 +36,7 @@ fn verticesForPlayerData(player: *main.Player, verticeData: *dataVulkanZig.VkVer
         width = player.uxData.vulkanScale / 4 / spacingFactor;
         height = width / onePixelXInVulkan * onePixelYInVulkan;
     }
-    const fontSize = height / 3 / onePixelYInVulkan;
+    const fontSize = height / 4 / onePixelYInVulkan;
     if (player.uxData.vertical) {
         const pieceYSpacing = height * spacingFactor;
         vulkanPos.y += pieceYSpacing * 3;
@@ -85,7 +85,7 @@ fn verticesForPlayerData(player: *main.Player, verticeData: *dataVulkanZig.VkVer
     );
 
     const hpDisplayTextPos: main.Position = .{
-        .x = vulkanPos.x + fontSize * onePixelXInVulkan,
+        .x = vulkanPos.x + onePixelXInVulkan * fontSize * 0.3,
         .y = vulkanPos.y + fontSize * onePixelYInVulkan * 2,
     };
     const playerHp = main.getPlayerTotalHp(player);
@@ -105,6 +105,15 @@ fn verticesForPlayerData(player: *main.Player, verticeData: *dataVulkanZig.VkVer
         false,
         state,
     );
+    const moneyDisplayTextPos: main.Position = .{
+        .x = vulkanPos.x,
+        .y = vulkanPos.y + fontSize * onePixelYInVulkan * 3,
+    };
+    const moneyTextWidth = fontVulkanZig.paintText("$", moneyDisplayTextPos, fontSize, textColor, &verticeData.font);
+    _ = try fontVulkanZig.paintNumber(player.money, .{
+        .x = moneyDisplayTextPos.x + moneyTextWidth,
+        .y = moneyDisplayTextPos.y,
+    }, fontSize, textColor, &verticeData.font);
 }
 
 fn verticesForMoveOptions(player: *main.Player, verticeData: *dataVulkanZig.VkVerticeData) void {

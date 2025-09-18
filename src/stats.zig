@@ -141,7 +141,7 @@ pub fn setupVertices(state: *main.GameState) !void {
     if (state.level <= 1) return;
     const textColor: [3]f32 = .{ 1, 1, 1 };
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-    const topLeft: main.Position = .{ .x = -0.99, .y = -0.5 };
+    const topLeft: main.Position = .{ .x = 0.55, .y = -0.5 };
     const levelDatas: []LevelStatistics = try getLevelDatas(state);
     const fontSize = 16;
     const firstDisplayLevel = if (state.level > 10) state.level - 10 else 1;

@@ -39,8 +39,6 @@ pub fn setupVertices(state: *main.GameState) !void {
         }
         textWidthRound += fontVulkanZig.paintText(" Level: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, textColor, fontVertices);
         textWidthRound += try fontVulkanZig.paintNumber(state.level, .{ .x = textWidthRound, .y = -0.99 }, fontSize, textColor, fontVertices);
-        textWidthRound += fontVulkanZig.paintText(" Money: $", .{ .x = textWidthRound, .y = -0.99 }, fontSize, textColor, fontVertices);
-        textWidthRound += try fontVulkanZig.paintNumber(state.players.items[0].money, .{ .x = textWidthRound, .y = -0.99 }, fontSize, textColor, fontVertices);
         textWidthRound += fontVulkanZig.paintText(" Play Time: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, textColor, fontVertices);
         var zeroPrefix = false;
         if (state.gameTime >= 60 * 1000) {
