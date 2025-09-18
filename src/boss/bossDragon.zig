@@ -388,15 +388,17 @@ fn determineTailAttackTiles(boss: *bossZig.Boss) !void {
 
 fn tickFireBreathAction(fireBreathData: *FireBreathData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
     const data = &boss.typeData.dragon;
+    standUpOrDownTick(boss, true, passedTime);
     if (fireBreathData.nextFireSpitTickTime == null) {
-        try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BREATH_IN, 0, 1);
-        fireBreathData.nextFireSpitTickTime = state.gameTime + fireBreathData.firstFireSpitDelay;
-        fireBreathData.targetPlayerIndex = std.crypto.random.intRangeLessThan(usize, 0, state.players.items.len);
-        fireBreathData.spitEndTime = fireBreathData.nextFireSpitTickTime.? + fireBreathData.spitDuration;
-        setDirection(boss, std.math.pi / 2.0);
-        data.openMouth = true;
+        if (data.paint.standingPerCent > 0.5) {
+            try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BREATH_IN, 0, 1);
+            fireBreathData.nextFireSpitTickTime = state.gameTime + fireBreathData.firstFireSpitDelay;
+            fireBreathData.targetPlayerIndex = std.crypto.random.intRangeLessThan(usize, 0, state.players.items.len);
+            fireBreathData.spitEndTime = fireBreathData.nextFireSpitTickTime.? + fireBreathData.spitDuration;
+            setDirection(boss, std.math.pi / 2.0);
+            data.openMouth = true;
+        }
     } else {
-        standUpOrDownTick(boss, true, passedTime);
         if (fireBreathData.spitEndTime - state.gameTime < fireBreathData.spitDuration and (data.soundData.lastFireBreathTime == null or data.soundData.lastFireBreathTime.? + 650 < state.gameTime)) {
             try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_FIRE_BREATH, 0, 1);
             data.soundData.lastFireBreathTime = state.gameTime;
@@ -433,6 +435,7 @@ fn tickWingBlastAction(wingBlastData: *WingBlastData, boss: *bossZig.Boss, passe
             wingBlastData.moveTickCount += 1;
             const stepDirection = movePieceZig.getStepDirection(wingBlastData.direction.?);
             for (state.players.items) |*player| {
+                if (player.isDead) continue;
                 player.position.x += stepDirection.x * main.TILESIZE;
                 player.position.y += stepDirection.y * main.TILESIZE;
                 const tilePos = main.gamePositionToTilePosition(player.position);
@@ -443,6 +446,10 @@ fn tickWingBlastAction(wingBlastData: *WingBlastData, boss: *bossZig.Boss, passe
             for (state.enemyData.enemyObjects.items) |*object| {
                 object.position.x += stepDirection.x * main.TILESIZE;
                 object.position.y += stepDirection.y * main.TILESIZE;
+                if (object.typeData == .fire and object.typeData.fire.flyToPosition != null) {
+                    object.typeData.fire.flyToPosition.?.x += stepDirection.x * main.TILESIZE;
+                    object.typeData.fire.flyToPosition.?.y += stepDirection.y * main.TILESIZE;
+                }
             }
             if (wingBlastData.maxMoveTicks <= wingBlastData.moveTickCount) {
                 data.paint.stopWings = true;

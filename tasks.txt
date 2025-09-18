@@ -3,6 +3,8 @@ Tasks:
     - defeat dragon boss
     - try complete run
 - bug: dragon boss fire and wing blast moving fire in air end in air fire will try to fly back
+    - bug: can target dead players
+    - fire breath to soon
 - improve move options UX
     - dev steps:
         - speedrun timer over display
