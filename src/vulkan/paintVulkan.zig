@@ -359,7 +359,15 @@ fn pointsToVerticesVulkan(
                 .y = cornerPosOffset.y * scalingY,
             };
             var rotatedOffset = scaledCornerPosOffset;
-            if (rotation != 0) rotatedOffset = main.rotateAroundPoint(scaledCornerPosOffset, pivot, rotation);
+            if (rotation != 0) {
+                const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+                const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+                rotatedOffset.x /= onePixelXInVulkan;
+                rotatedOffset.y /= onePixelYInVulkan;
+                rotatedOffset = main.rotateAroundPoint(rotatedOffset, pivot, rotation);
+                rotatedOffset.x *= onePixelXInVulkan;
+                rotatedOffset.y *= onePixelYInVulkan;
+            }
             const vulkan: main.Position = .{
                 .x = rotatedOffset.x + vulkanPosition.x,
                 .y = rotatedOffset.y + vulkanPosition.y,

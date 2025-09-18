@@ -100,6 +100,8 @@ const PlayerUxData = struct {
     vulkanTopLeft: Position = .{ .x = 0, .y = 0 },
     vulkanScale: f32 = 0.4,
     vertical: bool = false,
+    piecesRefreshedVisualization: ?i64 = null,
+    visualizationDuration: i32 = 1500,
 };
 
 const ContinueData = struct {
@@ -190,7 +192,7 @@ pub fn playerHit(player: *Player, state: *GameState) !void {
         state.gameOver = isGameOver(state);
         try ninjaDogDeathCutSprites(player, state);
     } else {
-        try movePieceZig.resetPieces(player);
+        try movePieceZig.resetPieces(player, true, state);
     }
     player.immunUntilTime = state.gameTime + state.playerImmunityFrames;
     state.playerTookDamageOnLevel = true;
@@ -478,7 +480,7 @@ pub fn startNextLevel(state: *GameState) !void {
     state.round = 0;
     bossZig.clearBosses(state);
     for (state.players.items) |*player| {
-        try movePieceZig.resetPieces(player);
+        try movePieceZig.resetPieces(player, false, state);
         player.lastMoveDirection = null;
     }
     try enemyZig.setupSpawnEnemiesOnLevelChange(state);
@@ -737,6 +739,7 @@ pub fn executeContinue(state: *GameState) !void {
 
 /// returns null if players have not enough money for continue
 pub fn getMoneyCostsForContinue(state: *GameState) ?u32 {
+    if (state.level < 2) return null;
     if (state.continueData.freeContinues > 0) {
         return 0;
     }

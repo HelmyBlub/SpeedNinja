@@ -5,6 +5,9 @@ Tasks:
 
 - improve player UX
     - dev steps:
+        - how to visualize when move pieces reset?
+            - display rotating refresh icon
+        - visualize money changes
         - display key to press
             - change something for no choice?
     - sound when last 2 move pieces

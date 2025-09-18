@@ -353,7 +353,7 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
                 setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
             }
             if (player.moveOptions.items.len == 0) {
-                try movePieceZig.resetPieces(player);
+                try movePieceZig.resetPieces(player, false, state);
             }
         },
         .add => |*data| {
@@ -405,7 +405,7 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
                 data.pieceIndex2 = null;
                 data.combineStep = .selectPiece1;
                 if (player.moveOptions.items.len == 0) {
-                    try movePieceZig.resetPieces(player);
+                    try movePieceZig.resetPieces(player, false, state);
                 }
             }
         },

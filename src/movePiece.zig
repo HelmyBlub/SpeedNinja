@@ -353,7 +353,7 @@ fn stepAndCheckEnemyHitAndProjectileHitAndTiles(player: *main.Player, stepCount:
             if (try checkEnemyHitOnMoveStep(player, direction, state)) {
                 ninjaDogVulkanZig.bladeSlashAnimate(player);
                 try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BLADE_CUT_INDICIES[0..], currIndex * 25, 1);
-                try resetPieces(player);
+                try resetPieces(player, true, state);
                 player.slashedLastMoveTile = true;
             }
             try bossZig.onPlayerMoveEachTile(player, state);
@@ -386,7 +386,7 @@ fn stepAndCheckEnemyHitAndProjectileHitAndTiles(player: *main.Player, stepCount:
                     .deleteTime = state.gameTime + 200,
                     .speed = 25,
                 } } });
-                try resetPieces(player);
+                try resetPieces(player, true, state);
             }
         }
         if (player.equipment.hasWeaponHammer and (currIndex == stepCount or tileType == .wall) and player.executeMovePiece.?.steps.len == 1) {
@@ -431,7 +431,7 @@ fn stepAndCheckEnemyHitAndProjectileHitAndTiles(player: *main.Player, stepCount:
             }
             if (hitSomethingWithHammer) {
                 try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_HAMMER_INDICIES[0..], currIndex * 25, 1);
-                try resetPieces(player);
+                try resetPieces(player, true, state);
             }
         }
         if (tileType == .wall) return;
@@ -494,7 +494,7 @@ pub fn movePlayerByMovePiece(player: *main.Player, movePieceIndex: usize, direct
     player.lastMoveDirection = directionInput;
     try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_NINJA_MOVE_INDICIES[0..], 0, 1);
     if (state.gamePhase == .shopping and player.availableMovePieces.items.len == 0 and player.moveOptions.items.len == 0) {
-        try resetPieces(player);
+        try resetPieces(player, true, state);
     }
 }
 
@@ -515,7 +515,7 @@ pub fn getBoundingBox(movePiece: MovePiece) main.TileRectangle {
     return main.TileRectangle{ .height = bottom - top + 1, .width = right - left + 1, .pos = .{ .x = left, .y = top } };
 }
 
-pub fn resetPieces(player: *main.Player) !void {
+pub fn resetPieces(player: *main.Player, visualizeRefresh: bool, state: *main.GameState) !void {
     player.availableMovePieces.clearRetainingCapacity();
     try player.availableMovePieces.appendSlice(player.totalMovePieces.items);
     for (player.moveOptions.items) |moveOption| {
@@ -529,6 +529,7 @@ pub fn resetPieces(player: *main.Player) !void {
     while (player.moveOptions.items.len < 3 and player.availableMovePieces.items.len > 0) {
         try setRandomMovePiece(player, 3);
     }
+    if (visualizeRefresh) player.uxData.piecesRefreshedVisualization = state.gameTime;
 }
 
 pub fn areSameMovePieces(movePiece1: MovePiece, movePiece2: MovePiece) bool {

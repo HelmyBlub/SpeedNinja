@@ -130,12 +130,31 @@ fn verticesForPlayerPieceCounter(vulkanPos: main.Position, fontSize: f32, player
         state,
     );
     const textPosX: f32 = iconPos.x + onePixelXInVulkan * fontSize / 2;
+    var width: f32 = 0;
     if (state.gamePhase == .shopping) {
         const totalPieces = player.totalMovePieces.items.len;
-        _ = try fontVulkanZig.paintNumber(totalPieces, .{ .x = textPosX, .y = vulkanPos.y }, fontSize, textColor, &verticeData.font);
+        width = try fontVulkanZig.paintNumber(totalPieces, .{ .x = textPosX, .y = vulkanPos.y }, fontSize, textColor, &verticeData.font);
     } else {
         const remainingPieces = player.availableMovePieces.items.len + player.moveOptions.items.len;
-        _ = try fontVulkanZig.paintNumber(remainingPieces, .{ .x = textPosX, .y = vulkanPos.y }, fontSize, textColor, &verticeData.font);
+        width = try fontVulkanZig.paintNumber(remainingPieces, .{ .x = textPosX, .y = vulkanPos.y }, fontSize, textColor, &verticeData.font);
+    }
+    if (player.uxData.piecesRefreshedVisualization != null and player.uxData.piecesRefreshedVisualization.? + player.uxData.visualizationDuration >= state.gameTime) {
+        const refreshIconPos: main.Position = .{
+            .x = textPosX + onePixelXInVulkan * fontSize / 2 + width,
+            .y = vulkanPos.y + onePixelYInVulkan * fontSize / 2,
+        };
+        const rotation: f32 = @as(f32, @floatFromInt(state.gameTime - player.uxData.visualizationDuration)) / 200;
+        paintVulkanZig.verticesForComplexSpriteVulkan(
+            refreshIconPos,
+            imageZig.IMAGE_ICON_REFRESH,
+            fontSize,
+            fontSize,
+            1,
+            rotation,
+            false,
+            false,
+            state,
+        );
     }
 }
 
