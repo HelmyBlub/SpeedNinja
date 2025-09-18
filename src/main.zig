@@ -505,7 +505,7 @@ pub fn movePlayerToLevelSpawnPosition(state: *GameState) void {
         .{ .x = 0, .y = -1 },
         .{ .x = 0, .y = 1 },
         .{ .x = 1, .y = 0 },
-        .{ .x = 0, .y = 1 },
+        .{ .x = -1, .y = 0 },
     };
     const mapRadius: f32 = @as(f32, @floatFromInt(state.mapData.tileRadius)) * TILESIZE;
     for (state.players.items, 0..) |*player, index| {
@@ -863,15 +863,26 @@ pub fn colorConv(r: f32, g: f32, b: f32) [3]f32 {
 }
 
 pub fn determinePlayerUxPositions(state: *GameState) void {
-    const scale: comptime_float = 1;
+    var scale: f32 = 1;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const isVertical = windowSdlZig.windowData.widthFloat < windowSdlZig.windowData.heightFloat;
+    var diffScale: f32 = 0;
+    if (state.players.items.len <= 2) {
+        if (isVertical) {
+            diffScale = windowSdlZig.windowData.heightFloat / windowSdlZig.windowData.widthFloat;
+        } else {
+            diffScale = windowSdlZig.windowData.widthFloat / windowSdlZig.windowData.heightFloat;
+        }
+        if (diffScale > 1.2) {
+            scale = @max(1.0, @min(2.0, 1 + (diffScale - 1.2) * 2.0));
+        }
+    }
 
     const height = scale / 4.0;
     const width = height / onePixelYInVulkan * onePixelXInVulkan;
     const playerPosX = [_]f32{ -0.99, 0.99 - width };
-    const playerPosY = [_]f32{ -1 + scale / 2.0, -1, 0 };
+    const playerPosY = [_]f32{ 0 - scale / 2.0, -1, 0 };
 
     for (state.players.items, 0..) |*player, index| {
         player.uxData.vulkanScale = scale;

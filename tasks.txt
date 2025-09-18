@@ -2,16 +2,16 @@ Tasks:
 - new game+1 
     - defeat dragon boss
     - try complete run
-- bug: dragon boss fire and wing blast moving fire in air end in air fire will try to fly back
-    - bug: can target dead players
-    - fire breath to soon
+
 - improve move options UX
     - dev steps:
+        - increase scale when enough width
         - speedrun timer over display
         - display key to press
             - change something for no choice?
         - option to scale for single player
     - sound when last 2 move pieces
+- bug: dragon boss can target dead players
 - multiplayer
     - on entering shop
         - every player needs to enter
