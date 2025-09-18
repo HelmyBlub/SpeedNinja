@@ -99,15 +99,42 @@ fn verticesForPlayerData(player: *main.Player, verticeData: *dataVulkanZig.VkVer
         false,
         state,
     );
+    try verticesForPlayerMoney(vulkanPos, fontSize, player, verticeData, state);
+}
+
+fn verticesForPlayerMoney(vulkanPos: main.Position, fontSize: f32, player: *main.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) !void {
+    const textColor: [3]f32 = .{ 1, 1, 1 };
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const moneyDisplayTextPos: main.Position = .{
         .x = vulkanPos.x,
         .y = vulkanPos.y + fontSize * onePixelYInVulkan * 3,
     };
-    const moneyTextWidth = fontVulkanZig.paintText("$", moneyDisplayTextPos, fontSize, textColor, &verticeData.font);
-    _ = try fontVulkanZig.paintNumber(player.money, .{
+    var moneyTextWidth = fontVulkanZig.paintText("$", moneyDisplayTextPos, fontSize, textColor, &verticeData.font);
+    moneyTextWidth += try fontVulkanZig.paintNumber(player.money, .{
         .x = moneyDisplayTextPos.x + moneyTextWidth,
         .y = moneyDisplayTextPos.y,
     }, fontSize, textColor, &verticeData.font);
+    if (player.uxData.visualizeMoney) |moneyChange| {
+        if (player.uxData.visualizeMoneyUntil == null) player.uxData.visualizeMoneyUntil = state.gameTime + player.uxData.visualizationDuration;
+        if (player.uxData.visualizeMoneyUntil.? > state.gameTime) {
+            const red: [3]f32 = .{ 0.7, 0, 0 };
+            const green: [3]f32 = .{ 0.1, 1, 0.1 };
+            var color = red;
+            if (moneyChange > 0) {
+                color = green;
+                moneyTextWidth += fontVulkanZig.paintText("+", .{
+                    .x = moneyDisplayTextPos.x + moneyTextWidth,
+                    .y = moneyDisplayTextPos.y,
+                }, fontSize, color, &state.vkState.verticeData.font);
+            }
+            _ = try fontVulkanZig.paintNumber(moneyChange, .{
+                .x = moneyDisplayTextPos.x + moneyTextWidth,
+                .y = moneyDisplayTextPos.y,
+            }, fontSize, color, &state.vkState.verticeData.font);
+        } else {
+            player.uxData.visualizeMoney = null;
+        }
+    }
 }
 
 fn verticesForPlayerPieceCounter(vulkanPos: main.Position, fontSize: f32, player: *main.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) !void {
@@ -175,7 +202,7 @@ fn verticesForMoveOptions(player: *main.Player, verticeData: *dataVulkanZig.VkVe
     const pieceXSpacing = width * spacingFactor;
     const pieceYSpacing = height * spacingFactor;
     var startX = player.uxData.vulkanTopLeft.x;
-    var startY = player.uxData.vulkanTopLeft.y;
+    var startY = player.uxData.vulkanTopLeft.y + height * ((spacingFactor - 1) * 0.5);
 
     const lines = &verticeData.lines;
     const triangles = &verticeData.triangles;

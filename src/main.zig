@@ -102,6 +102,8 @@ const PlayerUxData = struct {
     vertical: bool = false,
     piecesRefreshedVisualization: ?i64 = null,
     visualizationDuration: i32 = 1500,
+    visualizeMoney: ?i32 = null,
+    visualizeMoneyUntil: ?i64 = null,
 };
 
 const ContinueData = struct {
@@ -268,7 +270,8 @@ fn mainLoop(state: *GameState) !void {
             if (state.gamePhase == .boss) {
                 state.lastBossDefeatedTime = state.gameTime;
                 for (state.players.items) |*player| {
-                    player.money += @as(u32, @intFromFloat(@as(f32, @floatFromInt(state.level)) * 10.0 * (1.0 + player.moneyBonusPerCent)));
+                    const amount = @as(i32, @intFromFloat(@as(f32, @floatFromInt(state.level)) * 10.0 * (1.0 + player.moneyBonusPerCent)));
+                    changePlayerMoneyBy(amount, player, true);
                 }
                 if (state.playerTookDamageOnLevel == false) {
                     state.continueData.bossesAced += 1;
@@ -447,7 +450,8 @@ pub fn startNextRound(state: *GameState) !void {
     state.round += 1;
     if (state.round > 1) {
         for (state.players.items) |*player| {
-            player.money += @as(u32, @intFromFloat(@ceil(@as(f32, @floatFromInt(state.level)) * (1.0 + player.moneyBonusPerCent))));
+            const amount = @as(i32, @intFromFloat(@ceil(@as(f32, @floatFromInt(state.level)) * (1.0 + player.moneyBonusPerCent))));
+            changePlayerMoneyBy(amount, player, true);
         }
     }
     try enemyZig.setupEnemies(state);
@@ -458,6 +462,18 @@ pub fn endShoppingPhase(state: *GameState) !void {
     state.gamePhase = .combat;
     try statsZig.statsOnLevelShopFinishedAndNextLevelStart(state);
     try startNextLevel(state);
+}
+
+pub fn changePlayerMoneyBy(amount: i32, player: *Player, visualize: bool) void {
+    player.money = @intCast(@as(i32, @intCast(player.money)) + amount);
+    if (visualize and amount != 0) {
+        if (player.uxData.visualizeMoney != null) {
+            player.uxData.visualizeMoney.? += amount;
+        } else {
+            player.uxData.visualizeMoney = amount;
+        }
+        player.uxData.visualizeMoneyUntil = null;
+    }
 }
 
 pub fn startNextLevel(state: *GameState) !void {
@@ -708,13 +724,13 @@ pub fn executeContinue(state: *GameState) !void {
         const averagePlayerCosts = @divFloor(openMoney, state.players.items.len);
         for (state.players.items) |*player| {
             const pay = @min(averagePlayerCosts, player.money);
-            player.money -|= pay;
+            changePlayerMoneyBy(-@as(i32, @intCast(pay)), player, true);
             openMoney -|= pay;
         }
         if (openMoney > 0) {
             for (state.players.items) |*player| {
                 const pay = @min(openMoney, player.money);
-                player.money -|= pay;
+                changePlayerMoneyBy(-@as(i32, @intCast(pay)), player, true);
                 openMoney -|= pay;
                 if (openMoney == 0) break;
             }

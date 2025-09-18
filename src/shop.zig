@@ -152,7 +152,7 @@ pub fn executeShopActionForPlayer(player: *main.Player, state: *main.GameState) 
             if (player.money >= buyOption.price) {
                 const optOldEquip = equipmentZig.getEquipSlot(buyOption.equipment.slotTypeData, player);
                 if (equipmentZig.equip(buyOption.equipment, true, player)) {
-                    player.money -= buyOption.price;
+                    main.changePlayerMoneyBy(-@as(i32, @intCast(buyOption.price)), player, true);
                     if (optOldEquip) |old| {
                         buyOption.price = 0;
                         buyOption.equipment = old;
@@ -346,7 +346,7 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
             const cost = state.level * 1;
             if (player.money >= cost and player.totalMovePieces.items.len > 1) {
                 try movePieceZig.removeMovePiece(player, data.selectedIndex, state.allocator);
-                player.money -= cost;
+                main.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
                 if (player.totalMovePieces.items.len <= data.selectedIndex) {
                     data.selectedIndex -= 1;
                 }
@@ -359,7 +359,7 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
         .add => |*data| {
             const cost = state.level * 1;
             if (player.money >= cost) {
-                player.money -= cost;
+                main.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
                 if (player.shop.piecesToBuy[data.selectedIndex]) |buyPiece| {
                     try movePieceZig.addMovePiece(player, buyPiece);
                     var isDifferentPiece = false;
@@ -387,7 +387,7 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
         .cut => |*data| {
             const cost = state.level * 1;
             if (player.money >= cost and data.gridCutOffset != null and player.shop.gridDisplayPiece != null) {
-                player.money -= cost;
+                main.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
                 try movePieceZig.cutTilePositionOnMovePiece(player, data.gridCutOffset.?, player.shop.gridDisplayPieceOffset, data.selectedIndex, state);
                 data.gridCutOffset = null;
                 setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
@@ -396,7 +396,7 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
         .combine => |*data| {
             const cost = state.level * 1;
             if (player.money >= cost and data.pieceIndex2 != null and data.combineStep == .selectDirection) {
-                player.money -= cost;
+                main.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
                 try movePieceZig.combineMovePieces(player, data.pieceIndex1, data.pieceIndex2.?, data.direction, state);
                 if (data.pieceIndex1 > data.pieceIndex2.?) {
                     data.pieceIndex1 -= 1;

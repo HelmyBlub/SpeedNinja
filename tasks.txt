@@ -1,17 +1,19 @@
 Tasks:
 - new game+1 
-    - defeat dragon boss
     - try complete run
 
 - improve player UX
     - dev steps:
-        - how to visualize when move pieces reset?
-            - display rotating refresh icon
+        - gap at the top
         - visualize money changes
-        - display key to press
-            - change something for no choice?
+            - display -/+ changes
+        - visualize gaining move piece with +1 and losing with -1
+        - visualize losing hp with -1
     - sound when last 2 move pieces
-
+- controller inputs
+    - display key to press
+        - change something for no choice?
+- sound: play sound when "continue shop" opens
 - bug: dragon boss can target dead players
 - multiplayer
     - on entering shop
