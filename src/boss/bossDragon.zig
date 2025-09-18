@@ -192,7 +192,7 @@ fn onPlayerMoveEachTile(boss: *bossZig.Boss, player: *main.Player, state: *main.
     const data = &boss.typeData.dragon;
     switch (data.action) {
         .fireBreath => |*fireBreathData| {
-            if (fireBreathData.spitEndTime - fireBreathData.spitDuration <= state.gameTime) {
+            if (fireBreathData.nextFireSpitTickTime != null and fireBreathData.spitEndTime - fireBreathData.spitDuration <= state.gameTime) {
                 if (player == &state.players.items[fireBreathData.targetPlayerIndex]) {
                     fireBreathData.nextFireSpitTickTime = state.gameTime + fireBreathData.spitInterval;
                     const targetPos = player.position;

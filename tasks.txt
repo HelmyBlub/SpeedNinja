@@ -5,7 +5,6 @@ Tasks:
 
 - improve move options UX
     - dev steps:
-        - increase scale when enough width
         - speedrun timer over display
         - display key to press
             - change something for no choice?
