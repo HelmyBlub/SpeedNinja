@@ -3,7 +3,7 @@ Tasks:
     - defeat dragon boss
     - try complete run
 
-- improve move options UX
+- improve player UX
     - dev steps:
         - display key to press
             - change something for no choice?

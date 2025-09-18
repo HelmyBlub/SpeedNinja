@@ -90,6 +90,7 @@ pub const IMAGE_BODY_SIXPACK = 82;
 pub const IMAGE_CLOCK = 83;
 pub const IMAGE_BLIND_ICON = 84;
 pub const IMAGE_NO_CHOICE = 85;
+pub const IMAGE_ICON_MOVE_PIECE = 86;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaFeet.png" },
@@ -178,6 +179,7 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/clock.png" },
     .{ .path = "images/blindIcon.png" },
     .{ .path = "images/noChoice.png" },
+    .{ .path = "images/movePieceIcon.png" },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 pub const IMAGE_DOG__CENTER_BODY: main.Position = .{ .x = 99, .y = 128 };
