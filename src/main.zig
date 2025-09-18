@@ -105,6 +105,8 @@ const PlayerUxData = struct {
     visualizationDuration: i32 = 1500,
     visualizeMoney: ?i32 = null,
     visualizeMoneyUntil: ?i64 = null,
+    visualizeHpChange: ?i32 = null,
+    visualizeHpChangeUntil: ?i64 = null,
 };
 
 const ContinueData = struct {
@@ -197,6 +199,14 @@ pub fn playerHit(player: *Player, state: *GameState) !void {
     } else {
         try movePieceZig.resetPieces(player, true, state);
     }
+
+    if (player.uxData.visualizeHpChange != null) {
+        player.uxData.visualizeHpChange.? -= 1;
+    } else {
+        player.uxData.visualizeHpChange = -1;
+    }
+    player.uxData.visualizeHpChangeUntil = state.gameTime + player.uxData.visualizationDuration;
+
     player.immunUntilTime = state.gameTime + state.playerImmunityFrames;
     state.playerTookDamageOnLevel = true;
     try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_PLAYER_HIT, 0, 1);

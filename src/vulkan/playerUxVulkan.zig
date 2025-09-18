@@ -78,12 +78,20 @@ fn verticesForPlayerData(player: *main.Player, verticeData: *dataVulkanZig.VkVer
         state,
     );
 
+    try verticesForPlayerHp(vulkanPos, fontSize, player, verticeData, state);
+    try verticesForPlayerMoney(vulkanPos, fontSize, player, verticeData, state);
+}
+
+fn verticesForPlayerHp(vulkanPos: main.Position, fontSize: f32, player: *main.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) !void {
+    const textColor: [3]f32 = .{ 1, 1, 1 };
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const hpDisplayTextPos: main.Position = .{
         .x = vulkanPos.x + onePixelXInVulkan * fontSize * 0.3,
         .y = vulkanPos.y + fontSize * onePixelYInVulkan * 2,
     };
     const playerHp = main.getPlayerTotalHp(player);
-    _ = try fontVulkanZig.paintNumber(playerHp, hpDisplayTextPos, fontSize * 0.8, textColor, &verticeData.font);
+    var width = try fontVulkanZig.paintNumber(playerHp, hpDisplayTextPos, fontSize * 0.8, textColor, &verticeData.font);
     const hpDisplayIconPos: main.Position = .{
         .x = hpDisplayTextPos.x + onePixelXInVulkan * fontSize / 4,
         .y = hpDisplayTextPos.y + onePixelYInVulkan * fontSize / 3,
@@ -99,7 +107,27 @@ fn verticesForPlayerData(player: *main.Player, verticeData: *dataVulkanZig.VkVer
         false,
         state,
     );
-    try verticesForPlayerMoney(vulkanPos, fontSize, player, verticeData, state);
+    if (player.uxData.visualizeHpChange) |hpChange| {
+        if (player.uxData.visualizeHpChangeUntil == null) player.uxData.visualizeHpChangeUntil = state.gameTime + player.uxData.visualizationDuration;
+        if (player.uxData.visualizeHpChangeUntil.? > state.gameTime) {
+            const red: [3]f32 = .{ 0.7, 0, 0 };
+            const green: [3]f32 = .{ 0.1, 1, 0.1 };
+            var color = red;
+            if (hpChange >= 0) {
+                color = green;
+                width += fontVulkanZig.paintText("+", .{
+                    .x = hpDisplayTextPos.x + width,
+                    .y = hpDisplayTextPos.y,
+                }, fontSize, color, &state.vkState.verticeData.font);
+            }
+            _ = try fontVulkanZig.paintNumber(hpChange, .{
+                .x = hpDisplayTextPos.x + width,
+                .y = hpDisplayTextPos.y,
+            }, fontSize, color, &state.vkState.verticeData.font);
+        } else {
+            player.uxData.visualizeHpChange = null;
+        }
+    }
 }
 
 fn verticesForPlayerMoney(vulkanPos: main.Position, fontSize: f32, player: *main.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) !void {

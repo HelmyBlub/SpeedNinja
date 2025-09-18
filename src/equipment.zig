@@ -541,6 +541,14 @@ fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType:
             },
             .hp => |data| {
                 optSecondaryEffect = data.effect;
+                if (optNewEffectType != null) {
+                    if (player.uxData.visualizeHpChange != null) {
+                        player.uxData.visualizeHpChange.? -= data.hp;
+                    } else {
+                        player.uxData.visualizeHpChange = -@as(i32, @intCast(data.hp));
+                    }
+                    player.uxData.visualizeHpChangeUntil = null;
+                }
             },
         }
         if (optSecondaryEffect) |secEffect| {
@@ -572,6 +580,12 @@ fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType:
             },
             .hp => |data| {
                 optSecondaryEffect = data.effect;
+                if (player.uxData.visualizeHpChange != null) {
+                    player.uxData.visualizeHpChange.? += data.hp;
+                } else {
+                    player.uxData.visualizeHpChange = data.hp;
+                }
+                player.uxData.visualizeHpChangeUntil = null;
             },
         }
         if (optSecondaryEffect) |secEffect| {

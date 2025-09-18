@@ -4,7 +4,6 @@ Tasks:
 
 - improve player UX
     - dev steps:
-        - visualize gaining move piece with +1 and losing with -1
         - visualize losing hp with -1
     - sound when last 2 move pieces
 - controller inputs
