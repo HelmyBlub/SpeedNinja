@@ -120,7 +120,7 @@ fn verticesForPlayerMoney(vulkanPos: main.Position, fontSize: f32, player: *main
             const red: [3]f32 = .{ 0.7, 0, 0 };
             const green: [3]f32 = .{ 0.1, 1, 0.1 };
             var color = red;
-            if (moneyChange > 0) {
+            if (moneyChange >= 0) {
                 color = green;
                 moneyTextWidth += fontVulkanZig.paintText("+", .{
                     .x = moneyDisplayTextPos.x + moneyTextWidth,
@@ -182,6 +182,22 @@ fn verticesForPlayerPieceCounter(vulkanPos: main.Position, fontSize: f32, player
             false,
             state,
         );
+    } else if (player.uxData.visualizeMovePieceChangeFromShop) |change| {
+        const red: [3]f32 = .{ 0.7, 0, 0 };
+        const green: [3]f32 = .{ 0.1, 1, 0.1 };
+        var color = red;
+        if (change >= 0) {
+            color = green;
+            width += fontVulkanZig.paintText("+", .{
+                .x = textPosX + width,
+                .y = vulkanPos.y,
+            }, fontSize, color, &state.vkState.verticeData.font);
+        }
+        _ = try fontVulkanZig.paintNumber(change, .{
+            .x = textPosX + width,
+            .y = vulkanPos.y,
+        }, fontSize, color, &state.vkState.verticeData.font);
+        if (player.uxData.visualizeMoney == null) player.uxData.visualizeMovePieceChangeFromShop = null;
     }
 }
 

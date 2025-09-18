@@ -347,6 +347,12 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
             if (player.money >= cost and player.totalMovePieces.items.len > 1) {
                 try movePieceZig.removeMovePiece(player, data.selectedIndex, state.allocator);
                 main.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
+                if (player.uxData.visualizeMovePieceChangeFromShop == null) {
+                    player.uxData.visualizeMovePieceChangeFromShop = -1;
+                } else {
+                    player.uxData.visualizeMovePieceChangeFromShop.? += -1;
+                }
+
                 if (player.totalMovePieces.items.len <= data.selectedIndex) {
                     data.selectedIndex -= 1;
                 }
@@ -359,8 +365,14 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
         .add => |*data| {
             const cost = state.level * 1;
             if (player.money >= cost) {
-                main.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
                 if (player.shop.piecesToBuy[data.selectedIndex]) |buyPiece| {
+                    main.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
+                    if (player.uxData.visualizeMovePieceChangeFromShop == null) {
+                        player.uxData.visualizeMovePieceChangeFromShop = 1;
+                    } else {
+                        player.uxData.visualizeMovePieceChangeFromShop.? += 1;
+                    }
+
                     try movePieceZig.addMovePiece(player, buyPiece);
                     var isDifferentPiece = false;
                     while (!isDifferentPiece) {
@@ -397,6 +409,7 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
             const cost = state.level * 1;
             if (player.money >= cost and data.pieceIndex2 != null and data.combineStep == .selectDirection) {
                 main.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
+                player.uxData.visualizeMovePieceChangeFromShop = -1;
                 try movePieceZig.combineMovePieces(player, data.pieceIndex1, data.pieceIndex2.?, data.direction, state);
                 if (data.pieceIndex1 > data.pieceIndex2.?) {
                     data.pieceIndex1 -= 1;

@@ -101,6 +101,7 @@ const PlayerUxData = struct {
     vulkanScale: f32 = 0.4,
     vertical: bool = false,
     piecesRefreshedVisualization: ?i64 = null,
+    visualizeMovePieceChangeFromShop: ?i32 = null,
     visualizationDuration: i32 = 1500,
     visualizeMoney: ?i32 = null,
     visualizeMoneyUntil: ?i64 = null,
