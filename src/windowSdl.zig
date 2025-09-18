@@ -19,7 +19,7 @@ pub const WindowData = struct {
 pub var windowData: WindowData = .{};
 
 pub fn initWindowSdl() !void {
-    _ = sdl.SDL_Init(sdl.SDL_INIT_VIDEO | sdl.SDL_INIT_AUDIO);
+    _ = sdl.SDL_Init(sdl.SDL_INIT_VIDEO | sdl.SDL_INIT_AUDIO | sdl.SDL_INIT_GAMEPAD);
     const flags = sdl.SDL_WINDOW_VULKAN | sdl.SDL_WINDOW_RESIZABLE;
     windowData.window = try (sdl.SDL_CreateWindow("Speed Ninja", @intFromFloat(windowData.widthFloat), @intFromFloat(windowData.heightFloat), flags) orelse error.createWindow);
     _ = sdl.SDL_ShowWindow(windowData.window);
@@ -58,12 +58,10 @@ pub fn toggleFullscreen() bool {
 pub fn handleEvents(state: *main.GameState) !void {
     var event: sdl.SDL_Event = undefined;
     while (sdl.SDL_PollEvent(&event)) {
-        if (event.type == sdl.SDL_EVENT_MOUSE_MOTION) {
-            //placeholder
-        }
         if (event.type == sdl.SDL_EVENT_QUIT) {
             std.debug.print("clicked window X \n", .{});
             state.gameEnded = true;
+            return;
         }
         if (event.type == sdl.SDL_EVENT_KEY_DOWN) {
             try debugKeys(event, state);
@@ -108,6 +106,39 @@ pub fn handleEvents(state: *main.GameState) !void {
                 }
             }
         }
+        try handleGamePadEvents(event, state);
+    }
+}
+
+fn handleGamePadEvents(event: sdl.SDL_Event, state: *main.GameState) !void {
+    _ = state;
+    switch (event.type) {
+        sdl.SDL_EVENT_GAMEPAD_ADDED => {
+            std.debug.print("event: Gamepad added\n", .{});
+            const which: sdl.SDL_JoystickID = event.gdevice.which;
+            const gamepad: ?*sdl.SDL_Gamepad = sdl.SDL_OpenGamepad(which);
+            if (gamepad == null) {
+                std.debug.print("gamepad open failed: {s}\n", .{sdl.SDL_GetError()});
+            }
+        },
+        sdl.SDL_EVENT_GAMEPAD_REMOVED => {
+            std.debug.print("event: Gamepad removed\n", .{});
+            const which: sdl.SDL_JoystickID = event.gdevice.which;
+            const gamepad: ?*sdl.SDL_Gamepad = sdl.SDL_GetGamepadFromID(which);
+            if (gamepad != null) {
+                sdl.SDL_CloseGamepad(gamepad);
+            }
+        },
+        sdl.SDL_EVENT_GAMEPAD_AXIS_MOTION => {
+            std.debug.print("event: Gamepad axis {any}\n", .{event.gaxis});
+        },
+        sdl.SDL_EVENT_GAMEPAD_BUTTON_UP => {
+            std.debug.print("event: Gamepad button up {any}\n", .{event.gbutton});
+        },
+        sdl.SDL_EVENT_GAMEPAD_BUTTON_DOWN => {
+            std.debug.print("event: Gamepad button down {any}\n", .{event.gbutton});
+        },
+        else => {},
     }
 }
 
