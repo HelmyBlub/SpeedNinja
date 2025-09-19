@@ -194,8 +194,9 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
         const shield2Direction = @mod(trippleData.direction + 1, 4);
         const shield3Direction = @mod(trippleData.direction + 3, 4);
         const hitShield = shieldCount > 0 and hitCompareDirection == shield1Direction or shieldCount > 1 and hitCompareDirection == shield2Direction or shieldCount > 2 and hitCompareDirection == shield3Direction;
-        try executeAttack(boss, player, hitDirection, state);
+        try executeAttack(boss, player, state);
         if (hitShield) {
+            try executeAttack(boss, player, state);
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_ENEMY_BLOCK_INDICIES[0..], 0, 1);
         } else {
             boss.hp -|= main.getPlayerDamage(player);
@@ -216,20 +217,24 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
     return false;
 }
 
-fn executeAttack(boss: *bossZig.Boss, player: *main.Player, hitDirection: u8, state: *main.GameState) !void {
+fn executeAttack(boss: *bossZig.Boss, player: *main.Player, state: *main.GameState) !void {
     const trippleData = &boss.typeData.tripple;
-    if (trippleData.enabledAirAttack and trippleData.airAttackPlayerOnStationary == null) {
+    if (trippleData.enabledAirAttack) {
         trippleData.airAttackPlayerOnStationary = player;
         trippleData.airAttackRepeat += trippleData.attacksPerBeingHit;
     }
     if (trippleData.enabledFire) {
-        const hitDirectionTurned = @mod(hitDirection + 2, 4);
-        const stepDirection = movePieceZig.getStepDirection(hitDirectionTurned);
+        const randomOffsetX = std.crypto.random.intRangeLessThan(i32, -1, 2);
+        const randomOffsetY = std.crypto.random.intRangeLessThan(i32, -1, 2);
+        const randomFloatX: f32 = @floatFromInt(randomOffsetX);
+        var randomFloatY: f32 = @floatFromInt(randomOffsetY);
+        if (randomFloatX == 0 and randomFloatY == 0) randomFloatY = 1;
+
         for (0..trippleData.attacksPerBeingHit) |i| {
             const fi: f32 = @floatFromInt(i + 1);
             try enemyObjectFireZig.spawnFire(.{
-                .x = boss.position.x + stepDirection.x * main.TILESIZE * fi,
-                .y = boss.position.y + stepDirection.y * main.TILESIZE * fi,
+                .x = boss.position.x + randomFloatX * main.TILESIZE * fi,
+                .y = boss.position.y + randomFloatY * main.TILESIZE * fi,
             }, trippleData.fireDuration, true, state);
         }
     }
