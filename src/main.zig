@@ -619,6 +619,12 @@ pub fn restart(state: *GameState, newGamePlus: u32) anyerror!void {
         player.lastMoveDirection = null;
         equipmentZig.equipStarterEquipment(player);
         try movePieceZig.setupMovePieces(player, state);
+        player.uxData.visualizeHpChangeUntil = null;
+        player.uxData.visualizeMoneyUntil = null;
+        player.uxData.visualizeMovePieceChangeFromShop = null;
+        player.uxData.piecesRefreshedVisualization = null;
+        player.uxData.visualizeHpChange = null;
+        player.uxData.visualizeMoney = null;
     }
     for (0..state.shop.equipOptionsLastLevelInShop.len) |i| {
         state.shop.equipOptionsLastLevelInShop[i] = 0;

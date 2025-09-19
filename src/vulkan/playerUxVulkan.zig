@@ -109,7 +109,7 @@ fn verticesForPlayerHp(vulkanPos: main.Position, fontSize: f32, player: *main.Pl
     );
     if (player.uxData.visualizeHpChange) |hpChange| {
         if (player.uxData.visualizeHpChangeUntil == null) player.uxData.visualizeHpChangeUntil = state.gameTime + player.uxData.visualizationDuration;
-        if (player.uxData.visualizeHpChangeUntil.? > state.gameTime) {
+        if (player.uxData.visualizeHpChangeUntil.? > state.gameTime and hpChange != 0) {
             const red: [3]f32 = .{ 0.7, 0, 0 };
             const green: [3]f32 = .{ 0.1, 1, 0.1 };
             var color = red;

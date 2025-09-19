@@ -1,8 +1,9 @@
 Tasks:
 - new game+1 
     - try complete run
-    - try new game plus 2
-
+    - try new game +2
+- don't display +0 hp change
+- wait a second before i can use continue
 - controller inputs
     - each player need to be assigned to input type
         -keyboard setup1 keys: 123 wasd
