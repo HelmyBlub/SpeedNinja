@@ -38,17 +38,64 @@ const KeyboardKeyBind = struct {
     sdlKeyCode: c_int,
 };
 
-pub fn handleInput(event: sdl.SDL_Event, state: *main.GameState) !void {
+const KEYBOARD_MAPPING_1 = [_]KeyboardKeyBind{
+    .{ .action = .moveDown, .sdlKeyCode = sdl.SDL_SCANCODE_S },
+    .{ .action = .moveUp, .sdlKeyCode = sdl.SDL_SCANCODE_W },
+    .{ .action = .moveLeft, .sdlKeyCode = sdl.SDL_SCANCODE_A },
+    .{ .action = .moveRight, .sdlKeyCode = sdl.SDL_SCANCODE_D },
+    .{ .action = .pieceSelect1, .sdlKeyCode = sdl.SDL_SCANCODE_1 },
+    .{ .action = .pieceSelect2, .sdlKeyCode = sdl.SDL_SCANCODE_2 },
+    .{ .action = .pieceSelect3, .sdlKeyCode = sdl.SDL_SCANCODE_3 },
+};
+const KEYBOARD_MAPPING_2 = [_]KeyboardKeyBind{
+    .{ .action = .moveDown, .sdlKeyCode = sdl.SDL_SCANCODE_DOWN },
+    .{ .action = .moveUp, .sdlKeyCode = sdl.SDL_SCANCODE_UP },
+    .{ .action = .moveLeft, .sdlKeyCode = sdl.SDL_SCANCODE_LEFT },
+    .{ .action = .moveRight, .sdlKeyCode = sdl.SDL_SCANCODE_RIGHT },
+    .{ .action = .moveRight, .sdlKeyCode = sdl.SDL_SCANCODE_RIGHT },
+    .{ .action = .pieceSelect1, .sdlKeyCode = sdl.SDL_SCANCODE_KP_1 },
+    .{ .action = .pieceSelect2, .sdlKeyCode = sdl.SDL_SCANCODE_KP_2 },
+    .{ .action = .pieceSelect3, .sdlKeyCode = sdl.SDL_SCANCODE_KP_3 },
+};
+const KEYBOARD_MAPPINGS = [_][]const KeyboardKeyBind{
+    KEYBOARD_MAPPING_1[0..],
+    KEYBOARD_MAPPING_2[0..],
+};
+
+pub fn handlePlayerInput(event: sdl.SDL_Event, state: *main.GameState) !void {
     for (state.players.items) |*player| {
         if (player.inputData.inputDevice) |device| {
             switch (device) {
                 .gamepad => |gamepadId| {
                     try handlePlayerGamepadInput(event, player, gamepadId, state);
                 },
-                .keyboard => {},
+                .keyboard => |mappingIndex| {
+                    try handlePlayerKeyboardInput(event, player, mappingIndex, state);
+                },
             }
         } else {
             try handlePlayerGamepadInput(event, player, null, state);
+            try handlePlayerKeyboardInput(event, player, null, state);
+        }
+    }
+}
+
+fn handlePlayerKeyboardInput(event: sdl.SDL_Event, player: *main.Player, keyboardMappingIndex: ?u32, state: *main.GameState) !void {
+    if (event.type != sdl.SDL_EVENT_KEY_DOWN) return;
+    if (keyboardMappingIndex) |index| {
+        const keyMapping = KEYBOARD_MAPPINGS[index];
+        for (keyMapping) |mapping| {
+            if (mapping.sdlKeyCode == event.key.scancode) {
+                try handlePlayerAction(mapping.action, player, state);
+            }
+        }
+    } else {
+        for (KEYBOARD_MAPPINGS) |keyMappings| {
+            for (keyMappings) |mapping| {
+                if (mapping.sdlKeyCode == event.key.scancode) {
+                    try handlePlayerAction(mapping.action, player, state);
+                }
+            }
         }
     }
 }

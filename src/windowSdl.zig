@@ -66,49 +66,9 @@ pub fn handleEvents(state: *main.GameState) !void {
         }
         if (event.type == sdl.SDL_EVENT_KEY_DOWN) {
             try debugKeys(event, state);
-            for (state.players.items) |*player| {
-                if (event.key.scancode == sdl.SDL_SCANCODE_LEFT or event.key.scancode == sdl.SDL_SCANCODE_A) {
-                    if (player.choosenMoveOptionIndex) |index| {
-                        try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_LEFT, state);
-                    } else if (state.gamePhase == .shopping) {
-                        player.position.x -= main.TILESIZE;
-                        try shopZig.executeShopActionForPlayer(player, state);
-                    }
-                } else if (event.key.scancode == sdl.SDL_SCANCODE_RIGHT or event.key.scancode == sdl.SDL_SCANCODE_D) {
-                    if (player.choosenMoveOptionIndex) |index| {
-                        try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_RIGHT, state);
-                    } else if (state.gamePhase == .shopping) {
-                        player.position.x += main.TILESIZE;
-                        try shopZig.executeShopActionForPlayer(player, state);
-                    }
-                } else if (event.key.scancode == sdl.SDL_SCANCODE_UP or event.key.scancode == sdl.SDL_SCANCODE_W) {
-                    if (player.choosenMoveOptionIndex) |index| {
-                        try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_UP, state);
-                    } else if (state.gamePhase == .shopping) {
-                        player.position.y -= main.TILESIZE;
-                        try shopZig.executeShopActionForPlayer(player, state);
-                    }
-                } else if (event.key.scancode == sdl.SDL_SCANCODE_DOWN or event.key.scancode == sdl.SDL_SCANCODE_S) {
-                    if (player.choosenMoveOptionIndex) |index| {
-                        try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_DOWN, state);
-                    } else if (state.gamePhase == .shopping) {
-                        player.position.y += main.TILESIZE;
-                        try shopZig.executeShopActionForPlayer(player, state);
-                    }
-                } else if (event.key.scancode == sdl.SDL_SCANCODE_1) {
-                    movePieceZig.setMoveOptionIndex(player, 0, state);
-                    if (state.gameOver and state.level > 1) {
-                        try main.executeContinue(state);
-                    }
-                } else if (event.key.scancode == sdl.SDL_SCANCODE_2) {
-                    movePieceZig.setMoveOptionIndex(player, 1, state);
-                } else if (event.key.scancode == sdl.SDL_SCANCODE_3) {
-                    movePieceZig.setMoveOptionIndex(player, 2, state);
-                }
-            }
         }
         try handleGamePadEvents(event, state);
-        try inputZig.handleInput(event, state);
+        try inputZig.handlePlayerInput(event, state);
     }
 }
 
