@@ -7,10 +7,20 @@ const shopZig = @import("shop.zig");
 
 pub const PlayerInputData = struct {
     inputDevice: ?InputDeviceData = null,
+    lastInputDevice: ?InputDeviceData = null,
     axis0DeadZone: bool = true,
     axis1DeadZone: bool = true,
     axis0Id: u8 = 0,
     axis1Id: u8 = 0,
+};
+
+pub const InputJoinData = struct {
+    inputDeviceDatas: std.ArrayList(InputJoinDeviceData),
+};
+
+pub const InputJoinDeviceData = struct {
+    deviceData: InputDeviceData,
+    pressTime: i64,
 };
 
 const InputDevice = enum {
@@ -19,7 +29,7 @@ const InputDevice = enum {
 };
 
 const InputDeviceData = union(InputDevice) {
-    keyboard: u32,
+    keyboard: ?u32,
     gamepad: u32,
 };
 
@@ -52,14 +62,23 @@ const KEYBOARD_MAPPING_2 = [_]KeyboardKeyBind{
     .{ .action = .moveUp, .sdlKeyCode = sdl.SDL_SCANCODE_UP },
     .{ .action = .moveLeft, .sdlKeyCode = sdl.SDL_SCANCODE_LEFT },
     .{ .action = .moveRight, .sdlKeyCode = sdl.SDL_SCANCODE_RIGHT },
-    .{ .action = .moveRight, .sdlKeyCode = sdl.SDL_SCANCODE_RIGHT },
     .{ .action = .pieceSelect1, .sdlKeyCode = sdl.SDL_SCANCODE_KP_1 },
     .{ .action = .pieceSelect2, .sdlKeyCode = sdl.SDL_SCANCODE_KP_2 },
     .{ .action = .pieceSelect3, .sdlKeyCode = sdl.SDL_SCANCODE_KP_3 },
 };
+const KEYBOARD_MAPPING_3 = [_]KeyboardKeyBind{
+    .{ .action = .moveDown, .sdlKeyCode = sdl.SDL_SCANCODE_K },
+    .{ .action = .moveUp, .sdlKeyCode = sdl.SDL_SCANCODE_I },
+    .{ .action = .moveLeft, .sdlKeyCode = sdl.SDL_SCANCODE_J },
+    .{ .action = .moveRight, .sdlKeyCode = sdl.SDL_SCANCODE_L },
+    .{ .action = .pieceSelect1, .sdlKeyCode = sdl.SDL_SCANCODE_7 },
+    .{ .action = .pieceSelect2, .sdlKeyCode = sdl.SDL_SCANCODE_8 },
+    .{ .action = .pieceSelect3, .sdlKeyCode = sdl.SDL_SCANCODE_9 },
+};
 const KEYBOARD_MAPPINGS = [_][]const KeyboardKeyBind{
-    KEYBOARD_MAPPING_1[0..],
-    KEYBOARD_MAPPING_2[0..],
+    &KEYBOARD_MAPPING_1,
+    &KEYBOARD_MAPPING_2,
+    &KEYBOARD_MAPPING_3,
 };
 
 pub fn handlePlayerInput(event: sdl.SDL_Event, state: *main.GameState) !void {
@@ -76,6 +95,29 @@ pub fn handlePlayerInput(event: sdl.SDL_Event, state: *main.GameState) !void {
         } else {
             try handlePlayerGamepadInput(event, player, null, state);
             try handlePlayerKeyboardInput(event, player, null, state);
+        }
+    }
+    try handleCheckPlayerJoin(event, state);
+}
+
+fn handleCheckPlayerJoin(event: sdl.SDL_Event, state: *main.GameState) !void {
+    if (event.type == sdl.SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
+        for (state.players.items) |*player| {
+            if (player.inputData.inputDevice != null and player.inputData.inputDevice.? == .gamepad and player.inputData.inputDevice.?.gamepad == event.gdevice.which) {
+                return;
+            }
+        }
+        for (state.inputJoinData.inputDeviceDatas.items) |joinData| {
+            if (joinData.deviceData == .gamepad and joinData.deviceData.gamepad == event.gdevice.which) return;
+        }
+        try state.inputJoinData.inputDeviceDatas.append(.{ .pressTime = std.time.milliTimestamp(), .deviceData = .{ .gamepad = event.gdevice.which } });
+    }
+    if (event.type == sdl.SDL_EVENT_GAMEPAD_BUTTON_UP) {
+        for (state.inputJoinData.inputDeviceDatas.items, 0..) |joinData, index| {
+            if (joinData.deviceData == .gamepad and joinData.deviceData.gamepad == event.gdevice.which) {
+                _ = state.inputJoinData.inputDeviceDatas.swapRemove(index);
+                return;
+            }
         }
     }
 }
@@ -105,6 +147,7 @@ fn handlePlayerGamepadInput(event: sdl.SDL_Event, player: *main.Player, gamepadI
     const deadzone = 15000;
     switch (event.type) {
         sdl.SDL_EVENT_GAMEPAD_AXIS_MOTION => {
+            if (gamepadId == null) player.inputData.lastInputDevice = .{ .gamepad = event.gdevice.which };
             const deadZone = player.inputData.axis0DeadZone and player.inputData.axis1DeadZone;
             if (@mod(event.gaxis.axis, 2) == 1) {
                 if (event.gaxis.value > deadzone) {
@@ -141,6 +184,7 @@ fn handlePlayerGamepadInput(event: sdl.SDL_Event, player: *main.Player, gamepadI
             }
         },
         sdl.SDL_EVENT_GAMEPAD_BUTTON_DOWN => {
+            if (gamepadId == null) player.inputData.lastInputDevice = .{ .gamepad = event.gdevice.which };
             std.debug.print("event: Gamepad button {any}\n", .{event.gbutton});
             if (event.gbutton.button == 0) try handlePlayerAction(.pieceSelect1, player, state);
             if (event.gbutton.button == 1) try handlePlayerAction(.pieceSelect2, player, state);

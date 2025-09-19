@@ -2,19 +2,16 @@ Tasks:
 - new game+1 
     - try complete run
     - try new game +2 bosses (defeated stomp)
+- bug: entering shop with last piece does not reset
 - controller inputs
     - each player need to be assigned to input type
-        -keyboard setup1 keys: 123 wasd
-        -keyboard setup2 keys : numpad 123, arrow keys
-        -keyboard setupX
-        -controlled id
-        - one player should be able to have more than one key per action
-        - one key should be able to control more than one player
-        - two different input devices should be able to control same player
+        - player join with controller, 
+            - old player only with keyboard
     - player joins by holding any key on device for x-seconds
         - will create input mappings
     - display key to press in playerUX
         - change something for no choice?
+    - disconnect and reconnect logic?
 - sound: play sound when "continue shop" opens
 - bug: dragon boss can target dead players
 - multiplayer

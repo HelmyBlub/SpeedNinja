@@ -61,6 +61,7 @@ pub const GameState = struct {
     verifyMapData: verifyMapZig.VerifyMapData = .{},
     continueData: ContinueData = .{},
     soundData: SoundData = .{},
+    inputJoinData: inputZig.InputJoinData,
 };
 
 pub const SoundData = struct {
@@ -422,6 +423,17 @@ fn tickPlayers(state: *GameState, passedTime: i64) !void {
         }
         try ninjaDogVulkanZig.tickNinjaDogAnimation(player, passedTime, state);
     }
+    const timestamp = std.time.milliTimestamp();
+    for (state.inputJoinData.inputDeviceDatas.items, 0..) |joinData, index| {
+        if (joinData.pressTime + 3000 <= timestamp) {
+            try playerJoin(.{ .inputDevice = joinData.deviceData }, state);
+            _ = state.inputJoinData.inputDeviceDatas.swapRemove(index);
+            break;
+        }
+    }
+    if (state.inputJoinData.inputDeviceDatas.items.len > 0) {
+        std.debug.print("someoneJoining? {}\n", .{state.inputJoinData.inputDeviceDatas.items.len});
+    }
 }
 
 fn tickClouds(state: *GameState, passedTime: i64) void {
@@ -653,6 +665,25 @@ pub fn adjustZoom(state: *GameState) void {
     determinePlayerUxPositions(state);
 }
 
+pub fn playerJoin(playerInputData: inputZig.PlayerInputData, state: *GameState) !void {
+    std.debug.print("player join: {}", .{playerInputData.inputDevice.?});
+    try state.players.append(createPlayer(state.allocator));
+    const player: *Player = &state.players.items[state.players.items.len - 1];
+    player.inputData = playerInputData;
+    for (0..state.players.items.len - 1) |index| {
+        const otherPlayer = &state.players.items[index];
+        if (otherPlayer.inputData.inputDevice == null) {
+            if (player.inputData.inputDevice.? == .gamepad) {
+                otherPlayer.inputData.inputDevice = .{ .keyboard = null };
+            }
+        }
+    }
+    equipmentZig.equipStarterEquipment(player);
+    try movePieceZig.setupMovePieces(player, state);
+    state.statistics.active = false;
+    determinePlayerUxPositions(state);
+}
+
 pub fn getClosestPlayer(position: Position, state: *GameState) struct { player: ?*Player, distance: f32 } {
     var closestPlayer: ?*Player = null;
     var closestDistance: f32 = 0;
@@ -680,6 +711,7 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
         .shop = .{ .buyOptions = std.ArrayList(shopZig.ShopBuyOption).init(allocator) },
         .mapData = try mapTileZig.createMapData(allocator),
         .statistics = statsZig.createStatistics(allocator),
+        .inputJoinData = .{ .inputDeviceDatas = std.ArrayList(inputZig.InputJoinDeviceData).init(allocator) },
     };
     state.allocator = allocator;
     try windowSdlZig.initWindowSdl();
@@ -734,6 +766,7 @@ fn destroyGameState(state: *GameState) !void {
     state.shop.buyOptions.deinit();
     state.spriteCutAnimations.deinit();
     state.mapObjects.deinit();
+    state.inputJoinData.inputDeviceDatas.deinit();
     try statsZig.destroyAndSave(state);
     mapTileZig.deinit(state);
     enemyZig.destroyEnemyData(state);

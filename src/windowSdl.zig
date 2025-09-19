@@ -7,7 +7,6 @@ pub const sdl = @cImport({
     @cInclude("SDL3/SDL_vulkan.h");
 });
 const main = @import("main.zig");
-const movePieceZig = @import("movePiece.zig");
 const shopZig = @import("shop.zig");
 const inputZig = @import("input.zig");
 
