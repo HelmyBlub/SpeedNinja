@@ -482,6 +482,7 @@ pub fn movePlayerByMovePiece(player: *main.Player, movePieceIndex: usize, direct
     if (player.equipment.hasRollerblades and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(directionInput + 2, 4)) return;
     if (player.equipment.hasPirateLegLeft and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(directionInput + 3, 4)) return;
     if (!player.equipment.hasEyePatch or state.gamePhase == .shopping) player.choosenMoveOptionIndex = null;
+    if (player.moveOptions.items.len <= movePieceIndex) return;
     player.executeMovePiece = player.moveOptions.items[movePieceIndex];
     player.executeDirection = directionInput;
 

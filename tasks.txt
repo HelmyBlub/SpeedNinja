@@ -2,6 +2,9 @@ Tasks:
 - new game+1 
     - try complete run
     - try new game +2 bosses (defeated stomp)
+- bug: eye patch crash game when running out of move pieces
+- check: tripple boss
+    - change when blocking to add more stacks
 - controller inputs
     - each player need to be assigned to input type
         -keyboard setup1 keys: 123 wasd
