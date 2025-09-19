@@ -56,6 +56,7 @@ pub const GameState = struct {
     statistics: statsZig.Statistics,
     suddenDeath: u32 = 0,
     gameOver: bool = false,
+    gameOverRealTime: i64 = 0,
     verifyMapData: verifyMapZig.VerifyMapData = .{},
     continueData: ContinueData = .{},
     soundData: SoundData = .{},
@@ -195,6 +196,9 @@ pub fn playerHit(player: *Player, state: *GameState) !void {
     if (!try equipmentZig.damageTakenByEquipment(player, state)) {
         player.isDead = true;
         state.gameOver = isGameOver(state);
+        if (state.gameOver) {
+            state.gameOverRealTime = std.time.milliTimestamp();
+        }
         try ninjaDogDeathCutSprites(player, state);
     } else {
         try movePieceZig.resetPieces(player, true, state);
@@ -734,6 +738,9 @@ fn destroyGameState(state: *GameState) !void {
 }
 
 pub fn executeContinue(state: *GameState) !void {
+    if (state.gameOverRealTime + 1000 > std.time.milliTimestamp()) {
+        return;
+    }
     const optCost = getMoneyCostsForContinue(state);
     if (optCost == null) return;
     var openMoney = optCost.?;
