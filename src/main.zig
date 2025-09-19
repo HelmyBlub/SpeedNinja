@@ -15,6 +15,7 @@ const mapTileZig = @import("mapTile.zig");
 const equipmentZig = @import("equipment.zig");
 const statsZig = @import("stats.zig");
 const verifyMapZig = @import("verifyMap.zig");
+const inputZig = @import("input.zig");
 
 pub const GamePhase = enum {
     combat,
@@ -95,6 +96,7 @@ pub const Player = struct {
     moneyBonusPerCent: f32 = 0,
     lastMoveDirection: ?u8 = null,
     uxData: PlayerUxData = .{},
+    inputData: inputZig.PlayerInputData = .{},
 };
 
 const PlayerUxData = struct {

@@ -9,6 +9,7 @@ pub const sdl = @cImport({
 const main = @import("main.zig");
 const movePieceZig = @import("movePiece.zig");
 const shopZig = @import("shop.zig");
+const inputZig = @import("input.zig");
 
 pub const WindowData = struct {
     window: *sdl.SDL_Window = undefined,
@@ -107,6 +108,7 @@ pub fn handleEvents(state: *main.GameState) !void {
             }
         }
         try handleGamePadEvents(event, state);
+        try inputZig.handleInput(event, state);
     }
 }
 
@@ -128,15 +130,6 @@ fn handleGamePadEvents(event: sdl.SDL_Event, state: *main.GameState) !void {
             if (gamepad != null) {
                 sdl.SDL_CloseGamepad(gamepad);
             }
-        },
-        sdl.SDL_EVENT_GAMEPAD_AXIS_MOTION => {
-            std.debug.print("event: Gamepad axis {any}\n", .{event.gaxis});
-        },
-        sdl.SDL_EVENT_GAMEPAD_BUTTON_UP => {
-            std.debug.print("event: Gamepad button up {any}\n", .{event.gbutton});
-        },
-        sdl.SDL_EVENT_GAMEPAD_BUTTON_DOWN => {
-            std.debug.print("event: Gamepad button down {any}\n", .{event.gbutton});
         },
         else => {},
     }
