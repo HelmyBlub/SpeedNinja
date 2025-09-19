@@ -204,6 +204,7 @@ pub fn startShoppingPhase(state: *main.GameState) !void {
         player.shop.selectedOption = .none;
         player.position.x = @as(f32, @floatFromInt(player.shop.pieceShopTopLeft.x + GRID_SIZE / 2)) * main.TILESIZE;
         player.position.y = @as(f32, @floatFromInt(player.shop.pieceShopTopLeft.y + GRID_SIZE / 2)) * main.TILESIZE;
+        try movePieceZig.resetPieces(player, true, state);
     }
     try mapTileZig.setMapRadius(5, state);
     main.adjustZoom(state);
