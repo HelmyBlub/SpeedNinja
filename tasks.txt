@@ -1,7 +1,8 @@
 Tasks:
 - new game+1 
     - try complete run
-    - try new game +2 bosses (defeated stomp)
+    - try new game +2 bosses (missing:(roll,30+) ,done: stomp, rotate, split, snake)
+- name changed: Speed Tactic Ninja
 - bug: entering shop with last piece does not reset
 - controller inputs
     - each player need to be assigned to input type
