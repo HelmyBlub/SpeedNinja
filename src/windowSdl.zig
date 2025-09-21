@@ -21,7 +21,7 @@ pub var windowData: WindowData = .{};
 pub fn initWindowSdl() !void {
     _ = sdl.SDL_Init(sdl.SDL_INIT_VIDEO | sdl.SDL_INIT_AUDIO | sdl.SDL_INIT_GAMEPAD);
     const flags = sdl.SDL_WINDOW_VULKAN | sdl.SDL_WINDOW_RESIZABLE;
-    windowData.window = try (sdl.SDL_CreateWindow("Speed Ninja", @intFromFloat(windowData.widthFloat), @intFromFloat(windowData.heightFloat), flags) orelse error.createWindow);
+    windowData.window = try (sdl.SDL_CreateWindow("Speed Tactic Ninja", @intFromFloat(windowData.widthFloat), @intFromFloat(windowData.heightFloat), flags) orelse error.createWindow);
     _ = sdl.SDL_ShowWindow(windowData.window);
 }
 
