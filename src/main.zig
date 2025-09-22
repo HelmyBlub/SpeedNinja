@@ -431,9 +431,6 @@ fn tickPlayers(state: *GameState, passedTime: i64) !void {
             break;
         }
     }
-    if (state.inputJoinData.inputDeviceDatas.items.len > 0) {
-        std.debug.print("someoneJoining? {}\n", .{state.inputJoinData.inputDeviceDatas.items.len});
-    }
 }
 
 fn tickClouds(state: *GameState, passedTime: i64) void {
@@ -681,6 +678,12 @@ pub fn playerJoin(playerInputData: inputZig.PlayerInputData, state: *GameState) 
                 } else {
                     otherPlayer.inputData.inputDevice = .{ .keyboard = 0 };
                 }
+            }
+        } else if (otherPlayer.inputData.inputDevice.? == .keyboard and otherPlayer.inputData.inputDevice.?.keyboard == null) {
+            if (player.inputData.inputDevice.?.keyboard == 0) {
+                otherPlayer.inputData.inputDevice = .{ .keyboard = 1 };
+            } else {
+                otherPlayer.inputData.inputDevice = .{ .keyboard = 0 };
             }
         }
     }
