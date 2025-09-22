@@ -23,7 +23,7 @@ pub const InputJoinDeviceData = struct {
     pressTime: i64,
 };
 
-const InputDevice = enum {
+pub const InputDevice = enum {
     keyboard,
     gamepad,
 };
@@ -33,7 +33,7 @@ const InputDeviceData = union(InputDevice) {
     gamepad: u32,
 };
 
-const PlayerAction = enum {
+pub const PlayerAction = enum {
     pieceSelect1,
     pieceSelect2,
     pieceSelect3,
@@ -46,6 +46,11 @@ const PlayerAction = enum {
 const KeyboardKeyBind = struct {
     action: PlayerAction,
     sdlKeyCode: c_int,
+};
+
+pub const ButtonDisplay = struct {
+    text: []const u8,
+    device: InputDevice,
 };
 
 const KEYBOARD_MAPPING_1 = [_]KeyboardKeyBind{
@@ -100,7 +105,7 @@ pub fn handlePlayerInput(event: sdl.SDL_Event, state: *main.GameState) !void {
     try handleCheckPlayerJoin(event, state);
 }
 
-pub fn getDisplayTextForPlayerAction(player: *main.Player, action: PlayerAction, state: *main.GameState) ?[]const u8 {
+pub fn getDisplayInfoForPlayerAction(player: *main.Player, action: PlayerAction, state: *main.GameState) ?ButtonDisplay {
     var inputDevice: ?InputDeviceData = null;
     if (player.inputData.inputDevice == null) {
         if (player.inputData.lastInputDevice == null or player.inputData.lastInputDevice.? == .keyboard) {
@@ -120,7 +125,8 @@ pub fn getDisplayTextForPlayerAction(player: *main.Player, action: PlayerAction,
             const mappings = KEYBOARD_MAPPINGS[index.?];
             for (mappings) |mapping| {
                 if (mapping.action == action) {
-                    return getDisplayTextForScancode(@intCast(mapping.sdlKeyCode), state);
+                    const text = getDisplayTextForScancode(@intCast(mapping.sdlKeyCode), state);
+                    return ButtonDisplay{ .text = text, .device = .keyboard };
                 }
             }
             return null;
@@ -128,13 +134,13 @@ pub fn getDisplayTextForPlayerAction(player: *main.Player, action: PlayerAction,
         .gamepad => |_| {
             switch (action) {
                 .pieceSelect1 => {
-                    return "A";
+                    return ButtonDisplay{ .text = "A", .device = .gamepad };
                 },
                 .pieceSelect2 => {
-                    return "B";
+                    return ButtonDisplay{ .text = "B", .device = .gamepad };
                 },
                 .pieceSelect3 => {
-                    return "X";
+                    return ButtonDisplay{ .text = "X", .device = .gamepad };
                 },
                 else => {
                     return null;

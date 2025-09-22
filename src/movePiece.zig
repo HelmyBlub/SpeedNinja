@@ -135,6 +135,9 @@ pub fn getMovePieceTotalStepes(movePiece: MovePiece) usize {
 
 pub fn setMoveOptionIndex(player: *main.Player, index: usize, state: *main.GameState) void {
     if (player.moveOptions.items.len > index) {
+        if (state.tutorialData.active and state.tutorialData.playerFirstValidPieceSelection == null) {
+            state.tutorialData.playerFirstValidPieceSelection = std.time.milliTimestamp();
+        }
         player.choosenMoveOptionIndex = index;
         if (player.equipment.hasEyePatch) player.choosenMoveOptionIndex = 0;
         ninjaDogVulkanZig.swordHandsCentered(player, state);
@@ -483,6 +486,10 @@ pub fn movePlayerByMovePiece(player: *main.Player, movePieceIndex: usize, direct
     if (player.equipment.hasPirateLegLeft and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(directionInput + 3, 4)) return;
     if (!player.equipment.hasEyePatch or state.gamePhase == .shopping) player.choosenMoveOptionIndex = null;
     if (player.moveOptions.items.len <= movePieceIndex) return;
+    if (state.tutorialData.active) {
+        state.tutorialData.playerFirstValidMove = true;
+    }
+
     player.executeMovePiece = player.moveOptions.items[movePieceIndex];
     player.executeDirection = directionInput;
 

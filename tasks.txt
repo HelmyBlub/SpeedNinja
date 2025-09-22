@@ -7,9 +7,11 @@ Tasks:
 - check: player join dog ear
 - controller inputs
     - display movement keys to press in playerUX
-        - when using different key mapping for player 1 only display
         - new player tutorial
-            - when game started and no 
+            - when game started and only invalid inputs in 15seconds
+                - display message "press key 1,2 or 3"
+            - when chosen direction after another 15seconds
+                - display message press "a,w,s,d" to move in direction
         - change something for no choice?
     - disconnect and reconnect logic?
     - player leave option

@@ -64,6 +64,14 @@ pub const GameState = struct {
     soundData: SoundData = .{},
     inputJoinData: inputZig.InputJoinData,
     tempStringBuffer: []u8,
+    tutorialData: TutorialData = .{},
+};
+
+pub const TutorialData = struct {
+    active: bool = true,
+    firstKeyDownInput: ?i64 = null,
+    playerFirstValidPieceSelection: ?i64 = null,
+    playerFirstValidMove: bool = false,
 };
 
 pub const SoundData = struct {

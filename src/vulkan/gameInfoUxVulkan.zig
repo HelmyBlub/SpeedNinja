@@ -4,6 +4,7 @@ const fontVulkanZig = @import("fontVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 const bossZig = @import("../boss/boss.zig");
+const inputZig = @import("../input.zig");
 
 pub fn setupVertices(state: *main.GameState) !void {
     const fontSize = 30;
@@ -83,6 +84,36 @@ pub fn setupVertices(state: *main.GameState) !void {
                 paintVulkanZig.verticesForRectangle(left, top, textWidth * fillPerCent, height, .{ 1, 0, 0 }, null, &verticeData.triangles);
                 paintVulkanZig.verticesForRectangle(left, top, textWidth, height, .{ 1, 0, 0 }, &verticeData.lines, null);
                 counter += 1;
+            }
+        }
+    }
+    if (state.tutorialData.active and state.tutorialData.firstKeyDownInput != null) {
+        if (state.tutorialData.playerFirstValidMove or state.players.items.len > 1) {
+            state.tutorialData.active = false;
+        } else {
+            const realTime = std.time.milliTimestamp();
+            const fontSizeTutorial = 60;
+            const height = fontSizeTutorial * onePixelYInVulkan;
+            const hintWaitDelay = 10_000;
+            if (state.tutorialData.firstKeyDownInput.? + hintWaitDelay < realTime) {
+                var textWidth: f32 = 0;
+                const left: comptime_float = -0.5;
+                const top: f32 = 0 + height / 2;
+                const player = &state.players.items[0];
+                if (state.tutorialData.playerFirstValidPieceSelection == null) {
+                    textWidth += fontVulkanZig.paintText("Press ", .{ .x = left + textWidth, .y = top }, fontSizeTutorial, textColor, fontVertices);
+                    textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .pieceSelect1, fontSizeTutorial, player, state);
+                    textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .pieceSelect2, fontSizeTutorial, player, state);
+                    textWidth += fontVulkanZig.paintText("or ", .{ .x = left + textWidth, .y = top }, fontSizeTutorial, textColor, fontVertices);
+                    textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .pieceSelect3, fontSizeTutorial, player, state);
+                } else if (!state.tutorialData.playerFirstValidMove and state.tutorialData.playerFirstValidPieceSelection.? + hintWaitDelay < realTime) {
+                    textWidth += fontVulkanZig.paintText("Press ", .{ .x = left + textWidth, .y = top }, fontSizeTutorial, textColor, fontVertices);
+                    textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .moveUp, fontSizeTutorial, player, state);
+                    textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .moveLeft, fontSizeTutorial, player, state);
+                    textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .moveDown, fontSizeTutorial, player, state);
+                    textWidth += fontVulkanZig.paintText("or ", .{ .x = left + textWidth, .y = top }, fontSizeTutorial, textColor, fontVertices);
+                    textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .moveRight, fontSizeTutorial, player, state);
+                }
             }
         }
     }

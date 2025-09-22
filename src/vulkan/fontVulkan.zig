@@ -5,6 +5,8 @@ const vk = initVulkanZig.vk;
 const imageZig = @import("../image.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 const dataVulkanZig = @import("dataVulkan.zig");
+const inputZig = @import("../input.zig");
+const paintVulkanZig = @import("paintVulkan.zig");
 
 pub const VkFontData = struct {
     mipLevels: u32 = undefined,
@@ -124,6 +126,27 @@ pub fn paintNumberWithZeroPrefix(number: anytype, vulkanSurfacePosition: main.Po
         vkFont.verticeCount += 1;
     }
     return xOffset;
+}
+
+/// returns game width
+pub fn verticesForDisplayButton(topLeft: main.Position, action: inputZig.PlayerAction, fontSize: f32, player: *main.Player, state: *main.GameState) f32 {
+    const buttonInfo = inputZig.getDisplayInfoForPlayerAction(player, action, state);
+    if (buttonInfo == null) return 0;
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const keyImagePos: main.Position = .{
+        .x = topLeft.x + onePixelXInVulkan * fontSize / 2,
+        .y = topLeft.y + onePixelYInVulkan * fontSize / 2,
+    };
+    switch (buttonInfo.?.device) {
+        .gamepad => paintVulkanZig.verticesForComplexSpriteVulkan(keyImagePos, imageZig.IMAGE_CIRCLE, fontSize * 0.8, fontSize * 0.8, 1, 0, false, false, state),
+        .keyboard => paintVulkanZig.verticesForComplexSpriteVulkan(keyImagePos, imageZig.IMAGE_KEY_BLANK, fontSize, fontSize, 1, 0, false, false, state),
+    }
+    _ = paintText(buttonInfo.?.text, .{
+        .x = topLeft.x + onePixelXInVulkan * fontSize / 4,
+        .y = topLeft.y + onePixelYInVulkan * fontSize / 4,
+    }, fontSize / 2, .{ 1, 1, 1 }, &state.vkState.verticeData.font);
+    return onePixelXInVulkan * fontSize;
 }
 
 pub fn initFont(state: *main.GameState) !void {

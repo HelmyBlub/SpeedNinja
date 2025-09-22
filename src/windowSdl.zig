@@ -64,6 +64,9 @@ pub fn handleEvents(state: *main.GameState) !void {
             return;
         }
         if (event.type == sdl.SDL_EVENT_KEY_DOWN) {
+            if (state.tutorialData.active and state.tutorialData.firstKeyDownInput == null) {
+                state.tutorialData.firstKeyDownInput = std.time.milliTimestamp();
+            }
             try debugKeys(event, state);
         }
         try handleGamePadEvents(event, state);

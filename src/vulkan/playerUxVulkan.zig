@@ -297,32 +297,16 @@ fn verticesForMoveOptions(player: *main.Player, verticeData: *dataVulkanZig.VkVe
         }
         if (player.uxData.visualizeChoiceKeys) {
             const fontSize = height / 4 / onePixelYInVulkan;
-            const keyImagePos: main.Position = .{
-                .x = startX + onePixelXInVulkan * fontSize / 2,
-                .y = startY + onePixelYInVulkan * fontSize / 2,
-            };
-            var optDisplayChar: ?[]const u8 = null;
             switch (index) {
                 0 => {
-                    optDisplayChar = inputZig.getDisplayTextForPlayerAction(player, .pieceSelect1, state);
+                    _ = fontVulkanZig.verticesForDisplayButton(.{ .x = startX, .y = startY }, .pieceSelect1, fontSize, player, state);
                 },
                 1 => {
-                    optDisplayChar = inputZig.getDisplayTextForPlayerAction(player, .pieceSelect2, state);
+                    _ = fontVulkanZig.verticesForDisplayButton(.{ .x = startX, .y = startY }, .pieceSelect2, fontSize, player, state);
                 },
                 else => {
-                    optDisplayChar = inputZig.getDisplayTextForPlayerAction(player, .pieceSelect3, state);
+                    _ = fontVulkanZig.verticesForDisplayButton(.{ .x = startX, .y = startY }, .pieceSelect3, fontSize, player, state);
                 },
-            }
-            if (optDisplayChar) |displayChar| {
-                if ((player.inputData.inputDevice != null and player.inputData.inputDevice.? == .gamepad) or (player.inputData.lastInputDevice != null and player.inputData.lastInputDevice.? == .gamepad)) {
-                    paintVulkanZig.verticesForComplexSpriteVulkan(keyImagePos, imageZig.IMAGE_CIRCLE, fontSize * 0.8, fontSize * 0.8, 1, 0, false, false, state);
-                } else {
-                    paintVulkanZig.verticesForComplexSpriteVulkan(keyImagePos, imageZig.IMAGE_KEY_BLANK, fontSize, fontSize, 1, 0, false, false, state);
-                }
-                _ = fontVulkanZig.paintText(displayChar, .{
-                    .x = startX + onePixelXInVulkan * fontSize / 4,
-                    .y = startY + onePixelYInVulkan * fontSize / 4,
-                }, fontSize / 2, .{ 1, 1, 1 }, &verticeData.font);
             }
         }
         if (player.uxData.vertical) {
