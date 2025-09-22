@@ -26,6 +26,7 @@ pub const COLOR_TILE_GREEN: [3]f32 = colorConv(0.533, 0.80, 0.231);
 pub const COLOR_SKY_BLUE: [3]f32 = colorConv(0.529, 0.808, 0.922);
 pub const COLOR_STONE_WALL: [3]f32 = colorConv(0.573, 0.522, 0.451);
 pub const LEVEL_COUNT = 50;
+pub const PLAYER_JOIN_BUTTON_HOLD_DURATION = 3000;
 
 pub const TILESIZE = 20;
 pub const GameState = struct {
@@ -425,7 +426,7 @@ fn tickPlayers(state: *GameState, passedTime: i64) !void {
     }
     const timestamp = std.time.milliTimestamp();
     for (state.inputJoinData.inputDeviceDatas.items, 0..) |joinData, index| {
-        if (joinData.pressTime + 3000 <= timestamp) {
+        if (joinData.pressTime + PLAYER_JOIN_BUTTON_HOLD_DURATION <= timestamp) {
             try playerJoin(.{ .inputDevice = joinData.deviceData }, state);
             _ = state.inputJoinData.inputDeviceDatas.swapRemove(index);
             break;

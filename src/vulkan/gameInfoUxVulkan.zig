@@ -65,6 +65,27 @@ pub fn setupVertices(state: *main.GameState) !void {
             _ = try fontVulkanZig.paintNumber(continueCosts, .{ .x = continuePos.x + offsetX, .y = continuePos.y }, 60, textColor, fontVertices);
         }
     }
+    if (state.inputJoinData.inputDeviceDatas.items.len > 0) {
+        var counter: usize = 0;
+        const realTime = std.time.milliTimestamp();
+        const fontSizePlayerJoin = 60;
+        const height = fontSizePlayerJoin * onePixelYInVulkan;
+        for (state.inputJoinData.inputDeviceDatas.items) |joinData| {
+            if (joinData.pressTime + 1_000 <= realTime) {
+                var textWidth: f32 = 0;
+                const left: comptime_float = 0;
+                const top: f32 = -0.99 + height * @as(f32, @floatFromInt(counter + 1)) * 1.1;
+                textWidth += fontVulkanZig.paintText("Player ", .{ .x = left + textWidth, .y = top }, fontSizePlayerJoin, textColor, fontVertices);
+                textWidth += try fontVulkanZig.paintNumber(state.players.items.len + counter, .{ .x = left + textWidth, .y = top }, fontSizePlayerJoin, textColor, fontVertices);
+                textWidth += fontVulkanZig.paintText("joining", .{ .x = left + textWidth, .y = top }, fontSizePlayerJoin, textColor, fontVertices);
+
+                const fillPerCent = @as(f32, @floatFromInt(realTime - joinData.pressTime)) / @as(f32, @floatFromInt(main.PLAYER_JOIN_BUTTON_HOLD_DURATION));
+                paintVulkanZig.verticesForRectangle(left, top, textWidth * fillPerCent, height, .{ 1, 0, 0 }, null, &verticeData.triangles);
+                paintVulkanZig.verticesForRectangle(left, top, textWidth, height, .{ 1, 0, 0 }, &verticeData.lines, null);
+                counter += 1;
+            }
+        }
+    }
 }
 
 fn setupVerticesBossHpBar(boss: *bossZig.Boss, top: f32, left: f32, height: f32, width: f32, state: *main.GameState) !void {

@@ -5,13 +5,14 @@ Tasks:
     - bosses (missing:(roll,30+) ,done: stomp, rotate, split, snake)
 
 - controller inputs
-    - keyboard player join
-        - when key hold for longer time
-    - when only player uses controller, it should not consider someone joining
-        - check how long it has been since keyboard button used
+    - display how to mutliplayer
+        - display progress bar "player X joining" when button hold more than one second
+        - display "hold button to join" if different input devices used
+            - only when on one player
     - display movement keys to press in playerUX
         - change something for no choice?
     - disconnect and reconnect logic?
+    - player leave option
 - sound: play sound when "continue shop" opens
 - bug: dragon boss can target dead players
 - multiplayer
