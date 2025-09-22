@@ -7,10 +7,7 @@ Tasks:
 - check: player join dog ear
 - controller inputs
     - display movement keys to press in playerUX
-        - in corner of movePiece display on level 1 or when input changed
-            - continue: how to go from sdl key to char?
-            - keyboard
-            - controller
+        - when using different key mapping for player 1 only display
         - new player tutorial
             - when game started and no 
         - change something for no choice?

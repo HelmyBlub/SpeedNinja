@@ -103,7 +103,7 @@ pub fn handlePlayerInput(event: sdl.SDL_Event, state: *main.GameState) !void {
 pub fn getDisplayTextForPlayerAction(player: *main.Player, action: PlayerAction, state: *main.GameState) ?[]const u8 {
     var inputDevice: ?InputDeviceData = null;
     if (player.inputData.inputDevice == null) {
-        if (player.inputData.lastInputDevice == null) {
+        if (player.inputData.lastInputDevice == null or player.inputData.lastInputDevice.? == .keyboard) {
             inputDevice = .{ .keyboard = 0 };
         } else {
             inputDevice = player.inputData.lastInputDevice;
