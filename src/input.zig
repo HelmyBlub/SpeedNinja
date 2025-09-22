@@ -100,7 +100,7 @@ pub fn handlePlayerInput(event: sdl.SDL_Event, state: *main.GameState) !void {
     try handleCheckPlayerJoin(event, state);
 }
 
-pub fn getDisplayCharForPlayerAction(player: *main.Player, action: PlayerAction) ?[]const u8 {
+pub fn getDisplayTextForPlayerAction(player: *main.Player, action: PlayerAction, state: *main.GameState) ?[]const u8 {
     var inputDevice: ?InputDeviceData = null;
     if (player.inputData.inputDevice == null) {
         if (player.inputData.lastInputDevice == null) {
@@ -119,26 +119,45 @@ pub fn getDisplayCharForPlayerAction(player: *main.Player, action: PlayerAction)
         .keyboard => |index| {
             const mappings = KEYBOARD_MAPPINGS[index.?];
             for (mappings) |mapping| {
-                if (mapping.action == action) return "1"; //TODO how to get sdl value to char
+                if (mapping.action == action) {
+                    return getDisplayTextForScancode(@intCast(mapping.sdlKeyCode), state);
+                }
             }
             return null;
         },
         .gamepad => |_| {
             switch (action) {
                 .pieceSelect1 => {
-                    return "1";
+                    return "A";
                 },
                 .pieceSelect2 => {
-                    return "2";
+                    return "B";
                 },
                 .pieceSelect3 => {
-                    return "3";
+                    return "X";
                 },
                 else => {
                     return null;
                 },
             }
         },
+    }
+}
+
+fn getDisplayTextForScancode(scancode: c_uint, state: *main.GameState) []const u8 {
+    const cString = sdl.SDL_GetScancodeName(scancode);
+    const zigString: []const u8 = std.mem.span(cString);
+    if (zigString.len > 1) {
+        if (std.mem.startsWith(u8, zigString, "Keypad")) {
+            state.tempStringBuffer[0] = 'K';
+            state.tempStringBuffer[1] = zigString[zigString.len - 1];
+            return state.tempStringBuffer[0..2];
+        } else {
+            std.debug.print("displayKeyToScancode: {s}\n", .{zigString});
+        }
+        return "0";
+    } else {
+        return zigString;
     }
 }
 
@@ -205,9 +224,10 @@ fn handlePlayerKeyboardInput(event: sdl.SDL_Event, player: *main.Player, keyboar
             }
         }
     } else {
-        for (KEYBOARD_MAPPINGS) |keyMappings| {
+        for (KEYBOARD_MAPPINGS, 0..) |keyMappings, index| {
             for (keyMappings) |mapping| {
                 if (mapping.sdlKeyCode == event.key.scancode) {
+                    player.inputData.lastInputDevice = .{ .keyboard = @intCast(index) };
                     try handlePlayerAction(mapping.action, player, state);
                 }
             }
@@ -258,7 +278,6 @@ fn handlePlayerGamepadInput(event: sdl.SDL_Event, player: *main.Player, gamepadI
         },
         sdl.SDL_EVENT_GAMEPAD_BUTTON_DOWN => {
             if (gamepadId == null) player.inputData.lastInputDevice = .{ .gamepad = event.gdevice.which };
-            std.debug.print("event: Gamepad button {any}\n", .{event.gbutton});
             if (event.gbutton.button == 0) try handlePlayerAction(.pieceSelect1, player, state);
             if (event.gbutton.button == 1) try handlePlayerAction(.pieceSelect2, player, state);
             if (event.gbutton.button == 2) try handlePlayerAction(.pieceSelect3, player, state);

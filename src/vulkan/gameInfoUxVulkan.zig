@@ -76,7 +76,7 @@ pub fn setupVertices(state: *main.GameState) !void {
                 const left: comptime_float = 0;
                 const top: f32 = -0.99 + height * @as(f32, @floatFromInt(counter + 1)) * 1.1;
                 textWidth += fontVulkanZig.paintText("Player ", .{ .x = left + textWidth, .y = top }, fontSizePlayerJoin, textColor, fontVertices);
-                textWidth += try fontVulkanZig.paintNumber(state.players.items.len + counter, .{ .x = left + textWidth, .y = top }, fontSizePlayerJoin, textColor, fontVertices);
+                textWidth += try fontVulkanZig.paintNumber(state.players.items.len + counter + 1, .{ .x = left + textWidth, .y = top }, fontSizePlayerJoin, textColor, fontVertices);
                 textWidth += fontVulkanZig.paintText("joining", .{ .x = left + textWidth, .y = top }, fontSizePlayerJoin, textColor, fontVertices);
 
                 const fillPerCent = @as(f32, @floatFromInt(realTime - joinData.pressTime)) / @as(f32, @floatFromInt(main.PLAYER_JOIN_BUTTON_HOLD_DURATION));

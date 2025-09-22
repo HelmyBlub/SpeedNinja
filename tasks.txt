@@ -8,6 +8,7 @@ Tasks:
 - controller inputs
     - display movement keys to press in playerUX
         - in corner of movePiece display on level 1 or when input changed
+            - continue: how to go from sdl key to char?
             - keyboard
             - controller
         - new player tutorial

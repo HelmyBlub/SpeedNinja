@@ -63,6 +63,7 @@ pub const GameState = struct {
     continueData: ContinueData = .{},
     soundData: SoundData = .{},
     inputJoinData: inputZig.InputJoinData,
+    tempStringBuffer: []u8,
 };
 
 pub const SoundData = struct {
@@ -724,6 +725,7 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
         .mapData = try mapTileZig.createMapData(allocator),
         .statistics = statsZig.createStatistics(allocator),
         .inputJoinData = .{ .inputDeviceDatas = std.ArrayList(inputZig.InputJoinDeviceData).init(allocator) },
+        .tempStringBuffer = try allocator.alloc(u8, 20),
     };
     state.allocator = allocator;
     try windowSdlZig.initWindowSdl();
@@ -779,6 +781,7 @@ fn destroyGameState(state: *GameState) !void {
     state.spriteCutAnimations.deinit();
     state.mapObjects.deinit();
     state.inputJoinData.inputDeviceDatas.deinit();
+    state.allocator.free(state.tempStringBuffer);
     try statsZig.destroyAndSave(state);
     mapTileZig.deinit(state);
     enemyZig.destroyEnemyData(state);
