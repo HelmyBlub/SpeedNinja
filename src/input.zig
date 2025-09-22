@@ -100,6 +100,48 @@ pub fn handlePlayerInput(event: sdl.SDL_Event, state: *main.GameState) !void {
     try handleCheckPlayerJoin(event, state);
 }
 
+pub fn getDisplayCharForPlayerAction(player: *main.Player, action: PlayerAction) ?[]const u8 {
+    var inputDevice: ?InputDeviceData = null;
+    if (player.inputData.inputDevice == null) {
+        if (player.inputData.lastInputDevice == null) {
+            inputDevice = .{ .keyboard = 0 };
+        } else {
+            inputDevice = player.inputData.lastInputDevice;
+        }
+    } else {
+        inputDevice = player.inputData.inputDevice;
+        if (inputDevice.? == .keyboard and inputDevice.?.keyboard == null) {
+            inputDevice = .{ .keyboard = 0 };
+        }
+    }
+    if (inputDevice == null) return null;
+    switch (inputDevice.?) {
+        .keyboard => |index| {
+            const mappings = KEYBOARD_MAPPINGS[index.?];
+            for (mappings) |mapping| {
+                if (mapping.action == action) return "1"; //TODO how to get sdl value to char
+            }
+            return null;
+        },
+        .gamepad => |_| {
+            switch (action) {
+                .pieceSelect1 => {
+                    return "1";
+                },
+                .pieceSelect2 => {
+                    return "2";
+                },
+                .pieceSelect3 => {
+                    return "3";
+                },
+                else => {
+                    return null;
+                },
+            }
+        },
+    }
+}
+
 fn handleCheckPlayerJoin(event: sdl.SDL_Event, state: *main.GameState) !void {
     if (event.type == sdl.SDL_EVENT_KEY_DOWN) {
         const mappingIndex = getKeyboardMappingIndex(event);

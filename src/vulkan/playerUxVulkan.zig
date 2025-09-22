@@ -6,6 +6,7 @@ const movePieceZig = @import("../movePiece.zig");
 const fontVulkanZig = @import("fontVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 const imageZig = @import("../image.zig");
+const inputZig = @import("../input.zig");
 
 const INITIAL_PIECE_COLOR: [3]f32 = .{ 0.0, 0.0, 1 };
 
@@ -13,7 +14,7 @@ pub fn setupVertices(state: *main.GameState) !void {
     const verticeData = &state.vkState.verticeData;
 
     for (state.players.items) |*player| {
-        verticesForMoveOptions(player, verticeData);
+        verticesForMoveOptions(player, verticeData, state);
         try verticesForPlayerData(player, verticeData, state);
     }
 }
@@ -229,7 +230,7 @@ fn verticesForPlayerPieceCounter(vulkanPos: main.Position, fontSize: f32, player
     }
 }
 
-fn verticesForMoveOptions(player: *main.Player, verticeData: *dataVulkanZig.VkVerticeData) void {
+fn verticesForMoveOptions(player: *main.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) void {
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     var width: f32 = 0;
@@ -293,6 +294,30 @@ fn verticesForMoveOptions(player: *main.Player, verticeData: *dataVulkanZig.VkVe
                 lines,
                 triangles,
             );
+        }
+        if (player.uxData.visualizeChoiceKeys) {
+            const fontSize = height / 4 / onePixelYInVulkan;
+            const keyImagePos: main.Position = .{
+                .x = startX + onePixelXInVulkan * fontSize / 2,
+                .y = startY + onePixelYInVulkan * fontSize / 2,
+            };
+            paintVulkanZig.verticesForComplexSpriteVulkan(keyImagePos, imageZig.IMAGE_KEY_BLANK, fontSize, fontSize, 1, 0, false, false, state);
+            var displayChar: ?[]const u8 = null;
+            switch (index) {
+                0 => {
+                    displayChar = inputZig.getDisplayCharForPlayerAction(player, .pieceSelect1);
+                },
+                1 => {
+                    displayChar = inputZig.getDisplayCharForPlayerAction(player, .pieceSelect2);
+                },
+                else => {
+                    displayChar = inputZig.getDisplayCharForPlayerAction(player, .pieceSelect3);
+                },
+            }
+            _ = fontVulkanZig.paintText("1", .{
+                .x = startX + onePixelXInVulkan * fontSize / 4,
+                .y = startY + onePixelYInVulkan * fontSize / 4,
+            }, fontSize / 2, .{ 1, 1, 1 }, &verticeData.font);
         }
         if (player.uxData.vertical) {
             startY += pieceYSpacing;

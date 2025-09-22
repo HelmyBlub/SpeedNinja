@@ -112,6 +112,7 @@ const PlayerUxData = struct {
     visualizeMoneyUntil: ?i64 = null,
     visualizeHpChange: ?i32 = null,
     visualizeHpChangeUntil: ?i64 = null,
+    visualizeChoiceKeys: bool = true,
 };
 
 const ContinueData = struct {
@@ -525,6 +526,7 @@ pub fn startNextLevel(state: *GameState) !void {
     for (state.players.items) |*player| {
         try movePieceZig.resetPieces(player, false, state);
         player.lastMoveDirection = null;
+        if (state.level > 1) player.uxData.visualizeChoiceKeys = false;
     }
     try enemyZig.setupSpawnEnemiesOnLevelChange(state);
     if (bossZig.isBossLevel(state.level)) {

@@ -4,12 +4,14 @@ Tasks:
 - new game+2
     - bosses (missing:(roll,30+) ,done: stomp, rotate, split, snake)
 
+- check: player join dog ear
 - controller inputs
-    - display how to mutliplayer
-        - display progress bar "player X joining" when button hold more than one second
-        - display "hold button to join" if different input devices used
-            - only when on one player
     - display movement keys to press in playerUX
+        - in corner of movePiece display on level 1 or when input changed
+            - keyboard
+            - controller
+        - new player tutorial
+            - when game started and no 
         - change something for no choice?
     - disconnect and reconnect logic?
     - player leave option
@@ -20,6 +22,10 @@ Tasks:
         - every player needs to enter
         - revive dead players
         - check move piece reset in shop for other player
+- some settings info area
+    - display how to mutliplayer
+        - display "hold button to join" if different input devices used
+            - only when on one player
 
 - new game plus
     - check snowball being to slow?
