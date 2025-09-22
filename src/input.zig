@@ -101,6 +101,28 @@ pub fn handlePlayerInput(event: sdl.SDL_Event, state: *main.GameState) !void {
 }
 
 fn handleCheckPlayerJoin(event: sdl.SDL_Event, state: *main.GameState) !void {
+    if (event.type == sdl.SDL_EVENT_KEY_DOWN) {
+        const mappingIndex = getKeyboardMappingIndex(event);
+        if (mappingIndex == null) return;
+        for (state.players.items) |*player| {
+            if (player.inputData.inputDevice != null and player.inputData.inputDevice.? == .keyboard and player.inputData.inputDevice.?.keyboard == mappingIndex) return;
+        }
+        for (state.inputJoinData.inputDeviceDatas.items) |joinData| {
+            if (joinData.deviceData == .keyboard and joinData.deviceData.keyboard == mappingIndex) return;
+        }
+        try state.inputJoinData.inputDeviceDatas.append(.{ .pressTime = std.time.milliTimestamp(), .deviceData = .{ .keyboard = mappingIndex } });
+    }
+    if (event.type == sdl.SDL_EVENT_KEY_UP) {
+        const mappingIndex = getKeyboardMappingIndex(event);
+        if (mappingIndex == null) return;
+        for (state.inputJoinData.inputDeviceDatas.items, 0..) |joinData, index| {
+            if (joinData.deviceData == .keyboard and joinData.deviceData.keyboard == mappingIndex) {
+                _ = state.inputJoinData.inputDeviceDatas.swapRemove(index);
+                return;
+            }
+        }
+    }
+
     if (event.type == sdl.SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
         for (state.players.items) |*player| {
             if (player.inputData.inputDevice != null and player.inputData.inputDevice.? == .gamepad and player.inputData.inputDevice.?.gamepad == event.gdevice.which) {
@@ -120,6 +142,15 @@ fn handleCheckPlayerJoin(event: sdl.SDL_Event, state: *main.GameState) !void {
             }
         }
     }
+}
+
+fn getKeyboardMappingIndex(event: sdl.SDL_Event) ?u32 {
+    for (KEYBOARD_MAPPINGS, 0..) |keyMappings, index| {
+        for (keyMappings) |mapping| {
+            if (mapping.sdlKeyCode == event.key.scancode) return @intCast(index);
+        }
+    }
+    return null;
 }
 
 fn handlePlayerKeyboardInput(event: sdl.SDL_Event, player: *main.Player, keyboardMappingIndex: ?u32, state: *main.GameState) !void {

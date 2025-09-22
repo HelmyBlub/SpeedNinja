@@ -675,6 +675,12 @@ pub fn playerJoin(playerInputData: inputZig.PlayerInputData, state: *GameState) 
         if (otherPlayer.inputData.inputDevice == null) {
             if (player.inputData.inputDevice.? == .gamepad) {
                 otherPlayer.inputData.inputDevice = .{ .keyboard = null };
+            } else if (player.inputData.inputDevice.? == .keyboard) {
+                if (player.inputData.inputDevice.?.keyboard == 0) {
+                    otherPlayer.inputData.inputDevice = .{ .keyboard = 1 };
+                } else {
+                    otherPlayer.inputData.inputDevice = .{ .keyboard = 0 };
+                }
             }
         }
     }

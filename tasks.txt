@@ -1,16 +1,15 @@
 Tasks:
 - new game+1 
     - try complete run
-    - try new game +2 bosses (missing:(roll,30+) ,done: stomp, rotate, split, snake)
-- name changed: Speed Tactic Ninja
-- bug: entering shop with last piece does not reset
+- new game+2
+    - bosses (missing:(roll,30+) ,done: stomp, rotate, split, snake)
+
 - controller inputs
-    - each player need to be assigned to input type
-        - player join with controller, 
-            - old player only with keyboard
-    - player joins by holding any key on device for x-seconds
-        - will create input mappings
-    - display key to press in playerUX
+    - keyboard player join
+        - when key hold for longer time
+    - when only player uses controller, it should not consider someone joining
+        - check how long it has been since keyboard button used
+    - display movement keys to press in playerUX
         - change something for no choice?
     - disconnect and reconnect logic?
 - sound: play sound when "continue shop" opens
