@@ -15,6 +15,7 @@ Tasks:
         - every player needs to enter
         - revive dead players
         - check move piece reset in shop for other player
+    - bosses not targeting dead players
 - some settings info area
     - display how to mutliplayer
         - display "hold button to join" if different input devices used

@@ -45,7 +45,8 @@ fn deinit(boss: *bossZig.Boss, allocator: std.mem.Allocator) void {
 }
 
 fn startBoss(state: *main.GameState) !void {
-    const scaledHp = bossZig.getHpScalingForLevel(20, state);
+    const levelScaledHp = bossZig.getHpScalingForLevel(20, state);
+    const scaledHp: u32 = levelScaledHp * @as(u32, @intCast(state.players.items.len));
     var snakeBoss: bossZig.Boss = .{
         .hp = scaledHp,
         .maxHp = scaledHp,

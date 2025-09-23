@@ -47,7 +47,8 @@ pub fn createBoss() bossZig.LevelBossData {
 }
 
 fn startBoss(state: *main.GameState) !void {
-    const scaledHp = bossZig.getHpScalingForLevel(10, state);
+    const levelScaledHp = bossZig.getHpScalingForLevel(10, state);
+    const scaledHp: u32 = levelScaledHp * @as(u32, @intCast(state.players.items.len));
     const maxSplits = 3;
     var bossTypeData: BossSplitData = .{
         .splits = std.ArrayList(BossSplitPartData).init(state.allocator),

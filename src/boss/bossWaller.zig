@@ -65,7 +65,8 @@ fn onPlayerMoveEachTile(boss: *bossZig.Boss, player: *main.Player, state: *main.
 }
 
 fn startBoss(state: *main.GameState) !void {
-    const scaledHp = bossZig.getHpScalingForLevel(10, state);
+    const levelScaledHp = bossZig.getHpScalingForLevel(10, state);
+    const scaledHp: u32 = @intFromFloat(@as(f32, @floatFromInt(levelScaledHp)) * (1.0 + @as(f32, @floatFromInt(state.players.items.len - 1)) * 0.5));
     var boss: bossZig.Boss = .{
         .hp = scaledHp,
         .maxHp = scaledHp,
