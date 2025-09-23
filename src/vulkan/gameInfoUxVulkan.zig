@@ -35,21 +35,8 @@ pub fn setupVertices(state: *main.GameState) !void {
         }
     } else {
         textWidthRound -= 0.2;
-        if (state.gamePhase == .combat) {
-            textWidthRound += fontVulkanZig.paintText("Round: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, textColor, fontVertices);
-            textWidthRound += try fontVulkanZig.paintNumber(state.round, .{ .x = textWidthRound, .y = -0.99 }, fontSize, textColor, fontVertices);
-        }
         textWidthRound += fontVulkanZig.paintText(" Level: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, textColor, fontVertices);
         textWidthRound += try fontVulkanZig.paintNumber(state.level, .{ .x = textWidthRound, .y = -0.99 }, fontSize, textColor, fontVertices);
-        textWidthRound += fontVulkanZig.paintText(" Play Time: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, textColor, fontVertices);
-        var zeroPrefix = false;
-        if (state.gameTime >= 60 * 1000) {
-            const minutes = @divFloor(state.gameTime, 1000 * 60);
-            textWidthRound += try fontVulkanZig.paintNumber(minutes, .{ .x = textWidthRound, .y = -0.99 }, fontSize, textColor, fontVertices);
-            textWidthRound += fontVulkanZig.paintText(":", .{ .x = textWidthRound, .y = -0.99 }, fontSize, textColor, fontVertices);
-            zeroPrefix = true;
-        }
-        _ = try fontVulkanZig.paintNumberWithZeroPrefix(@mod(@divFloor(state.gameTime, 1000), 60), .{ .x = textWidthRound, .y = -0.99 }, fontSize, textColor, fontVertices, zeroPrefix);
 
         if (state.round > 1 and state.gamePhase == .combat) {
             const textWidthTime = fontVulkanZig.paintText("Time: ", .{ .x = 0, .y = -0.9 }, fontSize, textColor, fontVertices);

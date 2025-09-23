@@ -65,6 +65,7 @@ pub const GameState = struct {
     inputJoinData: inputZig.InputJoinData,
     tempStringBuffer: []u8,
     tutorialData: TutorialData = .{},
+    gateOpenTime: ?i64 = null,
 };
 
 pub const TutorialData = struct {
@@ -324,6 +325,8 @@ pub fn startNextRound(state: *GameState) !void {
     state.soundData.warningSoundPlayed = false;
     state.roundStartedTime = state.gameTime;
     state.round += 1;
+    if (state.round >= state.roundToReachForNextLevel and state.gateOpenTime == null) state.gateOpenTime = state.gameTime;
+
     if (state.round > 1) {
         for (state.players.items) |*player| {
             const amount = @as(i32, @intFromFloat(@ceil(@as(f32, @floatFromInt(state.level)) * (1.0 + player.moneyBonusPerCent))));
@@ -346,6 +349,7 @@ pub fn startNextLevel(state: *GameState) !void {
         return;
     }
     mapTileZig.setMapType(.default, state);
+    state.gateOpenTime = null;
     state.playerTookDamageOnLevel = false;
     state.suddenDeath = 0;
     state.soundData.suddenDeathPlayed = false;

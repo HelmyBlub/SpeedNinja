@@ -25,7 +25,7 @@ pub fn drawFrame(state: *main.GameState) !void {
     verticesForBackCloud(state);
     try addDataVerticeDrawCut(&state.vkState.verticeData);
     mapTileZig.setupVertices(state);
-    mapGridVulkanZig.setupVertices(state);
+    try mapGridVulkanZig.setupVertices(state);
     try shopVulkanZig.setupVertices(state);
     try enemyVulkanZig.setupVerticesGround(state);
     verticesForSuddenDeathFire(state);
@@ -114,7 +114,7 @@ fn verticesForSuddenDeathFire(state: *main.GameState) void {
                 .y = (@as(f32, @floatFromInt(j)) - fRadius) * main.TILESIZE,
             };
             const shopTrigger = shopZig.getShopEarlyTriggerPosition(state);
-            if (shopTrigger != null and main.isTilePositionInTileRectangle(main.gamePositionToTilePosition(pos), shopTrigger.?)) {
+            if (main.isTilePositionInTileRectangle(main.gamePositionToTilePosition(pos), shopTrigger)) {
                 continue;
             }
             verticesForComplexSpriteAnimated(pos, imageZig.IMAGE_FIRE_ANIMATION, animatePerCent, 2, state);

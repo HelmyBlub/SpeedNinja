@@ -3,12 +3,11 @@ Tasks:
     - try complete run
 - new game+2
     - bosses missing:(30+)
-        - tripple: more time as has 50% more hp?
 
 - game UX
     - "continue shop"
         - count rounds until open
-            - display 0/4 and can go to x/4
+            - display remaining number
             - remove rounds counter from top
         - visualized closed
             - door?

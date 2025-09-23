@@ -168,9 +168,7 @@ pub fn executeShopActionForPlayer(player: *playerZig.Player, state: *main.GameSt
     }
 }
 
-pub fn getShopEarlyTriggerPosition(state: *main.GameState) ?main.TileRectangle {
-    if (state.gamePhase == .shopping) return null;
-    if (state.round < state.roundToReachForNextLevel) return null;
+pub fn getShopEarlyTriggerPosition(state: *main.GameState) main.TileRectangle {
     return main.TileRectangle{
         .pos = .{
             .x = @intCast(state.mapData.tileRadius + 2),
@@ -181,10 +179,10 @@ pub fn getShopEarlyTriggerPosition(state: *main.GameState) ?main.TileRectangle {
     };
 }
 
-pub fn isPlayerInEarlyShopTrigger(player: *playerZig.Player, state: *main.GameState) bool {
-    const optTileRectangle = getShopEarlyTriggerPosition(state);
-    if (optTileRectangle == null) return false;
-    const tileRectangle = optTileRectangle.?;
+pub fn isPlayerInShopTrigger(player: *playerZig.Player, state: *main.GameState) bool {
+    if (state.gamePhase == .shopping) return false;
+    if (state.round < state.roundToReachForNextLevel) return false;
+    const tileRectangle = getShopEarlyTriggerPosition(state);
     const playerTile = main.gamePositionToTilePosition(player.position);
     return main.isTilePositionInTileRectangle(playerTile, tileRectangle);
 }

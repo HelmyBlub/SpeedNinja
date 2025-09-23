@@ -93,6 +93,8 @@ pub const IMAGE_NO_CHOICE = 85;
 pub const IMAGE_ICON_MOVE_PIECE = 86;
 pub const IMAGE_ICON_REFRESH = 87;
 pub const IMAGE_KEY_BLANK = 88;
+pub const IMAGE_GATE = 89;
+pub const IMAGE_STAIRS = 90;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaFeet.png" },
@@ -184,6 +186,8 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/movePieceIcon.png" },
     .{ .path = "images/iconRefresh.png" },
     .{ .path = "images/singleBlankKey.png" },
+    .{ .path = "images/gate.png" },
+    .{ .path = "images/stairs.png" },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 pub const IMAGE_DOG__CENTER_BODY: main.Position = .{ .x = 99, .y = 128 };

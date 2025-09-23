@@ -16,9 +16,7 @@ const playerZig = @import("../player.zig");
 pub fn setupVertices(state: *main.GameState) !void {
     const verticeData = &state.vkState.verticeData;
     const textColor: [3]f32 = .{ 1, 1, 1 };
-    if (state.gamePhase != .shopping) {
-        verticesForEarlyShopTrigger(state);
-    } else {
+    if (state.gamePhase == .shopping) {
         const player = &state.players.items[0];
         paintGrid(player, state);
         const player0ShopPos = player.shop.pieceShopTopLeft;
@@ -107,34 +105,6 @@ pub fn setupVertices(state: *main.GameState) !void {
             }
         }
     }
-}
-
-fn verticesForEarlyShopTrigger(state: *main.GameState) void {
-    const optTileRectangle = shopZig.getShopEarlyTriggerPosition(state);
-    if (optTileRectangle == null) return;
-    const textColor: [3]f32 = .{ 1, 1, 1 };
-    const verticeData = &state.vkState.verticeData;
-    const tileRectangle = optTileRectangle.?;
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-    const gridEarlyShopTopLeft: main.Position = .{
-        .x = @floatFromInt(tileRectangle.pos.x * main.TILESIZE),
-        .y = @floatFromInt(tileRectangle.pos.y * main.TILESIZE),
-    };
-    const vulkan: main.Position = .{
-        .x = (-state.camera.position.x + gridEarlyShopTopLeft.x) * state.camera.zoom * onePixelXInVulkan,
-        .y = (-state.camera.position.y + gridEarlyShopTopLeft.y) * state.camera.zoom * onePixelYInVulkan,
-    };
-    const halveVulkanTileSizeX = main.TILESIZE * onePixelXInVulkan * state.camera.zoom / 2;
-    const halveVulkanTileSizeY = main.TILESIZE * onePixelYInVulkan * state.camera.zoom / 2;
-    const width = main.TILESIZE * shopZig.EARLY_SHOP_GRID_SIZE * onePixelXInVulkan * state.camera.zoom;
-    const height = main.TILESIZE * shopZig.EARLY_SHOP_GRID_SIZE * onePixelYInVulkan * state.camera.zoom;
-    const left = vulkan.x - halveVulkanTileSizeX;
-    const top = vulkan.y - halveVulkanTileSizeY;
-    const fontSize = 26;
-    _ = fontVulkanZig.paintText("continue", .{ .x = left, .y = top }, fontSize, textColor, &verticeData.font);
-    _ = fontVulkanZig.paintText("shop", .{ .x = left, .y = top + fontSize * onePixelYInVulkan }, fontSize, textColor, &verticeData.font);
-    paintVulkanZig.verticesForRectangle(left, top, width, height, .{ 1, 1, 1 }, &verticeData.lines, &verticeData.triangles);
 }
 
 fn paintGrid(player: *playerZig.Player, state: *main.GameState) void {
