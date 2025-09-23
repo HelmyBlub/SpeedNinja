@@ -2,16 +2,12 @@ Tasks:
 - new game+1 
     - try complete run
 - new game+2
-    - bosses (missing:(roll,30+) ,done: stomp, rotate, split, snake)
+    - bosses missing:(30+)
+        - tripple: more time as has 50% more hp?
 
 - check: player join dog ear
 - controller inputs
     - display movement keys to press in playerUX
-        - new player tutorial
-            - when game started and only invalid inputs in 15seconds
-                - display message "press key 1,2 or 3"
-            - when chosen direction after another 15seconds
-                - display message press "a,w,s,d" to move in direction
         - change something for no choice?
     - disconnect and reconnect logic?
     - player leave option

@@ -68,7 +68,7 @@ pub const NinjaDogAnimationStateData = struct {
 const NinjaDogAnimationStateDataTypeEars = struct {
     leftVelocity: f32 = 0,
     rightVelocity: f32 = 0,
-    lastUpdateTime: i64 = 0,
+    lastUpdateTime: ?i64 = null,
 };
 
 const NinjaDogAnimationStateDataTypeBasic = struct {
@@ -126,7 +126,10 @@ fn tickNinjaDogEarAnimation(player: *main.Player, state: *main.GameState) void {
     }
     player.paintData.leftEarRotation += player.animateData.ears.leftVelocity;
     player.paintData.rightEarRotation += player.animateData.ears.rightVelocity;
-    const timeDiffToVelocity = @as(f32, @floatFromInt(state.gameTime - player.animateData.ears.lastUpdateTime)) / 16000;
+    if (player.animateData.ears.lastUpdateTime == null) {
+        player.animateData.ears.lastUpdateTime = state.gameTime;
+    }
+    const timeDiffToVelocity = @as(f32, @floatFromInt(state.gameTime - player.animateData.ears.lastUpdateTime.?)) / 16000;
     player.animateData.ears.lastUpdateTime = state.gameTime;
     const dampenFactor = 1.4;
     if (player.animateData.ears.leftVelocity > 0 and player.paintData.leftEarRotation > 0) {
