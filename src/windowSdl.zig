@@ -75,7 +75,6 @@ pub fn handleEvents(state: *main.GameState) !void {
 }
 
 fn handleGamePadEvents(event: sdl.SDL_Event, state: *main.GameState) !void {
-    _ = state;
     switch (event.type) {
         sdl.SDL_EVENT_GAMEPAD_ADDED => {
             std.debug.print("event: Gamepad added\n", .{});
@@ -83,12 +82,28 @@ fn handleGamePadEvents(event: sdl.SDL_Event, state: *main.GameState) !void {
             const gamepad: ?*sdl.SDL_Gamepad = sdl.SDL_OpenGamepad(which);
             if (gamepad == null) {
                 std.debug.print("gamepad open failed: {s}\n", .{sdl.SDL_GetError()});
+            } else {
+                if (state.inputJoinData.disconnectedGamepads.items.len > 0) {
+                    const replace = state.inputJoinData.disconnectedGamepads.orderedRemove(0);
+                    for (state.players.items) |*player| {
+                        if (player.inputData.inputDevice != null and player.inputData.inputDevice.? == .gamepad and player.inputData.inputDevice.?.gamepad == replace) {
+                            player.inputData.inputDevice.?.gamepad = which;
+                            break;
+                        }
+                    }
+                }
             }
         },
         sdl.SDL_EVENT_GAMEPAD_REMOVED => {
             std.debug.print("event: Gamepad removed\n", .{});
             const which: sdl.SDL_JoystickID = event.gdevice.which;
             const gamepad: ?*sdl.SDL_Gamepad = sdl.SDL_GetGamepadFromID(which);
+            for (state.players.items) |*player| {
+                if (player.inputData.inputDevice != null and player.inputData.inputDevice.? == .gamepad and player.inputData.inputDevice.?.gamepad == which) {
+                    try state.inputJoinData.disconnectedGamepads.append(which);
+                    break;
+                }
+            }
             if (gamepad != null) {
                 sdl.SDL_CloseGamepad(gamepad);
             }

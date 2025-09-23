@@ -6,9 +6,6 @@ Tasks:
         - tripple: more time as has 50% more hp?
 
 - controller inputs
-    - display movement keys in playerUX when joining or key changes
-        - how to arrow keys
-        - change something for no choice?
     - disconnect and reconnect logic?
     - player leave option
 - sound: play sound when "continue shop" opens

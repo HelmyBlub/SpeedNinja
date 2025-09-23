@@ -16,6 +16,7 @@ pub const PlayerInputData = struct {
 
 pub const InputJoinData = struct {
     inputDeviceDatas: std.ArrayList(InputJoinDeviceData),
+    disconnectedGamepads: std.ArrayList(u32),
 };
 
 pub const InputJoinDeviceData = struct {

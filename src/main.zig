@@ -679,7 +679,7 @@ pub fn adjustZoom(state: *GameState) void {
 }
 
 pub fn playerJoin(playerInputData: inputZig.PlayerInputData, state: *GameState) !void {
-    std.debug.print("player join: {}", .{playerInputData.inputDevice.?});
+    std.debug.print("player join: {}\n", .{playerInputData.inputDevice.?});
     try state.players.append(createPlayer(state.allocator));
     const player: *Player = &state.players.items[state.players.items.len - 1];
     player.inputData = playerInputData;
@@ -696,7 +696,7 @@ pub fn playerJoin(playerInputData: inputZig.PlayerInputData, state: *GameState) 
                 }
                 otherPlayer.uxData.visualizeMovementKeys = true;
             }
-        } else if (otherPlayer.inputData.inputDevice.? == .keyboard and otherPlayer.inputData.inputDevice.?.keyboard == null) {
+        } else if (player.inputData.inputDevice.? == .keyboard and otherPlayer.inputData.inputDevice.? == .keyboard and otherPlayer.inputData.inputDevice.?.keyboard == null) {
             if (player.inputData.inputDevice.?.keyboard == 0) {
                 otherPlayer.inputData.inputDevice = .{ .keyboard = 1 };
             } else {
@@ -738,7 +738,10 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
         .shop = .{ .buyOptions = std.ArrayList(shopZig.ShopBuyOption).init(allocator) },
         .mapData = try mapTileZig.createMapData(allocator),
         .statistics = statsZig.createStatistics(allocator),
-        .inputJoinData = .{ .inputDeviceDatas = std.ArrayList(inputZig.InputJoinDeviceData).init(allocator) },
+        .inputJoinData = .{
+            .inputDeviceDatas = std.ArrayList(inputZig.InputJoinDeviceData).init(allocator),
+            .disconnectedGamepads = std.ArrayList(u32).init(allocator),
+        },
         .tempStringBuffer = try allocator.alloc(u8, 20),
     };
     state.allocator = allocator;
@@ -795,6 +798,7 @@ fn destroyGameState(state: *GameState) !void {
     state.spriteCutAnimations.deinit();
     state.mapObjects.deinit();
     state.inputJoinData.inputDeviceDatas.deinit();
+    state.inputJoinData.disconnectedGamepads.deinit();
     state.allocator.free(state.tempStringBuffer);
     try statsZig.destroyAndSave(state);
     mapTileZig.deinit(state);
