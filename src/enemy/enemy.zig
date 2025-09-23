@@ -263,7 +263,7 @@ pub fn setupEnemies(state: *main.GameState) !void {
     if (state.enemyData.enemySpawnData.enemyEntries.items.len == 0) return;
     const rand = std.crypto.random;
     const enemyCountForLevel = @min(5, (@divFloor(state.level - 1, 2) + state.newGamePlus));
-    const enemyCount = state.round + enemyCountForLevel;
+    const enemyCount = (state.round + enemyCountForLevel) * state.players.items.len;
     const mapTileRadius = mapTileZig.BASE_MAP_TILE_RADIUS + @as(u32, @intFromFloat(@sqrt(@as(f32, @floatFromInt(enemyCount)))));
     try mapTileZig.setMapRadius(mapTileRadius, state);
     const length: f32 = @floatFromInt(state.mapData.tileRadius * 2 + 1);
