@@ -5,15 +5,27 @@ Tasks:
     - bosses missing:(30+)
         - tripple: more time as has 50% more hp?
 
-- code split "player" out of main?
-- sound: play sound when "continue shop" opens
-- bug: dragon boss can target dead players
+- game UX
+    - "continue shop"
+        - count rounds until open
+            - display 0/4 and can go to x/4
+            - remove rounds counter from top
+        - visualized closed
+            - door?
+        - sound: play sound when "continue shop" opens
+        - visualized open
+            - stairs?
+        - boss defeated sound
+    - remove current total time (will be part of speedrun stats)
+    - change timer
+        - should work with vertical setup
 - multiplayer
     - on entering shop
         - every player needs to enter
         - revive dead players
         - check move piece reset in shop for other player
     - bosses not targeting dead players
+        - bug: dragon boss can target dead players
 - some settings info area
     - display how to mutliplayer
         - display "hold button to join" if different input devices used

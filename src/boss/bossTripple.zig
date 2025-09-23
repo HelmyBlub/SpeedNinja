@@ -58,6 +58,7 @@ fn startBoss(state: *main.GameState) !void {
     const levelScaledHp = bossZig.getHpScalingForLevel(5, state);
     const scaledHp: u32 = levelScaledHp * @as(u32, @intCast(state.players.items.len));
     const bossHp = scaledHp;
+    if (state.newGamePlus > 1) state.suddenDeathTimeMs += @divFloor((state.suddenDeathTimeMs - state.gameTime), 2);
     var boss1: bossZig.Boss = .{
         .hp = bossHp,
         .maxHp = bossHp,
