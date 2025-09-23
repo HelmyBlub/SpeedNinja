@@ -8,6 +8,7 @@ const shopZig = @import("shop.zig");
 pub const PlayerInputData = struct {
     inputDevice: ?InputDeviceData = null,
     lastInputDevice: ?InputDeviceData = null,
+    holdingKeySinceForLeave: ?i64 = null,
     axis0DeadZone: bool = true,
     axis1DeadZone: bool = true,
     axis0Id: u8 = 0,
@@ -226,12 +227,18 @@ fn getKeyboardMappingIndex(event: sdl.SDL_Event) ?u32 {
 }
 
 fn handlePlayerKeyboardInput(event: sdl.SDL_Event, player: *main.Player, keyboardMappingIndex: ?u32, state: *main.GameState) !void {
-    if (event.type != sdl.SDL_EVENT_KEY_DOWN) return;
+    if (event.type != sdl.SDL_EVENT_KEY_DOWN and event.type != sdl.SDL_EVENT_KEY_UP) return;
+
     if (keyboardMappingIndex) |index| {
         const keyMapping = KEYBOARD_MAPPINGS[index];
         for (keyMapping) |mapping| {
             if (mapping.sdlKeyCode == event.key.scancode) {
-                try handlePlayerAction(mapping.action, player, state);
+                if (event.type == sdl.SDL_EVENT_KEY_DOWN) {
+                    if (player.inputData.holdingKeySinceForLeave == null) player.inputData.holdingKeySinceForLeave = std.time.milliTimestamp();
+                    try handlePlayerAction(mapping.action, player, state);
+                } else {
+                    player.inputData.holdingKeySinceForLeave = null;
+                }
             }
         }
     } else {
@@ -239,7 +246,9 @@ fn handlePlayerKeyboardInput(event: sdl.SDL_Event, player: *main.Player, keyboar
             for (keyMappings) |mapping| {
                 if (mapping.sdlKeyCode == event.key.scancode) {
                     player.inputData.lastInputDevice = .{ .keyboard = @intCast(index) };
-                    try handlePlayerAction(mapping.action, player, state);
+                    if (event.type == sdl.SDL_EVENT_KEY_DOWN) {
+                        try handlePlayerAction(mapping.action, player, state);
+                    }
                 }
             }
         }
@@ -292,6 +301,10 @@ fn handlePlayerGamepadInput(event: sdl.SDL_Event, player: *main.Player, gamepadI
             if (event.gbutton.button == 0) try handlePlayerAction(.pieceSelect1, player, state);
             if (event.gbutton.button == 1) try handlePlayerAction(.pieceSelect2, player, state);
             if (event.gbutton.button == 2) try handlePlayerAction(.pieceSelect3, player, state);
+            if (gamepadId != null) player.inputData.holdingKeySinceForLeave = std.time.milliTimestamp();
+        },
+        sdl.SDL_EVENT_GAMEPAD_BUTTON_UP => {
+            player.inputData.holdingKeySinceForLeave = null;
         },
         else => {},
     }

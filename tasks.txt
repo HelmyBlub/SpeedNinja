@@ -5,9 +5,12 @@ Tasks:
     - bosses missing:(30+)
         - tripple: more time as has 50% more hp?
 
-- controller inputs
-    - tutorial for controller
-    - player leave option
+- player leave option
+    - hold button
+    - visualize
+- scale enemy with player count
+- scale boss with player count
+- code split "player" out of main?
 - sound: play sound when "continue shop" opens
 - bug: dragon boss can target dead players
 - multiplayer
@@ -31,11 +34,15 @@ Tasks:
 
 Next ideas:
 - improve UX
-    - move options
     - shop
     - gameInfo
         - new game+
+        - timer
     - when "continue shop" opens
+        - sound            
+        - money sound when round finished
+            - get money: "ding ding" 
+            - spend money: "kaching"
     - stairs image for "continue shop"
     - +money on finishing round
     - movepiece reset
@@ -46,6 +53,10 @@ Next ideas:
     - player speedrun stats?
         - multiplayer don't display?
             - only when run over?
+    - kick player option
+        - in shop "kick afk players" when idle player detected
+            - idle when no input in  1min
+            - stand on tile for 5seconds
 - no vulkan support alternative
     - validation layer case
 - shop move piece 

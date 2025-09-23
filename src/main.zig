@@ -444,6 +444,14 @@ fn tickPlayers(state: *GameState, passedTime: i64) !void {
                 break;
             }
         }
+        for (state.players.items, 0..) |*player, index| {
+            if (player.inputData.holdingKeySinceForLeave) |startTime| {
+                if (startTime + PLAYER_JOIN_BUTTON_HOLD_DURATION <= timestamp) {
+                    try playerLeave(index, state);
+                    break;
+                }
+            }
+        }
     }
 }
 
@@ -680,6 +688,28 @@ pub fn adjustZoom(state: *GameState) void {
     determinePlayerUxPositions(state);
 }
 
+pub fn playerLeave(playerIndex: usize, state: *GameState) !void {
+    if (state.players.items.len > 1 and playerIndex < state.players.items.len) {
+        var removed = state.players.swapRemove(playerIndex);
+        if (removed.inputData.inputDevice != null and removed.inputData.inputDevice.? == .keyboard) {
+            var keyBoardPlayerCount: u32 = 0;
+            for (state.players.items) |*player| {
+                if (player.inputData.inputDevice != null and player.inputData.inputDevice.? == .keyboard) {
+                    keyBoardPlayerCount += 1;
+                }
+            }
+            if (keyBoardPlayerCount == 1) {
+                for (state.players.items) |*player| {
+                    if (player.inputData.inputDevice != null and player.inputData.inputDevice.? == .keyboard) {
+                        player.inputData.inputDevice.?.keyboard = null;
+                    }
+                }
+            }
+        }
+        destroyPlayer(&removed, state);
+    }
+}
+
 pub fn playerJoin(playerInputData: inputZig.PlayerInputData, state: *GameState) !void {
     std.debug.print("player join: {}\n", .{playerInputData.inputDevice.?});
     try state.players.append(createPlayer(state.allocator));
@@ -768,27 +798,31 @@ pub fn createPlayer(allocator: std.mem.Allocator) Player {
     };
 }
 
+fn destroyPlayer(player: *Player, state: *GameState) void {
+    player.moveOptions.deinit();
+    player.availableMovePieces.deinit();
+    if (player.totalMovePieces.items.len > 0) {
+        for (player.totalMovePieces.items) |movePiece| {
+            state.allocator.free(movePiece.steps);
+        }
+    }
+    player.totalMovePieces.deinit();
+    player.afterImages.deinit();
+    for (player.shop.piecesToBuy) |optPiece| {
+        if (optPiece) |piece| {
+            state.allocator.free(piece.steps);
+        }
+    }
+}
+
 fn destroyGameState(state: *GameState) !void {
     initVulkanZig.destroyPaintVulkan(&state.vkState, state.allocator) catch {
         std.debug.print("failed to destroy window and vulkan\n", .{});
     };
     soundMixerZig.destroySoundMixer(state);
     windowSdlZig.destroyWindowSdl();
-    for (state.players.items) |player| {
-        player.moveOptions.deinit();
-        player.availableMovePieces.deinit();
-        if (player.totalMovePieces.items.len > 0) {
-            for (player.totalMovePieces.items) |movePiece| {
-                state.allocator.free(movePiece.steps);
-            }
-        }
-        player.totalMovePieces.deinit();
-        player.afterImages.deinit();
-        for (player.shop.piecesToBuy) |optPiece| {
-            if (optPiece) |piece| {
-                state.allocator.free(piece.steps);
-            }
-        }
+    for (state.players.items) |*player| {
+        destroyPlayer(player, state);
     }
     state.players.deinit();
     for (state.bosses.items) |*boss| {
