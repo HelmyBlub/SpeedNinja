@@ -14,6 +14,7 @@ const enemyTypeWallerZig = @import("enemyTypeWaller.zig");
 const enemyTypeMovePieceZig = @import("enemyTypeMovePiece.zig");
 const enemyTypeBombZig = @import("enemyTypeBomb.zig");
 const mapTileZig = @import("../mapTile.zig");
+const playerZig = @import("../player.zig");
 
 pub const EnemyData = struct {
     enemies: std.ArrayList(Enemy) = undefined,
@@ -26,8 +27,8 @@ pub const EnemyData = struct {
 pub const EnemyFunctions = struct {
     createSpawnEnemyEntryEnemy: *const fn () Enemy,
     tick: ?*const fn (enemy: *Enemy, passedTime: i64, state: *main.GameState) anyerror!void = null,
-    onPlayerMoved: ?*const fn (enemy: *Enemy, player: *main.Player, state: *main.GameState) anyerror!void = null,
-    onPlayerMoveEachTile: ?*const fn (enemy: *Enemy, player: *main.Player, state: *main.GameState) anyerror!void = null,
+    onPlayerMoved: ?*const fn (enemy: *Enemy, player: *playerZig.Player, state: *main.GameState) anyerror!void = null,
+    onPlayerMoveEachTile: ?*const fn (enemy: *Enemy, player: *playerZig.Player, state: *main.GameState) anyerror!void = null,
     setupVertices: ?*const fn (enemy: *Enemy, state: *main.GameState) void = null,
     setupVerticesGround: ?*const fn (enemy: *Enemy, state: *main.GameState) anyerror!void = null,
     isEnemyHit: ?*const fn (enemy: *Enemy, hitArea: main.TileRectangle, hitDirection: u8, state: *main.GameState) anyerror!bool = null,
@@ -132,13 +133,13 @@ pub fn tickEnemies(passedTime: i64, state: *main.GameState) !void {
     try enemyObjectZig.tick(passedTime, state);
 }
 
-pub fn onPlayerMoved(player: *main.Player, state: *main.GameState) !void {
+pub fn onPlayerMoved(player: *playerZig.Player, state: *main.GameState) !void {
     for (state.enemyData.enemies.items) |*enemy| {
         if (ENEMY_FUNCTIONS.get(enemy.enemyTypeData).onPlayerMoved) |moved| try moved(enemy, player, state);
     }
 }
 
-pub fn onPlayerMoveEachTile(player: *main.Player, state: *main.GameState) !void {
+pub fn onPlayerMoveEachTile(player: *playerZig.Player, state: *main.GameState) !void {
     for (state.enemyData.enemies.items) |*enemy| {
         if (ENEMY_FUNCTIONS.get(enemy.enemyTypeData).onPlayerMoveEachTile) |moved| try moved(enemy, player, state);
     }
@@ -241,7 +242,7 @@ pub fn checkStationaryPlayerHit(position: main.Position, state: *main.GameState)
             if (player.position.x > position.x - main.TILESIZE / 2 and player.position.x < position.x + main.TILESIZE / 2 and
                 player.position.y > position.y - main.TILESIZE / 2 and player.position.y < position.y + main.TILESIZE / 2)
             {
-                try main.playerHit(player, state);
+                try playerZig.playerHit(player, state);
             }
         }
     }
@@ -252,7 +253,7 @@ pub fn checkPlayerHit(position: main.Position, state: *main.GameState) !void {
         if (player.position.x > position.x - main.TILESIZE / 2 and player.position.x < position.x + main.TILESIZE / 2 and
             player.position.y > position.y - main.TILESIZE / 2 and player.position.y < position.y + main.TILESIZE / 2)
         {
-            try main.playerHit(player, state);
+            try playerZig.playerHit(player, state);
         }
     }
 }

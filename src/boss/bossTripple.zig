@@ -9,6 +9,7 @@ const movePieceZig = @import("../movePiece.zig");
 const enemyObjectProjectileZig = @import("../enemy/enemyObjectProjectile.zig");
 const enemyObjectFireZig = @import("../enemy/enemyObjectFire.zig");
 const mapTileZig = @import("../mapTile.zig");
+const playerZig = @import("../player.zig");
 
 const AttackDelayed = struct {
     targetPosition: main.TilePosition,
@@ -30,7 +31,7 @@ pub const BossTrippleData = struct {
     enabledAirAttack: bool = false,
     airAttackRepeat: u32 = 0,
     airAttackPosition: std.ArrayList(AttackDelayed),
-    airAttackPlayerOnStationary: ?*main.Player = null,
+    airAttackPlayerOnStationary: ?*playerZig.Player = null,
     airAttackRepeatNextTime: i64 = 0,
     airAttackDelay: i32 = 2000,
 };
@@ -117,7 +118,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     _ = passedTime;
     const trippleData = &boss.typeData.tripple;
     if (trippleData.lastTurnTime + trippleData.minTurnInterval < state.gameTime) {
-        const closestPlayer = main.findClosestPlayer(boss.position, state);
+        const closestPlayer = playerZig.findClosestPlayer(boss.position, state);
         if (closestPlayer.executeMovePiece == null) {
             const direction = main.getDirectionFromTo(boss.position, closestPlayer.position);
             if (direction != trippleData.direction) {
@@ -173,7 +174,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             for (state.players.items) |*player| {
                 const playerTile = main.gamePositionToTilePosition(player.position);
                 if (playerTile.x == attackTile.targetPosition.x and playerTile.y == attackTile.targetPosition.y) {
-                    try main.playerHit(player, state);
+                    try playerZig.playerHit(player, state);
                 }
             }
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BALL_GROUND_INDICIES[0..], 0, 1);
@@ -184,7 +185,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     }
 }
 
-fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
+fn isBossHit(boss: *bossZig.Boss, player: *playerZig.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
     const trippleData = &boss.typeData.tripple;
     _ = cutRotation;
     const bossTile = main.gamePositionToTilePosition(boss.position);
@@ -200,7 +201,7 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
             try executeAttack(boss, player, state);
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_ENEMY_BLOCK_INDICIES[0..], 0, 1);
         } else {
-            boss.hp -|= main.getPlayerDamage(player);
+            boss.hp -|= playerZig.getPlayerDamage(player);
             if (boss.hp == 0) {
                 for (state.bosses.items) |*otherBoss| {
                     if (otherBoss.typeData == .tripple) {
@@ -218,7 +219,7 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
     return false;
 }
 
-fn executeAttack(boss: *bossZig.Boss, player: *main.Player, state: *main.GameState) !void {
+fn executeAttack(boss: *bossZig.Boss, player: *playerZig.Player, state: *main.GameState) !void {
     const trippleData = &boss.typeData.tripple;
     if (trippleData.enabledAirAttack) {
         trippleData.airAttackPlayerOnStationary = player;

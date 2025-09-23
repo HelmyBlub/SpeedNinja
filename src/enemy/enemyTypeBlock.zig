@@ -6,6 +6,7 @@ const imageZig = @import("../image.zig");
 const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
 const soundMixerZig = @import("../soundMixer.zig");
+const playerZig = @import("../player.zig");
 
 pub const EnemyTypeBlockData = struct {
     direction: u8,
@@ -49,7 +50,7 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
     _ = passedTime;
     const data = &enemy.enemyTypeData.block;
     if (data.lastTurnTime + data.minTurnInterval < state.gameTime) {
-        const closestPlayer = main.findClosestPlayer(enemy.position, state);
+        const closestPlayer = playerZig.findClosestPlayer(enemy.position, state);
         if (closestPlayer.executeMovePiece == null) {
             const direction = main.getDirectionFromTo(enemy.position, closestPlayer.position);
             if (direction != data.direction) {
@@ -70,7 +71,7 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
         for (state.players.items) |*player| {
             const playerTile = main.gamePositionToTilePosition(player.position);
             if (main.isTilePositionInTileRectangle(playerTile, damageTileRectangle)) {
-                try main.playerHit(player, state);
+                try playerZig.playerHit(player, state);
             }
         }
     }

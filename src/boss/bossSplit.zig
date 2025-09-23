@@ -8,6 +8,7 @@ const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
 const movePieceZig = @import("../movePiece.zig");
 const enemyObjectProjectileZig = @import("../enemy/enemyObjectProjectile.zig");
 const mapTileZig = @import("../mapTile.zig");
+const playerZig = @import("../player.zig");
 
 pub const BossSplitData = struct {
     splits: std.ArrayList(BossSplitPartData),
@@ -142,7 +143,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     }
 }
 
-fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
+fn isBossHit(boss: *bossZig.Boss, player: *playerZig.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
     _ = hitDirection;
     var somethingHit = false;
     const splitData = &boss.typeData.split;
@@ -153,7 +154,7 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
             const bossTile = main.gamePositionToTilePosition(bossSplit.position);
             if (main.isTilePositionInTileRectangle(bossTile, hitArea)) {
                 if (bossSplit.hp > 0) {
-                    const damage = @min(bossSplit.hp, main.getPlayerDamage(player));
+                    const damage = @min(bossSplit.hp, playerZig.getPlayerDamage(player));
                     boss.hp -|= damage;
                     bossSplit.hp -|= damage;
                     somethingHit = true;

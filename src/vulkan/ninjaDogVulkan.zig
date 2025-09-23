@@ -5,6 +5,7 @@ const windowSdlZig = @import("../windowSdl.zig");
 const dataVulkanZig = @import("dataVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 const soundMixerZig = @import("../soundMixer.zig");
+const playerZig = @import("../player.zig");
 
 const DEATH_DURATION = 3000;
 
@@ -103,7 +104,7 @@ const NinjaDogAnimationStateDataTypeAngle = struct {
     duration: i64,
 };
 
-pub fn tickNinjaDogAnimation(player: *main.Player, timePassed: i64, state: *main.GameState) !void {
+pub fn tickNinjaDogAnimation(player: *playerZig.Player, timePassed: i64, state: *main.GameState) !void {
     try tickNinjaDogPawAnimation(player, timePassed, state);
     tickNinjaDogEyeAnimation(player, state);
     tickNinjaDogEarAnimation(player, state);
@@ -111,12 +112,12 @@ pub fn tickNinjaDogAnimation(player: *main.Player, timePassed: i64, state: *main
     tickNinjaDogTailAnimation(player, state);
 }
 
-fn tickNinjaDogTailAnimation(player: *main.Player, state: *main.GameState) void {
+fn tickNinjaDogTailAnimation(player: *playerZig.Player, state: *main.GameState) void {
     const paintData = &player.paintData;
     paintData.tailBend = @sin(@as(f32, @floatFromInt(state.gameTime)) / 400) * 0.5;
 }
 
-fn tickNinjaDogEarAnimation(player: *main.Player, state: *main.GameState) void {
+fn tickNinjaDogEarAnimation(player: *playerZig.Player, state: *main.GameState) void {
     const rand = std.crypto.random;
     if (@abs(player.animateData.ears.leftVelocity) < 0.005 and @abs(player.paintData.leftEarRotation) < 0.05) {
         player.animateData.ears.leftVelocity = std.math.sign(player.animateData.ears.leftVelocity) * (rand.float(f32) * 0.005 + 0.010);
@@ -148,7 +149,7 @@ fn tickNinjaDogEarAnimation(player: *main.Player, state: *main.GameState) void {
     }
 }
 
-fn tickNinjaDogBandanaAnimation(player: *main.Player, timePassed: i64) void {
+fn tickNinjaDogBandanaAnimation(player: *playerZig.Player, timePassed: i64) void {
     const rand = std.crypto.random;
     const paintData = &player.paintData;
 
@@ -161,7 +162,7 @@ fn tickNinjaDogBandanaAnimation(player: *main.Player, timePassed: i64) void {
     paintData.bandana2WaveOffset = @mod(player.paintData.bandana2WaveOffset + (rand.float(f32) + 1) * timePassedFloatFactor * 0.5, std.math.pi * 2);
 }
 
-fn tickNinjaDogEyeAnimation(player: *main.Player, state: *main.GameState) void {
+fn tickNinjaDogEyeAnimation(player: *playerZig.Player, state: *main.GameState) void {
     if (player.animateData.eyes) |animateEye| {
         switch (animateEye) {
             .blink => |data| {
@@ -204,7 +205,7 @@ fn tickNinjaDogEyeAnimation(player: *main.Player, state: *main.GameState) void {
     }
 }
 
-fn tickNinjaDogPawAnimation(player: *main.Player, timePassed: i64, state: *main.GameState) !void {
+fn tickNinjaDogPawAnimation(player: *playerZig.Player, timePassed: i64, state: *main.GameState) !void {
     player.paintData.pawWaveOffset = @mod(player.paintData.pawWaveOffset + @as(f32, @floatFromInt(timePassed)) / 300, std.math.pi * 2);
     if (player.animateData.paws) |animationData| {
         switch (animationData) {
@@ -509,7 +510,7 @@ fn drawEyes(position: main.Position, paintData: NinjaDogPaintData, state: *main.
     }
 }
 
-pub fn swordHandsCentered(player: *main.Player, state: *main.GameState) void {
+pub fn swordHandsCentered(player: *playerZig.Player, state: *main.GameState) void {
     if (player.animateData.paws == null and player.paintData.weaponDrawn == false) {
         player.animateData.paws = .{ .drawBlade = .{
             .duration = 500,
@@ -519,13 +520,13 @@ pub fn swordHandsCentered(player: *main.Player, state: *main.GameState) void {
     }
 }
 
-pub fn bladeSlashAnimate(player: *main.Player) void {
+pub fn bladeSlashAnimate(player: *playerZig.Player) void {
     if (player.animateData.paws != null) player.animateData.paws = null;
     const pawAngle = @mod(player.paintData.weaponRotation + std.math.pi, std.math.pi * 2);
     setPawAndBladeAngle(player, pawAngle);
 }
 
-pub fn movedAnimate(player: *main.Player, direction: u8) void {
+pub fn movedAnimate(player: *playerZig.Player, direction: u8) void {
     const handDirection = direction + 2;
     const baseAngle: f32 = @as(f32, @floatFromInt(handDirection)) * std.math.pi * 0.5;
     if (player.animateData.paws != null) player.animateData.paws = null;
@@ -538,7 +539,7 @@ pub fn movedAnimate(player: *main.Player, direction: u8) void {
     setDogTailDirection(player, direction);
 }
 
-fn setPawAndBladeAngle(player: *main.Player, angle: f32) void {
+fn setPawAndBladeAngle(player: *playerZig.Player, angle: f32) void {
     player.paintData.leftPawOffset = .{
         .x = @cos(angle) * 40 - imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT.x + imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.x,
         .y = @sin(angle) * 40 - imageZig.IMAGE_NINJA_DOG_PAW__HAND_HOLD_POINT.y + imageZig.IMAGE_NINJA_DOG_PAW__ARM_ROTATE_POINT.y,
@@ -551,7 +552,7 @@ fn setPawAndBladeAngle(player: *main.Player, angle: f32) void {
     player.paintData.weaponRotation = angle;
 }
 
-fn setEarDirection(player: *main.Player, direction: u8) void {
+fn setEarDirection(player: *playerZig.Player, direction: u8) void {
     const floatRotation = @mod((@as(f32, @floatFromInt(direction)) - 1) * std.math.pi / 2.0, std.math.pi * 2) - std.math.pi;
     player.paintData.leftEarRotation = floatRotation;
     player.paintData.rightEarRotation = floatRotation;
@@ -560,18 +561,18 @@ fn setEarDirection(player: *main.Player, direction: u8) void {
     player.animateData.ears.rightVelocity = earVelocity;
 }
 
-fn setDogTailDirection(player: *main.Player, direction: u8) void {
+fn setDogTailDirection(player: *playerZig.Player, direction: u8) void {
     const floatRotation = @mod((@as(f32, @floatFromInt(direction))) * std.math.pi / 2.0, std.math.pi * 2) - std.math.pi;
     player.paintData.tailRotation = floatRotation;
 }
 
-fn setBandanaDirection(player: *main.Player, direction: u8) void {
+fn setBandanaDirection(player: *playerZig.Player, direction: u8) void {
     const floatRotation = @mod((@as(f32, @floatFromInt(direction))) * std.math.pi / 2.0, std.math.pi * 2) - std.math.pi;
     player.paintData.bandana1Rotation = floatRotation;
     player.paintData.bandana2Rotation = floatRotation;
 }
 
-fn setEyeLookDirection(player: *main.Player, direction: u8) void {
+fn setEyeLookDirection(player: *playerZig.Player, direction: u8) void {
     const floatDirection = @as(f32, @floatFromInt(direction)) * std.math.pi / 2.0;
     player.paintData.leftPupilOffset = .{
         .x = @cos(floatDirection) * 5,
@@ -582,7 +583,7 @@ fn setEyeLookDirection(player: *main.Player, direction: u8) void {
     player.animateData.eyes = null;
 }
 
-pub fn moveHandToCenter(player: *main.Player, state: *main.GameState) void {
+pub fn moveHandToCenter(player: *playerZig.Player, state: *main.GameState) void {
     player.animateData.paws = .{ .bladeToCenter = .{
         .angle = player.paintData.weaponRotation,
         .duration = 1000,
@@ -592,7 +593,7 @@ pub fn moveHandToCenter(player: *main.Player, state: *main.GameState) void {
     } };
 }
 
-pub fn addAfterImages(stepCount: usize, stepDirection: main.Position, player: *main.Player, state: *main.GameState) !void {
+pub fn addAfterImages(stepCount: usize, stepDirection: main.Position, player: *playerZig.Player, state: *main.GameState) !void {
     for (0..stepCount) |i| {
         try player.afterImages.append(.{
             .deleteTime = state.gameTime + 75 + @as(i64, @intCast(i)) * 10,

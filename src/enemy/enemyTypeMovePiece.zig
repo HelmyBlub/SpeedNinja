@@ -4,6 +4,7 @@ const enemyZig = @import("enemy.zig");
 const movePieceZig = @import("../movePiece.zig");
 const imageZig = @import("../image.zig");
 const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
+const playerZig = @import("../player.zig");
 
 pub const EnemyTypeMovePieceData = struct {
     direction: ?u8 = null,
@@ -35,7 +36,7 @@ fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
     };
 }
 
-fn onPlayerMoveEachTile(enemy: *enemyZig.Enemy, player: *main.Player, state: *main.GameState) anyerror!void {
+fn onPlayerMoveEachTile(enemy: *enemyZig.Enemy, player: *playerZig.Player, state: *main.GameState) anyerror!void {
     const data = enemy.enemyTypeData.movePiece;
     if (state.enemyData.movePieceEnemyMovePiece == null or data.direction == null) return;
     const movePiece = state.enemyData.movePieceEnemyMovePiece.?;

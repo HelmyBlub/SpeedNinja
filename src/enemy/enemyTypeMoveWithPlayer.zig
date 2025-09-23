@@ -4,6 +4,7 @@ const enemyZig = @import("enemy.zig");
 const movePieceZig = @import("../movePiece.zig");
 const imageZig = @import("../image.zig");
 const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
+const playerZig = @import("../player.zig");
 
 pub const EnemyTypeMoveWithPlayerData = struct {
     direction: u8,
@@ -38,7 +39,7 @@ fn scaleEnemyForNewGamePlus(enemy: *enemyZig.Enemy, newGamePlus: u32) void {
     data.maxMoveDistance += @min(newGamePlus, 3);
 }
 
-fn onPlayerMoved(enemy: *enemyZig.Enemy, player: *main.Player, state: *main.GameState) !void {
+fn onPlayerMoved(enemy: *enemyZig.Enemy, player: *playerZig.Player, state: *main.GameState) !void {
     _ = player;
     const data = &enemy.enemyTypeData.moveWithPlayer;
     data.waitCount += 1;

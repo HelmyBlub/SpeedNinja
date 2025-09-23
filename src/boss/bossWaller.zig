@@ -8,6 +8,7 @@ const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
 const movePieceZig = @import("../movePiece.zig");
 const mapTileZig = @import("../mapTile.zig");
+const playerZig = @import("../player.zig");
 
 const PositionDelayed = struct {
     pos: main.TilePosition,
@@ -55,7 +56,7 @@ fn deinit(boss: *bossZig.Boss, allocator: std.mem.Allocator) void {
     data.wallAttackTiles.deinit();
 }
 
-fn onPlayerMoveEachTile(boss: *bossZig.Boss, player: *main.Player, state: *main.GameState) !void {
+fn onPlayerMoveEachTile(boss: *bossZig.Boss, player: *playerZig.Player, state: *main.GameState) !void {
     const data = &boss.typeData.waller;
     const tilePosition = main.gamePositionToTilePosition(player.position);
     try data.wallAttackTiles.append(.{
@@ -100,7 +101,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             for (state.players.items) |*player| {
                 const playerTile = main.gamePositionToTilePosition(player.position);
                 if (playerTile.x == attackTile.pos.x and playerTile.y == attackTile.pos.y) {
-                    try main.playerHit(player, state);
+                    try playerZig.playerHit(player, state);
                 }
             }
             if (main.isTileEmpty(attackTile.pos, state)) {
@@ -170,7 +171,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             for (state.players.items) |*player| {
                 const playerTile = main.gamePositionToTilePosition(player.position);
                 if (main.isTilePositionInTileRectangle(playerTile, damageTileRectangle)) {
-                    try main.playerHit(player, state);
+                    try playerZig.playerHit(player, state);
                 }
             }
             for (0..@intCast(damageTileRectangle.width)) |x| {

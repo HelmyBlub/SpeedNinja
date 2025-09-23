@@ -8,6 +8,7 @@ const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
 const movePieceZig = @import("../movePiece.zig");
 const mapTileZig = @import("../mapTile.zig");
+const playerZig = @import("../player.zig");
 
 const RollState = enum {
     chooseRandomMovePiece,
@@ -55,7 +56,7 @@ fn deinit(boss: *bossZig.Boss, allocator: std.mem.Allocator) void {
     rollData.attackTilePositions.deinit();
 }
 
-fn onPlayerMoved(boss: *bossZig.Boss, player: *main.Player, state: *main.GameState) !void {
+fn onPlayerMoved(boss: *bossZig.Boss, player: *playerZig.Player, state: *main.GameState) !void {
     const rollData = &boss.typeData.roll;
     try rollData.attackTilePositions.append(AttackDelayed{
         .hitTime = state.gameTime + rollData.attackDelay,
@@ -103,7 +104,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             for (state.players.items) |*player| {
                 const playerTile = main.gamePositionToTilePosition(player.position);
                 if (playerTile.x == attackTile.targetPosition.x and playerTile.y == attackTile.targetPosition.y) {
-                    try main.playerHit(player, state);
+                    try playerZig.playerHit(player, state);
                 }
             }
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BALL_GROUND_INDICIES[0..], 0, 1);

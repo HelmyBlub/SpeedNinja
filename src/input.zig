@@ -4,6 +4,7 @@ const windowSdlZig = @import("windowSdl.zig");
 const sdl = windowSdlZig.sdl;
 const movePieceZig = @import("movePiece.zig");
 const shopZig = @import("shop.zig");
+const playerZig = @import("player.zig");
 
 pub const PlayerInputData = struct {
     inputDevice: ?InputDeviceData = null,
@@ -107,7 +108,7 @@ pub fn handlePlayerInput(event: sdl.SDL_Event, state: *main.GameState) !void {
     try handleCheckPlayerJoin(event, state);
 }
 
-pub fn getPlayerInputDevice(player: *main.Player) ?InputDeviceData {
+pub fn getPlayerInputDevice(player: *playerZig.Player) ?InputDeviceData {
     var inputDevice: ?InputDeviceData = null;
     if (player.inputData.inputDevice == null) {
         if (player.inputData.lastInputDevice == null or player.inputData.lastInputDevice.? == .keyboard) {
@@ -124,7 +125,7 @@ pub fn getPlayerInputDevice(player: *main.Player) ?InputDeviceData {
     return inputDevice;
 }
 
-pub fn getDisplayInfoForPlayerAction(player: *main.Player, action: PlayerAction, state: *main.GameState) ?ButtonDisplay {
+pub fn getDisplayInfoForPlayerAction(player: *playerZig.Player, action: PlayerAction, state: *main.GameState) ?ButtonDisplay {
     const inputDevice = getPlayerInputDevice(player);
     if (inputDevice == null) return null;
     switch (inputDevice.?) {
@@ -226,7 +227,7 @@ fn getKeyboardMappingIndex(event: sdl.SDL_Event) ?u32 {
     return null;
 }
 
-fn handlePlayerKeyboardInput(event: sdl.SDL_Event, player: *main.Player, keyboardMappingIndex: ?u32, state: *main.GameState) !void {
+fn handlePlayerKeyboardInput(event: sdl.SDL_Event, player: *playerZig.Player, keyboardMappingIndex: ?u32, state: *main.GameState) !void {
     if (event.type != sdl.SDL_EVENT_KEY_DOWN and event.type != sdl.SDL_EVENT_KEY_UP) return;
 
     if (keyboardMappingIndex) |index| {
@@ -255,7 +256,7 @@ fn handlePlayerKeyboardInput(event: sdl.SDL_Event, player: *main.Player, keyboar
     }
 }
 
-fn handlePlayerGamepadInput(event: sdl.SDL_Event, player: *main.Player, gamepadId: ?u32, state: *main.GameState) !void {
+fn handlePlayerGamepadInput(event: sdl.SDL_Event, player: *playerZig.Player, gamepadId: ?u32, state: *main.GameState) !void {
     if (gamepadId != null and event.gdevice.which != gamepadId) return;
     const deadzone = 15000;
     switch (event.type) {
@@ -310,7 +311,7 @@ fn handlePlayerGamepadInput(event: sdl.SDL_Event, player: *main.Player, gamepadI
     }
 }
 
-fn handlePlayerAction(action: PlayerAction, player: *main.Player, state: *main.GameState) !void {
+fn handlePlayerAction(action: PlayerAction, player: *playerZig.Player, state: *main.GameState) !void {
     switch (action) {
         .moveLeft => {
             if (player.choosenMoveOptionIndex) |index| {

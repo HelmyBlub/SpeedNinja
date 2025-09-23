@@ -9,6 +9,7 @@ const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
 const movePieceZig = @import("../movePiece.zig");
 const mapTileZig = @import("../mapTile.zig");
 const enemyObjectFireZig = @import("../enemy/enemyObjectFire.zig");
+const playerZig = @import("../player.zig");
 
 pub const BossFireRollData = struct {
     movePieces: [2]movePieceZig.MovePiece,
@@ -38,7 +39,7 @@ fn deinit(boss: *bossZig.Boss, allocator: std.mem.Allocator) void {
     }
 }
 
-fn onPlayerMoved(boss: *bossZig.Boss, player: *main.Player, state: *main.GameState) !void {
+fn onPlayerMoved(boss: *bossZig.Boss, player: *playerZig.Player, state: *main.GameState) !void {
     const data = &boss.typeData.fireRoll;
     _ = player;
     try attackMoveWithFirePlacing(boss, data.movePieces[data.movePieceIndex], data.moveDirection, state);

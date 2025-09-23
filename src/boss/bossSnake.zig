@@ -9,6 +9,7 @@ const movePieceZig = @import("../movePiece.zig");
 const enemyZig = @import("../enemy/enemy.zig");
 const enemyObjectFireZig = @import("../enemy/enemyObjectFire.zig");
 const mapTileZig = @import("../mapTile.zig");
+const playerZig = @import("../player.zig");
 
 pub const BossSnakeData = struct {
     nextMoveTime: i64 = 0,
@@ -114,19 +115,19 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     }
 }
 
-fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
+fn isBossHit(boss: *bossZig.Boss, player: *playerZig.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
     _ = hitDirection;
     const snakeData = &boss.typeData.snake;
     const bossTile = main.gamePositionToTilePosition(boss.position);
     if (main.isTilePositionInTileRectangle(bossTile, hitArea)) {
-        boss.hp -|= main.getPlayerDamage(player);
+        boss.hp -|= playerZig.getPlayerDamage(player);
         try checkLooseBodyPart(boss, boss.position, cutRotation, state);
         return true;
     }
     for (snakeData.snakeBodyParts.items) |snakeBodyPart| {
         const partTile = main.gamePositionToTilePosition(snakeBodyPart.pos);
         if (main.isTilePositionInTileRectangle(partTile, hitArea)) {
-            boss.hp -|= main.getPlayerDamage(player);
+            boss.hp -|= playerZig.getPlayerDamage(player);
             try checkLooseBodyPart(boss, snakeBodyPart.pos, cutRotation, state);
             return true;
         }

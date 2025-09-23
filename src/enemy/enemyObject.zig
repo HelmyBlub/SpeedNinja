@@ -4,6 +4,7 @@ const enemyObjectProjectileZig = @import("enemyObjectProjectile.zig");
 const enemyObjectFireZig = @import("enemyObjectFire.zig");
 const enemyObjectBombZig = @import("enemyObjectBomb.zig");
 const enemyObjectFallDownZig = @import("enemyObjectFallDown.zig");
+const playerZig = @import("../player.zig");
 
 const EnemyObjectTypes = enum {
     projectile,
@@ -36,7 +37,7 @@ pub const EnemyObjectFunctions = struct {
     shouldBeRemoved: *const fn (object: *EnemyObject, state: *main.GameState) bool,
     setupVerticesGround: ?*const fn (object: *EnemyObject, state: *main.GameState) void = null,
     setupVertices: *const fn (object: *EnemyObject, state: *main.GameState) void,
-    hitCheckMovingPlayer: ?*const fn (object: *EnemyObject, player: *main.Player, state: *main.GameState) bool = null,
+    hitCheckMovingPlayer: ?*const fn (object: *EnemyObject, player: *playerZig.Player, state: *main.GameState) bool = null,
 };
 
 pub fn setupVerticesGround(state: *main.GameState) void {
@@ -65,7 +66,7 @@ pub fn tick(passedTime: i64, state: *main.GameState) !void {
     }
 }
 
-pub fn checkHitMovingPlayer(player: *main.Player, state: *main.GameState) bool {
+pub fn checkHitMovingPlayer(player: *playerZig.Player, state: *main.GameState) bool {
     for (state.enemyData.enemyObjects.items) |*object| {
         const functions = ENEMY_OBJECT_FUNCTIONS.get(object.typeData);
         if (functions.hitCheckMovingPlayer) |hitCheckMovingPlayer| {

@@ -8,8 +8,8 @@ const bossZig = @import("boss/boss.zig");
 const enemyZig = @import("enemy/enemy.zig");
 const enemyObjectZig = @import("enemy/enemyObject.zig");
 const enemyObjectFallDownZig = @import("enemy/enemyObjectFallDown.zig");
-
 const mapTileZig = @import("mapTile.zig");
+const playerZig = @import("player.zig");
 
 pub const MovePiece = struct {
     steps: []MoveStep,
@@ -25,7 +25,7 @@ pub const DIRECTION_DOWN = 1;
 pub const DIRECTION_LEFT = 2;
 pub const DIRECTION_UP = 3;
 
-pub fn setRandomMovePiece(player: *main.Player, index: usize) !void {
+pub fn setRandomMovePiece(player: *playerZig.Player, index: usize) !void {
     const rand = std.crypto.random;
     if (player.availableMovePieces.items.len > 0) {
         const randomPieceIndex: usize = @intFromFloat(rand.float(f32) * @as(f32, @floatFromInt(player.availableMovePieces.items.len)));
@@ -61,7 +61,7 @@ pub fn getRandomValidMoveDirectionForMovePiece(position: main.Position, movePiec
     return direction;
 }
 
-pub fn setupMovePieces(player: *main.Player, state: *main.GameState) !void {
+pub fn setupMovePieces(player: *playerZig.Player, state: *main.GameState) !void {
     var done = false;
     while (!done) {
         if (player.totalMovePieces.items.len > 0) {
@@ -133,7 +133,7 @@ pub fn getMovePieceTotalStepes(movePiece: MovePiece) usize {
     return total;
 }
 
-pub fn setMoveOptionIndex(player: *main.Player, index: usize, state: *main.GameState) void {
+pub fn setMoveOptionIndex(player: *playerZig.Player, index: usize, state: *main.GameState) void {
     if (player.moveOptions.items.len > index) {
         if (state.tutorialData.active and state.tutorialData.playerFirstValidPieceSelection == null) {
             state.tutorialData.playerFirstValidPieceSelection = std.time.milliTimestamp();
@@ -145,7 +145,7 @@ pub fn setMoveOptionIndex(player: *main.Player, index: usize, state: *main.GameS
     }
 }
 
-pub fn tickPlayerMovePiece(player: *main.Player, state: *main.GameState) !void {
+pub fn tickPlayerMovePiece(player: *playerZig.Player, state: *main.GameState) !void {
     if (player.executeMovePiece) |executeMovePiece| {
         const step = executeMovePiece.steps[0];
         const direction = @mod(step.direction + player.executeDirection + 1, 4);
@@ -204,7 +204,7 @@ pub fn attackMovePieceCheckPlayerHit(position: *main.Position, movePiece: MovePi
     try executeMovePieceWithCallbackPerStep(*main.Position, movePiece, executeDirection, startPosition, position, moveEnemyAndCheckPlayerHitOnMoveStep, state);
 }
 
-pub fn combineMovePieces(player: *main.Player, movePieceIndex1: usize, movePieceIndex2: usize, combineDirection: u8, state: *main.GameState) !void {
+pub fn combineMovePieces(player: *playerZig.Player, movePieceIndex1: usize, movePieceIndex2: usize, combineDirection: u8, state: *main.GameState) !void {
     if (movePieceIndex1 == movePieceIndex2) {
         std.debug.print("can not combine move piece with itself\n", .{});
         return;
@@ -235,7 +235,7 @@ pub fn combineMovePieces(player: *main.Player, movePieceIndex1: usize, movePiece
     try removeMovePiece(player, movePieceIndex2, state.allocator);
 }
 
-pub fn cutTilePositionOnMovePiece(player: *main.Player, cutTile: main.TilePosition, movePieceStartTile: main.TilePosition, totalIndexOfMovePieceToCut: usize, state: *main.GameState) !void {
+pub fn cutTilePositionOnMovePiece(player: *playerZig.Player, cutTile: main.TilePosition, movePieceStartTile: main.TilePosition, totalIndexOfMovePieceToCut: usize, state: *main.GameState) !void {
     const movePiece = player.totalMovePieces.items[totalIndexOfMovePieceToCut];
     var x = movePieceStartTile.x;
     var y = movePieceStartTile.y;
@@ -342,7 +342,7 @@ pub fn isTilePositionOnMovePiece(checkTile: main.TilePosition, movePieceStartTil
     return false;
 }
 
-fn stepAndCheckEnemyHitAndProjectileHitAndTiles(player: *main.Player, stepCount: u8, direction: u8, stepDirection: main.Position, state: *main.GameState) !void {
+fn stepAndCheckEnemyHitAndProjectileHitAndTiles(player: *playerZig.Player, stepCount: u8, direction: u8, stepDirection: main.Position, state: *main.GameState) !void {
     var currIndex: usize = 0;
     while (currIndex < stepCount) {
         player.slashedLastMoveTile = false;
@@ -364,7 +364,7 @@ fn stepAndCheckEnemyHitAndProjectileHitAndTiles(player: *main.Player, stepCount:
             try bossZig.onPlayerMoveEachTile(player, state);
             try enemyZig.onPlayerMoveEachTile(player, state);
             if (enemyObjectZig.checkHitMovingPlayer(player, state)) {
-                try main.playerHit(player, state);
+                try playerZig.playerHit(player, state);
             }
             currIndex += 1;
             if (currIndex == stepCount and tileType == .ice) {
@@ -478,7 +478,7 @@ pub fn executeMovePieceWithCallbackPerStep(
     }
 }
 
-pub fn movePlayerByMovePiece(player: *main.Player, movePieceIndex: usize, directionInput: u8, state: *main.GameState) !void {
+pub fn movePlayerByMovePiece(player: *playerZig.Player, movePieceIndex: usize, directionInput: u8, state: *main.GameState) !void {
     if (player.executeMovePiece != null) return;
     if (player.isDead) return;
     if (player.equipment.hasPirateLegRight and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(directionInput + 1, 4)) return;
@@ -525,7 +525,7 @@ pub fn getBoundingBox(movePiece: MovePiece) main.TileRectangle {
     return main.TileRectangle{ .height = bottom - top + 1, .width = right - left + 1, .pos = .{ .x = left, .y = top } };
 }
 
-pub fn resetPieces(player: *main.Player, visualizeRefresh: bool, state: *main.GameState) !void {
+pub fn resetPieces(player: *playerZig.Player, visualizeRefresh: bool, state: *main.GameState) !void {
     player.availableMovePieces.clearRetainingCapacity();
     try player.availableMovePieces.appendSlice(player.totalMovePieces.items);
     for (player.moveOptions.items) |moveOption| {
@@ -551,7 +551,7 @@ pub fn areSameMovePieces(movePiece1: MovePiece, movePiece2: MovePiece) bool {
     return true;
 }
 
-pub fn removeMovePiece(player: *main.Player, movePieceIndex: usize, allocator: std.mem.Allocator) !void {
+pub fn removeMovePiece(player: *playerZig.Player, movePieceIndex: usize, allocator: std.mem.Allocator) !void {
     const removedPiece = player.totalMovePieces.orderedRemove(movePieceIndex);
     var removed = false;
     for (player.moveOptions.items, 0..) |option, index| {
@@ -571,7 +571,7 @@ pub fn removeMovePiece(player: *main.Player, movePieceIndex: usize, allocator: s
     allocator.free(removedPiece.steps);
 }
 
-pub fn addMovePiece(player: *main.Player, newMovePiece: MovePiece) !void {
+pub fn addMovePiece(player: *playerZig.Player, newMovePiece: MovePiece) !void {
     try player.totalMovePieces.append(newMovePiece);
     if (player.moveOptions.items.len < 3) {
         try player.moveOptions.append(newMovePiece);
@@ -580,7 +580,7 @@ pub fn addMovePiece(player: *main.Player, newMovePiece: MovePiece) !void {
     }
 }
 
-pub fn replaceMovePiece(totalIndex: usize, newPiece: MovePiece, player: *main.Player, allocator: std.mem.Allocator) void {
+pub fn replaceMovePiece(totalIndex: usize, newPiece: MovePiece, player: *playerZig.Player, allocator: std.mem.Allocator) void {
     const removedPiece = player.totalMovePieces.items[totalIndex];
     player.totalMovePieces.items[totalIndex] = newPiece;
     for (player.moveOptions.items, 0..) |option, index| {
@@ -613,14 +613,14 @@ pub fn createRandomMovePiece(allocator: std.mem.Allocator) !MovePiece {
     return movePiece;
 }
 
-fn checkEnemyHitOnMoveStep(player: *main.Player, hitDirection: u8, state: *main.GameState) !bool {
+fn checkEnemyHitOnMoveStep(player: *playerZig.Player, hitDirection: u8, state: *main.GameState) !bool {
     const position: main.Position = player.position;
     const tilePosition = main.gamePositionToTilePosition(position);
     const hitArea: main.TileRectangle = .{ .pos = tilePosition, .height = 1, .width = 1 };
     return try checkEnemyHitOnMoveStepWithHitArea(player, hitDirection, hitArea, state);
 }
 
-fn checkEnemyHitOnMoveStepWithHitArea(player: *main.Player, hitDirection: u8, hitArea: main.TileRectangle, state: *main.GameState) !bool {
+fn checkEnemyHitOnMoveStepWithHitArea(player: *playerZig.Player, hitDirection: u8, hitArea: main.TileRectangle, state: *main.GameState) !bool {
     const rand = std.crypto.random;
     var hitSomething = false;
     var enemyIndex: usize = 0;
@@ -648,7 +648,7 @@ pub fn moveEnemyAndCheckPlayerHitOnMoveStep(hitPosition: main.TilePosition, visu
     for (state.players.items) |*player| {
         const playerTile = main.gamePositionToTilePosition(player.position);
         if (playerTile.x == hitPosition.x and playerTile.y == hitPosition.y) {
-            try main.playerHit(player, state);
+            try playerZig.playerHit(player, state);
         }
     }
     enemyPos.x = @floatFromInt(hitPosition.x * main.TILESIZE);
@@ -666,11 +666,11 @@ pub fn getMovePieceTileDistances(movePiece: MovePiece) [2]i32 {
     return [2]i32{ x, y };
 }
 
-fn validatePlayerMovePiecesToFullfillDemands(player: *main.Player) bool {
+fn validatePlayerMovePiecesToFullfillDemands(player: *playerZig.Player) bool {
     return isDistanceDemandFullfilled(player) and validateCanReachEveryTile(player);
 }
 
-fn validateCanReachEveryTile(player: *main.Player) bool {
+fn validateCanReachEveryTile(player: *playerZig.Player) bool {
     var evenPiece = false;
     var oddPiece = false;
     for (player.totalMovePieces.items) |movePiece| {
@@ -690,7 +690,7 @@ fn validateCanReachEveryTile(player: *main.Player) bool {
     return false;
 }
 
-fn isDistanceDemandFullfilled(player: *main.Player) bool {
+fn isDistanceDemandFullfilled(player: *playerZig.Player) bool {
     const toReachStraightDistance = 16;
     var offsetY: i32 = 0;
     var maxStraightDistance: u32 = 0;

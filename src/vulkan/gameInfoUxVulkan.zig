@@ -5,6 +5,7 @@ const paintVulkanZig = @import("paintVulkan.zig");
 const windowSdlZig = @import("../windowSdl.zig");
 const bossZig = @import("../boss/boss.zig");
 const inputZig = @import("../input.zig");
+const playerZig = @import("../player.zig");
 
 pub fn setupVertices(state: *main.GameState) !void {
     const fontSize = 30;
@@ -123,7 +124,7 @@ fn verticesForLeaveJoinInfo(state: *main.GameState) !void {
                 textWidth += try fontVulkanZig.paintNumber(state.players.items.len + counter + 1, .{ .x = left + textWidth, .y = top }, fontSize, textColor, fontVertices);
                 textWidth += fontVulkanZig.paintText(" joining", .{ .x = left + textWidth, .y = top }, fontSize, textColor, fontVertices);
 
-                const fillPerCent = @as(f32, @floatFromInt(realTime - joinData.pressTime)) / @as(f32, @floatFromInt(main.PLAYER_JOIN_BUTTON_HOLD_DURATION));
+                const fillPerCent = @as(f32, @floatFromInt(realTime - joinData.pressTime)) / @as(f32, @floatFromInt(playerZig.PLAYER_JOIN_BUTTON_HOLD_DURATION));
                 paintVulkanZig.verticesForRectangle(left, top, textWidth * fillPerCent, height, .{ 0.9, 0.9, 0.9 }, null, &verticeData.triangles);
                 paintVulkanZig.verticesForRectangle(left, top, textWidth, height, .{ 0.9, 0.9, 0.9 }, &verticeData.lines, null);
                 counter += 1;
@@ -140,7 +141,7 @@ fn verticesForLeaveJoinInfo(state: *main.GameState) !void {
             textWidth += try fontVulkanZig.paintNumber(index + 1, .{ .x = left + textWidth, .y = top }, fontSize, textColor, fontVertices);
             textWidth += fontVulkanZig.paintText(" leaving", .{ .x = left + textWidth, .y = top }, fontSize, textColor, fontVertices);
 
-            const fillPerCent = @as(f32, @floatFromInt(realTime - player.inputData.holdingKeySinceForLeave.?)) / @as(f32, @floatFromInt(main.PLAYER_JOIN_BUTTON_HOLD_DURATION));
+            const fillPerCent = @as(f32, @floatFromInt(realTime - player.inputData.holdingKeySinceForLeave.?)) / @as(f32, @floatFromInt(playerZig.PLAYER_JOIN_BUTTON_HOLD_DURATION));
             const fillWidth = textWidth * fillPerCent;
             paintVulkanZig.verticesForRectangle(left + textWidth - fillWidth, top, fillWidth, height, .{ 0.1, 0.1, 0.1 }, null, &verticeData.triangles);
             paintVulkanZig.verticesForRectangle(left, top, textWidth, height, .{ 0.1, 0.1, 0.1 }, &verticeData.lines, null);

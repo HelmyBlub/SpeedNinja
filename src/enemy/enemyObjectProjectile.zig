@@ -7,6 +7,7 @@ const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const enemyZig = @import("enemy.zig");
 const enemyObjectZig = @import("enemyObject.zig");
 const mapTileZig = @import("../mapTile.zig");
+const playerZig = @import("../player.zig");
 
 pub const EnemyProjectile = struct {
     imageIndex: u8,
@@ -83,7 +84,7 @@ fn shouldBeRemoved(object: *enemyObjectZig.EnemyObject, state: *main.GameState) 
     return false;
 }
 
-fn hitCheckMovingPlayer(object: *enemyObjectZig.EnemyObject, player: *main.Player, state: *main.GameState) bool {
+fn hitCheckMovingPlayer(object: *enemyObjectZig.EnemyObject, player: *playerZig.Player, state: *main.GameState) bool {
     _ = state;
     const position = player.position;
     return object.position.x > position.x - main.TILESIZE / 2 and object.position.x < position.x + main.TILESIZE / 2 and

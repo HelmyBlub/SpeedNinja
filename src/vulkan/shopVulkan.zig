@@ -11,6 +11,7 @@ const shopZig = @import("../shop.zig");
 const playerUxVulkanZig = @import("playerUxVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 const equipmentZig = @import("../equipment.zig");
+const playerZig = @import("../player.zig");
 
 pub fn setupVertices(state: *main.GameState) !void {
     const verticeData = &state.vkState.verticeData;
@@ -136,7 +137,7 @@ fn verticesForEarlyShopTrigger(state: *main.GameState) void {
     paintVulkanZig.verticesForRectangle(left, top, width, height, .{ 1, 1, 1 }, &verticeData.lines, &verticeData.triangles);
 }
 
-fn paintGrid(player: *main.Player, state: *main.GameState) void {
+fn paintGrid(player: *playerZig.Player, state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
 
     const player0ShopPos = player.shop.pieceShopTopLeft;
@@ -184,7 +185,7 @@ fn paintGrid(player: *main.Player, state: *main.GameState) void {
     }
 }
 
-fn paintMovePieceInGrid(player: *main.Player, gridGameTopLeft: main.Position, state: *main.GameState) void {
+fn paintMovePieceInGrid(player: *playerZig.Player, gridGameTopLeft: main.Position, state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
     if (player.shop.gridDisplayPiece == null) return;
     const gridDisplayPiece = player.shop.gridDisplayPiece.?;

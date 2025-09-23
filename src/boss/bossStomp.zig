@@ -6,6 +6,7 @@ const soundMixerZig = @import("../soundMixer.zig");
 const enemyVulkanZig = @import("../vulkan/enemyVulkan.zig");
 const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
 const mapTileZig = @import("../mapTile.zig");
+const playerZig = @import("../player.zig");
 
 const StompState = enum {
     searchTarget,
@@ -110,7 +111,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                 for (state.players.items) |*player| {
                     const playerTile = main.gamePositionToTilePosition(player.position);
                     if (main.isTilePositionInTileRectangle(playerTile, damageTileRectangle)) {
-                        try main.playerHit(player, state);
+                        try playerZig.playerHit(player, state);
                     }
                 }
             }
@@ -123,7 +124,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     }
 }
 
-fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
+fn isBossHit(boss: *bossZig.Boss, player: *playerZig.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
     _ = state;
     _ = cutRotation;
     _ = hitDirection;
@@ -131,7 +132,7 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
     if (!stompData.inAir) {
         const bossTile = main.gamePositionToTilePosition(boss.position);
         if (main.isTilePositionInTileRectangle(bossTile, hitArea)) {
-            boss.hp -|= main.getPlayerDamage(player);
+            boss.hp -|= playerZig.getPlayerDamage(player);
             return true;
         }
     }

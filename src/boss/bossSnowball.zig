@@ -9,6 +9,7 @@ const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
 const movePieceZig = @import("../movePiece.zig");
 const mapTileZig = @import("../mapTile.zig");
 const enemyTypeIceAttackZig = @import("../enemy/enemyTypeIceAttack.zig");
+const playerZig = @import("../player.zig");
 
 const SnowballState = enum {
     stationary,
@@ -92,7 +93,7 @@ fn canRollInDirection(boss: *bossZig.Boss, direction: u8, state: *main.GameState
     return true;
 }
 
-fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
+fn isBossHit(boss: *bossZig.Boss, player: *playerZig.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
     _ = cutRotation;
     const data = &boss.typeData.snowball;
     const bossTile = main.gamePositionToTilePosition(boss.position);
@@ -104,7 +105,7 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
             if (data.nextRollTime < state.gameTime) data.nextRollTime = state.gameTime + data.rollInterval;
             data.state = .rolling;
         }
-        boss.hp -|= main.getPlayerDamage(player);
+        boss.hp -|= playerZig.getPlayerDamage(player);
         try checkSpawnEnemy(boss, state);
         return true;
     }

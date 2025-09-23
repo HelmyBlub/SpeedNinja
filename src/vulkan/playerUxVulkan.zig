@@ -7,6 +7,7 @@ const fontVulkanZig = @import("fontVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 const imageZig = @import("../image.zig");
 const inputZig = @import("../input.zig");
+const playerZig = @import("../player.zig");
 
 const INITIAL_PIECE_COLOR: [3]f32 = .{ 0.0, 0.0, 1 };
 
@@ -19,7 +20,7 @@ pub fn setupVertices(state: *main.GameState) !void {
     }
 }
 
-fn verticesForPlayerData(player: *main.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) !void {
+fn verticesForPlayerData(player: *playerZig.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) !void {
     const textColor: [3]f32 = .{ 1, 1, 1 };
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
@@ -48,7 +49,7 @@ fn verticesForPlayerData(player: *main.Player, verticeData: *dataVulkanZig.VkVer
         .x = vulkanPos.x + fontSize * onePixelXInVulkan,
         .y = vulkanPos.y + fontSize * onePixelYInVulkan,
     };
-    const playerTotalDamage = main.getPlayerDamage(player);
+    const playerTotalDamage = playerZig.getPlayerDamage(player);
     const playerWeaponDamage = player.damage;
     const bonusDamage = playerTotalDamage - playerWeaponDamage;
     var damageTextWidth: f32 = 0;
@@ -83,7 +84,7 @@ fn verticesForPlayerData(player: *main.Player, verticeData: *dataVulkanZig.VkVer
     try verticesForPlayerMoney(vulkanPos, fontSize, player, verticeData, state);
 }
 
-fn verticesForPlayerHp(vulkanPos: main.Position, fontSize: f32, player: *main.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) !void {
+fn verticesForPlayerHp(vulkanPos: main.Position, fontSize: f32, player: *playerZig.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) !void {
     const textColor: [3]f32 = .{ 1, 1, 1 };
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
@@ -91,7 +92,7 @@ fn verticesForPlayerHp(vulkanPos: main.Position, fontSize: f32, player: *main.Pl
         .x = vulkanPos.x + onePixelXInVulkan * fontSize * 0.3,
         .y = vulkanPos.y + fontSize * onePixelYInVulkan * 2,
     };
-    const playerHp = main.getPlayerTotalHp(player);
+    const playerHp = playerZig.getPlayerTotalHp(player);
     var width = try fontVulkanZig.paintNumber(playerHp, hpDisplayTextPos, fontSize * 0.8, textColor, &verticeData.font);
     const hpDisplayIconPos: main.Position = .{
         .x = hpDisplayTextPos.x + onePixelXInVulkan * fontSize / 4,
@@ -131,7 +132,7 @@ fn verticesForPlayerHp(vulkanPos: main.Position, fontSize: f32, player: *main.Pl
     }
 }
 
-fn verticesForPlayerMoney(vulkanPos: main.Position, fontSize: f32, player: *main.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) !void {
+fn verticesForPlayerMoney(vulkanPos: main.Position, fontSize: f32, player: *playerZig.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) !void {
     const textColor: [3]f32 = .{ 1, 1, 1 };
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const moneyDisplayTextPos: main.Position = .{
@@ -166,7 +167,7 @@ fn verticesForPlayerMoney(vulkanPos: main.Position, fontSize: f32, player: *main
     }
 }
 
-fn verticesForPlayerPieceCounter(vulkanPos: main.Position, fontSize: f32, player: *main.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) !void {
+fn verticesForPlayerPieceCounter(vulkanPos: main.Position, fontSize: f32, player: *playerZig.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) !void {
     const textColor: [3]f32 = .{ 1, 1, 1 };
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
@@ -230,7 +231,7 @@ fn verticesForPlayerPieceCounter(vulkanPos: main.Position, fontSize: f32, player
     }
 }
 
-fn verticesForMoveOptions(player: *main.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) void {
+fn verticesForMoveOptions(player: *playerZig.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) void {
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     var width: f32 = 0;

@@ -5,8 +5,6 @@ Tasks:
     - bosses missing:(30+)
         - tripple: more time as has 50% more hp?
 
-- scale enemy with player count
-- scale boss with player count
 - code split "player" out of main?
 - sound: play sound when "continue shop" opens
 - bug: dragon boss can target dead players

@@ -6,6 +6,7 @@ const movePieceZig = @import("../movePiece.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 const mapTileZig = @import("../mapTile.zig");
 const imageZig = @import("../image.zig");
+const playerZig = @import("../player.zig");
 
 pub const VkChoosenMovePieceVisualization = struct {
     triangles: dataVulkanZig.VkColoredVertexes = undefined,
@@ -23,7 +24,7 @@ pub fn setupVertices(state: *main.GameState) void {
     }
 }
 
-fn verticesForChoosenMoveOptionVisualization(player: *main.Player, lines: *dataVulkanZig.VkColoredVertexes, triangles: *dataVulkanZig.VkColoredVertexes, state: *main.GameState) void {
+fn verticesForChoosenMoveOptionVisualization(player: *playerZig.Player, lines: *dataVulkanZig.VkColoredVertexes, triangles: *dataVulkanZig.VkColoredVertexes, state: *main.GameState) void {
     if (player.equipment.hasBlindfold) return;
     if (player.isDead) return;
     if (player.choosenMoveOptionIndex != null and player.moveOptions.items.len > 0) {

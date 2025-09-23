@@ -7,6 +7,7 @@ const windowSdlZig = @import("../windowSdl.zig");
 const dataVulkanZig = @import("dataVulkan.zig");
 const inputZig = @import("../input.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
+const playerZig = @import("../player.zig");
 
 pub const VkFontData = struct {
     mipLevels: u32 = undefined,
@@ -129,7 +130,7 @@ pub fn paintNumberWithZeroPrefix(number: anytype, vulkanSurfacePosition: main.Po
 }
 
 /// returns game width
-pub fn verticesForDisplayButton(topLeft: main.Position, action: inputZig.PlayerAction, fontSize: f32, player: *main.Player, state: *main.GameState) f32 {
+pub fn verticesForDisplayButton(topLeft: main.Position, action: inputZig.PlayerAction, fontSize: f32, player: *playerZig.Player, state: *main.GameState) f32 {
     const buttonInfo = inputZig.getDisplayInfoForPlayerAction(player, action, state);
     if (buttonInfo == null) return 0;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;

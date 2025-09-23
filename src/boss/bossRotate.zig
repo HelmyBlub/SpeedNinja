@@ -8,6 +8,7 @@ const windowSdlZig = @import("../windowSdl.zig");
 const ninjaDogVulkanZig = @import("../vulkan/ninjaDogVulkan.zig");
 const soundMixerZig = @import("../soundMixer.zig");
 const mapTileZig = @import("../mapTile.zig");
+const playerZig = @import("../player.zig");
 
 const RotateState = enum {
     spawnPillars,
@@ -85,7 +86,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             const playerTile = main.gamePositionToTilePosition(player.position);
             for (rotateData.attackTiles.items) |tile| {
                 if (playerTile.x == tile.x and playerTile.y == tile.y) {
-                    try main.playerHit(player, state);
+                    try playerZig.playerHit(player, state);
                     break;
                 }
             }
@@ -153,7 +154,7 @@ fn spawnAttackTiles(boss: *bossZig.Boss) !void {
     }
 }
 
-fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
+fn isBossHit(boss: *bossZig.Boss, player: *playerZig.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
     _ = hitDirection;
     _ = state;
     _ = cutRotation;
@@ -161,7 +162,7 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
     if (!rotate.immune) {
         const bossTile = main.gamePositionToTilePosition(boss.position);
         if (main.isTilePositionInTileRectangle(bossTile, hitArea)) {
-            boss.hp -|= main.getPlayerDamage(player);
+            boss.hp -|= playerZig.getPlayerDamage(player);
             return true;
         }
     }

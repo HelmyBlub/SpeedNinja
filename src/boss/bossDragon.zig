@@ -8,6 +8,7 @@ const paintVulkanZig = @import("../vulkan/paintVulkan.zig");
 const mapTileZig = @import("../mapTile.zig");
 const enemyObjectFireZig = @import("../enemy/enemyObjectFire.zig");
 const movePieceZig = @import("../movePiece.zig");
+const playerZig = @import("../player.zig");
 
 const DragonPhase = enum {
     phase1,
@@ -189,7 +190,7 @@ fn startBoss(state: *main.GameState) !void {
     try state.bosses.append(boss);
 }
 
-fn onPlayerMoveEachTile(boss: *bossZig.Boss, player: *main.Player, state: *main.GameState) !void {
+fn onPlayerMoveEachTile(boss: *bossZig.Boss, player: *playerZig.Player, state: *main.GameState) !void {
     const data = &boss.typeData.dragon;
     switch (data.action) {
         .fireBreath => |*fireBreathData| {
@@ -253,7 +254,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                 for (state.players.items) |*player| {
                     const playerTile = main.gamePositionToTilePosition(player.position);
                     if (main.isTilePositionInTileRectangle(playerTile, damageTileRectangle)) {
-                        try main.playerHit(player, state);
+                        try playerZig.playerHit(player, state);
                     }
                 }
                 chooseNextAttack(boss);
@@ -306,7 +307,7 @@ fn tickTailAttackAction(tailAttackData: *TailAttackhData, boss: *bossZig.Boss, p
     standUpOrDownTick(boss, false, passedTime);
     if (tailAttackData.tailAttackHitTime == null) {
         if (data.paint.standingPerCent < 0.1) {
-            const closest = main.getClosestPlayer(boss.position, state);
+            const closest = playerZig.getClosestPlayer(boss.position, state);
             data.moveSpeed = DEFAULT_MOVE_SPEED * 2;
             if (closest.player) |player| {
                 const direction = main.calculateDirection(player.position, boss.position);
@@ -336,7 +337,7 @@ fn tickTailAttackAction(tailAttackData: *TailAttackhData, boss: *bossZig.Boss, p
                 const playerTile = main.gamePositionToTilePosition(player.position);
                 for (data.attackTiles.items) |tile| {
                     if (playerTile.x == tile.x and playerTile.y == tile.y) {
-                        try main.playerHit(player, state);
+                        try playerZig.playerHit(player, state);
                         break;
                     }
                 }
@@ -441,7 +442,7 @@ fn tickWingBlastAction(wingBlastData: *WingBlastData, boss: *bossZig.Boss, passe
                 player.position.y += stepDirection.y * main.TILESIZE;
                 const tilePos = main.gamePositionToTilePosition(player.position);
                 if (@abs(tilePos.x) > state.mapData.tileRadius or @abs(tilePos.y) > state.mapData.tileRadius) {
-                    try main.playerHit(player, state);
+                    try playerZig.playerHit(player, state);
                 }
             }
             for (state.enemyData.enemyObjects.items) |*object| {
@@ -723,7 +724,7 @@ fn tickBodyStomp(stompData: *BodyStompData, boss: *bossZig.Boss, passedTime: i64
     if (stompData.stompTime == null and data.paint.standingPerCent < 1) {
         standUpOrDownTick(boss, true, passedTime);
     } else if (stompData.stompTime == null) {
-        if (main.getClosestPlayer(boss.position, state).player) |targetPlayer| {
+        if (playerZig.getClosestPlayer(boss.position, state).player) |targetPlayer| {
             const direction = main.calculateDirection(boss.position, targetPlayer.position);
             setDirection(boss, direction);
             const distance = main.calculateDistance(boss.position, targetPlayer.position);
@@ -765,7 +766,7 @@ fn tickBodyStomp(stompData: *BodyStompData, boss: *bossZig.Boss, passedTime: i64
             for (state.players.items) |*player| {
                 const playerTile = main.gamePositionToTilePosition(player.position);
                 if (main.isTilePositionInTileRectangle(playerTile, damageTileRectangle)) {
-                    try main.playerHit(player, state);
+                    try playerZig.playerHit(player, state);
                 }
             }
         }
@@ -790,7 +791,7 @@ fn cutTilesForGroundBreakingEffect(state: *main.GameState) !void {
     }
 }
 
-fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
+fn isBossHit(boss: *bossZig.Boss, player: *playerZig.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
     _ = hitDirection;
     const data = &boss.typeData.dragon;
     if (data.inAirHeight < 5) {
@@ -803,7 +804,7 @@ fn isBossHit(boss: *bossZig.Boss, player: *main.Player, hitArea: main.TileRectan
                 continue;
             }
             if (main.isTilePositionInTileRectangle(footTile, hitArea)) {
-                boss.hp -|= main.getPlayerDamage(player);
+                boss.hp -|= playerZig.getPlayerDamage(player);
                 if (boss.hp <= 0) {
                     try bossDeathCutSprites(boss, cutRotation, state);
                 }

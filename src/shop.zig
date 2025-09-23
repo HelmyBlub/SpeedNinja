@@ -6,6 +6,7 @@ const bossZig = @import("boss/boss.zig");
 const mapTileZig = @import("mapTile.zig");
 const equipmentZig = @import("equipment.zig");
 const statsZig = @import("stats.zig");
+const playerZig = @import("player.zig");
 
 const ShopOption = enum {
     none,
@@ -47,8 +48,8 @@ pub const PlayerShopButton = struct {
     imageIndex: u8,
     imageRotate: f32 = 0,
     option: ShopOption = .none,
-    execute: *const fn (player: *main.Player, state: *main.GameState) anyerror!void,
-    isVisible: ?*const fn (player: *main.Player) bool = null,
+    execute: *const fn (player: *playerZig.Player, state: *main.GameState) anyerror!void,
+    isVisible: ?*const fn (player: *playerZig.Player) bool = null,
 };
 
 pub const GRID_SIZE = 8;
@@ -130,7 +131,7 @@ pub const SHOP_BUTTONS = [_]PlayerShopButton{
     },
 };
 
-pub fn executeShopActionForPlayer(player: *main.Player, state: *main.GameState) !void {
+pub fn executeShopActionForPlayer(player: *playerZig.Player, state: *main.GameState) !void {
     const playerTile: main.TilePosition = main.gamePositionToTilePosition(player.position);
     const shopTopLeftTile = player.shop.pieceShopTopLeft;
     for (SHOP_BUTTONS) |shopButton| {
@@ -152,7 +153,7 @@ pub fn executeShopActionForPlayer(player: *main.Player, state: *main.GameState) 
             if (player.money >= buyOption.price) {
                 const optOldEquip = equipmentZig.getEquipSlot(buyOption.equipment.slotTypeData, player);
                 if (equipmentZig.equip(buyOption.equipment, true, player)) {
-                    main.changePlayerMoneyBy(-@as(i32, @intCast(buyOption.price)), player, true);
+                    playerZig.changePlayerMoneyBy(-@as(i32, @intCast(buyOption.price)), player, true);
                     if (optOldEquip) |old| {
                         buyOption.price = 0;
                         buyOption.equipment = old;
@@ -180,7 +181,7 @@ pub fn getShopEarlyTriggerPosition(state: *main.GameState) ?main.TileRectangle {
     };
 }
 
-pub fn isPlayerInEarlyShopTrigger(player: *main.Player, state: *main.GameState) bool {
+pub fn isPlayerInEarlyShopTrigger(player: *playerZig.Player, state: *main.GameState) bool {
     const optTileRectangle = getShopEarlyTriggerPosition(state);
     if (optTileRectangle == null) return false;
     const tileRectangle = optTileRectangle.?;
@@ -293,7 +294,7 @@ fn getRandomEquipmentIndexForShop(blacklistedIndexes: []usize, mode: usize, stat
     return null;
 }
 
-pub fn executeGridTile(player: *main.Player, state: *main.GameState) !void {
+pub fn executeGridTile(player: *playerZig.Player, state: *main.GameState) !void {
     _ = state;
     switch (player.shop.selectedOption) {
         .cut => |*data| {
@@ -314,7 +315,7 @@ pub fn executeGridTile(player: *main.Player, state: *main.GameState) !void {
     }
 }
 
-pub fn executeNextStep(player: *main.Player, state: *main.GameState) !void {
+pub fn executeNextStep(player: *playerZig.Player, state: *main.GameState) !void {
     _ = state;
     switch (player.shop.selectedOption) {
         .combine => |*data| {
@@ -341,13 +342,13 @@ pub fn executeNextStep(player: *main.Player, state: *main.GameState) !void {
     }
 }
 
-pub fn executePay(player: *main.Player, state: *main.GameState) !void {
+pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
     switch (player.shop.selectedOption) {
         .delete => |*data| {
             const cost = state.level * 1;
             if (player.money >= cost and player.totalMovePieces.items.len > 1) {
                 try movePieceZig.removeMovePiece(player, data.selectedIndex, state.allocator);
-                main.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
+                playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
                 if (player.uxData.visualizeMovePieceChangeFromShop == null) {
                     player.uxData.visualizeMovePieceChangeFromShop = -1;
                 } else {
@@ -367,7 +368,7 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
             const cost = state.level * 1;
             if (player.money >= cost) {
                 if (player.shop.piecesToBuy[data.selectedIndex]) |buyPiece| {
-                    main.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
+                    playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
                     if (player.uxData.visualizeMovePieceChangeFromShop == null) {
                         player.uxData.visualizeMovePieceChangeFromShop = 1;
                     } else {
@@ -400,7 +401,7 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
         .cut => |*data| {
             const cost = state.level * 1;
             if (player.money >= cost and data.gridCutOffset != null and player.shop.gridDisplayPiece != null) {
-                main.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
+                playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
                 try movePieceZig.cutTilePositionOnMovePiece(player, data.gridCutOffset.?, player.shop.gridDisplayPieceOffset, data.selectedIndex, state);
                 data.gridCutOffset = null;
                 setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
@@ -409,7 +410,7 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
         .combine => |*data| {
             const cost = state.level * 1;
             if (player.money >= cost and data.pieceIndex2 != null and data.combineStep == .selectDirection) {
-                main.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
+                playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
                 player.uxData.visualizeMovePieceChangeFromShop = -1;
                 try movePieceZig.combineMovePieces(player, data.pieceIndex1, data.pieceIndex2.?, data.direction, state);
                 if (data.pieceIndex1 > data.pieceIndex2.?) {
@@ -427,7 +428,7 @@ pub fn executePay(player: *main.Player, state: *main.GameState) !void {
     }
 }
 
-pub fn executeArrowRight(player: *main.Player, state: *main.GameState) !void {
+pub fn executeArrowRight(player: *playerZig.Player, state: *main.GameState) !void {
     _ = state;
     switch (player.shop.selectedOption) {
         .delete => |*data| {
@@ -469,7 +470,7 @@ pub fn executeArrowRight(player: *main.Player, state: *main.GameState) !void {
     }
 }
 
-pub fn executeArrowLeft(player: *main.Player, state: *main.GameState) !void {
+pub fn executeArrowLeft(player: *playerZig.Player, state: *main.GameState) !void {
     _ = state;
     switch (player.shop.selectedOption) {
         .delete => |*data| {
@@ -515,41 +516,41 @@ pub fn executeArrowLeft(player: *main.Player, state: *main.GameState) !void {
     }
 }
 
-pub fn executeDeletePiece(player: *main.Player, state: *main.GameState) !void {
+pub fn executeDeletePiece(player: *playerZig.Player, state: *main.GameState) !void {
     _ = state;
     player.shop.selectedOption = .{ .delete = .{} };
     setGridDisplayPiece(player, player.totalMovePieces.items[0]);
 }
 
-pub fn executeCutPiece(player: *main.Player, state: *main.GameState) !void {
+pub fn executeCutPiece(player: *playerZig.Player, state: *main.GameState) !void {
     _ = state;
     player.shop.selectedOption = .{ .cut = .{} };
     setGridDisplayPiece(player, player.totalMovePieces.items[0]);
 }
 
-pub fn executeCombinePiece(player: *main.Player, state: *main.GameState) !void {
+pub fn executeCombinePiece(player: *playerZig.Player, state: *main.GameState) !void {
     _ = state;
     player.shop.selectedOption = .{ .combine = .{} };
     setGridDisplayPiece(player, player.totalMovePieces.items[0]);
 }
 
-pub fn executeAddPiece(player: *main.Player, state: *main.GameState) !void {
+pub fn executeAddPiece(player: *playerZig.Player, state: *main.GameState) !void {
     _ = state;
     player.shop.selectedOption = .{ .add = .{} };
     setGridDisplayPiece(player, player.shop.piecesToBuy[0].?);
 }
 
-pub fn executeShopPhaseEnd(player: *main.Player, state: *main.GameState) !void {
+pub fn executeShopPhaseEnd(player: *playerZig.Player, state: *main.GameState) !void {
     _ = player;
     try main.endShoppingPhase(state);
 }
 
-fn isNextStepButtonVisible(player: *main.Player) bool {
+fn isNextStepButtonVisible(player: *playerZig.Player) bool {
     if (player.shop.selectedOption == .combine) return true;
     return false;
 }
 
-fn setGridDisplayPiece(player: *main.Player, optMovePiece: ?movePieceZig.MovePiece) void {
+fn setGridDisplayPiece(player: *playerZig.Player, optMovePiece: ?movePieceZig.MovePiece) void {
     player.shop.gridDisplayPiece = optMovePiece;
     if (optMovePiece) |movePiece| {
         const boundingBox = movePieceZig.getBoundingBox(movePiece);

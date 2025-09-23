@@ -13,16 +13,17 @@ const bossSnowballZig = @import("bossSnowball.zig");
 const bossWallerZig = @import("bossWaller.zig");
 const bossFireRollZig = @import("bossFireRoll.zig");
 const bossDragonZig = @import("bossDragon.zig");
+const playerZig = @import("../player.zig");
 
 pub const LevelBossData = struct {
     appearsOnLevel: usize,
     startLevel: *const fn (state: *main.GameState) anyerror!void,
     tickBoss: ?*const fn (boss: *Boss, passedTime: i64, state: *main.GameState) anyerror!void = null,
-    isBossHit: ?*const fn (boss: *Boss, player: *main.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) anyerror!bool = null,
+    isBossHit: ?*const fn (boss: *Boss, player: *playerZig.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) anyerror!bool = null,
     setupVerticesGround: *const fn (boss: *Boss, state: *main.GameState) anyerror!void,
     setupVertices: *const fn (boss: *Boss, state: *main.GameState) void,
-    onPlayerMoved: ?*const fn (boss: *Boss, player: *main.Player, state: *main.GameState) anyerror!void = null,
-    onPlayerMoveEachTile: ?*const fn (boss: *Boss, player: *main.Player, state: *main.GameState) anyerror!void = null,
+    onPlayerMoved: ?*const fn (boss: *Boss, player: *playerZig.Player, state: *main.GameState) anyerror!void = null,
+    onPlayerMoveEachTile: ?*const fn (boss: *Boss, player: *playerZig.Player, state: *main.GameState) anyerror!void = null,
     deinit: ?*const fn (boss: *Boss, allocator: std.mem.Allocator) void = null,
 };
 
@@ -74,14 +75,14 @@ pub const Boss = struct {
     typeData: BossTypeData,
 };
 
-pub fn onPlayerMoved(player: *main.Player, state: *main.GameState) !void {
+pub fn onPlayerMoved(player: *playerZig.Player, state: *main.GameState) !void {
     for (state.bosses.items) |*boss| {
         const levelBossData = LEVEL_BOSS_DATA.get(boss.typeData);
         if (levelBossData.onPlayerMoved) |opm| try opm(boss, player, state);
     }
 }
 
-pub fn onPlayerMoveEachTile(player: *main.Player, state: *main.GameState) !void {
+pub fn onPlayerMoveEachTile(player: *playerZig.Player, state: *main.GameState) !void {
     for (state.bosses.items) |*boss| {
         const levelBossData = LEVEL_BOSS_DATA.get(boss.typeData);
         if (levelBossData.onPlayerMoveEachTile) |opm| try opm(boss, player, state);
@@ -119,7 +120,7 @@ pub fn getHpScalingForLevel(hp: u32, state: *main.GameState) u32 {
     return hp * (1 + @divFloor(state.level, 5)) * newGamePlusFactor;
 }
 
-pub fn isBossHit(hitArea: main.TileRectangle, player: *main.Player, hitDirection: u8, state: *main.GameState) !bool {
+pub fn isBossHit(hitArea: main.TileRectangle, player: *playerZig.Player, hitDirection: u8, state: *main.GameState) !bool {
     var aBossHit = false;
     var bossIndex: usize = 0;
     while (bossIndex < state.bosses.items.len) {
@@ -128,7 +129,7 @@ pub fn isBossHit(hitArea: main.TileRectangle, player: *main.Player, hitDirection
         if (levelBossData.isBossHit) |isHitFunction| {
             if (try isHitFunction(boss, player, hitArea, player.paintData.weaponRotation, hitDirection, state)) aBossHit = true;
         } else {
-            if (isBossHitDefault(boss, main.getPlayerDamage(player), hitArea)) aBossHit = true;
+            if (isBossHitDefault(boss, playerZig.getPlayerDamage(player), hitArea)) aBossHit = true;
         }
         if (boss.hp == 0) {
             var deadBoss = state.bosses.swapRemove(bossIndex);
