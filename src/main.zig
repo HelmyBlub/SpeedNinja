@@ -436,11 +436,13 @@ fn tickPlayers(state: *GameState, passedTime: i64) !void {
         try ninjaDogVulkanZig.tickNinjaDogAnimation(player, passedTime, state);
     }
     const timestamp = std.time.milliTimestamp();
-    for (state.inputJoinData.inputDeviceDatas.items, 0..) |joinData, index| {
-        if (joinData.pressTime + PLAYER_JOIN_BUTTON_HOLD_DURATION <= timestamp) {
-            try playerJoin(.{ .inputDevice = joinData.deviceData }, state);
-            _ = state.inputJoinData.inputDeviceDatas.swapRemove(index);
-            break;
+    if (state.gamePhase != .boss) {
+        for (state.inputJoinData.inputDeviceDatas.items, 0..) |joinData, index| {
+            if (joinData.pressTime + PLAYER_JOIN_BUTTON_HOLD_DURATION <= timestamp) {
+                try playerJoin(.{ .inputDevice = joinData.deviceData }, state);
+                _ = state.inputJoinData.inputDeviceDatas.swapRemove(index);
+                break;
+            }
         }
     }
 }
