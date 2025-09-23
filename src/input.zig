@@ -105,7 +105,7 @@ pub fn handlePlayerInput(event: sdl.SDL_Event, state: *main.GameState) !void {
     try handleCheckPlayerJoin(event, state);
 }
 
-pub fn getDisplayInfoForPlayerAction(player: *main.Player, action: PlayerAction, state: *main.GameState) ?ButtonDisplay {
+pub fn getPlayerInputDevice(player: *main.Player) ?InputDeviceData {
     var inputDevice: ?InputDeviceData = null;
     if (player.inputData.inputDevice == null) {
         if (player.inputData.lastInputDevice == null or player.inputData.lastInputDevice.? == .keyboard) {
@@ -119,6 +119,11 @@ pub fn getDisplayInfoForPlayerAction(player: *main.Player, action: PlayerAction,
             inputDevice = .{ .keyboard = 0 };
         }
     }
+    return inputDevice;
+}
+
+pub fn getDisplayInfoForPlayerAction(player: *main.Player, action: PlayerAction, state: *main.GameState) ?ButtonDisplay {
+    const inputDevice = getPlayerInputDevice(player);
     if (inputDevice == null) return null;
     switch (inputDevice.?) {
         .keyboard => |index| {
@@ -159,9 +164,8 @@ fn getDisplayTextForScancode(scancode: c_uint, state: *main.GameState) []const u
             state.tempStringBuffer[1] = zigString[zigString.len - 1];
             return state.tempStringBuffer[0..2];
         } else {
-            std.debug.print("displayKeyToScancode: {s}\n", .{zigString});
+            return zigString;
         }
-        return "0";
     } else {
         return zigString;
     }

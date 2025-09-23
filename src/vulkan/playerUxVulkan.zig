@@ -236,6 +236,8 @@ fn verticesForMoveOptions(player: *main.Player, verticeData: *dataVulkanZig.VkVe
     var width: f32 = 0;
     var height: f32 = 0;
     const spacingFactor = 1.1;
+    const playerInputDevice = inputZig.getPlayerInputDevice(player);
+    const verticesForMovementKey = if (player.uxData.visualizeMovementKeys and (playerInputDevice == null or playerInputDevice.? == .keyboard)) true else false;
     if (player.uxData.vertical) {
         height = player.uxData.vulkanScale / 4 / spacingFactor;
         width = height / onePixelYInVulkan * onePixelXInVulkan;
@@ -243,11 +245,26 @@ fn verticesForMoveOptions(player: *main.Player, verticeData: *dataVulkanZig.VkVe
         width = player.uxData.vulkanScale / 4 / spacingFactor;
         height = width / onePixelXInVulkan * onePixelYInVulkan;
     }
+    if (verticesForMovementKey) {
+        width *= 3.0 / 4.0;
+        height *= 3.0 / 4.0;
+    }
 
     const pieceXSpacing = width * spacingFactor;
     const pieceYSpacing = height * spacingFactor;
     var startX = player.uxData.vulkanTopLeft.x;
     var startY = player.uxData.vulkanTopLeft.y + height * ((spacingFactor - 1) * 0.5);
+    const fontSize = height / 4 / onePixelYInVulkan;
+    if (verticesForMovementKey) {
+        var keyDisplayWidth: f32 = 0;
+        const keyFontSize = fontSize * 1.3;
+        const keyY = startY + keyFontSize * onePixelYInVulkan * 1.3;
+        keyDisplayWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = startX, .y = keyY }, .moveLeft, keyFontSize, player, state);
+        _ = fontVulkanZig.verticesForDisplayButton(.{ .x = startX + keyDisplayWidth, .y = keyY - keyFontSize * onePixelYInVulkan }, .moveUp, keyFontSize, player, state);
+        keyDisplayWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = startX + keyDisplayWidth, .y = keyY }, .moveDown, keyFontSize, player, state);
+        keyDisplayWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = startX + keyDisplayWidth, .y = keyY }, .moveRight, keyFontSize, player, state);
+        startY += pieceYSpacing;
+    }
 
     const lines = &verticeData.lines;
     const triangles = &verticeData.triangles;
@@ -296,7 +313,6 @@ fn verticesForMoveOptions(player: *main.Player, verticeData: *dataVulkanZig.VkVe
             );
         }
         if (player.uxData.visualizeChoiceKeys) {
-            const fontSize = height / 4 / onePixelYInVulkan;
             switch (index) {
                 0 => {
                     _ = fontVulkanZig.verticesForDisplayButton(.{ .x = startX, .y = startY }, .pieceSelect1, fontSize, player, state);

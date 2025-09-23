@@ -142,10 +142,20 @@ pub fn verticesForDisplayButton(topLeft: main.Position, action: inputZig.PlayerA
         .gamepad => paintVulkanZig.verticesForComplexSpriteVulkan(keyImagePos, imageZig.IMAGE_CIRCLE, fontSize * 0.8, fontSize * 0.8, 1, 0, false, false, state),
         .keyboard => paintVulkanZig.verticesForComplexSpriteVulkan(keyImagePos, imageZig.IMAGE_KEY_BLANK, fontSize, fontSize, 1, 0, false, false, state),
     }
-    _ = paintText(buttonInfo.?.text, .{
-        .x = topLeft.x + onePixelXInVulkan * fontSize / 4,
-        .y = topLeft.y + onePixelYInVulkan * fontSize / 4,
-    }, fontSize / 2, .{ 1, 1, 1 }, &state.vkState.verticeData.font);
+    if (buttonInfo.?.text.len == 1 or (buttonInfo.?.text.len == 2 and std.mem.startsWith(u8, buttonInfo.?.text, "K"))) {
+        _ = paintText(buttonInfo.?.text, .{
+            .x = topLeft.x + onePixelXInVulkan * fontSize / 4,
+            .y = topLeft.y + onePixelYInVulkan * fontSize / 4,
+        }, fontSize / 2, .{ 1, 1, 1 }, &state.vkState.verticeData.font);
+    } else if (std.mem.eql(u8, buttonInfo.?.text, "Right")) {
+        paintVulkanZig.verticesForComplexSpriteVulkan(keyImagePos, imageZig.IMAGE_ARROW_RIGHT, fontSize * 0.8, fontSize * 0.8, 1, 0, false, false, state);
+    } else if (std.mem.eql(u8, buttonInfo.?.text, "Left")) {
+        paintVulkanZig.verticesForComplexSpriteVulkan(keyImagePos, imageZig.IMAGE_ARROW_RIGHT, fontSize * 0.8, fontSize * 0.8, 1, 0, true, false, state);
+    } else if (std.mem.eql(u8, buttonInfo.?.text, "Up")) {
+        paintVulkanZig.verticesForComplexSpriteVulkan(keyImagePos, imageZig.IMAGE_ARROW_RIGHT, fontSize * 0.8, fontSize * 0.8, 1, -std.math.pi / 2.0, false, false, state);
+    } else if (std.mem.eql(u8, buttonInfo.?.text, "Down")) {
+        paintVulkanZig.verticesForComplexSpriteVulkan(keyImagePos, imageZig.IMAGE_ARROW_RIGHT, fontSize * 0.8, fontSize * 0.8, 1, std.math.pi / 2.0, false, false, state);
+    }
     return onePixelXInVulkan * fontSize;
 }
 

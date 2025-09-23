@@ -122,6 +122,7 @@ const PlayerUxData = struct {
     visualizeHpChange: ?i32 = null,
     visualizeHpChangeUntil: ?i64 = null,
     visualizeChoiceKeys: bool = true,
+    visualizeMovementKeys: bool = true,
 };
 
 const ContinueData = struct {
@@ -535,7 +536,10 @@ pub fn startNextLevel(state: *GameState) !void {
     for (state.players.items) |*player| {
         try movePieceZig.resetPieces(player, false, state);
         player.lastMoveDirection = null;
-        if (state.level > 1) player.uxData.visualizeChoiceKeys = false;
+        if (state.level > 1) {
+            player.uxData.visualizeChoiceKeys = false;
+            player.uxData.visualizeMovementKeys = false;
+        }
     }
     try enemyZig.setupSpawnEnemiesOnLevelChange(state);
     if (bossZig.isBossLevel(state.level)) {
@@ -690,6 +694,7 @@ pub fn playerJoin(playerInputData: inputZig.PlayerInputData, state: *GameState) 
                 } else {
                     otherPlayer.inputData.inputDevice = .{ .keyboard = 0 };
                 }
+                otherPlayer.uxData.visualizeMovementKeys = true;
             }
         } else if (otherPlayer.inputData.inputDevice.? == .keyboard and otherPlayer.inputData.inputDevice.?.keyboard == null) {
             if (player.inputData.inputDevice.?.keyboard == 0) {
@@ -697,6 +702,7 @@ pub fn playerJoin(playerInputData: inputZig.PlayerInputData, state: *GameState) 
             } else {
                 otherPlayer.inputData.inputDevice = .{ .keyboard = 0 };
             }
+            otherPlayer.uxData.visualizeMovementKeys = true;
         }
     }
     equipmentZig.equipStarterEquipment(player);
