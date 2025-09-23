@@ -107,12 +107,17 @@ pub fn setupVertices(state: *main.GameState) !void {
                     textWidth += fontVulkanZig.paintText("or ", .{ .x = left + textWidth, .y = top }, fontSizeTutorial, textColor, fontVertices);
                     textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .pieceSelect3, fontSizeTutorial, player, state);
                 } else if (!state.tutorialData.playerFirstValidMove and state.tutorialData.playerFirstValidPieceSelection.? + hintWaitDelay < realTime) {
-                    textWidth += fontVulkanZig.paintText("Press ", .{ .x = left + textWidth, .y = top }, fontSizeTutorial, textColor, fontVertices);
-                    textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .moveUp, fontSizeTutorial, player, state);
-                    textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .moveLeft, fontSizeTutorial, player, state);
-                    textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .moveDown, fontSizeTutorial, player, state);
-                    textWidth += fontVulkanZig.paintText("or ", .{ .x = left + textWidth, .y = top }, fontSizeTutorial, textColor, fontVertices);
-                    textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .moveRight, fontSizeTutorial, player, state);
+                    const inputDevice = inputZig.getPlayerInputDevice(player);
+                    if (inputDevice == null or inputDevice.? == .keyboard) {
+                        textWidth += fontVulkanZig.paintText("Press ", .{ .x = left + textWidth, .y = top }, fontSizeTutorial, textColor, fontVertices);
+                        textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .moveUp, fontSizeTutorial, player, state);
+                        textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .moveLeft, fontSizeTutorial, player, state);
+                        textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .moveDown, fontSizeTutorial, player, state);
+                        textWidth += fontVulkanZig.paintText("or ", .{ .x = left + textWidth, .y = top }, fontSizeTutorial, textColor, fontVertices);
+                        textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .moveRight, fontSizeTutorial, player, state);
+                    } else {
+                        textWidth += fontVulkanZig.paintText("Use Analog Stick ", .{ .x = left + textWidth, .y = top }, fontSizeTutorial, textColor, fontVertices);
+                    }
                 }
             }
         }

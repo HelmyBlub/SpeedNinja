@@ -6,9 +6,8 @@ Tasks:
         - tripple: more time as has 50% more hp?
 
 - controller inputs
-    - player leave option
-    - disable joining for boss fights?
     - tutorial for controller
+    - player leave option
 - sound: play sound when "continue shop" opens
 - bug: dragon boss can target dead players
 - multiplayer
