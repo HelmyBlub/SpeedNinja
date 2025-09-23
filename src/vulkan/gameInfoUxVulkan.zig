@@ -121,7 +121,7 @@ fn verticesForLeaveJoinInfo(state: *main.GameState) !void {
                 const top: f32 = -0.99 + height * @as(f32, @floatFromInt(counter + 1)) * 1.1;
                 textWidth += fontVulkanZig.paintText("Player ", .{ .x = left + textWidth, .y = top }, fontSize, textColor, fontVertices);
                 textWidth += try fontVulkanZig.paintNumber(state.players.items.len + counter + 1, .{ .x = left + textWidth, .y = top }, fontSize, textColor, fontVertices);
-                textWidth += fontVulkanZig.paintText("joining", .{ .x = left + textWidth, .y = top }, fontSize, textColor, fontVertices);
+                textWidth += fontVulkanZig.paintText(" joining", .{ .x = left + textWidth, .y = top }, fontSize, textColor, fontVertices);
 
                 const fillPerCent = @as(f32, @floatFromInt(realTime - joinData.pressTime)) / @as(f32, @floatFromInt(main.PLAYER_JOIN_BUTTON_HOLD_DURATION));
                 paintVulkanZig.verticesForRectangle(left, top, textWidth * fillPerCent, height, .{ 0.9, 0.9, 0.9 }, null, &verticeData.triangles);
@@ -130,15 +130,15 @@ fn verticesForLeaveJoinInfo(state: *main.GameState) !void {
             }
         }
     }
-    for (state.players.items) |*player| {
+    for (state.players.items, 0..) |*player, index| {
         const textColor: [3]f32 = .{ 0.7, 0, 0 };
         if (player.inputData.holdingKeySinceForLeave != null and player.inputData.holdingKeySinceForLeave.? + 1_000 <= realTime) {
             var textWidth: f32 = 0;
             const left: comptime_float = 0;
             const top: f32 = -0.99 + height * @as(f32, @floatFromInt(counter + 1)) * 1.1;
             textWidth += fontVulkanZig.paintText("Player ", .{ .x = left + textWidth, .y = top }, fontSize, textColor, fontVertices);
-            textWidth += try fontVulkanZig.paintNumber(state.players.items.len + counter + 1, .{ .x = left + textWidth, .y = top }, fontSize, textColor, fontVertices);
-            textWidth += fontVulkanZig.paintText("leaving", .{ .x = left + textWidth, .y = top }, fontSize, textColor, fontVertices);
+            textWidth += try fontVulkanZig.paintNumber(index + 1, .{ .x = left + textWidth, .y = top }, fontSize, textColor, fontVertices);
+            textWidth += fontVulkanZig.paintText(" leaving", .{ .x = left + textWidth, .y = top }, fontSize, textColor, fontVertices);
 
             const fillPerCent = @as(f32, @floatFromInt(realTime - player.inputData.holdingKeySinceForLeave.?)) / @as(f32, @floatFromInt(main.PLAYER_JOIN_BUTTON_HOLD_DURATION));
             const fillWidth = textWidth * fillPerCent;

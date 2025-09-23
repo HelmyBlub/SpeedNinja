@@ -5,8 +5,6 @@ Tasks:
     - bosses missing:(30+)
         - tripple: more time as has 50% more hp?
 
-- player leave option
-    - visualize
 - bug: prevent same player with same input device if multiple keyboards join at same time
 - scale enemy with player count
 - scale boss with player count
@@ -57,6 +55,7 @@ Next ideas:
         - in shop "kick afk players" when idle player detected
             - idle when no input in  1min
             - stand on tile for 5seconds
+        - if player left when no timer in combat, should give kick option
 - no vulkan support alternative
     - validation layer case
 - shop move piece 

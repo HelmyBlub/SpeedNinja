@@ -711,6 +711,16 @@ pub fn playerLeave(playerIndex: usize, state: *GameState) !void {
 }
 
 pub fn playerJoin(playerInputData: inputZig.PlayerInputData, state: *GameState) !void {
+    if (state.players.items.len > 1 and playerInputData.inputDevice.? == .keyboard) {
+        for (state.players.items) |*otherPlayer| {
+            if (otherPlayer.inputData.inputDevice != null and otherPlayer.inputData.inputDevice.? == .keyboard and
+                otherPlayer.inputData.inputDevice.?.keyboard == playerInputData.inputDevice.?.keyboard)
+            {
+                std.debug.print("prevent two player with same input\n", .{});
+                return;
+            }
+        }
+    }
     std.debug.print("player join: {}\n", .{playerInputData.inputDevice.?});
     try state.players.append(createPlayer(state.allocator));
     const player: *Player = &state.players.items[state.players.items.len - 1];
