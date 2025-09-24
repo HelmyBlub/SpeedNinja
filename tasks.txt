@@ -6,7 +6,7 @@ Tasks:
 
 - game UX
     - level, round, new game plus top left
-        - move player ux down a bit
+        - check position when scaling window
     - change timer
         - should be bigger
         - should work with vertical setup
@@ -35,7 +35,8 @@ Tasks:
 - bug: game endless loop on wave 148 (could not reproduce anymore)
     - found one case for 141-144, but should not be the case for 148 as it required walls
     - what could be reason?
-
+- vertical layout
+    - gate/stairs outside of view
 
 Next ideas:
 - improve UX

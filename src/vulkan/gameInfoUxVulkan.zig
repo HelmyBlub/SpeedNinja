@@ -77,17 +77,6 @@ fn verticesForLevelRoundNewGamePlus(state: *main.GameState) !void {
     textWidth += try fontVulkanZig.paintNumber(state.level, .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, fontVertices);
     paintVulkanZig.verticesForRectangle(levelPos.x - paddingX, levelPos.y - paddingY, textWidth + paddingX * 3, fontSize * onePixelYInVulkan + paddingY * 2, .{ 1, 1, 1 }, &verticeData.lines, &verticeData.triangles);
 
-    if (state.gamePhase != .boss) {
-        textWidth += paddingX * 6;
-        const roundStartX = textWidth;
-        if (state.level > 4) {
-            textWidth += fontVulkanZig.paintText("R ", .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, fontVertices);
-        } else {
-            textWidth += fontVulkanZig.paintText("Round ", .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, fontVertices);
-        }
-        textWidth += try fontVulkanZig.paintNumber(state.round, .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, fontVertices);
-        paintVulkanZig.verticesForRectangle(levelPos.x + roundStartX - paddingX, levelPos.y - paddingY, textWidth - roundStartX + paddingX * 3, fontSize * onePixelYInVulkan + paddingY * 2, .{ 1, 1, 1 }, &verticeData.lines, &verticeData.triangles);
-    }
     if (state.newGamePlus > 0) {
         textWidth += paddingX * 6;
         const newGamePlusStartX = textWidth;
@@ -98,6 +87,18 @@ fn verticesForLevelRoundNewGamePlus(state: *main.GameState) !void {
         }
         textWidth += try fontVulkanZig.paintNumber(state.newGamePlus, .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, fontVertices);
         paintVulkanZig.verticesForRectangle(levelPos.x + newGamePlusStartX - paddingX, levelPos.y - paddingY, textWidth - newGamePlusStartX + paddingX * 3, fontSize * onePixelYInVulkan + paddingY * 2, .{ 1, 1, 1 }, &verticeData.lines, &verticeData.triangles);
+    }
+
+    if (state.gamePhase != .boss) {
+        textWidth += paddingX * 6;
+        const roundStartX = textWidth;
+        if (state.level > 4) {
+            textWidth += fontVulkanZig.paintText("R ", .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, fontVertices);
+        } else {
+            textWidth += fontVulkanZig.paintText("Round ", .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, fontVertices);
+        }
+        textWidth += try fontVulkanZig.paintNumber(state.round, .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, fontVertices);
+        paintVulkanZig.verticesForRectangle(levelPos.x + roundStartX - paddingX, levelPos.y - paddingY, textWidth - roundStartX + paddingX * 3, fontSize * onePixelYInVulkan + paddingY * 2, .{ 1, 1, 1 }, &verticeData.lines, &verticeData.triangles);
     }
 }
 
