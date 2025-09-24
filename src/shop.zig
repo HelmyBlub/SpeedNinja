@@ -398,7 +398,7 @@ pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
         },
         .cut => |*data| {
             const cost = state.level * 1;
-            if (player.money >= cost and data.gridCutOffset != null and player.shop.gridDisplayPiece != null) {
+            if (player.money >= cost and data.isOnMovePiece and data.gridCutOffset != null and player.shop.gridDisplayPiece != null) {
                 playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
                 try movePieceZig.cutTilePositionOnMovePiece(player, data.gridCutOffset.?, player.shop.gridDisplayPieceOffset, data.selectedIndex, state);
                 data.gridCutOffset = null;

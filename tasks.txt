@@ -2,18 +2,13 @@ Tasks:
 - new game+1 
     - try complete run
 - new game+2
-    - bosses missing:(30+)
+    - bosses missing:(40+)
 
+- bug: cut spend money for nothing
 - game UX
     - "continue shop"
-        - count rounds until open
-            - display remaining number
-            - remove rounds counter from top
-        - visualized closed
-            - door?
         - sound: play sound when "continue shop" opens
-        - visualized open
-            - stairs?
+        -  sound when player finished round
         - boss defeated sound
     - remove current total time (will be part of speedrun stats)
     - change timer
