@@ -54,7 +54,7 @@ fn startBoss(state: *main.GameState) !void {
         boss.typeData.stomp.attackChargeTime = @divFloor(boss.typeData.stomp.attackChargeTime, @as(i32, @intCast(state.newGamePlus + 1)));
         boss.typeData.stomp.idleAfterAttackTime = @divFloor(boss.typeData.stomp.idleAfterAttackTime, @as(i32, @intCast(state.newGamePlus + 1)));
         boss.typeData.stomp.speed += @floatFromInt(state.newGamePlus);
-        boss.typeData.stomp.attackTileRadius += @intCast(state.newGamePlus);
+        boss.typeData.stomp.attackTileRadius += @intCast(@min(2, state.newGamePlus));
     }
     try state.bosses.append(boss);
     try mapTileZig.setMapRadius(6, state);

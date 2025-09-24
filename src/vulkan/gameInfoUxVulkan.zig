@@ -9,7 +9,6 @@ const playerZig = @import("../player.zig");
 
 pub fn setupVertices(state: *main.GameState) !void {
     const fontSize = 30;
-    var textWidthRound: f32 = -0.2;
     const verticeData = &state.vkState.verticeData;
     const fontVertices = &verticeData.font;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
@@ -33,17 +32,15 @@ pub fn setupVertices(state: *main.GameState) !void {
             const remainingTime: i64 = @max(0, @divFloor(state.suddenDeathTimeMs - state.gameTime, 1000));
             _ = try fontVulkanZig.paintNumber(remainingTime, .{ .x = textWidthTime, .y = -0.9 }, fontSize, textColor, fontVertices);
         }
-    } else {
-        textWidthRound -= 0.2;
-        textWidthRound += fontVulkanZig.paintText(" Level: ", .{ .x = textWidthRound, .y = -0.99 }, fontSize, textColor, fontVertices);
-        textWidthRound += try fontVulkanZig.paintNumber(state.level, .{ .x = textWidthRound, .y = -0.99 }, fontSize, textColor, fontVertices);
-
-        if (state.round > 1 and state.gamePhase == .combat) {
-            const textWidthTime = fontVulkanZig.paintText("Time: ", .{ .x = 0, .y = -0.9 }, fontSize, textColor, fontVertices);
-            const remainingTime: i64 = @max(0, @divFloor(state.suddenDeathTimeMs - state.gameTime, 1000));
-            _ = try fontVulkanZig.paintNumber(remainingTime, .{ .x = textWidthTime, .y = -0.9 }, fontSize, textColor, fontVertices);
-        }
     }
+    if (state.round > 1 and state.gamePhase == .combat) {
+        const textWidthTime = fontVulkanZig.paintText("Time: ", .{ .x = 0, .y = -0.9 }, fontSize, textColor, fontVertices);
+        const remainingTime: i64 = @max(0, @divFloor(state.suddenDeathTimeMs - state.gameTime, 1000));
+        _ = try fontVulkanZig.paintNumber(remainingTime, .{ .x = textWidthTime, .y = -0.9 }, fontSize, textColor, fontVertices);
+    }
+
+    try verticesForLevelRoundNewGamePlus(state);
+
     if (state.gameOver) {
         const gameOverPos: main.Position = .{ .x = -0.4, .y = -0.1 };
         _ = fontVulkanZig.paintText("GAME OVER", gameOverPos, 120, textColor, fontVertices);
@@ -55,6 +52,59 @@ pub fn setupVertices(state: *main.GameState) !void {
         }
     }
     try verticesForLeaveJoinInfo(state);
+    verticsForTutorial(state);
+}
+
+fn verticesForLevelRoundNewGamePlus(state: *main.GameState) !void {
+    const textColor: [3]f32 = .{ 1, 1, 1 };
+    const fontSize = 30;
+    const verticeData = &state.vkState.verticeData;
+    const fontVertices = &verticeData.font;
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    var textWidth: f32 = 0;
+    const levelPos: main.Position = .{
+        .x = -0.99,
+        .y = -0.99,
+    };
+    const paddingX = 2 * onePixelXInVulkan;
+    const paddingY = 2 * onePixelYInVulkan;
+    if (state.level > 4) {
+        textWidth += fontVulkanZig.paintText("L ", .{ .x = levelPos.x, .y = levelPos.y }, fontSize, textColor, fontVertices);
+    } else {
+        textWidth += fontVulkanZig.paintText("Level ", .{ .x = levelPos.x, .y = levelPos.y }, fontSize, textColor, fontVertices);
+    }
+    textWidth += try fontVulkanZig.paintNumber(state.level, .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, fontVertices);
+    paintVulkanZig.verticesForRectangle(levelPos.x - paddingX, levelPos.y - paddingY, textWidth + paddingX * 3, fontSize * onePixelYInVulkan + paddingY * 2, .{ 1, 1, 1 }, &verticeData.lines, &verticeData.triangles);
+
+    if (state.gamePhase != .boss) {
+        textWidth += paddingX * 6;
+        const roundStartX = textWidth;
+        if (state.level > 4) {
+            textWidth += fontVulkanZig.paintText("R ", .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, fontVertices);
+        } else {
+            textWidth += fontVulkanZig.paintText("Round ", .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, fontVertices);
+        }
+        textWidth += try fontVulkanZig.paintNumber(state.round, .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, fontVertices);
+        paintVulkanZig.verticesForRectangle(levelPos.x + roundStartX - paddingX, levelPos.y - paddingY, textWidth - roundStartX + paddingX * 3, fontSize * onePixelYInVulkan + paddingY * 2, .{ 1, 1, 1 }, &verticeData.lines, &verticeData.triangles);
+    }
+    if (state.newGamePlus > 0) {
+        textWidth += paddingX * 6;
+        const newGamePlusStartX = textWidth;
+        if (state.level > 4) {
+            textWidth += fontVulkanZig.paintText("NG+", .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, fontVertices);
+        } else {
+            textWidth += fontVulkanZig.paintText("NewGame+ ", .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, fontVertices);
+        }
+        textWidth += try fontVulkanZig.paintNumber(state.newGamePlus, .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, fontVertices);
+        paintVulkanZig.verticesForRectangle(levelPos.x + newGamePlusStartX - paddingX, levelPos.y - paddingY, textWidth - newGamePlusStartX + paddingX * 3, fontSize * onePixelYInVulkan + paddingY * 2, .{ 1, 1, 1 }, &verticeData.lines, &verticeData.triangles);
+    }
+}
+
+fn verticsForTutorial(state: *main.GameState) void {
+    const textColor: [3]f32 = .{ 1, 1, 1 };
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const fontVertices = &state.vkState.verticeData.font;
     if (state.tutorialData.active and state.tutorialData.firstKeyDownInput != null) {
         if (state.tutorialData.playerFirstValidMove or state.players.items.len > 1) {
             state.tutorialData.active = false;

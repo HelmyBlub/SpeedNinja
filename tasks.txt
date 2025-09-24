@@ -5,16 +5,17 @@ Tasks:
     - bosses missing:(40+)
 
 - game UX
-    - "continue shop"
-        - sound: play sound when "continue shop" opens
-            - "taktak" gate open sound
-        - sound when player finished round
-            - ding ding
-        - boss defeated sound
-            - ""
-    - remove current total time (will be part of speedrun stats)
+    - level, round, new game plus top left
+        - move player ux down a bit
     - change timer
+        - should be bigger
         - should work with vertical setup
+- player UX
+    - dead player
+- game over UX
+    - hold button to continue
+    - hold button to restart
+    - hold button to quit
 - multiplayer
     - on entering shop
         - every player needs to enter
