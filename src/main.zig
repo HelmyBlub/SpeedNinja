@@ -79,6 +79,7 @@ pub const SoundData = struct {
     suddenDeathPlayed: bool = false,
     warningSoundPlayed: bool = false,
     tickSoundPlayedCounter: u32 = 0,
+    gateOpenTime: ?i64 = null,
 };
 
 const ContinueData = struct {
@@ -177,6 +178,7 @@ fn mainLoop(state: *GameState) !void {
                     const amount = @as(i32, @intFromFloat(@as(f32, @floatFromInt(state.level)) * 10.0 * (1.0 + player.moneyBonusPerCent)));
                     playerZig.changePlayerMoneyBy(amount, player, true);
                 }
+                try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BOSS_DEFEATED, 0, 0.6);
                 if (state.playerTookDamageOnLevel == false) {
                     state.continueData.bossesAced += 1;
                     if (state.continueData.bossesAced >= state.continueData.nextBossAceFreeContinue) {
@@ -328,6 +330,7 @@ pub fn startNextRound(state: *GameState) !void {
     if (state.round >= state.roundToReachForNextLevel and state.gateOpenTime == null) state.gateOpenTime = state.gameTime;
 
     if (state.round > 1) {
+        try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_ROUND_CLEARED, 0, 1);
         for (state.players.items) |*player| {
             const amount = @as(i32, @intFromFloat(@ceil(@as(f32, @floatFromInt(state.level)) * (1.0 + player.moneyBonusPerCent))));
             playerZig.changePlayerMoneyBy(amount, player, true);

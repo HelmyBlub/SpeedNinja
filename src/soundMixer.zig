@@ -99,6 +99,9 @@ var SOUND_FILE_PATHES = [_][]const u8{
     "sounds/suddenDeath.mp3",
     "sounds/timeWarning1.mp3",
     "sounds/lowOnMovePieces.mp3",
+    "sounds/gateOpen.mp3",
+    "sounds/roundCleared.mp3",
+    "sounds/bossDefeated.mp3",
 };
 
 pub const SOUND_NINJA_MOVE_INDICIES = [_]usize{ 0, 1, 2 };
@@ -126,6 +129,9 @@ pub const SOUND_LAST_SECONDS = 59;
 pub const SOUND_SUDDEN_DEATH = 60;
 pub const SOUND_TIME_WARNING = 61;
 pub const SOUND_MOVE_PIECE_WARNING = 62;
+pub const SOUND_GATE_OPEN = 63;
+pub const SOUND_ROUND_CLEARED = 64;
+pub const SOUND_BOSS_DEFEATED = 65;
 
 pub fn createSoundMixer(state: *main.GameState, allocator: std.mem.Allocator) !void {
     state.soundMixer = .{

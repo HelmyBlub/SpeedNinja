@@ -5,6 +5,7 @@ const shopZig = @import("../shop.zig");
 const fontVulkanZig = @import("fontVulkan.zig");
 const paintVulkanZig = @import("paintVulkan.zig");
 const imageZig = @import("../image.zig");
+const soundMixerZig = @import("../soundMixer.zig");
 
 const GATE_OPEN_DURATION = 2000;
 
@@ -88,6 +89,11 @@ fn verticesForEnterShop(state: *main.GameState) !void {
             .y = gridEnterShopTopLeft.y,
         }, fontSize, textColor, &verticeData.font, state);
     } else if (state.gateOpenTime != null and state.gateOpenTime.? + GATE_OPEN_DURATION > state.gameTime) {
+        const timestamp = std.time.milliTimestamp();
+        if (state.soundData.gateOpenTime == null or state.soundData.gateOpenTime.? + 300 < timestamp) {
+            state.soundData.gateOpenTime = timestamp;
+            try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_GATE_OPEN, 0, 1);
+        }
         const timePerCent = 1 - @as(f32, @floatFromInt(state.gateOpenTime.? + GATE_OPEN_DURATION - state.gameTime)) / GATE_OPEN_DURATION;
         paintVulkanZig.verticesForComplexSprite(
             .{ .x = gridEnterShopTopLeft.x + main.TILESIZE / 2, .y = gridEnterShopTopLeft.y + main.TILESIZE / 2 - timePerCent * main.TILESIZE * 2 },
