@@ -4,13 +4,12 @@ Tasks:
 - new game+2
     - bosses missing:(40+)
 
-- player UX
-    - dead player
-        - write dead in red
 - game over UX
     - hold button to continue
     - hold button to restart
     - hold button to quit
+- shop UX
+
 - multiplayer
     - on entering shop
         - every player needs to enter
@@ -25,11 +24,7 @@ Tasks:
 
 - new game plus
     - check snowball being to slow?
-    - check tripple air strike not correct count?
 
-- bug: game endless loop on wave 148 (could not reproduce anymore)
-    - found one case for 141-144, but should not be the case for 148 as it required walls
-    - what could be reason?
 - vertical layout
     - gate/stairs outside of view
     - overlapping stuff
@@ -37,17 +32,7 @@ Tasks:
 Next ideas:
 - improve UX
     - shop
-    - gameInfo
-        - new game+
-        - timer
-    - when "continue shop" opens
-        - sound            
-        - money sound when round finished
-            - get money: "ding ding" 
-            - spend money: "kaching"
-    - stairs image for "continue shop"
-    - +money on finishing round
-    - movepiece reset
+        - spend money: "kaching"
     - speedrun stats
     - free continues
 - multiplayer
@@ -60,10 +45,7 @@ Next ideas:
             - idle when no input in  1min
             - stand on tile for 5seconds
         - if player left when no timer in combat, should give kick option
-- no vulkan support alternative
-    - validation layer case
 - shop move piece 
-    - pricing change
     - visualize shop correctly
 - vulkan changes
     - fallback visulize when not supported

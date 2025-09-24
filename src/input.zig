@@ -239,6 +239,11 @@ fn handlePlayerKeyboardInput(event: sdl.SDL_Event, player: *playerZig.Player, ke
                     try handlePlayerAction(mapping.action, player, state);
                 } else {
                     player.inputData.holdingKeySinceForLeave = null;
+                    if (state.gameOver) {
+                        if (mapping.action == .pieceSelect1) state.uxData.continueButtonHoldStart = null;
+                        if (mapping.action == .pieceSelect2) state.uxData.restartButtonHoldStart = null;
+                        if (mapping.action == .pieceSelect3) state.uxData.quitButtonHoldStart = null;
+                    }
                 }
             }
         }
@@ -249,6 +254,12 @@ fn handlePlayerKeyboardInput(event: sdl.SDL_Event, player: *playerZig.Player, ke
                     player.inputData.lastInputDevice = .{ .keyboard = @intCast(index) };
                     if (event.type == sdl.SDL_EVENT_KEY_DOWN) {
                         try handlePlayerAction(mapping.action, player, state);
+                    } else {
+                        if (state.gameOver) {
+                            if (mapping.action == .pieceSelect1) state.uxData.continueButtonHoldStart = null;
+                            if (mapping.action == .pieceSelect2) state.uxData.restartButtonHoldStart = null;
+                            if (mapping.action == .pieceSelect3) state.uxData.quitButtonHoldStart = null;
+                        }
                     }
                 }
             }
@@ -306,6 +317,11 @@ fn handlePlayerGamepadInput(event: sdl.SDL_Event, player: *playerZig.Player, gam
         },
         sdl.SDL_EVENT_GAMEPAD_BUTTON_UP => {
             player.inputData.holdingKeySinceForLeave = null;
+            if (state.gameOver) {
+                if (event.gbutton.button == 0) state.uxData.continueButtonHoldStart = null;
+                if (event.gbutton.button == 1) state.uxData.restartButtonHoldStart = null;
+                if (event.gbutton.button == 2) state.uxData.quitButtonHoldStart = null;
+            }
         },
         else => {},
     }
@@ -347,14 +363,14 @@ fn handlePlayerAction(action: PlayerAction, player: *playerZig.Player, state: *m
         },
         .pieceSelect1 => {
             movePieceZig.setMoveOptionIndex(player, 0, state);
-            if (state.gameOver and state.level > 1) {
-                try main.executeContinue(state);
-            }
+            if (state.gameOver and state.level > 1 and state.uxData.continueButtonHoldStart == null) state.uxData.continueButtonHoldStart = std.time.milliTimestamp();
         },
         .pieceSelect2 => {
+            if (state.gameOver and state.uxData.restartButtonHoldStart == null) state.uxData.restartButtonHoldStart = std.time.milliTimestamp();
             movePieceZig.setMoveOptionIndex(player, 1, state);
         },
         .pieceSelect3 => {
+            if (state.gameOver and state.uxData.quitButtonHoldStart == null) state.uxData.quitButtonHoldStart = std.time.milliTimestamp();
             movePieceZig.setMoveOptionIndex(player, 2, state);
         },
     }

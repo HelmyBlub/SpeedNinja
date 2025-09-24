@@ -9,14 +9,19 @@ const playerZig = @import("../player.zig");
 const imageZig = @import("../image.zig");
 
 pub fn setupVertices(state: *main.GameState) !void {
-    const fontSize = 30;
-    const verticeData = &state.vkState.verticeData;
-    const fontVertices = &verticeData.font;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const textColor: [3]f32 = .{ 1, 1, 1 };
+    try verticesForBossHpBar(state);
+    try verticesForTimer(state);
+    try verticesForLevelRoundNewGamePlus(state);
+    try verticesForGameOver(state);
+    try verticesForLeaveJoinInfo(state);
+    verticsForTutorial(state);
+}
 
+fn verticesForBossHpBar(state: *main.GameState) !void {
     if (state.gamePhase == .boss) {
+        const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+        const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+        const fontSize = 30;
         if (state.bosses.items.len == 0) return;
         const spacingX = onePixelXInVulkan * 5;
         const top = -0.99;
@@ -29,21 +34,58 @@ pub fn setupVertices(state: *main.GameState) !void {
             currentLeft += width + spacingX;
         }
     }
-    try verticesForTimer(state);
-    try verticesForLevelRoundNewGamePlus(state);
+}
 
+fn verticesForGameOver(state: *main.GameState) !void {
     if (state.gameOver) {
+        const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+        const verticeData = &state.vkState.verticeData;
+        const fontVertices = &verticeData.font;
+        const textColor: [3]f32 = .{ 1, 1, 1 };
         const gameOverPos: main.Position = .{ .x = -0.4, .y = -0.1 };
-        _ = fontVulkanZig.paintText("GAME OVER", gameOverPos, 120, textColor, fontVertices);
+        const fontSize = 120;
+        _ = fontVulkanZig.paintText("GAME OVER", gameOverPos, fontSize, textColor, fontVertices);
         const optContinueCosts = main.getMoneyCostsForContinue(state);
+        const timestamp = std.time.milliTimestamp();
+        const optionFontSize = 60;
+        const optionHeight = optionFontSize * onePixelYInVulkan;
+        const spacing = onePixelYInVulkan * 5;
         if (optContinueCosts) |continueCosts| {
-            const continuePos: main.Position = .{ .x = gameOverPos.x, .y = gameOverPos.y + 120 * onePixelYInVulkan };
-            const offsetX = fontVulkanZig.paintText("Continue: $", continuePos, 60, textColor, fontVertices);
-            _ = try fontVulkanZig.paintNumber(continueCosts, .{ .x = continuePos.x + offsetX, .y = continuePos.y }, 60, textColor, fontVertices);
+            const continuePos: main.Position = .{ .x = gameOverPos.x, .y = gameOverPos.y + fontSize * onePixelYInVulkan };
+            var textWidth = fontVulkanZig.verticesForDisplayButton(continuePos, .pieceSelect1, optionFontSize, &state.players.items[0], state);
+            textWidth += fontVulkanZig.paintText("Continue: $", .{
+                .x = continuePos.x + textWidth,
+                .y = continuePos.y,
+            }, optionFontSize, textColor, fontVertices);
+            textWidth += try fontVulkanZig.paintNumber(continueCosts, .{
+                .x = continuePos.x + textWidth,
+                .y = continuePos.y,
+            }, 60, textColor, fontVertices);
+            paintVulkanZig.verticesForRectangle(continuePos.x, continuePos.y, textWidth, optionHeight, .{ 0.0, 0.0, 0.0 }, &verticeData.lines, null);
+            if (state.uxData.continueButtonHoldStart) |time| {
+                const fillPerCent = @as(f32, @floatFromInt(timestamp - time)) / @as(f32, @floatFromInt(state.uxData.holdDefaultDuration));
+                paintVulkanZig.verticesForRectangle(continuePos.x, continuePos.y, textWidth * fillPerCent, optionHeight, .{ 0.9, 0.9, 0.9 }, null, &verticeData.triangles);
+            }
+        }
+
+        const restartPos: main.Position = .{ .x = gameOverPos.x, .y = gameOverPos.y + (fontSize + optionFontSize) * onePixelYInVulkan + spacing };
+        var restartWidth = fontVulkanZig.verticesForDisplayButton(restartPos, .pieceSelect2, optionFontSize, &state.players.items[0], state);
+        restartWidth += fontVulkanZig.paintText("Restart", .{ .x = restartPos.x + restartWidth, .y = restartPos.y }, optionFontSize, textColor, fontVertices);
+        paintVulkanZig.verticesForRectangle(restartPos.x, restartPos.y, restartWidth, optionHeight, .{ 0.0, 0.0, 0.0 }, &verticeData.lines, null);
+        if (state.uxData.restartButtonHoldStart) |time| {
+            const fillPerCent = @as(f32, @floatFromInt(timestamp - time)) / @as(f32, @floatFromInt(state.uxData.holdDefaultDuration));
+            paintVulkanZig.verticesForRectangle(restartPos.x, restartPos.y, restartWidth * fillPerCent, optionHeight, .{ 0.9, 0.9, 0.9 }, null, &verticeData.triangles);
+        }
+
+        const quitPos: main.Position = .{ .x = gameOverPos.x, .y = gameOverPos.y + (fontSize + optionFontSize * 2) * onePixelYInVulkan + spacing * 2 };
+        var quitWidth = fontVulkanZig.verticesForDisplayButton(quitPos, .pieceSelect3, optionFontSize, &state.players.items[0], state);
+        quitWidth += fontVulkanZig.paintText("Quit", .{ .x = quitPos.x + quitWidth, .y = quitPos.y }, optionFontSize, textColor, fontVertices);
+        paintVulkanZig.verticesForRectangle(quitPos.x, quitPos.y, quitWidth, optionHeight, .{ 0.0, 0.0, 0.0 }, &verticeData.lines, null);
+        if (state.uxData.quitButtonHoldStart) |time| {
+            const fillPerCent = @as(f32, @floatFromInt(timestamp - time)) / @as(f32, @floatFromInt(state.uxData.holdDefaultDuration));
+            paintVulkanZig.verticesForRectangle(quitPos.x, quitPos.y, quitWidth * fillPerCent, optionHeight, .{ 0.0, 0.0, 0.0 }, null, &verticeData.triangles);
         }
     }
-    try verticesForLeaveJoinInfo(state);
-    verticsForTutorial(state);
 }
 
 fn verticesForTimer(state: *main.GameState) !void {

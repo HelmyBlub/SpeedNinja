@@ -340,6 +340,7 @@ fn playerJoin(playerInputData: inputZig.PlayerInputData, state: *main.GameState)
     std.debug.print("player join: {}\n", .{playerInputData.inputDevice.?});
     try state.players.append(createPlayer(state.allocator));
     const player: *Player = &state.players.items[state.players.items.len - 1];
+    if (state.gameOver) player.isDead = true;
     player.inputData = playerInputData;
     for (0..state.players.items.len - 1) |index| {
         const otherPlayer = &state.players.items[index];

@@ -66,6 +66,14 @@ pub const GameState = struct {
     tempStringBuffer: []u8,
     tutorialData: TutorialData = .{},
     gateOpenTime: ?i64 = null,
+    uxData: GameUxData = .{},
+};
+
+pub const GameUxData = struct {
+    holdDefaultDuration: i32 = 1_500,
+    continueButtonHoldStart: ?i64 = null,
+    restartButtonHoldStart: ?i64 = null,
+    quitButtonHoldStart: ?i64 = null,
 };
 
 pub const TutorialData = struct {
@@ -198,6 +206,7 @@ fn mainLoop(state: *GameState) !void {
         try enemyZig.tickEnemies(passedTime, state);
         try bossZig.tickBosses(state, passedTime);
         tickMapObjects(state, passedTime);
+        try tickGameOver(state);
         if (state.verifyMapData.checkReachable) try verifyMapZig.checkAndModifyMapIfNotEverythingReachable(state);
         try paintVulkanZig.drawFrame(state);
         std.Thread.sleep(5_000_000);
@@ -208,6 +217,25 @@ fn mainLoop(state: *GameState) !void {
             passedTime = 16;
         }
         state.gameTime += passedTime;
+    }
+}
+
+fn tickGameOver(state: *GameState) !void {
+    if (!state.gameOver) return;
+    const timeStamp = std.time.milliTimestamp();
+    if (state.uxData.continueButtonHoldStart != null and state.uxData.continueButtonHoldStart.? + state.uxData.holdDefaultDuration < timeStamp) {
+        try executeContinue(state);
+        state.uxData.continueButtonHoldStart = null;
+        return;
+    }
+    if (state.uxData.restartButtonHoldStart != null and state.uxData.restartButtonHoldStart.? + state.uxData.holdDefaultDuration < timeStamp) {
+        try restart(state, 0);
+        state.uxData.restartButtonHoldStart = null;
+        return;
+    }
+    if (state.uxData.quitButtonHoldStart != null and state.uxData.quitButtonHoldStart.? + state.uxData.holdDefaultDuration < timeStamp) {
+        state.gameEnded = true;
+        return;
     }
 }
 
@@ -539,7 +567,7 @@ fn destroyGameState(state: *GameState) !void {
     enemyZig.destroyEnemyData(state);
 }
 
-pub fn executeContinue(state: *GameState) !void {
+fn executeContinue(state: *GameState) !void {
     if (state.gameOverRealTime + 1000 > std.time.milliTimestamp()) {
         return;
     }
