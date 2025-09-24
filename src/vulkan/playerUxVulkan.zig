@@ -17,6 +17,40 @@ pub fn setupVertices(state: *main.GameState) !void {
     for (state.players.items) |*player| {
         verticesForMoveOptions(player, verticeData, state);
         try verticesForPlayerData(player, verticeData, state);
+        verticeForDeadInfo(player, state);
+    }
+}
+
+fn verticeForDeadInfo(player: *playerZig.Player, state: *main.GameState) void {
+    if (player.isDead) {
+        const fontSize = 75 * player.uxData.vulkanScale;
+        const textColor: [3]f32 = .{ 1, 0, 0 };
+        const verticeData = &state.vkState.verticeData;
+        if (player.uxData.vertical) {
+            const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+            _ = fontVulkanZig.paintText("D", .{
+                .x = player.uxData.vulkanTopLeft.x,
+                .y = player.uxData.vulkanTopLeft.y + onePixelYInVulkan * fontSize,
+            }, fontSize, textColor, &verticeData.font);
+            _ = fontVulkanZig.paintText("E", .{
+                .x = player.uxData.vulkanTopLeft.x,
+                .y = player.uxData.vulkanTopLeft.y + onePixelYInVulkan * fontSize * 2,
+            }, fontSize, textColor, &verticeData.font);
+            _ = fontVulkanZig.paintText("A", .{
+                .x = player.uxData.vulkanTopLeft.x,
+                .y = player.uxData.vulkanTopLeft.y + onePixelYInVulkan * fontSize * 3,
+            }, fontSize, textColor, &verticeData.font);
+            _ = fontVulkanZig.paintText("D", .{
+                .x = player.uxData.vulkanTopLeft.x,
+                .y = player.uxData.vulkanTopLeft.y + onePixelYInVulkan * fontSize * 4,
+            }, fontSize, textColor, &verticeData.font);
+        } else {
+            const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+            _ = fontVulkanZig.paintText("Dead", .{
+                .x = player.uxData.vulkanTopLeft.x + onePixelXInVulkan * fontSize,
+                .y = player.uxData.vulkanTopLeft.y,
+            }, fontSize, textColor, &verticeData.font);
+        }
     }
 }
 
@@ -294,7 +328,7 @@ fn verticesForMoveOptions(player: *playerZig.Player, verticeData: *dataVulkanZig
             const boundingBox = movePieceZig.getBoundingBox(option);
             var rectPieceFillColor = fillColor;
             var rectFillColor: [3]f32 = .{ 1.0, 1.0, 1.0 };
-            if (player.choosenMoveOptionIndex != null and player.choosenMoveOptionIndex.? == index) {
+            if (!player.isDead and player.choosenMoveOptionIndex != null and player.choosenMoveOptionIndex.? == index) {
                 rectPieceFillColor = selctedColor;
                 rectFillColor = .{ 0.2, 0.2, 0.8 };
             }

@@ -4,12 +4,9 @@ Tasks:
 - new game+2
     - bosses missing:(40+)
 
-- game UX
-    - change timer
-        - should be bigger
-        - should work with vertical setup
 - player UX
     - dead player
+        - write dead in red
 - game over UX
     - hold button to continue
     - hold button to restart
@@ -35,6 +32,7 @@ Tasks:
     - what could be reason?
 - vertical layout
     - gate/stairs outside of view
+    - overlapping stuff
 
 Next ideas:
 - improve UX
