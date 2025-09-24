@@ -5,11 +5,12 @@ Tasks:
     - bosses missing:(40+)
 
 - shop UX
+    - bug: combine can not jump over pieceIndex1 when selecting pieceIndex2?
     - visualizations
-        - pay button with price
-        - display selected tool above price
         - add 
             - display x/3
+            - can step from 3 to 1 with right and other way around
+            - add "/" to font
         - remove
             - display x/y
         - cut

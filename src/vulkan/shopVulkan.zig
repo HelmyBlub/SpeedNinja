@@ -18,7 +18,7 @@ pub fn setupVertices(state: *main.GameState) !void {
     const textColor: [3]f32 = .{ 1, 1, 1 };
     if (state.gamePhase == .shopping) {
         const player = &state.players.items[0];
-        paintGrid(player, state);
+        try paintGrid(player, state);
         const player0ShopPos = player.shop.pieceShopTopLeft;
         for (shopZig.SHOP_BUTTONS) |shopButton| {
             if (shopButton.isVisible != null and !shopButton.isVisible.?(player)) continue;
@@ -108,7 +108,7 @@ pub fn setupVertices(state: *main.GameState) !void {
     }
 }
 
-fn paintGrid(player: *playerZig.Player, state: *main.GameState) void {
+fn paintGrid(player: *playerZig.Player, state: *main.GameState) !void {
     const verticeData = &state.vkState.verticeData;
 
     const player0ShopPos = player.shop.pieceShopTopLeft;
@@ -144,6 +144,34 @@ fn paintGrid(player: *playerZig.Player, state: *main.GameState) void {
     }
 
     paintMovePieceInGrid(player, gridGameTopLeft, state);
+    const pieceSelectionOffset: main.Position = .{
+        .x = gridGameTopLeft.x - main.TILESIZE - main.TILESIZE / 2,
+        .y = gridGameTopLeft.y - main.TILESIZE - main.TILESIZE / 4,
+    };
+    switch (player.shop.selectedOption) {
+        .add => |data| {
+            try verticesForMovePieceCount(data.selectedIndex + 1, player.shop.piecesToBuy.len, pieceSelectionOffset, state);
+        },
+        .cut => |data| {
+            try verticesForMovePieceCount(data.selectedIndex + 1, player.totalMovePieces.items.len, pieceSelectionOffset, state);
+        },
+        .delete => |data| {
+            try verticesForMovePieceCount(data.selectedIndex + 1, player.totalMovePieces.items.len, pieceSelectionOffset, state);
+        },
+        .combine => |data| {
+            try verticesForMovePieceCount(data.pieceIndex1 + 1, player.totalMovePieces.items.len, .{
+                .x = pieceSelectionOffset.x,
+                .y = pieceSelectionOffset.y - main.TILESIZE / 4,
+            }, state);
+            if (data.pieceIndex2) |pieceIndex2| {
+                try verticesForMovePieceCount(pieceIndex2 + 1, player.totalMovePieces.items.len, .{
+                    .x = pieceSelectionOffset.x,
+                    .y = pieceSelectionOffset.y + main.TILESIZE / 4,
+                }, state);
+            }
+        },
+        .none => {},
+    }
     if (player.shop.selectedOption == .cut) {
         const cut = player.shop.selectedOption.cut;
         if (cut.gridCutOffset) |gridCutOffset| {
@@ -154,6 +182,20 @@ fn paintGrid(player: *playerZig.Player, state: *main.GameState) void {
             paintVulkanZig.verticesForComplexSpriteDefault(gamePositionCut, imageZig.IMAGE_CUT, state);
         }
     }
+}
+
+fn verticesForMovePieceCount(current: anytype, max: anytype, position: main.Position, state: *main.GameState) !void {
+    const fontSize: f32 = @as(f32, @floatFromInt(main.TILESIZE)) / 2.2;
+    const textColor: [3]f32 = .{ 1, 1, 1 };
+    var textWidth = try fontVulkanZig.paintNumberGameMap(current, position, fontSize, textColor, &state.vkState.verticeData.font, state);
+    textWidth += fontVulkanZig.paintTextGameMap(":", .{
+        .x = position.x + textWidth,
+        .y = position.y,
+    }, fontSize, textColor, &state.vkState.verticeData.font, state);
+    _ = try fontVulkanZig.paintNumberGameMap(max, .{
+        .x = position.x + textWidth,
+        .y = position.y,
+    }, fontSize, textColor, &state.vkState.verticeData.font, state);
 }
 
 fn paintMovePieceInGrid(player: *playerZig.Player, gridGameTopLeft: main.Position, state: *main.GameState) void {

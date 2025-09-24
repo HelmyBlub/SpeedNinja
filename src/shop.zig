@@ -88,25 +88,25 @@ pub const SHOP_BUTTONS = [_]PlayerShopButton{
     .{
         .execute = executeAddPiece,
         .imageIndex = imageZig.IMAGE_PLUS,
-        .tileOffset = .{ .x = 1, .y = 0 },
+        .tileOffset = .{ .x = 3, .y = 0 },
         .option = .add,
     },
     .{
         .execute = executeDeletePiece,
         .imageIndex = imageZig.IMAGE_WARNING_TILE,
-        .tileOffset = .{ .x = 2, .y = 0 },
+        .tileOffset = .{ .x = 4, .y = 0 },
         .option = .delete,
     },
     .{
         .execute = executeCutPiece,
         .imageIndex = imageZig.IMAGE_CUT,
-        .tileOffset = .{ .x = 3, .y = 0 },
+        .tileOffset = .{ .x = 5, .y = 0 },
         .option = .cut,
     },
     .{
         .execute = executeCombinePiece,
         .imageIndex = imageZig.IMAGE_COMBINE,
-        .tileOffset = .{ .x = 4, .y = 0 },
+        .tileOffset = .{ .x = 6, .y = 0 },
         .option = .combine,
     },
     .{
