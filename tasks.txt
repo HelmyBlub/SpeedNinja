@@ -5,8 +5,6 @@ Tasks:
     - bosses missing:(40+)
 
 - game UX
-    - level, round, new game plus top left
-        - check position when scaling window
     - change timer
         - should be bigger
         - should work with vertical setup

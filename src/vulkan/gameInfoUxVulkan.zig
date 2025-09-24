@@ -6,6 +6,7 @@ const windowSdlZig = @import("../windowSdl.zig");
 const bossZig = @import("../boss/boss.zig");
 const inputZig = @import("../input.zig");
 const playerZig = @import("../player.zig");
+const imageZig = @import("../image.zig");
 
 pub fn setupVertices(state: *main.GameState) !void {
     const fontSize = 30;
@@ -27,18 +28,8 @@ pub fn setupVertices(state: *main.GameState) !void {
             try setupVerticesBossHpBar(boss, top, currentLeft, height, width, state);
             currentLeft += width + spacingX;
         }
-        if (state.newGamePlus >= 2 and state.level != main.LEVEL_COUNT) {
-            const textWidthTime = fontVulkanZig.paintText("Time: ", .{ .x = 0, .y = -0.9 }, fontSize, textColor, fontVertices);
-            const remainingTime: i64 = @max(0, @divFloor(state.suddenDeathTimeMs - state.gameTime, 1000));
-            _ = try fontVulkanZig.paintNumber(remainingTime, .{ .x = textWidthTime, .y = -0.9 }, fontSize, textColor, fontVertices);
-        }
     }
-    if (state.round > 1 and state.gamePhase == .combat) {
-        const textWidthTime = fontVulkanZig.paintText("Time: ", .{ .x = 0, .y = -0.9 }, fontSize, textColor, fontVertices);
-        const remainingTime: i64 = @max(0, @divFloor(state.suddenDeathTimeMs - state.gameTime, 1000));
-        _ = try fontVulkanZig.paintNumber(remainingTime, .{ .x = textWidthTime, .y = -0.9 }, fontSize, textColor, fontVertices);
-    }
-
+    try verticesForTimer(state);
     try verticesForLevelRoundNewGamePlus(state);
 
     if (state.gameOver) {
@@ -53,6 +44,38 @@ pub fn setupVertices(state: *main.GameState) !void {
     }
     try verticesForLeaveJoinInfo(state);
     verticsForTutorial(state);
+}
+
+fn verticesForTimer(state: *main.GameState) !void {
+    const verticeData = &state.vkState.verticeData;
+    const fontVertices = &verticeData.font;
+    const textColor: [3]f32 = .{ 1, 1, 1 };
+    const fontSize = 50;
+    const isBossTimer = state.gamePhase == .boss and state.newGamePlus >= 2 and state.level != main.LEVEL_COUNT;
+    if (state.round > 1 and state.gamePhase == .combat or isBossTimer) {
+        const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+        const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+        var timePos: main.Position = .{
+            .x = 0,
+            .y = -0.99,
+        };
+        if (isBossTimer) {
+            timePos.y += 36 * onePixelYInVulkan;
+        }
+        paintVulkanZig.verticesForComplexSpriteVulkan(
+            .{ .x = timePos.x - fontSize / 2 * onePixelXInVulkan, .y = timePos.y + fontSize / 2 * onePixelYInVulkan },
+            imageZig.IMAGE_CLOCK,
+            fontSize,
+            fontSize,
+            1,
+            0,
+            false,
+            false,
+            state,
+        );
+        const remainingTime: i64 = @max(0, @divFloor(state.suddenDeathTimeMs - state.gameTime, 1000));
+        _ = try fontVulkanZig.paintNumber(remainingTime, .{ .x = timePos.x, .y = timePos.y }, fontSize, textColor, fontVertices);
+    }
 }
 
 fn verticesForLevelRoundNewGamePlus(state: *main.GameState) !void {
