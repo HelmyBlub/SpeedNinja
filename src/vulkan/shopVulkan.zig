@@ -29,6 +29,7 @@ pub fn setupVertices(state: *main.GameState) !void {
             if (shopButton.option != .none and shopButton.option == player.shop.selectedOption) {
                 rectangleForTile(shopButtonGamePosition, .{ 0, 0, 1 }, verticeData, false, state);
             }
+            if (shopButton.moreVerticeSetups) |moreVertices| try moreVertices(player, shopButton, state);
             if (shopButton.imageRotate != 0) {
                 paintVulkanZig.verticesForComplexSpriteWithRotate(shopButtonGamePosition, shopButton.imageIndex, shopButton.imageRotate, 1, state);
             } else {
@@ -245,5 +246,36 @@ fn rectangleForTile(gamePosition: main.Position, fillColor: [3]f32, verticeData:
         lines.vertices[lines.verticeCount + 6] = .{ .pos = .{ left, top + height }, .color = borderColor };
         lines.vertices[lines.verticeCount + 7] = .{ .pos = .{ left + width, top + height }, .color = borderColor };
         lines.verticeCount += 8;
+    }
+}
+
+pub fn payMoreVerticeSetups(player: *playerZig.Player, shopButton: shopZig.PlayerShopButton, state: *main.GameState) anyerror!void {
+    const shopPos = player.shop.pieceShopTopLeft;
+    const shopButtonGamePosition: main.Position = .{
+        .x = @floatFromInt((shopPos.x + shopButton.tileOffset.x) * main.TILESIZE),
+        .y = @floatFromInt((shopPos.y + shopButton.tileOffset.y) * main.TILESIZE),
+    };
+    const pricePosition: main.Position = .{
+        .x = shopButtonGamePosition.x - main.TILESIZE / 2,
+        .y = shopButtonGamePosition.y,
+    };
+    const fontSize: f32 = @as(f32, @floatFromInt(main.TILESIZE)) / 2.2;
+    const textColor: [3]f32 = .{ 1, 1, 1 };
+    const width = fontVulkanZig.paintTextGameMap("$", pricePosition, fontSize, textColor, &state.vkState.verticeData.font, state);
+    _ = try fontVulkanZig.paintNumberGameMap(state.level, .{
+        .x = pricePosition.x + width,
+        .y = pricePosition.y,
+    }, fontSize, textColor, &state.vkState.verticeData.font, state);
+    if (player.shop.selectedOption != .none) {
+        for (shopZig.SHOP_BUTTONS) |otherShopButton| {
+            if (otherShopButton.option == player.shop.selectedOption) {
+                const toolDisplayPosition: main.Position = .{
+                    .x = shopButtonGamePosition.x,
+                    .y = shopButtonGamePosition.y - main.TILESIZE / 4,
+                };
+                paintVulkanZig.verticesForComplexSprite(toolDisplayPosition, otherShopButton.imageIndex, 0.5, 0.5, 1, 0, false, false, state);
+                break;
+            }
+        }
     }
 }

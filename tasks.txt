@@ -4,11 +4,33 @@ Tasks:
 - new game+2
     - bosses missing:(40+)
 
-- game over UX
-    - hold button to continue
-    - hold button to restart
-    - hold button to quit
 - shop UX
+    - visualizations
+        - pay button with price
+        - display selected tool above price
+        - add 
+            - display x/3
+        - remove
+            - display x/y
+        - cut
+            - display x/y
+        - combine
+            - display x/y for initial piece
+            - display x/y for second piece
+            - display rotation icon when choosing rotation
+            - gray out pay button when not on pay step
+            - visualize step button 
+    - sound for shop actions
+        - choose tool
+        - pay
+        - change piece
+    - next level:
+        - stairs image
+            - increase to 2x2?
+    - buy options
+        - some "podest" where item is on
+        - some rectangle around information
+            - so easier to realize it belongs together
 
 - multiplayer
     - on entering shop

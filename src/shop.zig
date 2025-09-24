@@ -7,6 +7,7 @@ const mapTileZig = @import("mapTile.zig");
 const equipmentZig = @import("equipment.zig");
 const statsZig = @import("stats.zig");
 const playerZig = @import("player.zig");
+const shopVulkanZig = @import("vulkan/shopVulkan.zig");
 
 const ShopOption = enum {
     none,
@@ -50,6 +51,7 @@ pub const PlayerShopButton = struct {
     option: ShopOption = .none,
     execute: *const fn (player: *playerZig.Player, state: *main.GameState) anyerror!void,
     isVisible: ?*const fn (player: *playerZig.Player) bool = null,
+    moreVerticeSetups: ?*const fn (player: *playerZig.Player, shopButton: PlayerShopButton, state: *main.GameState) anyerror!void = null,
 };
 
 pub const GRID_SIZE = 8;
@@ -122,6 +124,7 @@ pub const SHOP_BUTTONS = [_]PlayerShopButton{
         .execute = executePay,
         .imageIndex = imageZig.IMAGE_BORDER_TILE,
         .tileOffset = .{ .x = 0, .y = 5 },
+        .moreVerticeSetups = shopVulkanZig.payMoreVerticeSetups,
     },
     .{
         .execute = executeNextStep,
@@ -343,7 +346,7 @@ pub fn executeNextStep(player: *playerZig.Player, state: *main.GameState) !void 
 pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
     switch (player.shop.selectedOption) {
         .delete => |*data| {
-            const cost = state.level * 1;
+            const cost = state.level;
             if (player.money >= cost and player.totalMovePieces.items.len > 1) {
                 try movePieceZig.removeMovePiece(player, data.selectedIndex, state.allocator);
                 playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
@@ -363,7 +366,7 @@ pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
             }
         },
         .add => |*data| {
-            const cost = state.level * 1;
+            const cost = state.level;
             if (player.money >= cost) {
                 if (player.shop.piecesToBuy[data.selectedIndex]) |buyPiece| {
                     playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
@@ -397,7 +400,7 @@ pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
             }
         },
         .cut => |*data| {
-            const cost = state.level * 1;
+            const cost = state.level;
             if (player.money >= cost and data.isOnMovePiece and data.gridCutOffset != null and player.shop.gridDisplayPiece != null) {
                 playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
                 try movePieceZig.cutTilePositionOnMovePiece(player, data.gridCutOffset.?, player.shop.gridDisplayPieceOffset, data.selectedIndex, state);
@@ -406,7 +409,7 @@ pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
             }
         },
         .combine => |*data| {
-            const cost = state.level * 1;
+            const cost = state.level;
             if (player.money >= cost and data.pieceIndex2 != null and data.combineStep == .selectDirection) {
                 playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
                 player.uxData.visualizeMovePieceChangeFromShop = -1;
