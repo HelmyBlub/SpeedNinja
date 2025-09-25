@@ -80,14 +80,10 @@ pub const ShopBuyOption = struct {
 pub const ShopData = struct {
     buyOptions: std.ArrayList(ShopBuyOption),
     equipOptionsLastLevelInShop: [equipmentZig.EQUIPMENT_SHOP_OPTIONS.len]u32 = undefined,
+    exitShopArea: main.TileRectangle = .{ .pos = .{ .x = GRID_SIZE - 1, .y = -4 }, .height = 2, .width = 2 },
 };
 
 pub const SHOP_BUTTONS = [_]PlayerShopButton{
-    .{
-        .execute = executeShopPhaseEnd,
-        .imageIndex = 0,
-        .tileOffset = .{ .x = GRID_SIZE + 3, .y = 0 },
-    },
     .{
         .execute = executeAddPiece,
         .imageIndex = imageZig.IMAGE_PLUS,
@@ -175,6 +171,9 @@ pub fn executeShopActionForPlayer(player: *playerZig.Player, state: *main.GameSt
             }
             return;
         }
+    }
+    if (main.isTilePositionInTileRectangle(playerTile, state.shop.exitShopArea)) {
+        try main.endShoppingPhase(state);
     }
 }
 
@@ -621,11 +620,6 @@ pub fn executeAddPiece(player: *playerZig.Player, state: *main.GameState) !void 
     player.shop.selectedOption = .{ .add = .{} };
     try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION[0..], 0, 0.5);
     setGridDisplayPiece(player, player.shop.piecesToBuy[0].?);
-}
-
-pub fn executeShopPhaseEnd(player: *playerZig.Player, state: *main.GameState) !void {
-    _ = player;
-    try main.endShoppingPhase(state);
 }
 
 fn isNextStepButtonVisible(player: *playerZig.Player) bool {

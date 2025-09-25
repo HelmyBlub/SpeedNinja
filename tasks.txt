@@ -4,22 +4,17 @@ Tasks:
 - new game+2
     - bosses missing:(40+)
 
+- crash
+    - what i did: 
+        - started game
+        - pressed f2 for money
+        - pressed f3 for entering shop
+        - game crahsed
+    -D:\mein\github_gamedev\SpeedNinja\src\soundMixer.zig:161:86: 0x7ff70c2fbd70 in cleanUpFinishedSounds (speedNinja.exe.obj)
+    if (soundMixer.soundsToPlay.items[i].dataIndex >= soundMixer.soundData.sounds[soundMixer.soundsToPlay.items[i].soundIndex].len) {                                                                                     ^
+    D:\mein\github_gamedev\SpeedNinja\src\soundMixer.zig:198:26: 0x7ff70c295465 in audioCallback (speedNinja.exe.obj)
+        cleanUpFinishedSounds(soundMixer);
 - shop UX
-    - crash
-        - what i did: 
-            - started game
-            - pressed f2 for money
-            - pressed f3 for entering shop
-            - game crahsed
-        -D:\mein\github_gamedev\SpeedNinja\src\soundMixer.zig:161:86: 0x7ff70c2fbd70 in cleanUpFinishedSounds (speedNinja.exe.obj)
-        if (soundMixer.soundsToPlay.items[i].dataIndex >= soundMixer.soundData.sounds[soundMixer.soundsToPlay.items[i].soundIndex].len) {                                                                                     ^
-        D:\mein\github_gamedev\SpeedNinja\src\soundMixer.zig:198:26: 0x7ff70c295465 in audioCallback (speedNinja.exe.obj)
-            cleanUpFinishedSounds(soundMixer);
-    - sound for shop actions
-        - choose tool
-        - pay
-        - change piece
-        - pressing button when disabled
     - next level:
         - stairs image
             - increase to 2x2?
@@ -33,6 +28,9 @@ Tasks:
         - every player needs to enter
         - revive dead players
         - check move piece reset in shop for other player
+    - combine:
+        - when piece to big scale down
+            - was bad code, need rework for multiplayer
     - bosses not targeting dead players
         - bug: dragon boss can target dead players
 - some settings info area
