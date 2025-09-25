@@ -8,6 +8,7 @@ const equipmentZig = @import("equipment.zig");
 const statsZig = @import("stats.zig");
 const playerZig = @import("player.zig");
 const shopVulkanZig = @import("vulkan/shopVulkan.zig");
+const soundMixerZig = @import("soundMixer.zig");
 
 const ShopOption = enum {
     none,
@@ -162,7 +163,7 @@ pub fn executeShopActionForPlayer(player: *playerZig.Player, state: *main.GameSt
             if (player.money >= buyOption.price) {
                 const optOldEquip = equipmentZig.getEquipSlot(buyOption.equipment.slotTypeData, player);
                 if (equipmentZig.equip(buyOption.equipment, true, player)) {
-                    playerZig.changePlayerMoneyBy(-@as(i32, @intCast(buyOption.price)), player, true);
+                    try playerZig.changePlayerMoneyBy(-@as(i32, @intCast(buyOption.price)), player, true, state);
                     if (optOldEquip) |old| {
                         buyOption.price = 0;
                         buyOption.equipment = old;
@@ -323,7 +324,6 @@ pub fn executeGridTile(player: *playerZig.Player, state: *main.GameState) !void 
 }
 
 pub fn executeNextStep(player: *playerZig.Player, state: *main.GameState) !void {
-    _ = state;
     switch (player.shop.selectedOption) {
         .combine => |*data| {
             switch (data.combineStep) {
@@ -347,6 +347,7 @@ pub fn executeNextStep(player: *playerZig.Player, state: *main.GameState) !void 
                     data.pieceIndex2 = null;
                 },
             }
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION[0..], 0, 0.5);
         },
         else => {},
     }
@@ -358,7 +359,7 @@ pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
             const cost = state.level;
             if (player.money >= cost and player.totalMovePieces.items.len > 1) {
                 try movePieceZig.removeMovePiece(player, data.selectedIndex, state.allocator);
-                playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
+                try playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true, state);
                 if (player.uxData.visualizeMovePieceChangeFromShop == null) {
                     player.uxData.visualizeMovePieceChangeFromShop = -1;
                 } else {
@@ -369,6 +370,8 @@ pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
                     data.selectedIndex -= 1;
                 }
                 setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
+            } else {
+                try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION_FAIL, 0, 0.5);
             }
             if (player.moveOptions.items.len == 0) {
                 try movePieceZig.resetPieces(player, false, state);
@@ -378,7 +381,7 @@ pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
             const cost = state.level;
             if (player.money >= cost) {
                 if (player.shop.piecesToBuy[data.selectedIndex]) |buyPiece| {
-                    playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
+                    try playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true, state);
                     if (player.uxData.visualizeMovePieceChangeFromShop == null) {
                         player.uxData.visualizeMovePieceChangeFromShop = 1;
                     } else {
@@ -406,21 +409,25 @@ pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
                     }
                     setGridDisplayPiece(player, player.shop.piecesToBuy[data.selectedIndex]);
                 }
+            } else {
+                try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION_FAIL, 0, 0.5);
             }
         },
         .cut => |*data| {
             const cost = state.level;
             if (player.money >= cost and data.isOnMovePiece and data.gridCutOffset != null and player.shop.gridDisplayPiece != null) {
-                playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
+                try playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true, state);
                 try movePieceZig.cutTilePositionOnMovePiece(player, data.gridCutOffset.?, player.shop.gridDisplayPieceOffset, data.selectedIndex, state);
                 data.gridCutOffset = null;
                 setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
+            } else {
+                try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION_FAIL, 0, 0.5);
             }
         },
         .combine => |*data| {
             const cost = state.level;
             if (player.money >= cost and data.pieceIndex2 != null and (data.combineStep == .selectDirection or data.combineStep == .reset)) {
-                playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
+                try playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true, state);
                 player.uxData.visualizeMovePieceChangeFromShop = -1;
                 try movePieceZig.combineMovePieces(player, data.pieceIndex1, data.pieceIndex2.?, data.direction, state);
                 if (data.pieceIndex1 > data.pieceIndex2.?) {
@@ -432,25 +439,31 @@ pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
                 if (player.moveOptions.items.len == 0) {
                     try movePieceZig.resetPieces(player, false, state);
                 }
+            } else {
+                try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION_FAIL, 0, 0.5);
             }
         },
-        else => {},
+        else => {
+            try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION_FAIL, 0, 0.5);
+        },
     }
 }
 
 pub fn executeArrowRight(player: *playerZig.Player, state: *main.GameState) !void {
-    _ = state;
     switch (player.shop.selectedOption) {
         .delete => |*data| {
             data.selectedIndex = @mod(data.selectedIndex + 1, player.totalMovePieces.items.len);
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION[0..], 0, 0.5);
             setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
         },
         .add => |*data| {
             data.selectedIndex = @mod(data.selectedIndex + 1, player.shop.piecesToBuy.len);
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION[0..], 0, 0.5);
             setGridDisplayPiece(player, player.shop.piecesToBuy[data.selectedIndex]);
         },
         .cut => |*data| {
             data.selectedIndex = @mod(data.selectedIndex + 1, player.totalMovePieces.items.len);
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION[0..], 0, 0.5);
             setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
             data.gridCutOffset = null;
             data.isOnMovePiece = false;
@@ -459,6 +472,7 @@ pub fn executeArrowRight(player: *playerZig.Player, state: *main.GameState) !voi
             switch (data.combineStep) {
                 .selectPiece1 => {
                     data.pieceIndex1 = @mod(data.pieceIndex1 + 1, player.totalMovePieces.items.len);
+                    try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION[0..], 0, 0.5);
                     setGridDisplayPiece(player, player.totalMovePieces.items[data.pieceIndex1]);
                 },
                 .selectPiece2 => {
@@ -466,6 +480,7 @@ pub fn executeArrowRight(player: *playerZig.Player, state: *main.GameState) !voi
                     if (data.pieceIndex2.? == data.pieceIndex1) {
                         data.pieceIndex2 = @mod(data.pieceIndex2.? + 1, player.totalMovePieces.items.len);
                     }
+                    try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION[0..], 0, 0.5);
                 },
                 .selectDirection => {
                     data.direction = @mod(data.direction + 1, 4);
@@ -473,16 +488,20 @@ pub fn executeArrowRight(player: *playerZig.Player, state: *main.GameState) !voi
                     if (@mod(data.direction + 1, 4) == steps[steps.len - 1].direction) {
                         data.direction = @mod(data.direction + 1, 4);
                     }
+                    try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION[0..], 0, 0.5);
                 },
-                .reset => {},
+                .reset => {
+                    try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION_FAIL, 0, 0.5);
+                },
             }
         },
-        else => {},
+        else => {
+            try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION_FAIL, 0, 0.5);
+        },
     }
 }
 
 pub fn executeArrowLeft(player: *playerZig.Player, state: *main.GameState) !void {
-    _ = state;
     switch (player.shop.selectedOption) {
         .delete => |*data| {
             if (data.selectedIndex == 0) {
@@ -490,6 +509,7 @@ pub fn executeArrowLeft(player: *playerZig.Player, state: *main.GameState) !void
             } else {
                 data.selectedIndex -= 1;
             }
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION[0..], 0, 0.5);
             setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
         },
         .add => |*data| {
@@ -498,6 +518,7 @@ pub fn executeArrowLeft(player: *playerZig.Player, state: *main.GameState) !void
             } else {
                 data.selectedIndex -= 1;
             }
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION[0..], 0, 0.5);
             setGridDisplayPiece(player, player.shop.piecesToBuy[data.selectedIndex]);
         },
         .cut => |*data| {
@@ -506,6 +527,7 @@ pub fn executeArrowLeft(player: *playerZig.Player, state: *main.GameState) !void
             } else {
                 data.selectedIndex -= 1;
             }
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION[0..], 0, 0.5);
             setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
             data.gridCutOffset = null;
             data.isOnMovePiece = false;
@@ -518,6 +540,7 @@ pub fn executeArrowLeft(player: *playerZig.Player, state: *main.GameState) !void
                     } else {
                         data.pieceIndex1 -= 1;
                     }
+                    try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION[0..], 0, 0.5);
                     setGridDisplayPiece(player, player.totalMovePieces.items[data.pieceIndex1]);
                 },
                 .selectPiece2 => {
@@ -533,6 +556,7 @@ pub fn executeArrowLeft(player: *playerZig.Player, state: *main.GameState) !void
                             data.pieceIndex2.? -= 1;
                         }
                     }
+                    try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION[0..], 0, 0.5);
                 },
                 .selectDirection => {
                     data.direction = @mod(data.direction + 3, 4);
@@ -540,16 +564,20 @@ pub fn executeArrowLeft(player: *playerZig.Player, state: *main.GameState) !void
                     if (@mod(data.direction + 1, 4) == steps[steps.len - 1].direction) {
                         data.direction = @mod(data.direction + 3, 4);
                     }
+                    try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION[0..], 0, 0.5);
                 },
-                .reset => {},
+                .reset => {
+                    try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION_FAIL, 0, 0.5);
+                },
             }
         },
-        else => {},
+        else => {
+            try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION_FAIL, 0, 0.5);
+        },
     }
 }
 
 pub fn executeDeletePiece(player: *playerZig.Player, state: *main.GameState) !void {
-    _ = state;
     var initialSelectedIndex: usize = 0;
     switch (player.shop.selectedOption) {
         .cut => |data| initialSelectedIndex = data.selectedIndex,
@@ -557,12 +585,12 @@ pub fn executeDeletePiece(player: *playerZig.Player, state: *main.GameState) !vo
         .delete => return,
         else => {},
     }
+    try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION[0..], 0, 0.5);
     player.shop.selectedOption = .{ .delete = .{ .selectedIndex = initialSelectedIndex } };
     setGridDisplayPiece(player, player.totalMovePieces.items[initialSelectedIndex]);
 }
 
 pub fn executeCutPiece(player: *playerZig.Player, state: *main.GameState) !void {
-    _ = state;
     var initialSelectedIndex: usize = 0;
     switch (player.shop.selectedOption) {
         .delete => |data| initialSelectedIndex = data.selectedIndex,
@@ -570,12 +598,12 @@ pub fn executeCutPiece(player: *playerZig.Player, state: *main.GameState) !void 
         .cut => return,
         else => {},
     }
+    try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION[0..], 0, 0.5);
     player.shop.selectedOption = .{ .cut = .{ .selectedIndex = initialSelectedIndex } };
     setGridDisplayPiece(player, player.totalMovePieces.items[initialSelectedIndex]);
 }
 
 pub fn executeCombinePiece(player: *playerZig.Player, state: *main.GameState) !void {
-    _ = state;
     var initialIndex: usize = 0;
     switch (player.shop.selectedOption) {
         .delete => |data| initialIndex = data.selectedIndex,
@@ -583,14 +611,15 @@ pub fn executeCombinePiece(player: *playerZig.Player, state: *main.GameState) !v
         .combine => return,
         else => {},
     }
-
+    try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION[0..], 0, 0.5);
     player.shop.selectedOption = .{ .combine = .{ .pieceIndex1 = initialIndex } };
     setGridDisplayPiece(player, player.totalMovePieces.items[initialIndex]);
 }
 
 pub fn executeAddPiece(player: *playerZig.Player, state: *main.GameState) !void {
-    _ = state;
+    if (player.shop.selectedOption == .add) return;
     player.shop.selectedOption = .{ .add = .{} };
+    try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION[0..], 0, 0.5);
     setGridDisplayPiece(player, player.shop.piecesToBuy[0].?);
 }
 

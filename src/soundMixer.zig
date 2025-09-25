@@ -102,6 +102,11 @@ var SOUND_FILE_PATHES = [_][]const u8{
     "sounds/gateOpen.mp3",
     "sounds/roundCleared.mp3",
     "sounds/bossDefeated.mp3",
+    "sounds/shopAction1.mp3",
+    "sounds/shopAction2.mp3",
+    "sounds/shopAction3.mp3",
+    "sounds/shopActionFail.mp3",
+    "sounds/payMoney.mp3",
 };
 
 pub const SOUND_NINJA_MOVE_INDICIES = [_]usize{ 0, 1, 2 };
@@ -132,6 +137,9 @@ pub const SOUND_MOVE_PIECE_WARNING = 62;
 pub const SOUND_GATE_OPEN = 63;
 pub const SOUND_ROUND_CLEARED = 64;
 pub const SOUND_BOSS_DEFEATED = 65;
+pub const SOUND_SHOP_ACTION = [_]usize{ 66, 67, 68 };
+pub const SOUND_SHOP_ACTION_FAIL = 69;
+pub const SOUND_PAY_MONEY = 70;
 
 pub fn createSoundMixer(state: *main.GameState, allocator: std.mem.Allocator) !void {
     state.soundMixer = .{

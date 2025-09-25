@@ -184,7 +184,7 @@ fn mainLoop(state: *GameState) !void {
                 state.lastBossDefeatedTime = state.gameTime;
                 for (state.players.items) |*player| {
                     const amount = @as(i32, @intFromFloat(@as(f32, @floatFromInt(state.level)) * 10.0 * (1.0 + player.moneyBonusPerCent)));
-                    playerZig.changePlayerMoneyBy(amount, player, true);
+                    try playerZig.changePlayerMoneyBy(amount, player, true, state);
                 }
                 try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BOSS_DEFEATED, 0, 0.6);
                 if (state.playerTookDamageOnLevel == false) {
@@ -361,7 +361,7 @@ pub fn startNextRound(state: *GameState) !void {
         try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_ROUND_CLEARED, 0, 1);
         for (state.players.items) |*player| {
             const amount = @as(i32, @intFromFloat(@ceil(@as(f32, @floatFromInt(state.level)) * (1.0 + player.moneyBonusPerCent))));
-            playerZig.changePlayerMoneyBy(amount, player, true);
+            try playerZig.changePlayerMoneyBy(amount, player, true, state);
         }
     }
     try enemyZig.setupEnemies(state);
@@ -578,13 +578,13 @@ fn executeContinue(state: *GameState) !void {
         const averagePlayerCosts = @divFloor(openMoney, state.players.items.len);
         for (state.players.items) |*player| {
             const pay = @min(averagePlayerCosts, player.money);
-            playerZig.changePlayerMoneyBy(-@as(i32, @intCast(pay)), player, true);
+            try playerZig.changePlayerMoneyBy(-@as(i32, @intCast(pay)), player, true, state);
             openMoney -|= pay;
         }
         if (openMoney > 0) {
             for (state.players.items) |*player| {
                 const pay = @min(openMoney, player.money);
-                playerZig.changePlayerMoneyBy(-@as(i32, @intCast(pay)), player, true);
+                try playerZig.changePlayerMoneyBy(-@as(i32, @intCast(pay)), player, true, state);
                 openMoney -|= pay;
                 if (openMoney == 0) break;
             }

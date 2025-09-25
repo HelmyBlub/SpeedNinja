@@ -15,12 +15,11 @@ Tasks:
         if (soundMixer.soundsToPlay.items[i].dataIndex >= soundMixer.soundData.sounds[soundMixer.soundsToPlay.items[i].soundIndex].len) {                                                                                     ^
         D:\mein\github_gamedev\SpeedNinja\src\soundMixer.zig:198:26: 0x7ff70c295465 in audioCallback (speedNinja.exe.obj)
             cleanUpFinishedSounds(soundMixer);
-    - visualizations
-        - remember piece index when switching tools
     - sound for shop actions
         - choose tool
         - pay
         - change piece
+        - pressing button when disabled
     - next level:
         - stairs image
             - increase to 2x2?

@@ -163,7 +163,7 @@ pub fn findClosestPlayer(position: main.Position, state: *main.GameState) *Playe
     return closestPlayer.?;
 }
 
-pub fn changePlayerMoneyBy(amount: i32, player: *Player, visualize: bool) void {
+pub fn changePlayerMoneyBy(amount: i32, player: *Player, visualize: bool, state: *main.GameState) !void {
     player.money = @intCast(@as(i32, @intCast(player.money)) + amount);
     if (visualize and amount != 0) {
         if (player.uxData.visualizeMoney != null) {
@@ -172,6 +172,9 @@ pub fn changePlayerMoneyBy(amount: i32, player: *Player, visualize: bool) void {
             player.uxData.visualizeMoney = amount;
         }
         player.uxData.visualizeMoneyUntil = null;
+    }
+    if (amount < 0) {
+        try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_PAY_MONEY, 0, 1);
     }
 }
 
