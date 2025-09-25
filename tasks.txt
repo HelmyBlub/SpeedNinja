@@ -17,12 +17,6 @@ Tasks:
             cleanUpFinishedSounds(soundMixer);
     - visualizations
         - remember piece index when switching tools
-        - combine
-            - display x/y for initial piece
-            - display x/y for second piece
-            - display rotation icon when choosing rotation
-            - gray out pay button when not on pay step
-            - visualize step button 
     - sound for shop actions
         - choose tool
         - pay

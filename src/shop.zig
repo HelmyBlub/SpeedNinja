@@ -550,20 +550,42 @@ pub fn executeArrowLeft(player: *playerZig.Player, state: *main.GameState) !void
 
 pub fn executeDeletePiece(player: *playerZig.Player, state: *main.GameState) !void {
     _ = state;
-    player.shop.selectedOption = .{ .delete = .{} };
-    setGridDisplayPiece(player, player.totalMovePieces.items[0]);
+    var initialSelectedIndex: usize = 0;
+    switch (player.shop.selectedOption) {
+        .cut => |data| initialSelectedIndex = data.selectedIndex,
+        .combine => |data| initialSelectedIndex = data.pieceIndex1,
+        .delete => return,
+        else => {},
+    }
+    player.shop.selectedOption = .{ .delete = .{ .selectedIndex = initialSelectedIndex } };
+    setGridDisplayPiece(player, player.totalMovePieces.items[initialSelectedIndex]);
 }
 
 pub fn executeCutPiece(player: *playerZig.Player, state: *main.GameState) !void {
     _ = state;
-    player.shop.selectedOption = .{ .cut = .{} };
-    setGridDisplayPiece(player, player.totalMovePieces.items[0]);
+    var initialSelectedIndex: usize = 0;
+    switch (player.shop.selectedOption) {
+        .delete => |data| initialSelectedIndex = data.selectedIndex,
+        .combine => |data| initialSelectedIndex = data.pieceIndex1,
+        .cut => return,
+        else => {},
+    }
+    player.shop.selectedOption = .{ .cut = .{ .selectedIndex = initialSelectedIndex } };
+    setGridDisplayPiece(player, player.totalMovePieces.items[initialSelectedIndex]);
 }
 
 pub fn executeCombinePiece(player: *playerZig.Player, state: *main.GameState) !void {
     _ = state;
-    player.shop.selectedOption = .{ .combine = .{} };
-    setGridDisplayPiece(player, player.totalMovePieces.items[0]);
+    var initialIndex: usize = 0;
+    switch (player.shop.selectedOption) {
+        .delete => |data| initialIndex = data.selectedIndex,
+        .cut => |data| initialIndex = data.selectedIndex,
+        .combine => return,
+        else => {},
+    }
+
+    player.shop.selectedOption = .{ .combine = .{ .pieceIndex1 = initialIndex } };
+    setGridDisplayPiece(player, player.totalMovePieces.items[initialIndex]);
 }
 
 pub fn executeAddPiece(player: *playerZig.Player, state: *main.GameState) !void {
