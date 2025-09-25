@@ -10,6 +10,7 @@ pub const SoundMixer = struct {
     addedSoundDataUntilTimeMs: i64 = 0,
     soundsToPlay: std.ArrayList(SoundToPlay),
     soundData: SoundData = undefined,
+    soundsToPlayMutex: std.Thread.Mutex = .{},
 };
 
 const SoundToPlay = struct {
@@ -179,6 +180,8 @@ fn audioCallback(userdata: ?*anyopaque, stream: ?*sdl.SDL_AudioStream, additiona
     const Sample = i16;
     const state: *main.GameState = @ptrCast(@alignCast(userdata.?));
     const soundMixer = &(state.soundMixer.?);
+    soundMixer.soundsToPlayMutex.lock();
+    defer soundMixer.soundsToPlayMutex.unlock();
     const sampleCount = @divExact(additional_amount, @sizeOf(Sample));
     var buffer = state.allocator.alloc(Sample, @intCast(sampleCount)) catch return;
     defer state.allocator.free(buffer);
@@ -207,25 +210,30 @@ fn audioCallback(userdata: ?*anyopaque, stream: ?*sdl.SDL_AudioStream, additiona
 }
 
 pub fn playRandomSound(optSoundMixer: *?SoundMixer, soundIndex: []const usize, offset: usize, volume: f32) !void {
-    const rand = std.crypto.random;
-    const randomIndex: usize = @as(usize, @intFromFloat(rand.float(f32) * @as(f32, @floatFromInt(soundIndex.len))));
     if (optSoundMixer.*) |*soundMixer| {
-        try soundMixer.soundsToPlay.append(.{
-            .soundIndex = soundIndex[randomIndex],
-            .dataIndex = offset,
-            .volume = volume,
-        });
+        const rand = std.crypto.random;
+        const randomIndex: usize = @as(usize, @intFromFloat(rand.float(f32) * @as(f32, @floatFromInt(soundIndex.len))));
+        try appendSound(soundMixer, soundIndex[randomIndex], offset, volume);
     }
 }
 
 pub fn playSound(optSoundMixer: *?SoundMixer, soundIndex: usize, offset: usize, volume: f32) !void {
     if (optSoundMixer.*) |*soundMixer| {
-        try soundMixer.soundsToPlay.append(.{
-            .soundIndex = soundIndex,
-            .dataIndex = offset,
-            .volume = volume,
-        });
+        try appendSound(soundMixer, soundIndex, offset, volume);
     }
+}
+
+fn appendSound(soundMixer: *SoundMixer, soundIndex: usize, offset: usize, volume: f32) !void {
+    if (soundMixer.soundsToPlay.capacity < soundMixer.soundsToPlay.items.len + 2) {
+        soundMixer.soundsToPlayMutex.lock();
+        try soundMixer.soundsToPlay.ensureUnusedCapacity(20);
+        soundMixer.soundsToPlayMutex.unlock();
+    }
+    try soundMixer.soundsToPlay.append(.{
+        .soundIndex = soundIndex,
+        .dataIndex = offset,
+        .volume = volume,
+    });
 }
 
 fn initSounds(state: *main.GameState, allocator: std.mem.Allocator) !SoundData {
