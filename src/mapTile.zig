@@ -28,7 +28,7 @@ pub const Cloud = struct {
 };
 
 pub const PaintData = struct {
-    backgroundColor: [3]f32 = main.COLOR_TILE_GREEN,
+    backgroundColor: [4]f32 = main.COLOR_TILE_GREEN,
     backClouds: [3]Cloud = .{ .{}, .{}, .{} },
     frontCloud: Cloud = .{},
 };
@@ -137,10 +137,10 @@ pub fn setupVertices(state: *main.GameState) void {
         };
         switch (tileType) {
             .ice => {
-                paintVulkanZig.verticesForRectangle(vulkan.x, vulkan.y, width, height, .{ 0, 0, 1 }, null, &state.vkState.verticeData.triangles);
+                paintVulkanZig.verticesForRectangle(vulkan.x, vulkan.y, width, height, .{ 0, 0, 1, 1 }, null, &state.vkState.verticeData.triangles);
             },
             .wall => {
-                paintVulkanZig.verticesForRectangle(vulkan.x, vulkan.y, width, height, .{ 0, 0, 0 }, null, &state.vkState.verticeData.triangles);
+                paintVulkanZig.verticesForRectangle(vulkan.x, vulkan.y, width, height, .{ 0, 0, 0, 1 }, null, &state.vkState.verticeData.triangles);
             },
             else => {
                 paintVulkanZig.verticesForRectangle(vulkan.x, vulkan.y, width, height, main.COLOR_TILE_GREEN, null, &state.vkState.verticeData.triangles);

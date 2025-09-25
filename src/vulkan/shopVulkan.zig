@@ -15,7 +15,7 @@ const playerZig = @import("../player.zig");
 
 pub fn setupVertices(state: *main.GameState) !void {
     const verticeData = &state.vkState.verticeData;
-    const textColor: [3]f32 = .{ 1, 1, 1 };
+    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     if (state.gamePhase == .shopping) {
         const player = &state.players.items[0];
         try paintGrid(player, state);
@@ -27,13 +27,15 @@ pub fn setupVertices(state: *main.GameState) !void {
                 .y = @floatFromInt((player0ShopPos.y + shopButton.tileOffset.y) * main.TILESIZE),
             };
             if (shopButton.option != .none and shopButton.option == player.shop.selectedOption) {
-                rectangleForTile(shopButtonGamePosition, .{ 0, 0, 1 }, verticeData, false, state);
+                rectangleForTile(shopButtonGamePosition, .{ 0, 0, 1, 1 }, verticeData, false, state);
             }
             if (shopButton.moreVerticeSetups) |moreVertices| try moreVertices(player, shopButton, state);
+            var alpha: f32 = 1;
+            if (shopButton.getAlpha != null) alpha = shopButton.getAlpha.?(player);
             if (shopButton.imageRotate != 0) {
-                paintVulkanZig.verticesForComplexSpriteWithRotate(shopButtonGamePosition, shopButton.imageIndex, shopButton.imageRotate, 1, state);
+                paintVulkanZig.verticesForComplexSpriteWithRotate(shopButtonGamePosition, shopButton.imageIndex, shopButton.imageRotate, alpha, state);
             } else {
-                paintVulkanZig.verticesForComplexSpriteDefault(shopButtonGamePosition, shopButton.imageIndex, state);
+                paintVulkanZig.verticesForComplexSprite(shopButtonGamePosition, shopButton.imageIndex, 1, 1, alpha, 0, false, false, state);
             }
         }
 
@@ -133,7 +135,7 @@ fn paintGrid(player: *playerZig.Player, state: *main.GameState) !void {
 
     const triangles = &verticeData.triangles;
     if (triangles.verticeCount + 6 < triangles.vertices.len) {
-        const fillColor: [3]f32 = .{ 1, 1, 1 };
+        const fillColor: [4]f32 = .{ 1, 1, 1, 1 };
         triangles.vertices[triangles.verticeCount] = .{ .pos = .{ left, top }, .color = fillColor };
         triangles.vertices[triangles.verticeCount + 1] = .{ .pos = .{ left + width, top + height }, .color = fillColor };
         triangles.vertices[triangles.verticeCount + 2] = .{ .pos = .{ left, top + height }, .color = fillColor };
@@ -186,9 +188,9 @@ fn paintGrid(player: *playerZig.Player, state: *main.GameState) !void {
 
 fn verticesForMovePieceCount(current: anytype, max: anytype, position: main.Position, state: *main.GameState) !void {
     const fontSize: f32 = @as(f32, @floatFromInt(main.TILESIZE)) / 2.2;
-    const textColor: [3]f32 = .{ 1, 1, 1 };
+    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     var textWidth = try fontVulkanZig.paintNumberGameMap(current, position, fontSize, textColor, &state.vkState.verticeData.font, state);
-    textWidth += fontVulkanZig.paintTextGameMap(":", .{
+    textWidth += fontVulkanZig.paintTextGameMap("/", .{
         .x = position.x + textWidth,
         .y = position.y,
     }, fontSize, textColor, &state.vkState.verticeData.font, state);
@@ -219,9 +221,10 @@ fn paintMovePieceInGrid(player: *playerZig.Player, gridGameTopLeft: main.Positio
     var left = vulkan.x - width / 2;
     var top = vulkan.y - height / 2;
 
+    const fillColor: [4]f32 = .{ 0.25, 0.25, 0.25, 1 };
     const endPos = playerUxVulkanZig.verticesForMovePiece(
         gridDisplayPiece,
-        .{ 0.25, 0.25, 0.25 },
+        fillColor,
         left,
         top,
         width,
@@ -239,7 +242,7 @@ fn paintMovePieceInGrid(player: *playerZig.Player, gridGameTopLeft: main.Positio
         const directionChange = player.shop.selectedOption.combine.direction;
         _ = playerUxVulkanZig.verticesForMovePiece(
             displayPiece2,
-            .{ 0.25, 0.25, 0.25 },
+            fillColor,
             left,
             top,
             width,
@@ -252,7 +255,7 @@ fn paintMovePieceInGrid(player: *playerZig.Player, gridGameTopLeft: main.Positio
     }
 }
 
-fn rectangleForTile(gamePosition: main.Position, fillColor: [3]f32, verticeData: *dataVulkanZig.VkVerticeData, withOutline: bool, state: *main.GameState) void {
+fn rectangleForTile(gamePosition: main.Position, fillColor: [4]f32, verticeData: *dataVulkanZig.VkVerticeData, withOutline: bool, state: *main.GameState) void {
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const size = main.TILESIZE;
@@ -276,7 +279,7 @@ fn rectangleForTile(gamePosition: main.Position, fillColor: [3]f32, verticeData:
     triangles.vertices[triangles.verticeCount + 5] = .{ .pos = .{ left + width, top + height }, .color = fillColor };
     triangles.verticeCount += 6;
     if (withOutline) {
-        const borderColor: [3]f32 = .{ 0, 0, 0 };
+        const borderColor: [4]f32 = .{ 0, 0, 0, 1 };
         const lines = &verticeData.lines;
         if (lines.verticeCount + 8 >= lines.vertices.len) return;
         lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ left, top }, .color = borderColor };
@@ -301,8 +304,9 @@ pub fn payMoreVerticeSetups(player: *playerZig.Player, shopButton: shopZig.Playe
         .x = shopButtonGamePosition.x - main.TILESIZE / 2,
         .y = shopButtonGamePosition.y,
     };
+    const alpha: f32 = shopZig.payButtonAlpha(player);
     const fontSize: f32 = @as(f32, @floatFromInt(main.TILESIZE)) / 2.2;
-    const textColor: [3]f32 = .{ 1, 1, 1 };
+    const textColor: [4]f32 = .{ 1, 1, 1, alpha };
     const width = fontVulkanZig.paintTextGameMap("$", pricePosition, fontSize, textColor, &state.vkState.verticeData.font, state);
     _ = try fontVulkanZig.paintNumberGameMap(state.level, .{
         .x = pricePosition.x + width,
@@ -315,9 +319,53 @@ pub fn payMoreVerticeSetups(player: *playerZig.Player, shopButton: shopZig.Playe
                     .x = shopButtonGamePosition.x,
                     .y = shopButtonGamePosition.y - main.TILESIZE / 4,
                 };
-                paintVulkanZig.verticesForComplexSprite(toolDisplayPosition, otherShopButton.imageIndex, 0.5, 0.5, 1, 0, false, false, state);
+                paintVulkanZig.verticesForComplexSprite(toolDisplayPosition, otherShopButton.imageIndex, 0.5, 0.5, alpha, 0, false, false, state);
                 break;
             }
+        }
+    }
+}
+
+pub fn nextStepMoreVerticeSetups(player: *playerZig.Player, shopButton: shopZig.PlayerShopButton, state: *main.GameState) anyerror!void {
+    const shopPos = player.shop.pieceShopTopLeft;
+    const shopButtonGamePosition: main.Position = .{
+        .x = @floatFromInt((shopPos.x + shopButton.tileOffset.x) * main.TILESIZE),
+        .y = @floatFromInt((shopPos.y + shopButton.tileOffset.y) * main.TILESIZE),
+    };
+    const stepPosition: main.Position = .{
+        .x = shopButtonGamePosition.x - main.TILESIZE / 2,
+        .y = shopButtonGamePosition.y - main.TILESIZE / 2,
+    };
+    const fontSize: f32 = @as(f32, @floatFromInt(main.TILESIZE)) / 2.2;
+    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
+    if (player.shop.selectedOption == .combine) {
+        var displayStep: u32 = 1;
+        switch (player.shop.selectedOption.combine.combineStep) {
+            .selectPiece1 => displayStep = 1,
+            .selectPiece2 => displayStep = 2,
+            .selectDirection => displayStep = 3,
+            .reset => displayStep = 4,
+        }
+        if (displayStep < 3) {
+            const width = try fontVulkanZig.paintNumberGameMap(displayStep, stepPosition, fontSize, textColor, &state.vkState.verticeData.font, state);
+            _ = fontVulkanZig.paintTextGameMap("/2", .{ .x = stepPosition.x + width, .y = stepPosition.y }, fontSize, textColor, &state.vkState.verticeData.font, state);
+            const checkmarkPosition: main.Position = .{
+                .x = shopButtonGamePosition.x,
+                .y = shopButtonGamePosition.y + main.TILESIZE / 4,
+            };
+            paintVulkanZig.verticesForComplexSprite(checkmarkPosition, imageZig.IMAGE_CHECKMARK, 2, 2, 1, 0, false, false, state);
+        } else if (displayStep == 3) {
+            const checkmarkPosition: main.Position = .{
+                .x = shopButtonGamePosition.x,
+                .y = shopButtonGamePosition.y,
+            };
+            const rotate: f32 = @as(f32, @floatFromInt(state.gameTime)) / 500;
+            paintVulkanZig.verticesForComplexSprite(checkmarkPosition, imageZig.IMAGE_ICON_REFRESH, 3, 3, 1, rotate, false, false, state);
+        } else {
+            _ = fontVulkanZig.paintTextGameMap("Reset", .{
+                .x = shopButtonGamePosition.x - main.TILESIZE / 2,
+                .y = shopButtonGamePosition.y,
+            }, fontSize, textColor, &state.vkState.verticeData.font, state);
         }
     }
 }

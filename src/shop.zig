@@ -21,6 +21,7 @@ const CombineStep = enum {
     selectPiece1,
     selectPiece2,
     selectDirection,
+    reset,
 };
 
 const ShopOptionData = union(ShopOption) {
@@ -51,6 +52,7 @@ pub const PlayerShopButton = struct {
     option: ShopOption = .none,
     execute: *const fn (player: *playerZig.Player, state: *main.GameState) anyerror!void,
     isVisible: ?*const fn (player: *playerZig.Player) bool = null,
+    getAlpha: ?*const fn (player: *playerZig.Player) f32 = null,
     moreVerticeSetups: ?*const fn (player: *playerZig.Player, shopButton: PlayerShopButton, state: *main.GameState) anyerror!void = null,
 };
 
@@ -114,23 +116,27 @@ pub const SHOP_BUTTONS = [_]PlayerShopButton{
         .imageIndex = imageZig.IMAGE_ARROW_RIGHT,
         .imageRotate = std.math.pi,
         .tileOffset = .{ .x = 0, .y = 1 },
+        .getAlpha = arrowButtonAlpha,
     },
     .{
         .execute = executeArrowRight,
         .imageIndex = imageZig.IMAGE_ARROW_RIGHT,
         .tileOffset = .{ .x = 0, .y = 2 },
+        .getAlpha = arrowButtonAlpha,
     },
     .{
         .execute = executePay,
         .imageIndex = imageZig.IMAGE_BORDER_TILE,
         .tileOffset = .{ .x = 0, .y = 5 },
         .moreVerticeSetups = shopVulkanZig.payMoreVerticeSetups,
+        .getAlpha = payButtonAlpha,
     },
     .{
         .execute = executeNextStep,
         .imageIndex = imageZig.IMAGE_BORDER_TILE,
         .tileOffset = .{ .x = 0, .y = 3 },
         .isVisible = isNextStepButtonVisible,
+        .moreVerticeSetups = shopVulkanZig.nextStepMoreVerticeSetups,
     },
 };
 
@@ -333,6 +339,9 @@ pub fn executeNextStep(player: *playerZig.Player, state: *main.GameState) !void 
                     data.combineStep = .selectDirection;
                 },
                 .selectDirection => {
+                    data.combineStep = .reset;
+                },
+                .reset => {
                     data.combineStep = .selectPiece1;
                     data.direction = 0;
                     data.pieceIndex2 = null;
@@ -410,7 +419,7 @@ pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
         },
         .combine => |*data| {
             const cost = state.level;
-            if (player.money >= cost and data.pieceIndex2 != null and data.combineStep == .selectDirection) {
+            if (player.money >= cost and data.pieceIndex2 != null and (data.combineStep == .selectDirection or data.combineStep == .reset)) {
                 playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true);
                 player.uxData.visualizeMovePieceChangeFromShop = -1;
                 try movePieceZig.combineMovePieces(player, data.pieceIndex1, data.pieceIndex2.?, data.direction, state);
@@ -465,6 +474,7 @@ pub fn executeArrowRight(player: *playerZig.Player, state: *main.GameState) !voi
                         data.direction = @mod(data.direction + 1, 4);
                     }
                 },
+                .reset => {},
             }
         },
         else => {},
@@ -531,6 +541,7 @@ pub fn executeArrowLeft(player: *playerZig.Player, state: *main.GameState) !void
                         data.direction = @mod(data.direction + 3, 4);
                     }
                 },
+                .reset => {},
             }
         },
         else => {},
@@ -569,6 +580,30 @@ pub fn executeShopPhaseEnd(player: *playerZig.Player, state: *main.GameState) !v
 fn isNextStepButtonVisible(player: *playerZig.Player) bool {
     if (player.shop.selectedOption == .combine) return true;
     return false;
+}
+
+fn arrowButtonAlpha(player: *playerZig.Player) f32 {
+    if (player.shop.selectedOption == .none) {
+        return 0.4;
+    }
+    if (player.shop.selectedOption == .combine) {
+        if (player.shop.selectedOption.combine.combineStep == .reset) {
+            return 0.4;
+        }
+    }
+    return 1;
+}
+
+pub fn payButtonAlpha(player: *playerZig.Player) f32 {
+    if (player.shop.selectedOption == .none) {
+        return 0.4;
+    }
+    if (player.shop.selectedOption == .combine) {
+        if (player.shop.selectedOption.combine.combineStep == .selectPiece1 or player.shop.selectedOption.combine.combineStep == .selectPiece2) {
+            return 0.4;
+        }
+    }
+    return 1;
 }
 
 fn setGridDisplayPiece(player: *playerZig.Player, optMovePiece: ?movePieceZig.MovePiece) void {

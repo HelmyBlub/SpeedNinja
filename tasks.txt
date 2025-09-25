@@ -5,16 +5,18 @@ Tasks:
     - bosses missing:(40+)
 
 - shop UX
-    - bug: combine can not jump over pieceIndex1 when selecting pieceIndex2?
+    - crash
+        - what i did: 
+            - started game
+            - pressed f2 for money
+            - pressed f3 for entering shop
+            - game crahsed
+        -D:\mein\github_gamedev\SpeedNinja\src\soundMixer.zig:161:86: 0x7ff70c2fbd70 in cleanUpFinishedSounds (speedNinja.exe.obj)
+        if (soundMixer.soundsToPlay.items[i].dataIndex >= soundMixer.soundData.sounds[soundMixer.soundsToPlay.items[i].soundIndex].len) {                                                                                     ^
+        D:\mein\github_gamedev\SpeedNinja\src\soundMixer.zig:198:26: 0x7ff70c295465 in audioCallback (speedNinja.exe.obj)
+            cleanUpFinishedSounds(soundMixer);
     - visualizations
-        - add 
-            - display x/3
-            - can step from 3 to 1 with right and other way around
-            - add "/" to font
-        - remove
-            - display x/y
-        - cut
-            - display x/y
+        - remember piece index when switching tools
         - combine
             - display x/y for initial piece
             - display x/y for second piece

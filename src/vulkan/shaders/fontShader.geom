@@ -11,10 +11,10 @@ layout(triangle_strip, max_vertices = 4) out;
 layout(location = 0) in float inTexX[];
 layout(location = 1) in float inTexWidth[];
 layout(location = 2) in float inSize[];
-layout(location = 3) in vec3 inColor[];
+layout(location = 3) in vec4 inColor[];
 
 layout(location = 0) out vec2 fragTexCoord;
-layout(location = 1) out vec3 outColor;
+layout(location = 1) out vec4 outColor;
 
 void main(void)
 {	

@@ -23,9 +23,9 @@ pub const GamePhase = enum {
     shopping,
     boss,
 };
-pub const COLOR_TILE_GREEN: [3]f32 = colorConv(0.533, 0.80, 0.231);
-pub const COLOR_SKY_BLUE: [3]f32 = colorConv(0.529, 0.808, 0.922);
-pub const COLOR_STONE_WALL: [3]f32 = colorConv(0.573, 0.522, 0.451);
+pub const COLOR_TILE_GREEN: [4]f32 = colorConv(0.533, 0.80, 0.231);
+pub const COLOR_SKY_BLUE: [4]f32 = colorConv(0.529, 0.808, 0.922);
+pub const COLOR_STONE_WALL: [4]f32 = colorConv(0.573, 0.522, 0.451);
 pub const LEVEL_COUNT = 50;
 
 pub const TILESIZE = 20;
@@ -123,7 +123,7 @@ pub const ColorOrImageIndex = enum {
 };
 
 pub const ColorOrImageIndexData = union(ColorOrImageIndex) {
-    color: [3]f32,
+    color: [4]f32,
     imageIndex: u8,
 };
 
@@ -731,6 +731,6 @@ pub fn tilePositionToGamePosition(tilePosition: TilePosition) Position {
     };
 }
 
-pub fn colorConv(r: f32, g: f32, b: f32) [3]f32 {
-    return .{ std.math.pow(f32, r, 2.2), std.math.pow(f32, g, 2.2), std.math.pow(f32, b, 2.2) };
+pub fn colorConv(r: f32, g: f32, b: f32) [4]f32 {
+    return .{ std.math.pow(f32, r, 2.2), std.math.pow(f32, g, 2.2), std.math.pow(f32, b, 2.2), 1 };
 }

@@ -13,7 +13,7 @@ pub fn setupVertices(state: *main.GameState) !void {
     const verticeData = &state.vkState.verticeData;
 
     const lines = &verticeData.lines;
-    const color: [3]f32 = .{ 0.25, 0.25, 0.25 };
+    const color: [4]f32 = .{ 0.25, 0.25, 0.25, 1 };
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const zoomedTileSize = main.TILESIZE * state.camera.zoom;
@@ -59,7 +59,7 @@ fn verticesForEnterShop(state: *main.GameState) !void {
     const left = vulkan.x - halveVulkanTileSizeX;
     const top = vulkan.y - halveVulkanTileSizeY;
     const fontSize = 26;
-    paintVulkanZig.verticesForRectangle(left, top, width, height, .{ 1, 1, 1 }, &verticeData.lines, null);
+    paintVulkanZig.verticesForRectangle(left, top, width, height, .{ 1, 1, 1, 1 }, &verticeData.lines, null);
     paintVulkanZig.verticesForComplexSprite(
         .{ .x = gridEnterShopTopLeft.x + main.TILESIZE / 2, .y = gridEnterShopTopLeft.y + main.TILESIZE },
         imageZig.IMAGE_STAIRS,
@@ -83,7 +83,7 @@ fn verticesForEnterShop(state: *main.GameState) !void {
             false,
             state,
         );
-        const textColor = .{ 0.7, 0, 0 };
+        const textColor: [4]f32 = .{ 0.7, 0, 0, 1 };
         _ = try fontVulkanZig.paintNumberGameMap(state.roundToReachForNextLevel - state.round, .{
             .x = gridEnterShopTopLeft.x,
             .y = gridEnterShopTopLeft.y,

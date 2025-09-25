@@ -139,7 +139,7 @@ pub fn destroyAndSave(state: *main.GameState) !void {
 pub fn setupVertices(state: *main.GameState) !void {
     if (!state.statistics.active) return;
     if (state.level <= 1) return;
-    const textColor: [3]f32 = .{ 1, 1, 1 };
+    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const topLeft: main.Position = .{ .x = 0.55, .y = -0.5 };
     const levelDatas: []LevelStatistics = try getLevelDatas(state);
@@ -152,8 +152,8 @@ pub fn setupVertices(state: *main.GameState) !void {
     const diffTotalTextWidth = fontVulkanZig.paintText("DiffTotal  ", .{ .x = offsetX2, .y = topLeft.y }, fontSize, textColor, &state.vkState.verticeData.font);
     const offsetX3 = offsetX2 + diffTotalTextWidth;
     _ = fontVulkanZig.paintText("DiffLevel", .{ .x = offsetX3, .y = topLeft.y }, fontSize, textColor, &state.vkState.verticeData.font);
-    const red: [3]f32 = .{ 0.7, 0, 0 };
-    const green: [3]f32 = .{ 0.1, 1, 0.1 };
+    const red: [4]f32 = .{ 0.7, 0, 0, 1 };
+    const green: [4]f32 = .{ 0.1, 1, 0.1, 1 };
     const currentTime = std.time.milliTimestamp();
     for (firstDisplayLevel..state.level + 1) |level| {
         const levelData = levelDatas[level - 1];
@@ -175,7 +175,7 @@ pub fn setupVertices(state: *main.GameState) !void {
                 }
             }
             const diffTotal = currentTotalTime - levelData.fastestTotalTime.?;
-            var color: [3]f32 = if (diffTotal > 0) red else green;
+            var color: [4]f32 = if (diffTotal > 0) red else green;
             if (diffTotal > 0) {
                 const plusWidth = fontVulkanZig.paintText("+", .{ .x = offsetX2, .y = topLeft.y + offsetY }, fontSize, color, &state.vkState.verticeData.font);
                 _ = try fontVulkanZig.paintTime(diffTotal, .{ .x = offsetX2 + plusWidth, .y = topLeft.y + offsetY }, fontSize, true, color, &state.vkState.verticeData.font);

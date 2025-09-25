@@ -274,7 +274,7 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
 pub fn setupVerticesForShopEquipmentSecondaryEffect(topLeft: main.Position, secEffect: SecondaryEffect, fontSize: f32, state: *main.GameState) void {
     if (secEffect == .none) return;
     var textWidth: f32 = 0;
-    const textColor: [3]f32 = .{ 1, 1, 1 };
+    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     if (secEffect != .gold) textWidth = fontVulkanZig.paintTextGameMap("+", topLeft, fontSize, textColor, &state.vkState.verticeData.font, state);
     const iconPos: main.Position = .{
         .x = topLeft.x + textWidth + 5,

@@ -17,7 +17,7 @@ pub const VkFontData = struct {
 };
 
 /// returns game width of text
-pub fn paintTextGameMap(chars: []const u8, gamePosition: main.Position, fontSize: f32, color: [3]f32, vkFont: *dataVulkanZig.VkFont, state: *main.GameState) f32 {
+pub fn paintTextGameMap(chars: []const u8, gamePosition: main.Position, fontSize: f32, color: [4]f32, vkFont: *dataVulkanZig.VkFont, state: *main.GameState) f32 {
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const vulkanPos: main.Position = .{
@@ -30,7 +30,7 @@ pub fn paintTextGameMap(chars: []const u8, gamePosition: main.Position, fontSize
 }
 
 /// returns vulkan surface width of text
-pub fn paintText(chars: []const u8, vulkanSurfacePosition: main.Position, fontSize: f32, color: [3]f32, vkFont: *dataVulkanZig.VkFont) f32 {
+pub fn paintText(chars: []const u8, vulkanSurfacePosition: main.Position, fontSize: f32, color: [4]f32, vkFont: *dataVulkanZig.VkFont) f32 {
     var texX: f32 = 0;
     var texWidth: f32 = 0;
     var xOffset: f32 = 0;
@@ -51,7 +51,7 @@ pub fn paintText(chars: []const u8, vulkanSurfacePosition: main.Position, fontSi
 }
 
 /// returns game width of text
-pub fn paintNumberGameMap(number: anytype, gamePosition: main.Position, fontSize: f32, color: [3]f32, vkFont: *dataVulkanZig.VkFont, state: *main.GameState) !f32 {
+pub fn paintNumberGameMap(number: anytype, gamePosition: main.Position, fontSize: f32, color: [4]f32, vkFont: *dataVulkanZig.VkFont, state: *main.GameState) !f32 {
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const vulkanPos: main.Position = .{
@@ -64,7 +64,7 @@ pub fn paintNumberGameMap(number: anytype, gamePosition: main.Position, fontSize
 }
 
 /// time in hh:mm:ss format
-pub fn paintTime(timeMilli: i64, vulkanSurfacePosition: main.Position, fontSize: f32, showOneMilli: bool, color: [3]f32, vkFont: *dataVulkanZig.VkFont) !f32 {
+pub fn paintTime(timeMilli: i64, vulkanSurfacePosition: main.Position, fontSize: f32, showOneMilli: bool, color: [4]f32, vkFont: *dataVulkanZig.VkFont) !f32 {
     var zeroPrefix = false;
     var textWidth: f32 = 0;
     const absTimeMilli = @abs(timeMilli);
@@ -92,11 +92,11 @@ pub fn paintTime(timeMilli: i64, vulkanSurfacePosition: main.Position, fontSize:
     return textWidth;
 }
 
-pub fn paintNumber(number: anytype, vulkanSurfacePosition: main.Position, fontSize: f32, color: [3]f32, vkFont: *dataVulkanZig.VkFont) !f32 {
+pub fn paintNumber(number: anytype, vulkanSurfacePosition: main.Position, fontSize: f32, color: [4]f32, vkFont: *dataVulkanZig.VkFont) !f32 {
     return paintNumberWithZeroPrefix(number, vulkanSurfacePosition, fontSize, color, vkFont, false);
 }
 
-pub fn paintNumberWithZeroPrefix(number: anytype, vulkanSurfacePosition: main.Position, fontSize: f32, color: [3]f32, vkFont: *dataVulkanZig.VkFont, singleZeroPrefixWhenSmallerTen: bool) !f32 {
+fn paintNumberWithZeroPrefix(number: anytype, vulkanSurfacePosition: main.Position, fontSize: f32, color: [4]f32, vkFont: *dataVulkanZig.VkFont, singleZeroPrefixWhenSmallerTen: bool) !f32 {
     const max_len = 20;
     var buf: [max_len]u8 = undefined;
     var numberAsString: []u8 = undefined;
@@ -147,7 +147,7 @@ pub fn verticesForDisplayButton(topLeft: main.Position, action: inputZig.PlayerA
         _ = paintText(buttonInfo.?.text, .{
             .x = topLeft.x + onePixelXInVulkan * fontSize / 4,
             .y = topLeft.y + onePixelYInVulkan * fontSize / 4,
-        }, fontSize / 2, .{ 1, 1, 1 }, &state.vkState.verticeData.font);
+        }, fontSize / 2, .{ 1, 1, 1, 1 }, &state.vkState.verticeData.font);
     } else if (std.mem.eql(u8, buttonInfo.?.text, "Right")) {
         paintVulkanZig.verticesForComplexSpriteVulkan(keyImagePos, imageZig.IMAGE_ARROW_RIGHT, fontSize * 0.8, fontSize * 0.8, 1, 0, false, false, state);
     } else if (std.mem.eql(u8, buttonInfo.?.text, "Left")) {

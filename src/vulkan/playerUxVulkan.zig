@@ -9,7 +9,7 @@ const imageZig = @import("../image.zig");
 const inputZig = @import("../input.zig");
 const playerZig = @import("../player.zig");
 
-const INITIAL_PIECE_COLOR: [3]f32 = .{ 0.0, 0.0, 1 };
+const INITIAL_PIECE_COLOR: [4]f32 = .{ 0.0, 0.0, 1, 1 };
 
 pub fn setupVertices(state: *main.GameState) !void {
     const verticeData = &state.vkState.verticeData;
@@ -24,7 +24,7 @@ pub fn setupVertices(state: *main.GameState) !void {
 fn verticeForDeadInfo(player: *playerZig.Player, state: *main.GameState) void {
     if (player.isDead) {
         const fontSize = 75 * player.uxData.vulkanScale;
-        const textColor: [3]f32 = .{ 1, 0, 0 };
+        const textColor: [4]f32 = .{ 1, 0, 0, 1 };
         const verticeData = &state.vkState.verticeData;
         if (player.uxData.vertical) {
             const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
@@ -55,7 +55,7 @@ fn verticeForDeadInfo(player: *playerZig.Player, state: *main.GameState) void {
 }
 
 fn verticesForPlayerData(player: *playerZig.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) !void {
-    const textColor: [3]f32 = .{ 1, 1, 1 };
+    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
 
@@ -119,7 +119,7 @@ fn verticesForPlayerData(player: *playerZig.Player, verticeData: *dataVulkanZig.
 }
 
 fn verticesForPlayerHp(vulkanPos: main.Position, fontSize: f32, player: *playerZig.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) !void {
-    const textColor: [3]f32 = .{ 1, 1, 1 };
+    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const hpDisplayTextPos: main.Position = .{
@@ -146,8 +146,8 @@ fn verticesForPlayerHp(vulkanPos: main.Position, fontSize: f32, player: *playerZ
     if (player.uxData.visualizeHpChange) |hpChange| {
         if (player.uxData.visualizeHpChangeUntil == null) player.uxData.visualizeHpChangeUntil = state.gameTime + player.uxData.visualizationDuration;
         if (player.uxData.visualizeHpChangeUntil.? > state.gameTime and hpChange != 0) {
-            const red: [3]f32 = .{ 0.7, 0, 0 };
-            const green: [3]f32 = .{ 0.1, 1, 0.1 };
+            const red: [4]f32 = .{ 0.7, 0, 0, 1 };
+            const green: [4]f32 = .{ 0.1, 1, 0.1, 1 };
             var color = red;
             if (hpChange >= 0) {
                 color = green;
@@ -167,7 +167,7 @@ fn verticesForPlayerHp(vulkanPos: main.Position, fontSize: f32, player: *playerZ
 }
 
 fn verticesForPlayerMoney(vulkanPos: main.Position, fontSize: f32, player: *playerZig.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) !void {
-    const textColor: [3]f32 = .{ 1, 1, 1 };
+    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const moneyDisplayTextPos: main.Position = .{
         .x = vulkanPos.x,
@@ -181,8 +181,8 @@ fn verticesForPlayerMoney(vulkanPos: main.Position, fontSize: f32, player: *play
     if (player.uxData.visualizeMoney) |moneyChange| {
         if (player.uxData.visualizeMoneyUntil == null) player.uxData.visualizeMoneyUntil = state.gameTime + player.uxData.visualizationDuration;
         if (player.uxData.visualizeMoneyUntil.? > state.gameTime) {
-            const red: [3]f32 = .{ 0.7, 0, 0 };
-            const green: [3]f32 = .{ 0.1, 1, 0.1 };
+            const red: [4]f32 = .{ 0.7, 0, 0, 1 };
+            const green: [4]f32 = .{ 0.1, 1, 0.1, 1 };
             var color = red;
             if (moneyChange >= 0) {
                 color = green;
@@ -202,7 +202,7 @@ fn verticesForPlayerMoney(vulkanPos: main.Position, fontSize: f32, player: *play
 }
 
 fn verticesForPlayerPieceCounter(vulkanPos: main.Position, fontSize: f32, player: *playerZig.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) !void {
-    const textColor: [3]f32 = .{ 1, 1, 1 };
+    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const iconPos: main.Position = .{
@@ -247,8 +247,8 @@ fn verticesForPlayerPieceCounter(vulkanPos: main.Position, fontSize: f32, player
             state,
         );
     } else if (player.uxData.visualizeMovePieceChangeFromShop) |change| {
-        const red: [3]f32 = .{ 0.7, 0, 0 };
-        const green: [3]f32 = .{ 0.1, 1, 0.1 };
+        const red: [4]f32 = .{ 0.7, 0, 0, 1 };
+        const green: [4]f32 = .{ 0.1, 1, 0.1, 1 };
         var color = red;
         if (change >= 0) {
             color = green;
@@ -318,19 +318,19 @@ fn verticesForMoveOptions(player: *playerZig.Player, verticeData: *dataVulkanZig
 
     const lines = &verticeData.lines;
     const triangles = &verticeData.triangles;
-    const fillColor: [3]f32 = .{ 0.25, 0.25, 0.25 };
-    const selctedColor: [3]f32 = .{ 0.07, 0.07, 0.07 };
+    const fillColor: [4]f32 = .{ 0.25, 0.25, 0.25, 1 };
+    const selctedColor: [4]f32 = .{ 0.07, 0.07, 0.07, 1 };
     for (0..3) |index| {
         if (player.moveOptions.items.len <= index) {
-            paintVulkanZig.verticesForRectangle(startX, startY, width, height, .{ 0.8, 0, 0 }, lines, triangles);
+            paintVulkanZig.verticesForRectangle(startX, startY, width, height, .{ 0.8, 0, 0, 1 }, lines, triangles);
         } else {
             const option = player.moveOptions.items[index];
             const boundingBox = movePieceZig.getBoundingBox(option);
             var rectPieceFillColor = fillColor;
-            var rectFillColor: [3]f32 = .{ 1.0, 1.0, 1.0 };
+            var rectFillColor: [4]f32 = .{ 1.0, 1.0, 1.0, 1 };
             if (!player.isDead and player.choosenMoveOptionIndex != null and player.choosenMoveOptionIndex.? == index) {
                 rectPieceFillColor = selctedColor;
-                rectFillColor = .{ 0.2, 0.2, 0.8 };
+                rectFillColor = .{ 0.2, 0.2, 0.8, 1 };
             }
             paintVulkanZig.verticesForRectangle(startX, startY, width, height, rectFillColor, lines, triangles);
             var pieceDownScale: f32 = 4;
@@ -385,7 +385,7 @@ fn verticesForMoveOptions(player: *playerZig.Player, verticeData: *dataVulkanZig
 
 pub fn verticesForMovePiece(
     movePiece: movePieceZig.MovePiece,
-    fillColor: [3]f32,
+    fillColor: [4]f32,
     vulkanX: f32,
     vulkanY: f32,
     vulkanTileWidth: f32,
