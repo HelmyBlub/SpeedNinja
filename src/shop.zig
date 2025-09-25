@@ -433,15 +433,15 @@ pub fn executeArrowRight(player: *playerZig.Player, state: *main.GameState) !voi
     _ = state;
     switch (player.shop.selectedOption) {
         .delete => |*data| {
-            data.selectedIndex = @min(data.selectedIndex + 1, player.totalMovePieces.items.len - 1);
+            data.selectedIndex = @mod(data.selectedIndex + 1, player.totalMovePieces.items.len);
             setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
         },
         .add => |*data| {
-            data.selectedIndex = @min(data.selectedIndex + 1, player.shop.piecesToBuy.len - 1);
+            data.selectedIndex = @mod(data.selectedIndex + 1, player.shop.piecesToBuy.len);
             setGridDisplayPiece(player, player.shop.piecesToBuy[data.selectedIndex]);
         },
         .cut => |*data| {
-            data.selectedIndex = @min(data.selectedIndex + 1, player.totalMovePieces.items.len - 1);
+            data.selectedIndex = @mod(data.selectedIndex + 1, player.totalMovePieces.items.len);
             setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
             data.gridCutOffset = null;
             data.isOnMovePiece = false;
@@ -449,13 +449,13 @@ pub fn executeArrowRight(player: *playerZig.Player, state: *main.GameState) !voi
         .combine => |*data| {
             switch (data.combineStep) {
                 .selectPiece1 => {
-                    data.pieceIndex1 = @min(data.pieceIndex1 + 1, player.totalMovePieces.items.len - 1);
+                    data.pieceIndex1 = @mod(data.pieceIndex1 + 1, player.totalMovePieces.items.len);
                     setGridDisplayPiece(player, player.totalMovePieces.items[data.pieceIndex1]);
                 },
                 .selectPiece2 => {
-                    data.pieceIndex2 = @min(data.pieceIndex2.? + 1, player.totalMovePieces.items.len - 1);
-                    if (data.pieceIndex2 == data.pieceIndex1) {
-                        data.pieceIndex2.? -|= 1;
+                    data.pieceIndex2 = @mod(data.pieceIndex2.? + 1, player.totalMovePieces.items.len);
+                    if (data.pieceIndex2.? == data.pieceIndex1) {
+                        data.pieceIndex2 = @mod(data.pieceIndex2.? + 1, player.totalMovePieces.items.len);
                     }
                 },
                 .selectDirection => {
@@ -475,15 +475,27 @@ pub fn executeArrowLeft(player: *playerZig.Player, state: *main.GameState) !void
     _ = state;
     switch (player.shop.selectedOption) {
         .delete => |*data| {
-            data.selectedIndex = data.selectedIndex -| 1;
+            if (data.selectedIndex == 0) {
+                data.selectedIndex = player.totalMovePieces.items.len - 1;
+            } else {
+                data.selectedIndex -= 1;
+            }
             setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
         },
         .add => |*data| {
-            data.selectedIndex = data.selectedIndex -| 1;
+            if (data.selectedIndex == 0) {
+                data.selectedIndex = player.shop.piecesToBuy.len - 1;
+            } else {
+                data.selectedIndex -= 1;
+            }
             setGridDisplayPiece(player, player.shop.piecesToBuy[data.selectedIndex]);
         },
         .cut => |*data| {
-            data.selectedIndex = data.selectedIndex -| 1;
+            if (data.selectedIndex == 0) {
+                data.selectedIndex = player.totalMovePieces.items.len - 1;
+            } else {
+                data.selectedIndex -= 1;
+            }
             setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
             data.gridCutOffset = null;
             data.isOnMovePiece = false;
@@ -491,16 +503,24 @@ pub fn executeArrowLeft(player: *playerZig.Player, state: *main.GameState) !void
         .combine => |*data| {
             switch (data.combineStep) {
                 .selectPiece1 => {
-                    data.pieceIndex1 = data.pieceIndex1 -| 1;
+                    if (data.pieceIndex1 == 0) {
+                        data.pieceIndex1 = player.totalMovePieces.items.len - 1;
+                    } else {
+                        data.pieceIndex1 -= 1;
+                    }
                     setGridDisplayPiece(player, player.totalMovePieces.items[data.pieceIndex1]);
                 },
                 .selectPiece2 => {
-                    data.pieceIndex2 = data.pieceIndex2.? -| 1;
+                    if (data.pieceIndex2.? == 0) {
+                        data.pieceIndex2 = player.totalMovePieces.items.len - 1;
+                    } else {
+                        data.pieceIndex2.? -= 1;
+                    }
                     if (data.pieceIndex2 == data.pieceIndex1) {
-                        if (data.pieceIndex2 == 0) {
-                            data.pieceIndex2 = @min(data.pieceIndex2.? + 1, player.totalMovePieces.items.len - 1);
+                        if (data.pieceIndex2.? == 0) {
+                            data.pieceIndex2 = player.totalMovePieces.items.len - 1;
                         } else {
-                            data.pieceIndex2 = data.pieceIndex2.? -| 1;
+                            data.pieceIndex2.? -= 1;
                         }
                     }
                 },
