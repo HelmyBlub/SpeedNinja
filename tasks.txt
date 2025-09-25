@@ -2,19 +2,8 @@ Tasks:
 - new game+1 
     - try complete run
 - new game+2
-    - bosses missing:(40+)
+    - bosses missing:(45+)
 
-- crash
-    - think about checking in thePopulationMustGrow having the same issue
-    - what i did: 
-        - started game
-        - pressed f2 for money
-        - pressed f3 for entering shop
-        - game crahsed
-    -D:\mein\github_gamedev\SpeedNinja\src\soundMixer.zig:161:86: 0x7ff70c2fbd70 in cleanUpFinishedSounds (speedNinja.exe.obj)
-    if (soundMixer.soundsToPlay.items[i].dataIndex >= soundMixer.soundData.sounds[soundMixer.soundsToPlay.items[i].soundIndex].len) {                                                                                     ^
-    D:\mein\github_gamedev\SpeedNinja\src\soundMixer.zig:198:26: 0x7ff70c295465 in audioCallback (speedNinja.exe.obj)
-        cleanUpFinishedSounds(soundMixer);
 - multiplayer
     - on entering shop
         - every player needs to enter

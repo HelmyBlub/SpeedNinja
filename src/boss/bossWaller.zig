@@ -115,7 +115,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
 
     if (data.bombNextTime != null) {
         if (data.bombNextTime.? <= state.gameTime) {
-            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_THROW_INDICIES[0..], 0, 0.5);
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_THROW_INDICIES[0..], 0, 0.5 / @as(f32, @floatFromInt(state.newGamePlus + 1)));
             var tileRadius = state.mapData.tileRadius;
             if (data.counterForNoneCloseBombs > 4) {
                 tileRadius = 1;
@@ -161,7 +161,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             }
         }
         if (bomb.explodeTime != null and bomb.explodeTime.? <= state.gameTime) {
-            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_EXPLODE_INDICIES[0..], 0, 1);
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_EXPLODE_INDICIES[0..], 0, 1 / @as(f32, @floatFromInt(state.newGamePlus + 1)));
             const bombTilePosition = main.gamePositionToTilePosition(bomb.position);
             const damageTileRectangle: main.TileRectangle = .{
                 .pos = .{ .x = bombTilePosition.x - data.bombAoeSize, .y = bombTilePosition.y - data.bombAoeSize },
