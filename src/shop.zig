@@ -168,6 +168,8 @@ pub fn executeShopActionForPlayer(player: *playerZig.Player, state: *main.GameSt
                         _ = state.shop.buyOptions.swapRemove(buyIndex);
                     }
                 }
+            } else {
+                try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION_FAIL, 0, 0.5);
             }
             return;
         }

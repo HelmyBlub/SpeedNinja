@@ -15,12 +15,11 @@ Tasks:
     D:\mein\github_gamedev\SpeedNinja\src\soundMixer.zig:198:26: 0x7ff70c295465 in audioCallback (speedNinja.exe.obj)
         cleanUpFinishedSounds(soundMixer);
 - shop UX
-    - next level:
-        - stairs image
-            - increase to 2x2?
     - buy options
         - some "podest" where item is on
-        - some rectangle around information
+            - podest has price on it and this need to be steped on to buy
+        - some rectangle around other information
+            - below podest
             - so easier to realize it belongs together
 
 - multiplayer

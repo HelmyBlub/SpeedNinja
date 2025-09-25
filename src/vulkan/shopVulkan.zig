@@ -85,23 +85,32 @@ fn verticesForBuyOptions(state: *main.GameState) !void {
             .x = @floatFromInt(buyOption.tilePosition.x * main.TILESIZE),
             .y = @floatFromInt(buyOption.tilePosition.y * main.TILESIZE),
         };
-        paintVulkanZig.verticesForComplexSprite(buyOptionGamePosition, buyOption.imageIndex, buyOption.imageScale, buyOption.imageScale, 1, 0, false, false, state);
-        const startingInfoTopLeftDisplayPos: main.Position = .{
+        var moneyDisplayPos: main.Position = .{
+            .x = buyOptionGamePosition.x - main.TILESIZE / 2,
+            .y = buyOptionGamePosition.y - main.TILESIZE / 4,
+        };
+        const fontSize = 7;
+        if (buyOption.price > 0) {
+            paintVulkanZig.verticesForComplexSprite(buyOptionGamePosition, imageZig.IMAGE_SHOP_PODEST, 5, 5, 1, 0, false, false, state);
+            paintVulkanZig.verticesForComplexSprite(.{
+                .x = buyOptionGamePosition.x,
+                .y = buyOptionGamePosition.y - main.TILESIZE / 2 - 4,
+            }, buyOption.imageIndex, buyOption.imageScale, buyOption.imageScale, 1, 0, false, false, state);
+            moneyDisplayPos.x += fontVulkanZig.paintTextGameMap("$", moneyDisplayPos, fontSize, textColor, &state.vkState.verticeData.font, state);
+            _ = try fontVulkanZig.paintNumberGameMap(buyOption.price, moneyDisplayPos, fontSize, textColor, &state.vkState.verticeData.font, state);
+        } else {
+            paintVulkanZig.verticesForComplexSprite(buyOptionGamePosition, buyOption.imageIndex, buyOption.imageScale, buyOption.imageScale, 1, 0, false, false, state);
+        }
+        const secondaryInfoPosition: main.Position = .{
             .x = buyOptionGamePosition.x - main.TILESIZE / 2,
             .y = buyOptionGamePosition.y + main.TILESIZE / 2,
         };
-        var moneyDisplayPos: main.Position = startingInfoTopLeftDisplayPos;
-        const fontSize = 8;
-        if (buyOption.price > 0) {
-            moneyDisplayPos.x += fontVulkanZig.paintTextGameMap("$", moneyDisplayPos, fontSize, textColor, &state.vkState.verticeData.font, state);
-            _ = try fontVulkanZig.paintNumberGameMap(buyOption.price, moneyDisplayPos, fontSize, textColor, &state.vkState.verticeData.font, state);
-        }
         var secondaryEffect: ?equipmentZig.SecondaryEffect = null;
         switch (buyOption.equipment.effectType) {
             .hp => |data| {
                 const hpDisplayTextPos: main.Position = .{
-                    .x = moneyDisplayPos.x,
-                    .y = moneyDisplayPos.y + fontSize + 1,
+                    .x = secondaryInfoPosition.x + main.TILESIZE / 2,
+                    .y = secondaryInfoPosition.y + fontSize + 1,
                 };
                 const textWidth = try fontVulkanZig.paintNumberGameMap(data.hp, hpDisplayTextPos, fontSize, textColor, &state.vkState.verticeData.font, state);
                 const hpDisplayIconPos: main.Position = .{
@@ -113,8 +122,8 @@ fn verticesForBuyOptions(state: *main.GameState) !void {
             },
             .damage => |data| {
                 const damageDisplayTextPos: main.Position = .{
-                    .x = moneyDisplayPos.x + 2,
-                    .y = moneyDisplayPos.y + fontSize + 1,
+                    .x = secondaryInfoPosition.x + main.TILESIZE / 2,
+                    .y = secondaryInfoPosition.y + fontSize + 1,
                 };
                 _ = try fontVulkanZig.paintNumberGameMap(data.damage, damageDisplayTextPos, fontSize, textColor, &state.vkState.verticeData.font, state);
                 const DamageDisplayIconPos: main.Position = .{
@@ -126,8 +135,8 @@ fn verticesForBuyOptions(state: *main.GameState) !void {
             },
             .damagePerCent => |data| {
                 const damageDisplayTextPos: main.Position = .{
-                    .x = moneyDisplayPos.x + 2,
-                    .y = moneyDisplayPos.y + fontSize + 1,
+                    .x = secondaryInfoPosition.x + 2,
+                    .y = secondaryInfoPosition.y + fontSize + 1,
                 };
                 const textWidth = fontVulkanZig.paintTextGameMap("x", damageDisplayTextPos, fontSize, textColor, &state.vkState.verticeData.font, state);
                 _ = try fontVulkanZig.paintNumberGameMap((data.factor + 1), .{ .x = damageDisplayTextPos.x + textWidth, .y = damageDisplayTextPos.y }, fontSize, textColor, &state.vkState.verticeData.font, state);
@@ -142,8 +151,8 @@ fn verticesForBuyOptions(state: *main.GameState) !void {
         }
         if (secondaryEffect) |secEffect| {
             const secEffectDisplayPos: main.Position = .{
-                .x = startingInfoTopLeftDisplayPos.x,
-                .y = startingInfoTopLeftDisplayPos.y + (fontSize + 1) * 2,
+                .x = secondaryInfoPosition.x,
+                .y = secondaryInfoPosition.y + (fontSize + 1) * 2,
             };
             equipmentZig.setupVerticesForShopEquipmentSecondaryEffect(secEffectDisplayPos, secEffect, fontSize, state);
         }
