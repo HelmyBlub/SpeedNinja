@@ -10,6 +10,7 @@ const windowSdlZig = @import("windowSdl.zig");
 
 pub const Player = struct {
     position: main.Position = .{ .x = 0, .y = 0 },
+    phase: PlayePhase = .combat,
     damage: u32 = 0,
     damagePerCentFactor: f32 = 1,
     immunUntilTime: i64 = 0,
@@ -36,6 +37,11 @@ pub const Player = struct {
     lastMoveDirection: ?u8 = null,
     uxData: PlayerUxData = .{},
     inputData: inputZig.PlayerInputData = .{},
+};
+
+const PlayePhase = enum {
+    combat,
+    shopping,
 };
 
 const PlayerUxData = struct {
@@ -181,6 +187,7 @@ pub fn changePlayerMoneyBy(amount: i32, player: *Player, visualize: bool, state:
 pub fn playerHit(player: *Player, state: *main.GameState) !void {
     if (player.immunUntilTime >= state.gameTime) return;
     if (player.isDead) return;
+    if (player.phase == .shopping and state.gamePhase == .combat) return;
     if (!try equipmentZig.damageTakenByEquipment(player, state)) {
         player.isDead = true;
         state.gameOver = main.isGameOver(state);

@@ -276,6 +276,7 @@ pub fn setupVertices(state: *main.GameState) void {
 
     for (state.players.items) |*player| {
         if (player.isDead) continue;
+        if (player.phase == .shopping and state.gamePhase == .combat) continue;
         var currentAfterImageIndex: usize = 0;
         while (currentAfterImageIndex < player.afterImages.items.len) {
             if (verticeData.spritesComplex.verticeCount + 1 >= verticeData.spritesComplex.vertices.len) break;

@@ -27,6 +27,7 @@ pub fn setupVertices(state: *main.GameState) void {
 fn verticesForChoosenMoveOptionVisualization(player: *playerZig.Player, lines: *dataVulkanZig.VkColoredVertexes, triangles: *dataVulkanZig.VkColoredVertexes, state: *main.GameState) void {
     if (player.equipment.hasBlindfold) return;
     if (player.isDead) return;
+    if (player.phase == .shopping and state.gamePhase == .combat) return;
     if (player.choosenMoveOptionIndex != null and player.moveOptions.items.len > 0) {
         const index = player.choosenMoveOptionIndex.?;
         const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;

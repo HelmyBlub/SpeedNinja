@@ -180,7 +180,7 @@ pub fn tickPlayerMovePiece(player: *playerZig.Player, state: *main.GameState) !v
                 const attackDelayOnSpawn = 100;
                 if (state.gameTime - state.roundStartedTime > attackDelayOnSpawn) try enemyZig.onPlayerMoved(player, state);
                 if (shopZig.isPlayerInShopTrigger(player, state)) {
-                    try shopZig.startShoppingPhase(state);
+                    player.phase = .shopping;
                 }
             }
         }
@@ -485,6 +485,7 @@ pub fn movePlayerByMovePiece(player: *playerZig.Player, movePieceIndex: usize, d
     if (player.equipment.hasRollerblades and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(directionInput + 2, 4)) return;
     if (player.equipment.hasPirateLegLeft and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(directionInput + 3, 4)) return;
     if (!player.equipment.hasEyePatch or state.gamePhase == .shopping) player.choosenMoveOptionIndex = null;
+    if (player.phase == .shopping and state.gamePhase == .combat) return;
     if (player.moveOptions.items.len <= movePieceIndex) return;
     if (state.tutorialData.active) {
         state.tutorialData.playerFirstValidMove = true;

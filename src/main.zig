@@ -397,6 +397,7 @@ pub fn startNextLevel(state: *GameState) !void {
     for (state.players.items) |*player| {
         try movePieceZig.resetPieces(player, false, state);
         player.lastMoveDirection = null;
+        player.phase = .combat;
         if (state.level > 1) {
             player.uxData.visualizeChoiceKeys = false;
             player.uxData.visualizeMovementKeys = false;
@@ -429,7 +430,15 @@ pub fn getDirectionFromTo(fromPosition: Position, toPosition: Position) u8 {
 
 fn shouldEndLevel(state: *GameState) bool {
     if (state.gamePhase == .boss and state.bosses.items.len == 0) return true;
-    return false;
+    if (state.gamePhase == .shopping) return false;
+    var atLeastOnePlayerAlive = false;
+    for (state.players.items) |*player| {
+        if (!player.isDead) atLeastOnePlayerAlive = true;
+        if (player.phase != .shopping and !player.isDead) {
+            return false;
+        }
+    }
+    return atLeastOnePlayerAlive;
 }
 
 fn allPlayerNoHp(state: *GameState) bool {
@@ -466,6 +475,7 @@ pub fn restart(state: *GameState, newGamePlus: u32) anyerror!void {
     mapTileZig.resetMapTiles(state.mapData.tiles);
     for (state.players.items) |*player| {
         player.money = 0;
+        player.phase = .combat;
         player.isDead = false;
         player.position.x = 0;
         player.position.y = 0;

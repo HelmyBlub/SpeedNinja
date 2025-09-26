@@ -17,40 +17,47 @@ pub fn setupVertices(state: *main.GameState) !void {
     for (state.players.items) |*player| {
         verticesForMoveOptions(player, verticeData, state);
         try verticesForPlayerData(player, verticeData, state);
-        verticeForDeadInfo(player, state);
+        verticeForPlayerStateInfo(player, state);
     }
 }
 
-fn verticeForDeadInfo(player: *playerZig.Player, state: *main.GameState) void {
+fn verticeForPlayerStateInfo(player: *playerZig.Player, state: *main.GameState) void {
     if (player.isDead) {
-        const fontSize = 75 * player.uxData.vulkanScale;
-        const textColor: [4]f32 = .{ 1, 0, 0, 1 };
-        const verticeData = &state.vkState.verticeData;
-        if (player.uxData.vertical) {
-            const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-            _ = fontVulkanZig.paintText("D", .{
-                .x = player.uxData.vulkanTopLeft.x,
-                .y = player.uxData.vulkanTopLeft.y + onePixelYInVulkan * fontSize,
-            }, fontSize, textColor, &verticeData.font);
-            _ = fontVulkanZig.paintText("E", .{
-                .x = player.uxData.vulkanTopLeft.x,
-                .y = player.uxData.vulkanTopLeft.y + onePixelYInVulkan * fontSize * 2,
-            }, fontSize, textColor, &verticeData.font);
-            _ = fontVulkanZig.paintText("A", .{
-                .x = player.uxData.vulkanTopLeft.x,
-                .y = player.uxData.vulkanTopLeft.y + onePixelYInVulkan * fontSize * 3,
-            }, fontSize, textColor, &verticeData.font);
-            _ = fontVulkanZig.paintText("D", .{
-                .x = player.uxData.vulkanTopLeft.x,
-                .y = player.uxData.vulkanTopLeft.y + onePixelYInVulkan * fontSize * 4,
-            }, fontSize, textColor, &verticeData.font);
-        } else {
-            const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-            _ = fontVulkanZig.paintText("Dead", .{
-                .x = player.uxData.vulkanTopLeft.x + onePixelXInVulkan * fontSize,
-                .y = player.uxData.vulkanTopLeft.y,
-            }, fontSize, textColor, &verticeData.font);
-        }
+        const red: [4]f32 = .{ 1, 0, 0, 1 };
+        verticeForInfo(player, "Dead", red, state);
+    } else if (player.phase == .shopping and state.gamePhase == .combat) {
+        const white: [4]f32 = .{ 1, 1, 1, 1 };
+        verticeForInfo(player, "Shop", white, state);
+    }
+}
+
+fn verticeForInfo(player: *playerZig.Player, text: *const [4]u8, textColor: [4]f32, state: *main.GameState) void {
+    const fontSize = 75 * player.uxData.vulkanScale;
+    const verticeData = &state.vkState.verticeData;
+    if (player.uxData.vertical) {
+        const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+        _ = fontVulkanZig.paintText(text[0..1], .{
+            .x = player.uxData.vulkanTopLeft.x,
+            .y = player.uxData.vulkanTopLeft.y + onePixelYInVulkan * fontSize,
+        }, fontSize, textColor, &verticeData.font);
+        _ = fontVulkanZig.paintText(text[1..2], .{
+            .x = player.uxData.vulkanTopLeft.x,
+            .y = player.uxData.vulkanTopLeft.y + onePixelYInVulkan * fontSize * 2,
+        }, fontSize, textColor, &verticeData.font);
+        _ = fontVulkanZig.paintText(text[2..3], .{
+            .x = player.uxData.vulkanTopLeft.x,
+            .y = player.uxData.vulkanTopLeft.y + onePixelYInVulkan * fontSize * 3,
+        }, fontSize, textColor, &verticeData.font);
+        _ = fontVulkanZig.paintText(text[3..4], .{
+            .x = player.uxData.vulkanTopLeft.x,
+            .y = player.uxData.vulkanTopLeft.y + onePixelYInVulkan * fontSize * 4,
+        }, fontSize, textColor, &verticeData.font);
+    } else {
+        const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+        _ = fontVulkanZig.paintText(text, .{
+            .x = player.uxData.vulkanTopLeft.x + onePixelXInVulkan * fontSize,
+            .y = player.uxData.vulkanTopLeft.y,
+        }, fontSize, textColor, &verticeData.font);
     }
 }
 
