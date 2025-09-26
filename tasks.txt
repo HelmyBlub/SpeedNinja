@@ -6,7 +6,6 @@ Tasks:
 
 - multiplayer
     - on entering shop
-        - every player needs to enter
         - revive dead players
         - check move piece reset in shop for other player
     - combine:

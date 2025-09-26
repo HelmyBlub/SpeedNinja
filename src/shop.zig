@@ -212,6 +212,7 @@ pub fn startShoppingPhase(state: *main.GameState) !void {
     for (state.players.items) |*player| {
         player.shop.gridDisplayPiece = null;
         player.shop.selectedOption = .none;
+        if (player.isDead) player.isDead = false;
         player.position.x = @as(f32, @floatFromInt(player.shop.pieceShopTopLeft.x + GRID_SIZE / 2)) * main.TILESIZE;
         player.position.y = @as(f32, @floatFromInt(player.shop.pieceShopTopLeft.y + GRID_SIZE / 2)) * main.TILESIZE;
         try movePieceZig.resetPieces(player, true, state);
