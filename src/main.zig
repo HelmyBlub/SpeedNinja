@@ -529,12 +529,10 @@ pub fn adjustZoom(state: *GameState) void {
     state.uxData.playerUxVertical = if (widthPerCent < heightPerCent) true else false;
     const biggerPerCent = @max(widthPerCent, heightPerCent);
     state.camera.zoom = targetMapScreenPerCent / biggerPerCent;
-    std.debug.print("playerUxVertical {}\n", .{state.uxData.playerUxVertical});
     if (state.players.items.len > 1 and stairsAdditionTileWidth > 0 and state.uxData.playerUxVertical) {
         //offset so stairs are not under player2UI
         state.camera.position.x = @as(f32, @floatFromInt(stairsAdditionTileWidth)) * TILESIZE / 2;
     } else {
-        std.debug.print("camera x 0 \n", .{});
         state.camera.position.x = 0;
     }
     playerZig.determinePlayerUxPositions(state);

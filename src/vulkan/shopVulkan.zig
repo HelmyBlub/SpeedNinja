@@ -55,25 +55,26 @@ fn verticesForExitShop(state: *main.GameState) void {
 
 fn verticesForMovePieceModifications(state: *main.GameState) !void {
     const verticeData = &state.vkState.verticeData;
-    const player = &state.players.items[0];
-    try paintGrid(player, state);
-    const player0ShopPos = player.shop.pieceShopTopLeft;
-    for (shopZig.SHOP_BUTTONS) |shopButton| {
-        if (shopButton.isVisible != null and !shopButton.isVisible.?(player)) continue;
-        const shopButtonGamePosition: main.Position = .{
-            .x = @floatFromInt((player0ShopPos.x + shopButton.tileOffset.x) * main.TILESIZE),
-            .y = @floatFromInt((player0ShopPos.y + shopButton.tileOffset.y) * main.TILESIZE),
-        };
-        if (shopButton.option != .none and shopButton.option == player.shop.selectedOption) {
-            rectangleForTile(shopButtonGamePosition, .{ 0, 0, 1, 1 }, verticeData, false, state);
-        }
-        if (shopButton.moreVerticeSetups) |moreVertices| try moreVertices(player, shopButton, state);
-        var alpha: f32 = 1;
-        if (shopButton.getAlpha != null) alpha = shopButton.getAlpha.?(player);
-        if (shopButton.imageRotate != 0) {
-            paintVulkanZig.verticesForComplexSpriteWithRotate(shopButtonGamePosition, shopButton.imageIndex, shopButton.imageRotate, alpha, state);
-        } else {
-            paintVulkanZig.verticesForComplexSprite(shopButtonGamePosition, shopButton.imageIndex, 1, 1, alpha, 0, false, false, state);
+    for (state.players.items) |*player| {
+        try paintGrid(player, state);
+        const player0ShopPos = player.shop.pieceShopTopLeft;
+        for (shopZig.SHOP_BUTTONS) |shopButton| {
+            if (shopButton.isVisible != null and !shopButton.isVisible.?(player)) continue;
+            const shopButtonGamePosition: main.Position = .{
+                .x = @floatFromInt((player0ShopPos.x + shopButton.tileOffset.x) * main.TILESIZE),
+                .y = @floatFromInt((player0ShopPos.y + shopButton.tileOffset.y) * main.TILESIZE),
+            };
+            if (shopButton.option != .none and shopButton.option == player.shop.selectedOption) {
+                rectangleForTile(shopButtonGamePosition, .{ 0, 0, 1, 1 }, verticeData, false, state);
+            }
+            if (shopButton.moreVerticeSetups) |moreVertices| try moreVertices(player, shopButton, state);
+            var alpha: f32 = 1;
+            if (shopButton.getAlpha != null) alpha = shopButton.getAlpha.?(player);
+            if (shopButton.imageRotate != 0) {
+                paintVulkanZig.verticesForComplexSpriteWithRotate(shopButtonGamePosition, shopButton.imageIndex, shopButton.imageRotate, alpha, state);
+            } else {
+                paintVulkanZig.verticesForComplexSprite(shopButtonGamePosition, shopButton.imageIndex, 1, 1, alpha, 0, false, false, state);
+            }
         }
     }
 }

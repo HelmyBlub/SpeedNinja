@@ -330,6 +330,7 @@ fn playerLeave(playerIndex: usize, state: *main.GameState) !void {
             }
         }
         destroyPlayer(&removed, state);
+        try setupPlayerPieceShopAreas(state);
         main.adjustZoom(state);
     }
 }
@@ -376,4 +377,29 @@ fn playerJoin(playerInputData: inputZig.PlayerInputData, state: *main.GameState)
     try movePieceZig.setupMovePieces(player, state);
     state.statistics.active = false;
     main.adjustZoom(state);
+}
+
+pub fn setupPlayerPieceShopAreas(state: *main.GameState) !void {
+    if (state.players.items.len == 1) {
+        state.players.items[0].shop.pieceShopTopLeft = .{ .x = -4, .y = -4 };
+    } else {
+        const spacing = shopZig.GRID_SIZE + 4;
+        var width: usize = @intFromFloat(@ceil(@sqrt(@as(f32, @floatFromInt(state.players.items.len)))));
+        var height: usize = if (width * width - width + 1 > state.players.items.len) width - 1 else width;
+        if (state.uxData.playerUxVertical) {
+            const temp = width;
+            width = height;
+            height = temp;
+        }
+        const xOffset: i32 = -@as(i32, @intCast(@divFloor(width * spacing, 2))) + 2;
+        const yOffset: i32 = -@as(i32, @intCast(@divFloor(height * spacing, 2))) + 2;
+        for (state.players.items, 0..) |*player, index| {
+            player.shop.pieceShopTopLeft.x = xOffset + @as(i32, @intCast(spacing * @mod(index, width)));
+            player.shop.pieceShopTopLeft.y = yOffset + @as(i32, @intCast(spacing * @divFloor(index, width)));
+        }
+    }
+
+    if (state.gamePhase == .shopping) {
+        try shopZig.setShopMapRadius(state);
+    }
 }

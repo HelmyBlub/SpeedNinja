@@ -149,7 +149,7 @@ pub fn executeShopActionForPlayer(player: *playerZig.Player, state: *main.GameSt
         }
     }
     const gridPosition: main.TilePosition = .{ .x = GRID_OFFSET.x + shopTopLeftTile.x, .y = GRID_OFFSET.y + shopTopLeftTile.y };
-    if (gridPosition.x <= playerTile.x and gridPosition.y <= playerTile.y and gridPosition.y + GRID_SIZE > playerTile.x and gridPosition.y + GRID_SIZE > playerTile.y) {
+    if (gridPosition.x <= playerTile.x and gridPosition.y <= playerTile.y and gridPosition.x + GRID_SIZE > playerTile.x and gridPosition.y + GRID_SIZE > playerTile.y) {
         try executeGridTile(player, state);
         return;
     }
@@ -209,6 +209,7 @@ pub fn startShoppingPhase(state: *main.GameState) !void {
     mapTileZig.resetMapTiles(state.mapData.tiles);
     bossZig.clearBosses(state);
     try randomizeShop(state);
+    try playerZig.setupPlayerPieceShopAreas(state);
     for (state.players.items) |*player| {
         player.shop.gridDisplayPiece = null;
         player.shop.selectedOption = .none;
@@ -217,8 +218,28 @@ pub fn startShoppingPhase(state: *main.GameState) !void {
         player.position.y = @as(f32, @floatFromInt(player.shop.pieceShopTopLeft.y + GRID_SIZE / 2)) * main.TILESIZE;
         try movePieceZig.resetPieces(player, true, state);
     }
-    try mapTileZig.setMapRadius(5, 5, state);
+    try setShopMapRadius(state);
     main.adjustZoom(state);
+}
+
+pub fn setShopMapRadius(state: *main.GameState) anyerror!void {
+    if (state.players.items.len == 1) {
+        try mapTileZig.setMapRadius(5, 5, state);
+        return;
+    }
+    var left: i32 = 0;
+    var right: i32 = 0;
+    var top: i32 = 0;
+    var bottom: i32 = 0;
+    for (state.players.items) |*player| {
+        if (player.shop.pieceShopTopLeft.x < left) left = player.shop.pieceShopTopLeft.x;
+        if (player.shop.pieceShopTopLeft.x + GRID_SIZE > right) right = player.shop.pieceShopTopLeft.x + GRID_SIZE;
+        if (player.shop.pieceShopTopLeft.y < top) top = player.shop.pieceShopTopLeft.y;
+        if (player.shop.pieceShopTopLeft.y + GRID_SIZE > bottom) bottom = player.shop.pieceShopTopLeft.y + GRID_SIZE;
+    }
+    const width: u32 = @max(@as(u32, @intCast(right)), @abs(left));
+    const height: u32 = @max(@as(u32, @intCast(bottom)), @abs(top));
+    try mapTileZig.setMapRadius(width, height, state);
 }
 
 pub fn randomizeShop(state: *main.GameState) !void {
