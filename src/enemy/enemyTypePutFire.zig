@@ -57,11 +57,12 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
     } else {
         data.moveDirection = std.crypto.random.int(u2);
         const stepDirection = movePieceZig.getStepDirection(data.moveDirection);
-        const border: f32 = @floatFromInt(state.mapData.tileRadius * main.TILESIZE);
-        if (stepDirection.x < 0 and enemy.position.x > -border or
-            stepDirection.x > 0 and enemy.position.x < border or
-            stepDirection.y < 0 and enemy.position.y > -border or
-            stepDirection.y > 0 and enemy.position.y < border)
+        const borderX: f32 = @floatFromInt(state.mapData.tileRadiusWidth * main.TILESIZE);
+        const borderY: f32 = @floatFromInt(state.mapData.tileRadiusHeight * main.TILESIZE);
+        if (stepDirection.x < 0 and enemy.position.x > -borderX or
+            stepDirection.x > 0 and enemy.position.x < borderX or
+            stepDirection.y < 0 and enemy.position.y > -borderY or
+            stepDirection.y > 0 and enemy.position.y < borderY)
         {
             data.nextMoveTime = state.gameTime + data.delay;
         }

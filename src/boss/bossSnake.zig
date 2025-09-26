@@ -67,7 +67,7 @@ fn startBoss(state: *main.GameState) !void {
         snakeBoss.typeData.snake.moveInterval = @divFloor(snakeBoss.typeData.snake.moveInterval, @as(i32, @intCast(state.newGamePlus + 1)));
     }
     try state.bosses.append(snakeBoss);
-    try mapTileZig.setMapRadius(6, state);
+    try mapTileZig.setMapRadius(6, 6, state);
     main.adjustZoom(state);
 }
 
@@ -100,17 +100,18 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
         snakeData.nextMoveTime = state.gameTime + snakeData.moveInterval;
         var isNextDirectionValied = false;
         const lastDirection = snakeData.nextMoveDirection;
-        const border: f32 = @floatFromInt(state.mapData.tileRadius * main.TILESIZE);
+        const borderX: f32 = @floatFromInt(state.mapData.tileRadiusWidth * main.TILESIZE);
+        const borderY: f32 = @floatFromInt(state.mapData.tileRadiusHeight * main.TILESIZE);
         while (!isNextDirectionValied) {
             snakeData.nextMoveDirection = std.crypto.random.int(u2);
             if (lastDirection == @mod(snakeData.nextMoveDirection + 2, 4)) {
                 snakeData.nextMoveDirection = lastDirection; // double probablily for keeping direciton, but no 180 turns
             }
             const nextStepDirection = movePieceZig.getStepDirection(snakeData.nextMoveDirection);
-            isNextDirectionValied = nextStepDirection.x < 0 and boss.position.x > -border or
-                nextStepDirection.x > 0 and boss.position.x < border or
-                nextStepDirection.y < 0 and boss.position.y > -border or
-                nextStepDirection.y > 0 and boss.position.y < border;
+            isNextDirectionValied = nextStepDirection.x < 0 and boss.position.x > -borderX or
+                nextStepDirection.x > 0 and boss.position.x < borderX or
+                nextStepDirection.y < 0 and boss.position.y > -borderY or
+                nextStepDirection.y > 0 and boss.position.y < borderY;
         }
     }
 }

@@ -17,7 +17,8 @@ pub const MapType = enum {
 pub const MapData = struct {
     paintData: PaintData = .{},
     tiles: []MapTileType,
-    tileRadius: u32,
+    tileRadiusWidth: u32,
+    tileRadiusHeight: u32,
     mapType: MapType = .default,
 };
 
@@ -56,7 +57,8 @@ pub fn createMapData(allocator: std.mem.Allocator) !MapData {
     const tiles = try allocator.alloc(MapTileType, tileLength * tileLength);
     resetMapTiles(tiles);
     return MapData{
-        .tileRadius = BASE_MAP_TILE_RADIUS,
+        .tileRadiusWidth = BASE_MAP_TILE_RADIUS,
+        .tileRadiusHeight = BASE_MAP_TILE_RADIUS,
         .tiles = tiles,
     };
 }
@@ -66,13 +68,13 @@ pub fn deinit(state: *main.GameState) void {
 }
 
 pub fn getMapTilePositionType(tile: main.TilePosition, mapData: *MapData) MapTileType {
-    const index = tilePositionToTileIndex(tile, mapData.tileRadius);
+    const index = tilePositionToTileIndex(tile, mapData);
     if (index == null or index.? >= mapData.tiles.len) return .normal;
     return mapData.tiles[index.?];
 }
 
 pub fn setMapTilePositionType(tile: main.TilePosition, tileType: MapTileType, mapData: *MapData, checkReachable: bool, state: *main.GameState) void {
-    const index = tilePositionToTileIndex(tile, mapData.tileRadius);
+    const index = tilePositionToTileIndex(tile, mapData);
     if (index == null or index.? >= mapData.tiles.len) return;
     mapData.tiles[index.?] = tileType;
     if (checkReachable and !state.verifyMapData.checkReachable) {
@@ -80,35 +82,39 @@ pub fn setMapTilePositionType(tile: main.TilePosition, tileType: MapTileType, ma
     }
 }
 
-fn tilePositionToTileIndex(tilePosition: main.TilePosition, tileRadius: u32) ?usize {
-    const iTileRadius = @as(i32, @intCast(tileRadius));
-    const tileLength = (tileRadius * 2 + 1);
-    if (@abs(tilePosition.x) > iTileRadius) return null;
-    if (@abs(tilePosition.y) > iTileRadius) return null;
-    return @as(u32, @intCast(tilePosition.x + iTileRadius)) + @as(u32, @intCast(tilePosition.y + iTileRadius)) * tileLength;
+fn tilePositionToTileIndex(tilePosition: main.TilePosition, mapData: *MapData) ?usize {
+    const iTileRadiusWidth = @as(i32, @intCast(mapData.tileRadiusWidth));
+    const iTileRadiusHeight = @as(i32, @intCast(mapData.tileRadiusHeight));
+    const tileWidth = (mapData.tileRadiusWidth * 2 + 1);
+    if (@abs(tilePosition.x) > iTileRadiusWidth) return null;
+    if (@abs(tilePosition.y) > iTileRadiusHeight) return null;
+    return @as(u32, @intCast(tilePosition.x + iTileRadiusWidth)) + @as(u32, @intCast(tilePosition.y + iTileRadiusHeight)) * tileWidth;
 }
 
-fn tileIndexToTilePosition(tileIndex: usize, tileRadius: u32) main.TilePosition {
-    const iTileRadius = @as(i32, @intCast(tileRadius));
-    const tileLength = (tileRadius * 2 + 1);
+fn tileIndexToTilePosition(tileIndex: usize, mapData: *MapData) main.TilePosition {
+    const iTileRadiusWidth = @as(i32, @intCast(mapData.tileRadiusWidth));
+    const iTileRadiusHeight = @as(i32, @intCast(mapData.tileRadiusHeight));
+    const tileLength = (mapData.tileRadiusWidth * 2 + 1);
     return main.TilePosition{
-        .x = @as(i32, @intCast(@mod(tileIndex, tileLength))) - iTileRadius,
-        .y = @as(i32, @intCast(@divFloor(tileIndex, tileLength))) - iTileRadius,
+        .x = @as(i32, @intCast(@mod(tileIndex, tileLength))) - iTileRadiusWidth,
+        .y = @as(i32, @intCast(@divFloor(tileIndex, tileLength))) - iTileRadiusHeight,
     };
 }
 
-pub fn setMapRadius(tileRadius: u32, state: *main.GameState) !void {
-    if (tileRadius == state.mapData.tileRadius) return;
-    const tileLength = (tileRadius * 2 + 1);
-    const tiles = try state.allocator.alloc(MapTileType, tileLength * tileLength);
+pub fn setMapRadius(tileRadiusWidth: u32, tileRadiusHeight: u32, state: *main.GameState) !void {
+    if (tileRadiusWidth == state.mapData.tileRadiusWidth and tileRadiusHeight == state.mapData.tileRadiusHeight) return;
+    const tileWidth = (tileRadiusWidth * 2 + 1);
+    const tileHeight = (tileRadiusHeight * 2 + 1);
+    const tiles = try state.allocator.alloc(MapTileType, tileWidth * tileHeight);
     resetMapTiles(tiles);
     for (0..state.mapData.tiles.len) |oldTileIndex| {
-        const tilePosition = tileIndexToTilePosition(oldTileIndex, state.mapData.tileRadius);
-        const newTileIndex = tilePositionToTileIndex(tilePosition, tileRadius);
+        const tilePosition = tileIndexToTilePosition(oldTileIndex, &state.mapData);
+        const newTileIndex = tilePositionToTileIndex(tilePosition, &state.mapData);
         if (newTileIndex == null or newTileIndex.? >= tiles.len) continue;
         tiles[newTileIndex.?] = state.mapData.tiles[oldTileIndex];
     }
-    state.mapData.tileRadius = tileRadius;
+    state.mapData.tileRadiusWidth = tileRadiusWidth;
+    state.mapData.tileRadiusHeight = tileRadiusHeight;
     state.allocator.free(state.mapData.tiles);
     state.mapData.tiles = tiles;
 }
@@ -126,7 +132,7 @@ pub fn setupVertices(state: *main.GameState) void {
     const height = onePixelYInVulkan * main.TILESIZE * state.camera.zoom;
     for (0..state.mapData.tiles.len) |i| {
         const tileType = state.mapData.tiles[i];
-        const tilePosition = tileIndexToTilePosition(i, state.mapData.tileRadius);
+        const tilePosition = tileIndexToTilePosition(i, &state.mapData);
         const tileGamePosition: main.Position = .{
             .x = @floatFromInt(tilePosition.x * main.TILESIZE),
             .y = @floatFromInt(tilePosition.y * main.TILESIZE),
@@ -155,10 +161,10 @@ pub fn setupVertices(state: *main.GameState) void {
 fn stoneWallVertices(state: *main.GameState) void {
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-    const iRadius: i32 = @intCast(state.mapData.tileRadius);
-    const platformGameBottom: f32 = @floatFromInt((state.mapData.tileRadius + 1) * main.TILESIZE);
-    const platformGameLeft: f32 = @floatFromInt(-iRadius * main.TILESIZE);
-    const platformGameRight: f32 = @floatFromInt((state.mapData.tileRadius + 1) * main.TILESIZE);
+    const iRadiusWidth: i32 = @intCast(state.mapData.tileRadiusWidth);
+    const platformGameBottom: f32 = @floatFromInt((state.mapData.tileRadiusHeight + 1) * main.TILESIZE);
+    const platformGameLeft: f32 = @floatFromInt(-iRadiusWidth * main.TILESIZE);
+    const platformGameRight: f32 = @floatFromInt((state.mapData.tileRadiusWidth + 1) * main.TILESIZE);
 
     const platformVulkanBottom: f32 = (-state.camera.position.y + platformGameBottom - main.TILESIZE / 2) * state.camera.zoom * onePixelYInVulkan;
     const platformVulkanLeft: f32 = (-state.camera.position.x + platformGameLeft - main.TILESIZE / 2) * state.camera.zoom * onePixelXInVulkan;

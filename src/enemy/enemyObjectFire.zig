@@ -105,7 +105,7 @@ fn shouldBeRemoved(object: *enemyObjectZig.EnemyObject, state: *main.GameState) 
     if (fire.removeTime == null) {
         if (fire.flyToPosition != null) return false;
         const tilePos = main.gamePositionToTilePosition(object.position);
-        return @abs(tilePos.x) > state.mapData.tileRadius or @abs(tilePos.y) > state.mapData.tileRadius;
+        return @abs(tilePos.x) > state.mapData.tileRadiusWidth or @abs(tilePos.y) > state.mapData.tileRadiusHeight;
     }
     return fire.removeTime.? <= state.gameTime;
 }

@@ -102,16 +102,19 @@ pub fn drawFrame(state: *main.GameState) !void {
 fn verticesForSuddenDeathFire(state: *main.GameState) void {
     if (state.suddenDeath == 0) return;
     const animatePerCent: f32 = @mod(@as(f32, @floatFromInt(state.gameTime)) / 500, 1);
-    const insideSize = state.mapData.tileRadius * 2 + 3;
+    const insideWidth = state.mapData.tileRadiusWidth * 2 + 3;
+    const insideHeight = state.mapData.tileRadiusHeight * 2 + 3;
     const fireTileSize = 3;
-    const outsideSize = insideSize + fireTileSize * 2;
-    const fRadius: f32 = @floatFromInt(@divFloor(outsideSize, 2));
-    for (0..outsideSize) |i| {
-        for (0..outsideSize) |j| {
-            if (i >= fireTileSize and i <= outsideSize - fireTileSize - 1 and j >= fireTileSize and j <= outsideSize - fireTileSize - 1) continue;
+    const outsideWidth = insideWidth + fireTileSize * 2;
+    const outsideHeight = insideHeight + fireTileSize * 2;
+    const fRadiusWidth: f32 = @floatFromInt(@divFloor(outsideWidth, 2));
+    const fRadiusHeight: f32 = @floatFromInt(@divFloor(outsideHeight, 2));
+    for (0..outsideWidth) |i| {
+        for (0..outsideHeight) |j| {
+            if (i >= fireTileSize and i <= outsideWidth - fireTileSize - 1 and j >= fireTileSize and j <= outsideHeight - fireTileSize - 1) continue;
             const pos: main.Position = .{
-                .x = (@as(f32, @floatFromInt(i)) - fRadius) * main.TILESIZE,
-                .y = (@as(f32, @floatFromInt(j)) - fRadius) * main.TILESIZE,
+                .x = (@as(f32, @floatFromInt(i)) - fRadiusWidth) * main.TILESIZE,
+                .y = (@as(f32, @floatFromInt(j)) - fRadiusHeight) * main.TILESIZE,
             };
             const shopTrigger = shopZig.getShopEarlyTriggerPosition(state);
             if (main.isTilePositionInTileRectangle(main.gamePositionToTilePosition(pos), shopTrigger)) {

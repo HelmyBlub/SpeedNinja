@@ -278,24 +278,27 @@ fn suddenDeath(state: *GameState) !void {
     const spawnInterval = 1050;
     if (@divFloor(overTime, spawnInterval) >= state.suddenDeath) {
         state.suddenDeath += 1;
-        const size = state.mapData.tileRadius * 2 + 3;
-        const fRadius: f32 = @floatFromInt(state.mapData.tileRadius + 1);
-        const fillWidth = @min(state.suddenDeath - 1, @divFloor(size, 2) + 1);
+        const width = state.mapData.tileRadiusWidth * 2 + 3;
+        const height = state.mapData.tileRadiusHeight * 2 + 3;
+        const fWidth: f32 = @floatFromInt(state.mapData.tileRadiusWidth + 1);
+        const fHeight: f32 = @floatFromInt(state.mapData.tileRadiusHeight + 1);
+        const fillWidth = @min(state.suddenDeath - 1, @divFloor(width, 2) + 1);
+        const fillHeight = @min(state.suddenDeath - 1, @divFloor(height, 2) + 1);
         if (state.suddenDeath > 1) {
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BALL_GROUND_INDICIES[0..], 0, 1);
         }
-        for (0..size) |i| {
-            for (0..size) |j| {
-                if (i > fillWidth and i < size - fillWidth - 1 and j > fillWidth and j < size - fillWidth - 1) continue;
-                const x: f32 = (@as(f32, @floatFromInt(i)) - fRadius) * TILESIZE;
-                const y: f32 = (@as(f32, @floatFromInt(j)) - fRadius) * TILESIZE;
+        for (0..width) |i| {
+            for (0..height) |j| {
+                if (i > fillWidth and i < width - fillWidth - 1 and j > fillHeight and j < height - fillWidth - 1) continue;
+                const x: f32 = (@as(f32, @floatFromInt(i)) - fWidth) * TILESIZE;
+                const y: f32 = (@as(f32, @floatFromInt(j)) - fHeight) * TILESIZE;
                 try enemyObjectFallDownZig.spawnFallDown(.{ .x = x, .y = y }, spawnInterval, false, state);
             }
         }
     }
     for (state.players.items) |*player| {
         const playerTile = gamePositionToTilePosition(player.position);
-        if (@abs(playerTile.x) > state.mapData.tileRadius + 1 or @abs(playerTile.y) > state.mapData.tileRadius + 1) {
+        if (@abs(playerTile.x) > state.mapData.tileRadiusWidth + 1 or @abs(playerTile.y) > state.mapData.tileRadiusHeight + 1) {
             try playerZig.playerHit(player, state);
         }
     }
@@ -518,8 +521,8 @@ pub fn restart(state: *GameState, newGamePlus: u32) anyerror!void {
 
 pub fn adjustZoom(state: *GameState) void {
     const stairsAdditionTileWidth: u32 = if (state.gamePhase == .combat) 3 else 0;
-    const mapSizeWidth: f32 = @floatFromInt((state.mapData.tileRadius * 2 + 1 + stairsAdditionTileWidth) * TILESIZE);
-    const mapSizeHeight: f32 = @floatFromInt((state.mapData.tileRadius * 2 + 1) * TILESIZE);
+    const mapSizeWidth: f32 = @floatFromInt((state.mapData.tileRadiusWidth * 2 + 1 + stairsAdditionTileWidth) * TILESIZE);
+    const mapSizeHeight: f32 = @floatFromInt((state.mapData.tileRadiusHeight * 2 + 1) * TILESIZE);
     const targetMapScreenPerCent = state.uxData.gameVulkanArea.width / 2;
     const widthPerCent = mapSizeWidth / windowSdlZig.windowData.widthFloat;
     const heightPerCent = mapSizeHeight / windowSdlZig.windowData.heightFloat;

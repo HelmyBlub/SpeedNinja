@@ -86,7 +86,7 @@ fn startBoss(state: *main.GameState) !void {
         boss.typeData.waller.bombExplodeDelay = @divFloor(boss.typeData.waller.bombExplodeDelay, @as(i32, @intCast(state.newGamePlus + 1)));
     }
     try state.bosses.append(boss);
-    try mapTileZig.setMapRadius(6, state);
+    try mapTileZig.setMapRadius(6, 6, state);
     main.adjustZoom(state);
 }
 
@@ -116,14 +116,17 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     if (data.bombNextTime != null) {
         if (data.bombNextTime.? <= state.gameTime) {
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_THROW_INDICIES[0..], 0, 0.5 / @as(f32, @floatFromInt(state.newGamePlus + 1)));
-            var tileRadius = state.mapData.tileRadius;
+            var tileRadiusX = state.mapData.tileRadiusWidth;
+            var tileRadiusY = state.mapData.tileRadiusHeight;
             if (data.counterForNoneCloseBombs > 4) {
-                tileRadius = 1;
+                tileRadiusX = 1;
+                tileRadiusY = 1;
             }
 
-            const length: f32 = @floatFromInt(tileRadius * 2 + 1);
-            const randomTileX: i16 = @as(i16, @intFromFloat(std.crypto.random.float(f32) * length - length / 2));
-            const randomTileY: i16 = @as(i16, @intFromFloat(std.crypto.random.float(f32) * length - length / 2));
+            const lengthX: f32 = @floatFromInt(tileRadiusX * 2 + 1);
+            const lengthY: f32 = @floatFromInt(tileRadiusY * 2 + 1);
+            const randomTileX: i16 = @as(i16, @intFromFloat(std.crypto.random.float(f32) * lengthX - lengthX / 2));
+            const randomTileY: i16 = @as(i16, @intFromFloat(std.crypto.random.float(f32) * lengthY - lengthY / 2));
             const randomPos: main.Position = .{
                 .x = @floatFromInt(randomTileX * main.TILESIZE),
                 .y = @floatFromInt(randomTileY * main.TILESIZE),

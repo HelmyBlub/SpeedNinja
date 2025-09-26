@@ -101,7 +101,7 @@ fn startBoss(state: *main.GameState) !void {
     };
     scaleBossToNewGamePlus(&boss3.typeData.tripple, state.newGamePlus);
     try state.bosses.append(boss3);
-    try mapTileZig.setMapRadius(6, state);
+    try mapTileZig.setMapRadius(6, 6, state);
     main.adjustZoom(state);
 }
 
@@ -253,9 +253,10 @@ fn getRandomFreePosition(state: *main.GameState) main.Position {
     var randomPos: main.Position = .{ .x = 0, .y = 0 };
     var validPosition = false;
     searchPos: while (!validPosition) {
-        const mapTileRadiusI32 = @as(i32, @intCast(state.mapData.tileRadius));
-        randomPos.x = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusI32, mapTileRadiusI32) * main.TILESIZE);
-        randomPos.y = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusI32, mapTileRadiusI32) * main.TILESIZE);
+        const mapTileRadiusXI32 = @as(i32, @intCast(state.mapData.tileRadiusWidth));
+        const mapTileRadiusYI32 = @as(i32, @intCast(state.mapData.tileRadiusHeight));
+        randomPos.x = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusXI32, mapTileRadiusXI32) * main.TILESIZE);
+        randomPos.y = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusYI32, mapTileRadiusYI32) * main.TILESIZE);
         for (state.bosses.items) |bossSingle| {
             if (main.calculateDistance(randomPos, bossSingle.position) < main.TILESIZE * 3) {
                 continue :searchPos;

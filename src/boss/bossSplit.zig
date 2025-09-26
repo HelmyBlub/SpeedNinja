@@ -77,7 +77,7 @@ fn startBoss(state: *main.GameState) !void {
         scaleSplitToNewGamePlus(&boss.typeData.split.splits.items[0], state.newGamePlus);
     }
     try state.bosses.append(boss);
-    try mapTileZig.setMapRadius(6, state);
+    try mapTileZig.setMapRadius(6, 6, state);
     main.adjustZoom(state);
 }
 
@@ -227,9 +227,10 @@ fn getRandomFlyToPosition(splitData: *BossSplitData, state: *main.GameState) mai
     var randomPos: main.Position = .{ .x = 0, .y = 0 };
     var validPosition = false;
     searchPos: while (!validPosition) {
-        const mapTileRadiusI32 = @as(i32, @intCast(state.mapData.tileRadius));
-        randomPos.x = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusI32, mapTileRadiusI32) * main.TILESIZE);
-        randomPos.y = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusI32, mapTileRadiusI32) * main.TILESIZE);
+        const mapTileRadiusXI32 = @as(i32, @intCast(state.mapData.tileRadiusWidth));
+        const mapTileRadiusYI32 = @as(i32, @intCast(state.mapData.tileRadiusHeight));
+        randomPos.x = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusXI32, mapTileRadiusXI32) * main.TILESIZE);
+        randomPos.y = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusYI32, mapTileRadiusYI32) * main.TILESIZE);
         for (splitData.splits.items) |bossSplit| {
             var splitPosition = bossSplit.position;
             if (bossSplit.inAir) {

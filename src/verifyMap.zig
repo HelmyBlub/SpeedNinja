@@ -29,30 +29,33 @@ pub fn checkAndModifyMapIfNotEverythingReachable(state: *main.GameState) !void {
         if (state.mapData.tiles[index] == .ice) value = .notVisitedIce;
         mapData[index] = value;
     }
-    const mapSize = state.mapData.tileRadius * 2 + 1;
+    const mapWidth = state.mapData.tileRadiusWidth * 2 + 1;
+    const mapHeight = state.mapData.tileRadiusHeight * 2 + 1;
     var openNodes: std.ArrayList(usize) = std.ArrayList(usize).init(state.allocator);
     defer openNodes.deinit();
-    for (0..mapSize) |index| {
+    for (0..mapWidth) |index| {
         try appendNodeIndex(mapData, index, .{ .x = 0, .y = 1 }, &openNodes, state);
         const bottomRowIndex = mapData.len - index - 1;
         try appendNodeIndex(mapData, bottomRowIndex, .{ .x = 0, .y = -1 }, &openNodes, state);
-        if (index < mapSize - 2) {
-            const leftRowIndex = (index + 1) * mapSize;
+    }
+    if (mapHeight > 2) {
+        for (0..mapHeight - 2) |index| {
+            const leftRowIndex = (index + 1) * mapWidth;
             try appendNodeIndex(mapData, leftRowIndex, .{ .x = 1, .y = 0 }, &openNodes, state);
-            const rightRowIndex = (mapSize - index - 1) * mapSize - 1;
+            const rightRowIndex = (mapHeight - index - 1) * mapWidth - 1;
             try appendNodeIndex(mapData, rightRowIndex, .{ .x = -1, .y = 0 }, &openNodes, state);
         }
     }
 
-    try handleOpenNodes(mapData, &openNodes, mapSize, state);
+    try handleOpenNodes(mapData, &openNodes, mapWidth, mapHeight, state);
     for (mapData, 0..) |data, index| {
         if (data == .notVisited or data == .notVisitedIce) {
-            try fixUnreachableIndex(mapData, index, mapSize, &openNodes, state);
+            try fixUnreachableIndex(mapData, index, mapWidth, mapHeight, &openNodes, state);
         }
     }
 }
 
-fn fixUnreachableIndex(mapData: []SearchDataTypes, index: usize, mapSize: u32, openNodes: *std.ArrayList(usize), state: *main.GameState) !void {
+fn fixUnreachableIndex(mapData: []SearchDataTypes, index: usize, mapWidth: u32, mapHeight: u32, openNodes: *std.ArrayList(usize), state: *main.GameState) !void {
     const neigborsStepDirections: [4]main.TilePosition = .{
         .{ .x = 0, .y = -1 },
         .{ .x = 1, .y = 0 },
@@ -60,11 +63,11 @@ fn fixUnreachableIndex(mapData: []SearchDataTypes, index: usize, mapSize: u32, o
         .{ .x = -1, .y = 0 },
     };
     for (neigborsStepDirections) |neighborOffset| {
-        if (neighborOffset.x < 0 and @mod(index, mapSize) == 0) continue;
-        if (neighborOffset.x > 0 and @mod(index, mapSize) == mapSize - 1) continue;
-        if (neighborOffset.y < 0 and index < mapSize) continue;
-        if (neighborOffset.y > 0 and index >= mapData.len - mapSize) continue;
-        const movedIndex = @as(u32, @intCast(@as(i32, @intCast(index)) + neighborOffset.x + neighborOffset.y * @as(i32, @intCast(mapSize))));
+        if (neighborOffset.x < 0 and @mod(index, mapWidth) == 0) continue;
+        if (neighborOffset.x > 0 and @mod(index, mapWidth) == mapWidth - 1) continue;
+        if (neighborOffset.y < 0 and index < mapWidth) continue;
+        if (neighborOffset.y > 0 and index >= mapData.len - mapWidth) continue;
+        const movedIndex = @as(u32, @intCast(@as(i32, @intCast(index)) + neighborOffset.x + neighborOffset.y * @as(i32, @intCast(mapWidth))));
         switch (mapData[movedIndex]) {
             .visitedIceSliding => {
                 mapData[movedIndex] = .visited;
@@ -77,11 +80,11 @@ fn fixUnreachableIndex(mapData: []SearchDataTypes, index: usize, mapSize: u32, o
                 state.mapData.tiles[movedIndex] = .normal;
                 var wallRemovalMadeIndexAccessible = false;
                 for (neigborsStepDirections) |neighborOffset2| {
-                    if (neighborOffset2.x < 0 and @mod(movedIndex, mapSize) == 0) continue;
-                    if (neighborOffset2.x > 0 and @mod(movedIndex, mapSize) == mapSize - 1) continue;
-                    if (neighborOffset2.y < 0 and movedIndex < mapSize) continue;
-                    if (neighborOffset2.y > 0 and movedIndex >= mapData.len - mapSize) continue;
-                    const movedIndex2 = @as(u32, @intCast(@as(i32, @intCast(movedIndex)) + neighborOffset2.x + neighborOffset2.y * @as(i32, @intCast(mapSize))));
+                    if (neighborOffset2.x < 0 and @mod(movedIndex, mapWidth) == 0) continue;
+                    if (neighborOffset2.x > 0 and @mod(movedIndex, mapWidth) == mapWidth - 1) continue;
+                    if (neighborOffset2.y < 0 and movedIndex < mapWidth) continue;
+                    if (neighborOffset2.y > 0 and movedIndex >= mapData.len - mapWidth) continue;
+                    const movedIndex2 = @as(u32, @intCast(@as(i32, @intCast(movedIndex)) + neighborOffset2.x + neighborOffset2.y * @as(i32, @intCast(mapWidth))));
                     if (mapData[movedIndex2] == .visited or mapData[movedIndex2] == .visitedIceStationary) {
                         wallRemovalMadeIndexAccessible = true;
                         try openNodes.append(movedIndex2);
@@ -89,40 +92,40 @@ fn fixUnreachableIndex(mapData: []SearchDataTypes, index: usize, mapSize: u32, o
                     }
                 }
                 if (!wallRemovalMadeIndexAccessible) {
-                    try fixUnreachableIndex(mapData, movedIndex, mapSize, openNodes, state);
+                    try fixUnreachableIndex(mapData, movedIndex, mapWidth, mapHeight, openNodes, state);
                 }
                 break;
             },
             else => {},
         }
     }
-    try handleOpenNodes(mapData, openNodes, mapSize, state);
+    try handleOpenNodes(mapData, openNodes, mapWidth, mapHeight, state);
 }
 
-fn handleOpenNodes(mapData: []SearchDataTypes, openNodes: *std.ArrayList(usize), mapSize: u32, state: *main.GameState) !void {
+fn handleOpenNodes(mapData: []SearchDataTypes, openNodes: *std.ArrayList(usize), mapWidth: u32, mapHeight: u32, state: *main.GameState) !void {
     while (openNodes.items.len > 0) {
         const currentNodeIndex = openNodes.swapRemove(0);
-        if (@mod(currentNodeIndex, mapSize) > 0) {
+        if (@mod(currentNodeIndex, mapWidth) > 0) {
             const leftIndex = currentNodeIndex - 1;
             try appendNodeIndex(mapData, leftIndex, .{ .x = -1, .y = 0 }, openNodes, state);
         }
-        if (@mod(currentNodeIndex, mapSize) < mapSize - 1) {
+        if (@mod(currentNodeIndex, mapWidth) < mapWidth - 1) {
             const rightIndex = currentNodeIndex + 1;
             try appendNodeIndex(mapData, rightIndex, .{ .x = 1, .y = 0 }, openNodes, state);
         }
-        if (@divFloor(currentNodeIndex, mapSize) > 0) {
-            const upIndex = currentNodeIndex - mapSize;
+        if (@divFloor(currentNodeIndex, mapWidth) > 0) {
+            const upIndex = currentNodeIndex - mapWidth;
             try appendNodeIndex(mapData, upIndex, .{ .x = 0, .y = -1 }, openNodes, state);
         }
-        if (@divFloor(currentNodeIndex, mapSize) < mapSize - 1) {
-            const downIndex = currentNodeIndex + mapSize;
+        if (@divFloor(currentNodeIndex, mapWidth) < mapHeight - 1) {
+            const downIndex = currentNodeIndex + mapWidth;
             try appendNodeIndex(mapData, downIndex, .{ .x = 0, .y = 1 }, openNodes, state);
         }
     }
 }
 
 fn appendNodeIndex(mapData: []SearchDataTypes, index: usize, stepDirection: main.TilePosition, openNodes: *std.ArrayList(usize), state: *main.GameState) !void {
-    const mapSize = state.mapData.tileRadius * 2 + 1;
+    const mapWidth = state.mapData.tileRadiusWidth * 2 + 1;
     switch (mapData[index]) {
         .notVisited => {
             try openNodes.append(index);
@@ -134,11 +137,11 @@ fn appendNodeIndex(mapData: []SearchDataTypes, index: usize, stepDirection: main
             while (mapData[movedIndex] == .notVisitedIce or mapData[movedIndex] == .visitedIceSliding) {
                 previous = movedIndex;
                 mapData[movedIndex] = .visitedIceSliding;
-                if (stepDirection.x < 0 and @mod(movedIndex, mapSize) == 0) return;
-                if (stepDirection.x > 0 and @mod(movedIndex, mapSize) == mapSize - 1) return;
-                if (stepDirection.y < 0 and movedIndex < mapSize) return;
-                if (stepDirection.y > 0 and movedIndex >= mapData.len - mapSize) return;
-                movedIndex = @as(u32, @intCast(@as(i32, @intCast(movedIndex)) + stepDirection.x + stepDirection.y * @as(i32, @intCast(mapSize))));
+                if (stepDirection.x < 0 and @mod(movedIndex, mapWidth) == 0) return;
+                if (stepDirection.x > 0 and @mod(movedIndex, mapWidth) == mapWidth - 1) return;
+                if (stepDirection.y < 0 and movedIndex < mapWidth) return;
+                if (stepDirection.y > 0 and movedIndex >= mapData.len - mapWidth) return;
+                movedIndex = @as(u32, @intCast(@as(i32, @intCast(movedIndex)) + stepDirection.x + stepDirection.y * @as(i32, @intCast(mapWidth))));
             }
             switch (mapData[movedIndex]) {
                 .notVisited => {

@@ -265,12 +265,14 @@ pub fn setupEnemies(state: *main.GameState) !void {
     const rand = std.crypto.random;
     const enemyCountForLevel = @min(5, (@divFloor(state.level - 1, 2) + state.newGamePlus));
     const enemyCount = (state.round + enemyCountForLevel) * state.players.items.len;
-    const mapTileRadius = mapTileZig.BASE_MAP_TILE_RADIUS + @as(u32, @intFromFloat(@sqrt(@as(f32, @floatFromInt(enemyCount)))));
-    try mapTileZig.setMapRadius(mapTileRadius, state);
-    const length: f32 = @floatFromInt(state.mapData.tileRadius * 2 + 1);
+    const mapTileRadiusWidth = mapTileZig.BASE_MAP_TILE_RADIUS + @as(u32, @intFromFloat(@sqrt(@as(f32, @floatFromInt(enemyCount)))));
+    const mapTileRadiusHeight = mapTileRadiusWidth;
+    try mapTileZig.setMapRadius(mapTileRadiusWidth, mapTileRadiusHeight, state);
+    const lengthX: f32 = @floatFromInt(state.mapData.tileRadiusWidth * 2 + 1);
+    const lengthY: f32 = @floatFromInt(state.mapData.tileRadiusHeight * 2 + 1);
     while (enemies.items.len < enemyCount) {
-        const randomTileX: i16 = @as(i16, @intFromFloat(rand.float(f32) * length - length / 2));
-        const randomTileY: i16 = @as(i16, @intFromFloat(rand.float(f32) * length - length / 2));
+        const randomTileX: i16 = @as(i16, @intFromFloat(rand.float(f32) * lengthX - lengthX / 2));
+        const randomTileY: i16 = @as(i16, @intFromFloat(rand.float(f32) * lengthY - lengthY / 2));
         const randomPos: main.Position = .{
             .x = @floatFromInt(randomTileX * main.TILESIZE),
             .y = @floatFromInt(randomTileY * main.TILESIZE),

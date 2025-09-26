@@ -66,7 +66,7 @@ fn startBoss(state: *main.GameState) !void {
         boss.typeData.rotate.attackInterval = @divFloor(boss.typeData.rotate.attackInterval, @as(i32, @intCast(state.newGamePlus + 1)));
     }
     try state.bosses.append(boss);
-    try mapTileZig.setMapRadius(6, state);
+    try mapTileZig.setMapRadius(6, 6, state);
     main.adjustZoom(state);
 }
 

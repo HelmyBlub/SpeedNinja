@@ -75,9 +75,10 @@ fn tick(object: *enemyObjectZig.EnemyObject, passedTime: i64, state: *main.GameS
 }
 
 fn shouldBeRemoved(object: *enemyObjectZig.EnemyObject, state: *main.GameState) bool {
-    const despawnRange: f32 = @as(f32, @floatFromInt(state.mapData.tileRadius + 4)) * main.TILESIZE;
-    if (object.position.x < -despawnRange or object.position.x > despawnRange or
-        object.position.y < -despawnRange or object.position.y > despawnRange)
+    const despawnRangeX: f32 = @as(f32, @floatFromInt(state.mapData.tileRadiusWidth + 4)) * main.TILESIZE;
+    const despawnRangeY: f32 = @as(f32, @floatFromInt(state.mapData.tileRadiusHeight + 4)) * main.TILESIZE;
+    if (object.position.x < -despawnRangeX or object.position.x > despawnRangeX or
+        object.position.y < -despawnRangeY or object.position.y > despawnRangeY)
     {
         return true;
     }

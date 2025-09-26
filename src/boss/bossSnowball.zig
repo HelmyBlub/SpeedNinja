@@ -50,7 +50,7 @@ fn startBoss(state: *main.GameState) !void {
         .name = BOSS_NAME,
         .typeData = .{ .snowball = .{} },
     });
-    try mapTileZig.setMapRadius(6, state);
+    try mapTileZig.setMapRadius(6, 6, state);
     main.adjustZoom(state);
 }
 
@@ -82,11 +82,12 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
 }
 
 fn canRollInDirection(boss: *bossZig.Boss, direction: u8, state: *main.GameState) bool {
-    const iMapTileRadius: i32 = @intCast(state.mapData.tileRadius);
+    const iMapTileRadiusWidth: i32 = @intCast(state.mapData.tileRadiusWidth);
+    const iMapTileRadiusHeight: i32 = @intCast(state.mapData.tileRadiusHeight);
     const initialTilePos = main.gamePositionToTilePosition(boss.position);
     const stepDirection = movePieceZig.getStepDirectionTile(direction);
-    if (stepDirection.x > 0 and initialTilePos.x >= iMapTileRadius or stepDirection.x < 0 and initialTilePos.x <= -iMapTileRadius or
-        stepDirection.y > 0 and initialTilePos.y >= iMapTileRadius or stepDirection.y < 0 and initialTilePos.y <= -iMapTileRadius)
+    if (stepDirection.x > 0 and initialTilePos.x >= iMapTileRadiusWidth or stepDirection.x < 0 and initialTilePos.x <= -iMapTileRadiusWidth or
+        stepDirection.y > 0 and initialTilePos.y >= iMapTileRadiusHeight or stepDirection.y < 0 and initialTilePos.y <= -iMapTileRadiusHeight)
     {
         return false;
     }
@@ -134,9 +135,10 @@ fn getRandomFreePosition(state: *main.GameState) main.Position {
     var randomPos: main.Position = .{ .x = 0, .y = 0 };
     var validPosition = false;
     searchPos: while (!validPosition) {
-        const mapTileRadiusI32 = @as(i32, @intCast(state.mapData.tileRadius));
-        randomPos.x = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusI32, mapTileRadiusI32) * main.TILESIZE);
-        randomPos.y = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusI32, mapTileRadiusI32) * main.TILESIZE);
+        const mapTileRadiusXI32 = @as(i32, @intCast(state.mapData.tileRadiusWidth));
+        const mapTileRadiusYI32 = @as(i32, @intCast(state.mapData.tileRadiusHeight));
+        randomPos.x = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusXI32, mapTileRadiusXI32) * main.TILESIZE);
+        randomPos.y = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusYI32, mapTileRadiusYI32) * main.TILESIZE);
         for (state.bosses.items) |boss| {
             if (main.calculateDistance(randomPos, boss.position) < main.TILESIZE * 3) {
                 continue :searchPos;

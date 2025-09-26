@@ -184,7 +184,7 @@ fn startBoss(state: *main.GameState) !void {
     boss.typeData.dragon.newGamePlus = state.newGamePlus;
     boss.typeData.dragon.paint.wingsFlapStarted = state.gameTime;
     boss.typeData.dragon.paint.stopWings = false;
-    try mapTileZig.setMapRadius(6, state);
+    try mapTileZig.setMapRadius(6, 6, state);
     main.adjustZoom(state);
     mapTileZig.setMapType(.top, state);
     try state.bosses.append(boss);
@@ -441,7 +441,7 @@ fn tickWingBlastAction(wingBlastData: *WingBlastData, boss: *bossZig.Boss, passe
                 player.position.x += stepDirection.x * main.TILESIZE;
                 player.position.y += stepDirection.y * main.TILESIZE;
                 const tilePos = main.gamePositionToTilePosition(player.position);
-                if (@abs(tilePos.x) > state.mapData.tileRadius or @abs(tilePos.y) > state.mapData.tileRadius) {
+                if (@abs(tilePos.x) > state.mapData.tileRadiusWidth or @abs(tilePos.y) > state.mapData.tileRadiusHeight) {
                     try playerZig.playerHit(player, state);
                 }
             }
@@ -574,13 +574,13 @@ fn tickTransitionFlyingPhase(flyingData: *TransitionFlyingData, boss: *bossZig.B
             const randomPlayerIndex = std.crypto.random.intRangeLessThan(usize, 0, state.players.items.len);
             switch (flyingData.dragonFlyPositionIndex) {
                 0 => {
-                    const fMapRadius = @as(f32, @floatFromInt(state.mapData.tileRadius * main.TILESIZE));
+                    const fMapRadius = @as(f32, @floatFromInt(state.mapData.tileRadiusHeight * main.TILESIZE));
                     const offsetY: f32 = @max(@min(fMapRadius, state.players.items[randomPlayerIndex].position.y), -fMapRadius);
                     currentTargetPos.y = offsetY;
                 },
                 1 => currentTargetPos.y = boss.position.y,
                 2 => {
-                    const fMapRadius = @as(f32, @floatFromInt(state.mapData.tileRadius * main.TILESIZE));
+                    const fMapRadius = @as(f32, @floatFromInt(state.mapData.tileRadiusWidth * main.TILESIZE));
                     const offsetX: f32 = @max(@min(fMapRadius, state.players.items[randomPlayerIndex].position.x), -fMapRadius);
                     currentTargetPos.x = offsetX;
                 },
@@ -592,12 +592,16 @@ fn tickTransitionFlyingPhase(flyingData: *TransitionFlyingData, boss: *bossZig.B
                 flyingData.dragonFlyPositionIndex += 1;
                 if (flyingData.dragonFlyPositionIndex == 1 or flyingData.dragonFlyPositionIndex == 3) {
                     try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BREATH_IN, 0, 1);
-                    flyingData.fireSpawnTile = @intCast(state.mapData.tileRadius);
+                    if (flyingData.dragonFlyPositionIndex == 1) {
+                        flyingData.fireSpawnTile = @intCast(state.mapData.tileRadiusWidth);
+                    } else {
+                        flyingData.fireSpawnTile = @intCast(state.mapData.tileRadiusHeight);
+                    }
                 }
             }
             const bossTilePos = main.gamePositionToTilePosition(boss.position);
             if (flyingData.dragonFlyPositionIndex == 1) {
-                if (flyingData.fireSpawnTile.? >= bossTilePos.x and -@as(i32, @intCast(state.mapData.tileRadius)) <= flyingData.fireSpawnTile.?) {
+                if (flyingData.fireSpawnTile.? >= bossTilePos.x and -@as(i32, @intCast(state.mapData.tileRadiusWidth)) <= flyingData.fireSpawnTile.?) {
                     flyingData.fireSpawnTile.? -= 1;
                     const flyToPosition = main.tilePositionToGamePosition(main.gamePositionToTilePosition(boss.position));
                     const fireSpawn: main.Position = .{ .x = boss.position.x, .y = boss.position.y };
@@ -618,7 +622,7 @@ fn tickTransitionFlyingPhase(flyingData: *TransitionFlyingData, boss: *bossZig.B
                 }
             }
             if (flyingData.dragonFlyPositionIndex == 3) {
-                if (flyingData.fireSpawnTile.? >= bossTilePos.y and -@as(i32, @intCast(state.mapData.tileRadius)) <= flyingData.fireSpawnTile.?) {
+                if (flyingData.fireSpawnTile.? >= bossTilePos.y and -@as(i32, @intCast(state.mapData.tileRadiusHeight)) <= flyingData.fireSpawnTile.?) {
                     flyingData.fireSpawnTile.? -= 1;
                     const flyToPosition = main.tilePositionToGamePosition(main.gamePositionToTilePosition(boss.position));
                     const fireSpawn: main.Position = .{ .x = boss.position.x, .y = boss.position.y };
@@ -774,12 +778,14 @@ fn tickBodyStomp(stompData: *BodyStompData, boss: *bossZig.Boss, passedTime: i64
 }
 
 fn cutTilesForGroundBreakingEffect(state: *main.GameState) !void {
-    const mapGridSize = state.mapData.tileRadius * 2 + 1;
-    const fMapTileRadius: f32 = @floatFromInt(state.mapData.tileRadius);
-    for (0..mapGridSize) |i| {
-        const x: f32 = (@as(f32, @floatFromInt(i)) - fMapTileRadius) * main.TILESIZE;
-        for (0..mapGridSize) |j| {
-            const y: f32 = (@as(f32, @floatFromInt(j)) - fMapTileRadius) * main.TILESIZE;
+    const mapGridWidth = state.mapData.tileRadiusWidth * 2 + 1;
+    const mapGridHeight = state.mapData.tileRadiusHeight * 2 + 1;
+    const fMapTileRadiusWidth: f32 = @floatFromInt(state.mapData.tileRadiusWidth);
+    const fMapTileRadiusHeight: f32 = @floatFromInt(state.mapData.tileRadiusHeight);
+    for (0..mapGridWidth) |i| {
+        const x: f32 = (@as(f32, @floatFromInt(i)) - fMapTileRadiusWidth) * main.TILESIZE;
+        for (0..mapGridHeight) |j| {
+            const y: f32 = (@as(f32, @floatFromInt(j)) - fMapTileRadiusHeight) * main.TILESIZE;
             try state.spriteCutAnimations.append(.{
                 .deathTime = state.gameTime,
                 .position = .{ .x = x, .y = y + FLYING_TRANSITION_CAMERA_OFFSET_Y },

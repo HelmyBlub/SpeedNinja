@@ -89,7 +89,7 @@ fn startBoss(state: *main.GameState) !void {
         boss.typeData.roll.attackDelay = @divFloor(boss.typeData.roll.attackDelay, @as(i32, @intCast(state.newGamePlus + 1)));
     }
     try state.bosses.append(boss);
-    try mapTileZig.setMapRadius(6, state);
+    try mapTileZig.setMapRadius(6, 6, state);
     main.adjustZoom(state);
 }
 
@@ -120,13 +120,14 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             rollData.state = .executeMovePiece;
             rollData.nextStateTime = state.gameTime + rollData.moveChargeTime;
             const movePiece = rollData.movePieces[rollData.movePieceIndex];
-            const gridBorder: f32 = @floatFromInt(state.mapData.tileRadius * main.TILESIZE);
+            const gridBorderX: f32 = @floatFromInt(state.mapData.tileRadiusWidth * main.TILESIZE);
+            const gridBorderY: f32 = @floatFromInt(state.mapData.tileRadiusHeight * main.TILESIZE);
             var validMovePosition = false;
             while (!validMovePosition) {
                 var bossPositionAfterPiece = boss.position;
                 rollData.moveDirection = std.crypto.random.intRangeLessThan(u8, 0, 4);
                 try movePieceZig.movePositionByPiece(&bossPositionAfterPiece, movePiece, rollData.moveDirection, state);
-                validMovePosition = bossPositionAfterPiece.x >= -gridBorder and bossPositionAfterPiece.x <= gridBorder and bossPositionAfterPiece.y >= -gridBorder and bossPositionAfterPiece.y <= gridBorder;
+                validMovePosition = bossPositionAfterPiece.x >= -gridBorderX and bossPositionAfterPiece.x <= gridBorderX and bossPositionAfterPiece.y >= -gridBorderY and bossPositionAfterPiece.y <= gridBorderY;
             }
 
             try enemyZig.fillMoveAttackWarningTiles(boss.position, &rollData.moveAttackTiles, movePiece, rollData.moveDirection);

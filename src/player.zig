@@ -148,10 +148,11 @@ pub fn movePlayerToLevelSpawnPosition(state: *main.GameState) void {
         .{ .x = 1, .y = 0 },
         .{ .x = -1, .y = 0 },
     };
-    const mapRadius: f32 = @as(f32, @floatFromInt(state.mapData.tileRadius)) * main.TILESIZE;
+    const mapRadiusWidth: f32 = @as(f32, @floatFromInt(state.mapData.tileRadiusWidth)) * main.TILESIZE;
+    const mapRadiusHeight: f32 = @as(f32, @floatFromInt(state.mapData.tileRadiusHeight)) * main.TILESIZE;
     for (state.players.items, 0..) |*player, index| {
-        player.position.x = playerSpawnOffsets[@mod(index, playerSpawnOffsets.len)].x * mapRadius;
-        player.position.y = playerSpawnOffsets[@mod(index, playerSpawnOffsets.len)].y * mapRadius;
+        player.position.x = playerSpawnOffsets[@mod(index, playerSpawnOffsets.len)].x * mapRadiusWidth;
+        player.position.y = playerSpawnOffsets[@mod(index, playerSpawnOffsets.len)].y * mapRadiusHeight;
     }
 }
 

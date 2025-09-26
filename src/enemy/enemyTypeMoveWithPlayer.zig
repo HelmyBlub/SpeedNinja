@@ -56,16 +56,17 @@ fn onPlayerMoved(enemy: *enemyZig.Enemy, player: *playerZig.Player, state: *main
     data.waitCount = 0;
 
     var validDirection: bool = false;
-    const border: f32 = @floatFromInt(state.mapData.tileRadius * main.TILESIZE);
+    const borderX: f32 = @floatFromInt(state.mapData.tileRadiusWidth * main.TILESIZE);
+    const borderY: f32 = @floatFromInt(state.mapData.tileRadiusHeight * main.TILESIZE);
     while (!validDirection) {
         data.direction = std.crypto.random.int(u2);
         const newStepDirection = movePieceZig.getStepDirection(data.direction);
         data.moveDistance = std.crypto.random.intRangeAtMost(u8, 1, data.maxMoveDistance);
         const fMoveDistance: f32 = @floatFromInt(data.moveDistance * main.TILESIZE);
-        validDirection = newStepDirection.x < 0 and enemy.position.x - fMoveDistance > -border or
-            newStepDirection.x > 0 and enemy.position.x + fMoveDistance < border or
-            newStepDirection.y < 0 and enemy.position.y - fMoveDistance > -border or
-            newStepDirection.y > 0 and enemy.position.y + fMoveDistance < border;
+        validDirection = newStepDirection.x < 0 and enemy.position.x - fMoveDistance > -borderX or
+            newStepDirection.x > 0 and enemy.position.x + fMoveDistance < borderX or
+            newStepDirection.y < 0 and enemy.position.y - fMoveDistance > -borderY or
+            newStepDirection.y > 0 and enemy.position.y + fMoveDistance < borderY;
     }
 }
 

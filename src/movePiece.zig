@@ -43,7 +43,8 @@ pub fn setRandomMovePiece(player: *playerZig.Player, index: usize) !void {
 ///valid = end of move piece is in grid for returned direction
 /// returned null => there is no possible move direction ending up in grid
 pub fn getRandomValidMoveDirectionForMovePiece(position: main.Position, movePiece: MovePiece, state: *main.GameState) !?u8 {
-    const gridBorder: f32 = @floatFromInt(state.mapData.tileRadius * main.TILESIZE);
+    const gridBorderX: f32 = @floatFromInt(state.mapData.tileRadiusWidth * main.TILESIZE);
+    const gridBorderY: f32 = @floatFromInt(state.mapData.tileRadiusHeight * main.TILESIZE);
     var direction: u8 = 0;
     var validMovePosition = false;
     var directionOptions = [_]u8{ 0, 1, 2, 3 };
@@ -56,7 +57,7 @@ pub fn getRandomValidMoveDirectionForMovePiece(position: main.Position, movePiec
         directionOptionCount -|= 1;
         directionOptions[randomIndex] = directionOptions[directionOptionCount];
         try movePositionByPiece(&bossPositionAfterPiece, movePiece, direction, state);
-        validMovePosition = bossPositionAfterPiece.x >= -gridBorder and bossPositionAfterPiece.x <= gridBorder and bossPositionAfterPiece.y >= -gridBorder and bossPositionAfterPiece.y <= gridBorder;
+        validMovePosition = bossPositionAfterPiece.x >= -gridBorderX and bossPositionAfterPiece.x <= gridBorderX and bossPositionAfterPiece.y >= -gridBorderY and bossPositionAfterPiece.y <= gridBorderY;
     }
     return direction;
 }
@@ -157,7 +158,7 @@ pub fn tickPlayerMovePiece(player: *playerZig.Player, state: *main.GameState) !v
             player.executeMovePiece = null;
             if (state.mapData.mapType == .top) {
                 const playerTile = main.gamePositionToTilePosition(player.position);
-                if (@abs(playerTile.x) > state.mapData.tileRadius or @abs(playerTile.y) > state.mapData.tileRadius) {
+                if (@abs(playerTile.x) > state.mapData.tileRadiusWidth or @abs(playerTile.y) > state.mapData.tileRadiusHeight) {
                     if (player.startedFallingState == null) player.startedFallingState = state.gameTime;
                     player.animateData.ears.leftVelocity = 5;
                     player.animateData.ears.rightVelocity = 5;

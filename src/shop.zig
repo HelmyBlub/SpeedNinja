@@ -182,8 +182,8 @@ pub fn executeShopActionForPlayer(player: *playerZig.Player, state: *main.GameSt
 pub fn getShopEarlyTriggerPosition(state: *main.GameState) main.TileRectangle {
     return main.TileRectangle{
         .pos = .{
-            .x = @intCast(state.mapData.tileRadius + 2),
-            .y = @intCast(@divFloor(state.mapData.tileRadius, 2) - 1),
+            .x = @intCast(state.mapData.tileRadiusWidth + 2),
+            .y = @intCast(@divFloor(state.mapData.tileRadiusHeight, 2) - 1),
         },
         .height = EARLY_SHOP_GRID_SIZE,
         .width = EARLY_SHOP_GRID_SIZE,
@@ -217,7 +217,7 @@ pub fn startShoppingPhase(state: *main.GameState) !void {
         player.position.y = @as(f32, @floatFromInt(player.shop.pieceShopTopLeft.y + GRID_SIZE / 2)) * main.TILESIZE;
         try movePieceZig.resetPieces(player, true, state);
     }
-    try mapTileZig.setMapRadius(5, state);
+    try mapTileZig.setMapRadius(5, 5, state);
     main.adjustZoom(state);
 }
 
