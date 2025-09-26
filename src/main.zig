@@ -74,6 +74,8 @@ pub const GameUxData = struct {
     continueButtonHoldStart: ?i64 = null,
     restartButtonHoldStart: ?i64 = null,
     quitButtonHoldStart: ?i64 = null,
+    playerUxVertical: bool = false,
+    gameVulkanArea: Rectangle = .{ .pos = .{ .x = -0.75, .y = -0.75 }, .width = 1.5, .height = 1.5 },
 };
 
 pub const TutorialData = struct {
@@ -155,6 +157,12 @@ pub const TileRectangle = struct {
     pos: TilePosition,
     width: i32,
     height: i32,
+};
+
+pub const Rectangle = struct {
+    pos: Position,
+    width: f32,
+    height: f32,
 };
 
 pub fn main() !void {
@@ -509,12 +517,23 @@ pub fn restart(state: *GameState, newGamePlus: u32) anyerror!void {
 }
 
 pub fn adjustZoom(state: *GameState) void {
-    const mapSize: f32 = @floatFromInt((state.mapData.tileRadius * 2 + 1) * TILESIZE);
-    const targetMapScreenPerCent = 0.75;
-    const widthPerCent = mapSize / windowSdlZig.windowData.widthFloat;
-    const heightPerCent = mapSize / windowSdlZig.windowData.heightFloat;
+    const stairsAdditionTileWidth: u32 = if (state.gamePhase == .combat) 3 else 0;
+    const mapSizeWidth: f32 = @floatFromInt((state.mapData.tileRadius * 2 + 1 + stairsAdditionTileWidth) * TILESIZE);
+    const mapSizeHeight: f32 = @floatFromInt((state.mapData.tileRadius * 2 + 1) * TILESIZE);
+    const targetMapScreenPerCent = state.uxData.gameVulkanArea.width / 2;
+    const widthPerCent = mapSizeWidth / windowSdlZig.windowData.widthFloat;
+    const heightPerCent = mapSizeHeight / windowSdlZig.windowData.heightFloat;
+    state.uxData.playerUxVertical = if (widthPerCent < heightPerCent) true else false;
     const biggerPerCent = @max(widthPerCent, heightPerCent);
     state.camera.zoom = targetMapScreenPerCent / biggerPerCent;
+    std.debug.print("playerUxVertical {}\n", .{state.uxData.playerUxVertical});
+    if (state.players.items.len > 1 and stairsAdditionTileWidth > 0 and state.uxData.playerUxVertical) {
+        //offset so stairs are not under player2UI
+        state.camera.position.x = @as(f32, @floatFromInt(stairsAdditionTileWidth)) * TILESIZE / 2;
+    } else {
+        std.debug.print("camera x 0 \n", .{});
+        state.camera.position.x = 0;
+    }
     playerZig.determinePlayerUxPositions(state);
 }
 
@@ -547,7 +566,6 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
     state.mapObjects = std.ArrayList(MapObject).init(state.allocator);
     try state.players.append(playerZig.createPlayer(allocator));
     statsZig.loadStatisticsDataFromFile(state);
-    playerZig.determinePlayerUxPositions(state);
     try restart(state, 0);
 }
 

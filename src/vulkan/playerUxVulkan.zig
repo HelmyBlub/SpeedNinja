@@ -34,7 +34,7 @@ fn verticeForPlayerStateInfo(player: *playerZig.Player, state: *main.GameState) 
 fn verticeForInfo(player: *playerZig.Player, text: *const [4]u8, textColor: [4]f32, state: *main.GameState) void {
     const fontSize = 75 * player.uxData.vulkanScale;
     const verticeData = &state.vkState.verticeData;
-    if (player.uxData.vertical) {
+    if (state.uxData.playerUxVertical) {
         const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
         _ = fontVulkanZig.paintText(text[0..1], .{
             .x = player.uxData.vulkanTopLeft.x,
@@ -70,7 +70,7 @@ fn verticesForPlayerData(player: *playerZig.Player, verticeData: *dataVulkanZig.
     var width: f32 = 0;
     var height: f32 = 0;
     const spacingFactor = 1.1;
-    if (player.uxData.vertical) {
+    if (state.uxData.playerUxVertical) {
         height = player.uxData.vulkanScale / 4 / spacingFactor;
         width = height / onePixelYInVulkan * onePixelXInVulkan;
     } else {
@@ -78,7 +78,7 @@ fn verticesForPlayerData(player: *playerZig.Player, verticeData: *dataVulkanZig.
         height = width / onePixelXInVulkan * onePixelYInVulkan;
     }
     const fontSize = height / 4 / onePixelYInVulkan;
-    if (player.uxData.vertical) {
+    if (state.uxData.playerUxVertical) {
         const pieceYSpacing = height * spacingFactor;
         vulkanPos.y += pieceYSpacing * 3;
     } else {
@@ -280,7 +280,7 @@ fn verticesForMoveOptions(player: *playerZig.Player, verticeData: *dataVulkanZig
     const spacingFactor = 1.1;
     const playerInputDevice = inputZig.getPlayerInputDevice(player);
     const verticesForMovementKey = if (player.uxData.visualizeMovementKeys and (playerInputDevice == null or playerInputDevice.? == .keyboard)) true else false;
-    if (player.uxData.vertical) {
+    if (state.uxData.playerUxVertical) {
         height = player.uxData.vulkanScale / 4 / spacingFactor;
         width = height / onePixelYInVulkan * onePixelXInVulkan;
     } else {
@@ -300,7 +300,7 @@ fn verticesForMoveOptions(player: *playerZig.Player, verticeData: *dataVulkanZig
     if (startY < -1 + gameInfoTopHeight and startX < -1 + gameInfoLeftWidth) {
         const cutAmount = -1 + gameInfoTopHeight - startY;
         startY = -1 + gameInfoTopHeight;
-        if (player.uxData.vertical) {
+        if (state.uxData.playerUxVertical) {
             height -= cutAmount / 3;
         }
     }
@@ -316,7 +316,7 @@ fn verticesForMoveOptions(player: *playerZig.Player, verticeData: *dataVulkanZig
         _ = fontVulkanZig.verticesForDisplayButton(.{ .x = startX + keyDisplayWidth, .y = keyY - keyFontSize * onePixelYInVulkan }, .moveUp, keyFontSize, player, state);
         keyDisplayWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = startX + keyDisplayWidth, .y = keyY }, .moveDown, keyFontSize, player, state);
         keyDisplayWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = startX + keyDisplayWidth, .y = keyY }, .moveRight, keyFontSize, player, state);
-        if (player.uxData.vertical) {
+        if (state.uxData.playerUxVertical) {
             startY += pieceYSpacing;
         } else {
             startX += pieceXSpacing;
@@ -382,7 +382,7 @@ fn verticesForMoveOptions(player: *playerZig.Player, verticeData: *dataVulkanZig
                 },
             }
         }
-        if (player.uxData.vertical) {
+        if (state.uxData.playerUxVertical) {
             startY += pieceYSpacing;
         } else {
             startX += pieceXSpacing;

@@ -5,14 +5,21 @@ Tasks:
     - bosses missing:(45+)
 
 - multiplayer
-    - on entering shop
-        - revive dead players
-        - check move piece reset in shop for other player
+    - setup shop for every player
+        - better setup UI to know how much space i have for what
+            - in combat
+                - space for player UX
+                - space for grid and stairs
+            - in shop
+                - space for each players move piece area
+                - set correct zoom
+                - support 8 players
     - combine:
         - when piece to big scale down
             - was bad code, need rework for multiplayer
-    - bosses not targeting dead players
+    - not targeting dead players
         - bug: dragon boss can target dead players
+    - enemies not targeting players already entered shop
 - some settings info area
     - display how to mutliplayer
         - display "hold button to join" if different input devices used
@@ -22,6 +29,7 @@ Tasks:
     - check snowball being to slow?
 
 - vertical layout
+    - everything broken
     - gate/stairs outside of view
     - overlapping stuff
 

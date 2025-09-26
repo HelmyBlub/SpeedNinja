@@ -47,7 +47,6 @@ const PlayePhase = enum {
 const PlayerUxData = struct {
     vulkanTopLeft: main.Position = .{ .x = 0, .y = 0 },
     vulkanScale: f32 = 0.4,
-    vertical: bool = false,
     piecesRefreshedVisualization: ?i64 = null,
     visualizeMovePieceChangeFromShop: ?i32 = null,
     visualizationDuration: i32 = 1500,
@@ -278,10 +277,9 @@ pub fn determinePlayerUxPositions(state: *main.GameState) void {
     var scale: f32 = 1;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-    const isVertical = windowSdlZig.windowData.widthFloat < windowSdlZig.windowData.heightFloat;
     var diffScale: f32 = 0;
     if (state.players.items.len <= 2) {
-        if (isVertical) {
+        if (!state.uxData.playerUxVertical) {
             diffScale = windowSdlZig.windowData.heightFloat / windowSdlZig.windowData.widthFloat;
         } else {
             diffScale = windowSdlZig.windowData.widthFloat / windowSdlZig.windowData.heightFloat;
@@ -298,15 +296,13 @@ pub fn determinePlayerUxPositions(state: *main.GameState) void {
 
     for (state.players.items, 0..) |*player, index| {
         player.uxData.vulkanScale = scale;
-        player.uxData.vertical = true;
         player.uxData.vulkanTopLeft.x = playerPosX[@mod(index, 2)];
         if (state.players.items.len <= 2) {
             player.uxData.vulkanTopLeft.y = playerPosY[0];
         } else {
             player.uxData.vulkanTopLeft.y = playerPosY[@mod(@divFloor(index, 2), 2) + 1];
         }
-        if (isVertical) {
-            player.uxData.vertical = false;
+        if (!state.uxData.playerUxVertical) {
             const tempX = player.uxData.vulkanTopLeft.x;
             player.uxData.vulkanTopLeft.x = player.uxData.vulkanTopLeft.y;
             player.uxData.vulkanTopLeft.y = tempX;
@@ -333,6 +329,7 @@ fn playerLeave(playerIndex: usize, state: *main.GameState) !void {
             }
         }
         destroyPlayer(&removed, state);
+        main.adjustZoom(state);
     }
 }
 
@@ -377,5 +374,5 @@ fn playerJoin(playerInputData: inputZig.PlayerInputData, state: *main.GameState)
     equipmentZig.equipStarterEquipment(player);
     try movePieceZig.setupMovePieces(player, state);
     state.statistics.active = false;
-    determinePlayerUxPositions(state);
+    main.adjustZoom(state);
 }
