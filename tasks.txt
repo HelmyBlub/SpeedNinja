@@ -6,17 +6,18 @@ Tasks:
 
 
 - multiplayer
-    - leaving shop when all player are on stairs
-        - put counter on stairs for multiplayer
     - setup shop for every player
         - setup position of continue next level and buy options
         - make one more buyOption per player in game
+        - on player leave don't reset up stuff half
+    - bug: on player join while in shop, don't put shopPiece area in the middle
     - combine:
         - when piece to big scale down
             - was bad code, need rework for multiplayer
     - not targeting dead players
         - bug: dragon boss can target dead players
     - enemies not targeting players already entered shop
+- in shop teleport player back when too far out
 - some settings info area
     - display how to mutliplayer
         - display "hold button to join" if different input devices used

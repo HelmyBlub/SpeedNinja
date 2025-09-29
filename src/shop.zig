@@ -64,7 +64,7 @@ pub const EARLY_SHOP_GRID_SIZE = 2;
 pub const ShopPlayerData = struct {
     piecesToBuy: [3]?movePieceZig.MovePiece = [3]?movePieceZig.MovePiece{ null, null, null },
     selectedOption: ShopOptionData = .none,
-    pieceShopTopLeft: main.TilePosition = .{ .x = -4, .y = -4 },
+    pieceShopTopLeft: ?main.TilePosition = null,
     gridDisplayPiece: ?movePieceZig.MovePiece = null,
     gridDisplayPieceOffset: main.TilePosition = .{ .x = 4, .y = 4 },
 };
@@ -80,7 +80,7 @@ pub const ShopBuyOption = struct {
 pub const ShopData = struct {
     buyOptions: std.ArrayList(ShopBuyOption),
     equipOptionsLastLevelInShop: [equipmentZig.EQUIPMENT_SHOP_OPTIONS.len]u32 = undefined,
-    exitShopArea: main.TileRectangle = .{ .pos = .{ .x = GRID_SIZE - 1, .y = -4 }, .height = 2, .width = 2 },
+    exitShopArea: main.TileRectangle = .{ .pos = .{ .x = GRID_SIZE / 2, .y = GRID_SIZE - 1 }, .height = 2, .width = 2 },
     playersOnExit: u32 = 0,
 };
 
@@ -140,19 +140,20 @@ pub const SHOP_BUTTONS = [_]PlayerShopButton{
 
 pub fn executeShopActionForPlayer(player: *playerZig.Player, state: *main.GameState) !void {
     const playerTile: main.TilePosition = main.gamePositionToTilePosition(player.position);
-    const shopTopLeftTile = player.shop.pieceShopTopLeft;
-    for (SHOP_BUTTONS) |shopButton| {
-        if (shopButton.isVisible != null and !shopButton.isVisible.?(player)) continue;
-        const checkPosition: main.TilePosition = .{ .x = shopButton.tileOffset.x + shopTopLeftTile.x, .y = shopButton.tileOffset.y + shopTopLeftTile.y };
-        if (checkPosition.x == playerTile.x and checkPosition.y == playerTile.y) {
-            try shopButton.execute(player, state);
+    if (player.shop.pieceShopTopLeft) |shopTopLeftTile| {
+        for (SHOP_BUTTONS) |shopButton| {
+            if (shopButton.isVisible != null and !shopButton.isVisible.?(player)) continue;
+            const checkPosition: main.TilePosition = .{ .x = shopButton.tileOffset.x + shopTopLeftTile.x, .y = shopButton.tileOffset.y + shopTopLeftTile.y };
+            if (checkPosition.x == playerTile.x and checkPosition.y == playerTile.y) {
+                try shopButton.execute(player, state);
+                return;
+            }
+        }
+        const gridPosition: main.TilePosition = .{ .x = GRID_OFFSET.x + shopTopLeftTile.x, .y = GRID_OFFSET.y + shopTopLeftTile.y };
+        if (gridPosition.x <= playerTile.x and gridPosition.y <= playerTile.y and gridPosition.x + GRID_SIZE > playerTile.x and gridPosition.y + GRID_SIZE > playerTile.y) {
+            try executeGridTile(player, state);
             return;
         }
-    }
-    const gridPosition: main.TilePosition = .{ .x = GRID_OFFSET.x + shopTopLeftTile.x, .y = GRID_OFFSET.y + shopTopLeftTile.y };
-    if (gridPosition.x <= playerTile.x and gridPosition.y <= playerTile.y and gridPosition.x + GRID_SIZE > playerTile.x and gridPosition.y + GRID_SIZE > playerTile.y) {
-        try executeGridTile(player, state);
-        return;
     }
 
     for (state.shop.buyOptions.items, 0..) |*buyOption, buyIndex| {
@@ -217,14 +218,14 @@ pub fn startShoppingPhase(state: *main.GameState) !void {
     state.enemyData.enemyObjects.clearRetainingCapacity();
     mapTileZig.resetMapTiles(state.mapData.tiles);
     bossZig.clearBosses(state);
+    try setupShopAreas(state);
     try randomizeShop(state);
-    try playerZig.setupPlayerPieceShopAreas(state);
     for (state.players.items) |*player| {
         player.shop.gridDisplayPiece = null;
         player.shop.selectedOption = .none;
         if (player.isDead) player.isDead = false;
-        player.position.x = @as(f32, @floatFromInt(player.shop.pieceShopTopLeft.x + GRID_SIZE / 2)) * main.TILESIZE;
-        player.position.y = @as(f32, @floatFromInt(player.shop.pieceShopTopLeft.y + GRID_SIZE / 2)) * main.TILESIZE;
+        player.position.x = @as(f32, @floatFromInt(player.shop.pieceShopTopLeft.?.x + GRID_SIZE / 2)) * main.TILESIZE;
+        player.position.y = @as(f32, @floatFromInt(player.shop.pieceShopTopLeft.?.y + GRID_SIZE / 2)) * main.TILESIZE;
         try movePieceZig.resetPieces(player, true, state);
     }
     try setShopMapRadius(state);
@@ -232,20 +233,23 @@ pub fn startShoppingPhase(state: *main.GameState) !void {
 }
 
 pub fn setShopMapRadius(state: *main.GameState) anyerror!void {
-    if (state.players.items.len == 1) {
-        try mapTileZig.setMapRadius(5, 5, state);
-        return;
-    }
     var left: i32 = 0;
     var right: i32 = 0;
     var top: i32 = 0;
     var bottom: i32 = 0;
     for (state.players.items) |*player| {
-        if (player.shop.pieceShopTopLeft.x < left) left = player.shop.pieceShopTopLeft.x;
-        if (player.shop.pieceShopTopLeft.x + GRID_SIZE > right) right = player.shop.pieceShopTopLeft.x + GRID_SIZE;
-        if (player.shop.pieceShopTopLeft.y < top) top = player.shop.pieceShopTopLeft.y;
-        if (player.shop.pieceShopTopLeft.y + GRID_SIZE > bottom) bottom = player.shop.pieceShopTopLeft.y + GRID_SIZE;
+        if (player.shop.pieceShopTopLeft) |topLeft| {
+            if (topLeft.x < left) left = topLeft.x;
+            if (topLeft.x + GRID_SIZE > right) right = topLeft.x + GRID_SIZE;
+            if (topLeft.y < top) top = topLeft.y;
+            if (topLeft.y + GRID_SIZE > bottom) bottom = topLeft.y + GRID_SIZE;
+        }
     }
+    if (state.shop.exitShopArea.pos.x < left) left = state.shop.exitShopArea.pos.x;
+    if (state.shop.exitShopArea.pos.x + state.shop.exitShopArea.width - 1 > right) right = state.shop.exitShopArea.pos.x + state.shop.exitShopArea.width - 1;
+    if (state.shop.exitShopArea.pos.y < top) top = state.shop.exitShopArea.pos.y;
+    if (state.shop.exitShopArea.pos.y + state.shop.exitShopArea.height - 1 > bottom) bottom = state.shop.exitShopArea.pos.y + state.shop.exitShopArea.height - 1;
+
     const width: u32 = @max(@as(u32, @intCast(right)), @abs(left));
     const height: u32 = @max(@as(u32, @intCast(bottom)), @abs(top));
     try mapTileZig.setMapRadius(width, height, state);
@@ -276,7 +280,8 @@ pub fn randomizeShop(state: *main.GameState) !void {
         }
     }
 
-    try randomizeBuyableEquipment(3, state);
+    const maxShopOptions: usize = 2 + state.players.items.len;
+    try randomizeBuyableEquipment(maxShopOptions, state);
 }
 
 fn randomizeBuyableEquipment(maxShopOptions: usize, state: *main.GameState) !void {
@@ -285,15 +290,23 @@ fn randomizeBuyableEquipment(maxShopOptions: usize, state: *main.GameState) !voi
     defer blacklistedIndexes.deinit();
 
     var shopOptionsCount: usize = 0;
+    const posY = state.shop.exitShopArea.pos.y;
+    const exitShopX = state.shop.exitShopArea.pos.x;
     while (shopOptionsCount < maxShopOptions) {
         const optRandomEquipIndex = getRandomEquipmentIndexForShop(blacklistedIndexes.items, shopOptionsCount, state);
         if (optRandomEquipIndex == null) break;
         const randomEquip = equipmentZig.getEquipmentOptionByIndexScaledToLevel(optRandomEquipIndex.?, state.level);
         try blacklistedIndexes.append(optRandomEquipIndex.?);
 
+        var offsetX: i32 = 0;
+        if (maxShopOptions > 4 and shopOptionsCount >= 3) {
+            offsetX = @as(i32, @intCast((shopOptionsCount - 2) * 2)) + 1;
+        } else {
+            offsetX = -@as(i32, @intCast((shopOptionsCount + 1) * 2));
+        }
         try state.shop.buyOptions.append(.{
             .price = state.level * randomEquip.basePrice,
-            .tilePosition = .{ .x = 6 + @as(i32, @intCast(shopOptionsCount * 2)), .y = 3 },
+            .tilePosition = .{ .x = exitShopX + offsetX, .y = posY },
             .imageIndex = randomEquip.shopDisplayImage,
             .imageScale = randomEquip.imageScale,
             .equipment = randomEquip.equipment,
@@ -336,12 +349,14 @@ fn getRandomEquipmentIndexForShop(blacklistedIndexes: []usize, mode: usize, stat
 
 pub fn executeGridTile(player: *playerZig.Player, state: *main.GameState) !void {
     _ = state;
+    if (player.shop.pieceShopTopLeft == null) return;
+    const pieceShopTopLeft = player.shop.pieceShopTopLeft.?;
     switch (player.shop.selectedOption) {
         .cut => |*data| {
             const playerTile: main.TilePosition = main.gamePositionToTilePosition(player.position);
             const playerGridTile: main.TilePosition = .{
-                .x = playerTile.x - player.shop.pieceShopTopLeft.x - GRID_OFFSET.x,
-                .y = playerTile.y - player.shop.pieceShopTopLeft.y - GRID_OFFSET.y,
+                .x = playerTile.x - pieceShopTopLeft.x - GRID_OFFSET.x,
+                .y = playerTile.y - pieceShopTopLeft.y - GRID_OFFSET.y,
             };
 
             if (movePieceZig.isTilePositionOnMovePiece(playerGridTile, player.shop.gridDisplayPieceOffset, player.shop.gridDisplayPiece.?, true)) {
@@ -653,6 +668,44 @@ pub fn executeAddPiece(player: *playerZig.Player, state: *main.GameState) !void 
     player.shop.selectedOption = .{ .add = .{} };
     try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION[0..], 0, 0.5);
     setGridDisplayPiece(player, player.shop.piecesToBuy[0].?);
+}
+
+pub fn setupShopAreas(state: *main.GameState) !void {
+    setupPlayerMovePieceAreas(state);
+    const player0ShopTopLeft = state.players.items[0].shop.pieceShopTopLeft.?;
+    state.shop.exitShopArea.pos = .{
+        .x = player0ShopTopLeft.x + GRID_SIZE - 1,
+        .y = player0ShopTopLeft.y + GRID_SIZE + 2,
+    };
+    if (state.gamePhase == .shopping) {
+        try setShopMapRadius(state);
+    }
+}
+
+fn setupPlayerMovePieceAreas(state: *main.GameState) void {
+    const spacing = GRID_SIZE + 4;
+    const spaceForOtherShopStuff = 1;
+    var width: usize = @intFromFloat(@ceil(@sqrt(@as(f32, @floatFromInt(state.players.items.len)))));
+    var height: usize = if (width * width - width + 1 > state.players.items.len) width - 1 else width;
+    if (state.uxData.playerUxVertical) {
+        const temp = width;
+        width = height;
+        height = temp;
+    }
+    const xOffset: i32 = -@as(i32, @intCast(@divFloor(width * spacing, 2))) + 2;
+    const yOffset: i32 = -@as(i32, @intCast(@divFloor(height * spacing, 2))) + 2;
+    for (state.players.items, 0..) |*player, index| {
+        var y = @as(i32, @intCast(spacing * @divFloor(index, width)));
+        if (y > 0) y += spaceForOtherShopStuff;
+        player.shop.pieceShopTopLeft = .{
+            .x = xOffset + @as(i32, @intCast(spacing * @mod(index, width))),
+            .y = yOffset + y,
+        };
+    }
+    if (state.players.items.len == 1) {
+        const considerBuyOptionsAndExitAreaForOnePlayer = 1;
+        state.players.items[0].shop.pieceShopTopLeft.?.y -= considerBuyOptionsAndExitAreaForOnePlayer;
+    }
 }
 
 fn isNextStepButtonVisible(player: *playerZig.Player) bool {

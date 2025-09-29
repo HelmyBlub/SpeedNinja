@@ -87,12 +87,13 @@ fn verticesForMovePieceModifications(state: *main.GameState) !void {
     const verticeData = &state.vkState.verticeData;
     for (state.players.items) |*player| {
         try paintGrid(player, state);
-        const player0ShopPos = player.shop.pieceShopTopLeft;
+        if (player.shop.pieceShopTopLeft == null) continue;
+        const playerShopPos = player.shop.pieceShopTopLeft.?;
         for (shopZig.SHOP_BUTTONS) |shopButton| {
             if (shopButton.isVisible != null and !shopButton.isVisible.?(player)) continue;
             const shopButtonGamePosition: main.Position = .{
-                .x = @floatFromInt((player0ShopPos.x + shopButton.tileOffset.x) * main.TILESIZE),
-                .y = @floatFromInt((player0ShopPos.y + shopButton.tileOffset.y) * main.TILESIZE),
+                .x = @floatFromInt((playerShopPos.x + shopButton.tileOffset.x) * main.TILESIZE),
+                .y = @floatFromInt((playerShopPos.y + shopButton.tileOffset.y) * main.TILESIZE),
             };
             if (shopButton.option != .none and shopButton.option == player.shop.selectedOption) {
                 rectangleForTile(shopButtonGamePosition, .{ 0, 0, 1, 1 }, verticeData, false, state);
@@ -193,10 +194,11 @@ fn verticesForBuyOptions(state: *main.GameState) !void {
 fn paintGrid(player: *playerZig.Player, state: *main.GameState) !void {
     const verticeData = &state.vkState.verticeData;
 
-    const player0ShopPos = player.shop.pieceShopTopLeft;
+    if (player.shop.pieceShopTopLeft == null) return;
+    const playerShopPos = player.shop.pieceShopTopLeft.?;
     const gridGameTopLeft: main.Position = .{
-        .x = @floatFromInt((player0ShopPos.x + shopZig.GRID_OFFSET.x) * main.TILESIZE),
-        .y = @floatFromInt((player0ShopPos.y + shopZig.GRID_OFFSET.y) * main.TILESIZE),
+        .x = @floatFromInt((playerShopPos.x + shopZig.GRID_OFFSET.x) * main.TILESIZE),
+        .y = @floatFromInt((playerShopPos.y + shopZig.GRID_OFFSET.y) * main.TILESIZE),
     };
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
@@ -375,7 +377,8 @@ fn rectangleForTile(gamePosition: main.Position, fillColor: [4]f32, verticeData:
 }
 
 pub fn payMoreVerticeSetups(player: *playerZig.Player, shopButton: shopZig.PlayerShopButton, state: *main.GameState) anyerror!void {
-    const shopPos = player.shop.pieceShopTopLeft;
+    if (player.shop.pieceShopTopLeft == null) return;
+    const shopPos = player.shop.pieceShopTopLeft.?;
     const shopButtonGamePosition: main.Position = .{
         .x = @floatFromInt((shopPos.x + shopButton.tileOffset.x) * main.TILESIZE),
         .y = @floatFromInt((shopPos.y + shopButton.tileOffset.y) * main.TILESIZE),
@@ -407,7 +410,8 @@ pub fn payMoreVerticeSetups(player: *playerZig.Player, shopButton: shopZig.Playe
 }
 
 pub fn nextStepMoreVerticeSetups(player: *playerZig.Player, shopButton: shopZig.PlayerShopButton, state: *main.GameState) anyerror!void {
-    const shopPos = player.shop.pieceShopTopLeft;
+    if (player.shop.pieceShopTopLeft == null) return;
+    const shopPos = player.shop.pieceShopTopLeft.?;
     const shopButtonGamePosition: main.Position = .{
         .x = @floatFromInt((shopPos.x + shopButton.tileOffset.x) * main.TILESIZE),
         .y = @floatFromInt((shopPos.y + shopButton.tileOffset.y) * main.TILESIZE),
