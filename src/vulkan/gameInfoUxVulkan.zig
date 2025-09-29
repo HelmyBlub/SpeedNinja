@@ -27,7 +27,7 @@ fn verticesForBossHpBar(state: *main.GameState) !void {
         const top = -0.99;
         const height = onePixelYInVulkan * fontSize;
         const length = @as(f32, @floatFromInt(state.bosses.items.len));
-        const width: f32 = @min(1, 1.8 / length);
+        const width: f32 = @min(1, 1.25 / length);
         var currentLeft = -((width * length + spacingX * (length - 1)) / 2);
         for (state.bosses.items) |*boss| {
             try setupVerticesBossHpBar(boss, top, currentLeft, height, width, state);

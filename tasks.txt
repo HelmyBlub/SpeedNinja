@@ -1,12 +1,17 @@
 Tasks:
 - new game+1 
-    - try complete run
+    - try complete run (furthest 40)
 - new game+2
     - bosses missing:(45+)
 
+
+- bug: tripple boss hp overlapping with topLeft stuff
 - multiplayer
     - on one player left, enable controller for player 1 again
     - setup shop for every player
+        - feels like i should scale bigger and use more window space for shop
+        - setup position of continue next level and buy options
+        - make one more buyOption per player in game
     - combine:
         - when piece to big scale down
             - was bad code, need rework for multiplayer
@@ -20,6 +25,7 @@ Tasks:
 
 - new game plus
     - check snowball being to slow?
+        - should image rotate when rolling?
 
 - vertical layout
     - everything broken
@@ -28,12 +34,9 @@ Tasks:
 
 Next ideas:
 - improve UX
-    - shop
-        - spend money: "kaching"
     - speedrun stats
     - free continues
 - multiplayer
-    - boss hp scaling
     - player speedrun stats?
         - multiplayer don't display?
             - only when run over?
@@ -42,9 +45,7 @@ Next ideas:
             - idle when no input in  1min
             - stand on tile for 5seconds
         - if player left when no timer in combat, should give kick option
-- shop move piece 
-    - visualize shop correctly
 - vulkan changes
     - fallback visulize when not supported
     - console log when having validation layers on
-
+- pratice mode
