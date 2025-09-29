@@ -5,7 +5,6 @@ Tasks:
     - bosses missing:(45+)
 
 
-- bug: tripple boss hp overlapping with topLeft stuff
 - multiplayer
     - on one player left, enable controller for player 1 again
     - setup shop for every player

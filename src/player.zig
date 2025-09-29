@@ -314,17 +314,21 @@ pub fn determinePlayerUxPositions(state: *main.GameState) void {
 fn playerLeave(playerIndex: usize, state: *main.GameState) !void {
     if (state.players.items.len > 1 and playerIndex < state.players.items.len) {
         var removed = state.players.swapRemove(playerIndex);
-        if (removed.inputData.inputDevice != null and removed.inputData.inputDevice.? == .keyboard) {
-            var keyBoardPlayerCount: u32 = 0;
-            for (state.players.items) |*player| {
-                if (player.inputData.inputDevice != null and player.inputData.inputDevice.? == .keyboard) {
-                    keyBoardPlayerCount += 1;
-                }
-            }
-            if (keyBoardPlayerCount == 1) {
+        if (state.players.items.len == 1) {
+            state.players.items[0].inputData.inputDevice = null;
+        } else {
+            if (removed.inputData.inputDevice != null and removed.inputData.inputDevice.? == .keyboard) {
+                var keyBoardPlayerCount: u32 = 0;
                 for (state.players.items) |*player| {
                     if (player.inputData.inputDevice != null and player.inputData.inputDevice.? == .keyboard) {
-                        player.inputData.inputDevice.?.keyboard = null;
+                        keyBoardPlayerCount += 1;
+                    }
+                }
+                if (keyBoardPlayerCount == 1) {
+                    for (state.players.items) |*player| {
+                        if (player.inputData.inputDevice != null and player.inputData.inputDevice.? == .keyboard) {
+                            player.inputData.inputDevice.?.keyboard = null;
+                        }
                     }
                 }
             }
