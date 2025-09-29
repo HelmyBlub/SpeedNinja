@@ -5,9 +5,10 @@ Tasks:
     - bosses missing:(45+)
 
 - multiplayer
-    - tripple boss trivial in multiplayer?
-    - boss fireroll might end up in just one player playing?
     - selected move piece visualization for multiplayer currently hard to distinguish what player it belongs to
+        - assign player color
+        - use alpha to only have one player more visible
+    - boss fireroll might end up in just one player playing?
 - some settings info area
     - display how to mutliplayer
         - display "hold button to join" if different input devices used

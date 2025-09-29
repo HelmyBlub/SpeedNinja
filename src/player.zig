@@ -56,6 +56,7 @@ const PlayerUxData = struct {
     visualizeHpChangeUntil: ?i64 = null,
     visualizeChoiceKeys: bool = true,
     visualizeMovementKeys: bool = true,
+    visualizeChoosenMovePieceColor: [4]f32 = .{ 0, 0, 0, 1 },
 };
 
 pub const AfterImage = struct {
@@ -367,6 +368,7 @@ fn playerJoin(playerInputData: inputZig.PlayerInputData, state: *main.GameState)
     std.debug.print("player join: {}\n", .{playerInputData.inputDevice.?});
     try state.players.append(createPlayer(state.allocator));
     const player: *Player = &state.players.items[state.players.items.len - 1];
+    assignPlayerColor(player, state);
     if (state.gameOver) player.isDead = true;
     player.inputData = playerInputData;
     for (0..state.players.items.len - 1) |index| {
@@ -395,4 +397,28 @@ fn playerJoin(playerInputData: inputZig.PlayerInputData, state: *main.GameState)
     try movePieceZig.setupMovePieces(player, state);
     state.statistics.active = false;
     main.adjustZoom(state);
+}
+
+fn assignPlayerColor(player: *Player, state: *main.GameState) void {
+    const availableColor = [_][4]f32{
+        .{ 0, 0, 0.5, 1 },
+        .{ 0, 0.2, 0, 1 },
+        .{ 0.8, 0, 0, 1 },
+        .{ 1, 1, 1, 1 },
+    };
+    for (availableColor) |color| {
+        var colorIsFree = true;
+        for (state.players.items) |*otherPlayer| {
+            if (otherPlayer == player) continue;
+            const otherColor = otherPlayer.uxData.visualizeChoosenMovePieceColor;
+            if (otherColor[0] == color[0] and otherColor[1] == color[1] and otherColor[2] == color[2]) {
+                colorIsFree = false;
+                break;
+            }
+        }
+        if (colorIsFree) {
+            player.uxData.visualizeChoosenMovePieceColor = color;
+            break;
+        }
+    }
 }
