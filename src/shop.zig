@@ -9,6 +9,7 @@ const statsZig = @import("stats.zig");
 const playerZig = @import("player.zig");
 const shopVulkanZig = @import("vulkan/shopVulkan.zig");
 const soundMixerZig = @import("soundMixer.zig");
+const windowSdlZig = @import("windowSdl.zig");
 
 const ShopOption = enum {
     none,
@@ -176,6 +177,15 @@ pub fn executeShopActionForPlayer(player: *playerZig.Player, state: *main.GameSt
             return;
         }
     }
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const playerVulkanPosition: main.Position = .{
+        .x = (player.position.x - state.camera.position.x) * state.camera.zoom * onePixelXInVulkan,
+        .y = (player.position.y - state.camera.position.y) * state.camera.zoom * onePixelYInVulkan,
+    };
+    if (@abs(playerVulkanPosition.x) > 1.2 or @abs(playerVulkanPosition.y) > 1.2) {
+        movePlayerToHisShopPosition(player);
+    }
     state.shop.playersOnExit = 0;
     for (state.players.items) |*otherPlayer| {
         const otherPlayerTile = main.gamePositionToTilePosition(otherPlayer.position);
@@ -224,12 +234,16 @@ pub fn startShoppingPhase(state: *main.GameState) !void {
         player.shop.gridDisplayPiece = null;
         player.shop.selectedOption = .none;
         if (player.isDead) player.isDead = false;
-        player.position.x = @as(f32, @floatFromInt(player.shop.pieceShopTopLeft.?.x + GRID_SIZE / 2)) * main.TILESIZE;
-        player.position.y = @as(f32, @floatFromInt(player.shop.pieceShopTopLeft.?.y + GRID_SIZE / 2)) * main.TILESIZE;
+        movePlayerToHisShopPosition(player);
         try movePieceZig.resetPieces(player, true, state);
     }
     try setShopMapRadius(state);
     main.adjustZoom(state);
+}
+
+fn movePlayerToHisShopPosition(player: *playerZig.Player) void {
+    player.position.x = @as(f32, @floatFromInt(player.shop.pieceShopTopLeft.?.x + GRID_SIZE / 2)) * main.TILESIZE;
+    player.position.y = @as(f32, @floatFromInt(player.shop.pieceShopTopLeft.?.y + GRID_SIZE / 2)) * main.TILESIZE;
 }
 
 pub fn setShopMapRadius(state: *main.GameState) anyerror!void {

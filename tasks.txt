@@ -4,13 +4,11 @@ Tasks:
 - new game+2
     - bosses missing:(45+)
 
+- in shop teleport player back when too far out
 - multiplayer
-    - enemies not targeting players already entered shop
-    - selected move piece visualization for multiplayer currently hard to distinguish what player it belongs to
-    - on player join put to correct position
     - tripple boss trivial in multiplayer?
     - boss fireroll might end up in just one player playing?
-- in shop teleport player back when too far out
+    - selected move piece visualization for multiplayer currently hard to distinguish what player it belongs to
 - some settings info area
     - display how to mutliplayer
         - display "hold button to join" if different input devices used
@@ -43,3 +41,6 @@ Next ideas:
     - console log when having validation layers on
 - pratice mode
 - save current run
+- settings menu
+    - sound
+    - fullscreen
