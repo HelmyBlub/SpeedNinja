@@ -6,7 +6,6 @@ Tasks:
 
 
 - multiplayer
-    - on one player left, enable controller for player 1 again
     - setup shop for every player
         - feels like i should scale bigger and use more window space for shop
         - setup position of continue next level and buy options

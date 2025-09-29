@@ -523,10 +523,22 @@ pub fn adjustZoom(state: *GameState) void {
     const stairsAdditionTileWidth: u32 = if (state.gamePhase == .combat) 3 else 0;
     const mapSizeWidth: f32 = @floatFromInt((state.mapData.tileRadiusWidth * 2 + 1 + stairsAdditionTileWidth) * TILESIZE);
     const mapSizeHeight: f32 = @floatFromInt((state.mapData.tileRadiusHeight * 2 + 1) * TILESIZE);
-    const targetMapScreenPerCent = state.uxData.gameVulkanArea.width / 2;
     const widthPerCent = mapSizeWidth / windowSdlZig.windowData.widthFloat;
     const heightPerCent = mapSizeHeight / windowSdlZig.windowData.heightFloat;
     state.uxData.playerUxVertical = if (widthPerCent < heightPerCent) true else false;
+    state.uxData.gameVulkanArea.width = 1.5;
+    state.uxData.gameVulkanArea.height = 1.5;
+    var targetMapScreenPerCent: f32 = state.uxData.gameVulkanArea.width / 2;
+    if (state.gamePhase == .shopping) {
+        if (state.uxData.playerUxVertical) {
+            state.uxData.gameVulkanArea.height = 1.9;
+            targetMapScreenPerCent = state.uxData.gameVulkanArea.height / 2;
+        } else {
+            state.uxData.gameVulkanArea.width = 1.9;
+            targetMapScreenPerCent = state.uxData.gameVulkanArea.width / 2;
+        }
+    }
+
     const biggerPerCent = @max(widthPerCent, heightPerCent);
     state.camera.zoom = targetMapScreenPerCent / biggerPerCent;
     if (state.players.items.len > 1 and stairsAdditionTileWidth > 0 and state.uxData.playerUxVertical) {
