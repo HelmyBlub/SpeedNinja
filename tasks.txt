@@ -5,8 +5,6 @@ Tasks:
     - bosses missing:(45+)
 
 - multiplayer
-    - not targeting dead players
-        - bug: dragon boss can target dead players
     - enemies not targeting players already entered shop
     - selected move piece visualization for multiplayer currently hard to distinguish what player it belongs to
     - on player join put to correct position

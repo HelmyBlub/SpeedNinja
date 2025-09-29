@@ -70,7 +70,7 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
         const enemyTile = main.gamePositionToTilePosition(enemy.position);
         for (state.players.items) |player| {
             if (player.executeMovePiece != null) continue;
-            if (player.isDead) continue;
+            if (player.isDead or player.phase == .shopping) continue;
             const playerTile = main.gamePositionToTilePosition(player.position);
             if (enemyTile.x == playerTile.x) {
                 data.startTime = state.gameTime;
