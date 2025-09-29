@@ -157,8 +157,10 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     if (trippleData.airAttackPlayerOnStationary) |player| {
         if (player.executeMovePiece == null) {
             if (trippleData.airAttackRepeatNextTime < state.gameTime) {
-                const targetTile = main.gamePositionToTilePosition(player.position);
-                try trippleData.airAttackPosition.append(.{ .hitTime = state.gameTime + trippleData.airAttackDelay, .targetPosition = targetTile });
+                for (state.players.items) |allPlayer| {
+                    const targetTile = main.gamePositionToTilePosition(allPlayer.position);
+                    try trippleData.airAttackPosition.append(.{ .hitTime = state.gameTime + trippleData.airAttackDelay, .targetPosition = targetTile });
+                }
                 trippleData.airAttackRepeat -|= 1;
                 if (trippleData.airAttackRepeat == 0) {
                     trippleData.airAttackPlayerOnStationary = null;

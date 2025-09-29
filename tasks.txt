@@ -4,7 +4,6 @@ Tasks:
 - new game+2
     - bosses missing:(45+)
 
-- in shop teleport player back when too far out
 - multiplayer
     - tripple boss trivial in multiplayer?
     - boss fireroll might end up in just one player playing?
