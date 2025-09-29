@@ -5,14 +5,13 @@ Tasks:
     - bosses missing:(45+)
 
 - multiplayer
-    - combine:
-        - when piece to big scale down
-            - was bad code, need rework for multiplayer
     - not targeting dead players
         - bug: dragon boss can target dead players
     - enemies not targeting players already entered shop
     - selected move piece visualization for multiplayer currently hard to distinguish what player it belongs to
     - on player join put to correct position
+    - tripple boss trivial in multiplayer?
+    - boss fireroll might end up in just one player playing?
 - in shop teleport player back when too far out
 - some settings info area
     - display how to mutliplayer

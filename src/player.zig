@@ -211,10 +211,25 @@ pub fn playerHit(player: *Player, state: *main.GameState) !void {
     try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_PLAYER_HIT, 0, 1);
 }
 
+pub fn getRandomAlivePlayerIndex(state: *main.GameState) usize {
+    var alivePlayerCount: usize = 0;
+    for (state.players.items) |player| {
+        if (!player.isDead) alivePlayerCount += 1;
+    }
+    const randomCount = std.crypto.random.intRangeLessThan(usize, 0, alivePlayerCount);
+    alivePlayerCount = 0;
+    for (state.players.items, 0..) |player, index| {
+        if (alivePlayerCount == randomCount) return index;
+        if (!player.isDead) alivePlayerCount += 1;
+    }
+    return 0;
+}
+
 pub fn getClosestPlayer(position: main.Position, state: *main.GameState) struct { player: ?*Player, distance: f32 } {
     var closestPlayer: ?*Player = null;
     var closestDistance: f32 = 0;
     for (state.players.items) |*player| {
+        if (player.isDead) continue;
         const tempDistance = main.calculateDistance(player.position, position);
         if (closestPlayer == null or tempDistance < closestDistance) {
             closestPlayer = player;

@@ -395,7 +395,7 @@ fn tickFireBreathAction(fireBreathData: *FireBreathData, boss: *bossZig.Boss, pa
         if (data.paint.standingPerCent > 0.5) {
             try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BREATH_IN, 0, 1);
             fireBreathData.nextFireSpitTickTime = state.gameTime + fireBreathData.firstFireSpitDelay;
-            fireBreathData.targetPlayerIndex = std.crypto.random.intRangeLessThan(usize, 0, state.players.items.len);
+            fireBreathData.targetPlayerIndex = playerZig.getRandomAlivePlayerIndex(state);
             fireBreathData.spitEndTime = fireBreathData.nextFireSpitTickTime.? + fireBreathData.spitDuration;
             setDirection(boss, std.math.pi / 2.0);
             data.openMouth = true;
@@ -571,7 +571,7 @@ fn tickTransitionFlyingPhase(flyingData: *TransitionFlyingData, boss: *bossZig.B
                 data.inAirHeight -= DEFAULT_FLYING_SPEED * @as(f32, @floatFromInt(passedTime));
             }
             var currentTargetPos = FLYING_TRANSITION_DRAGON_POSITIONS[flyingData.dragonFlyPositionIndex];
-            const randomPlayerIndex = std.crypto.random.intRangeLessThan(usize, 0, state.players.items.len);
+            const randomPlayerIndex = playerZig.getRandomAlivePlayerIndex(state);
             switch (flyingData.dragonFlyPositionIndex) {
                 0 => {
                     const fMapRadius = @as(f32, @floatFromInt(state.mapData.tileRadiusHeight * main.TILESIZE));
@@ -907,6 +907,7 @@ fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) !void {
                 const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(nextMoveTime - state.gameTime)) / @as(f32, @floatFromInt(duration))));
                 const stepDirection = movePieceZig.getStepDirection(wingBlastData.direction.?);
                 for (state.players.items) |player| {
+                    if (player.isDead) continue;
                     enemyVulkanZig.addRedArrowTileSprites(.{
                         .x = player.position.x + stepDirection.x * main.TILESIZE,
                         .y = player.position.y + stepDirection.y * main.TILESIZE,

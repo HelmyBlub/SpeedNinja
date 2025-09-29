@@ -186,14 +186,14 @@ fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) !void {
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const fromVulkan: main.Position = .{
-        .x = boss.position.x * state.camera.zoom * onePixelXInVulkan,
-        .y = boss.position.y * state.camera.zoom * onePixelYInVulkan,
+        .x = (boss.position.x - state.camera.position.x) * state.camera.zoom * onePixelXInVulkan,
+        .y = (boss.position.y - state.camera.position.y) * state.camera.zoom * onePixelYInVulkan,
     };
     for (state.enemyData.enemies.items) |enemy| {
         if (lines.verticeCount + 2 >= lines.vertices.len) break;
         const toVulkan: main.Position = .{
-            .x = enemy.position.x * state.camera.zoom * onePixelXInVulkan,
-            .y = enemy.position.y * state.camera.zoom * onePixelYInVulkan,
+            .x = (enemy.position.x - state.camera.position.x) * state.camera.zoom * onePixelXInVulkan,
+            .y = (enemy.position.y - state.camera.position.y) * state.camera.zoom * onePixelYInVulkan,
         };
         lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ fromVulkan.x, fromVulkan.y }, .color = color };
         lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ toVulkan.x, toVulkan.y }, .color = color };
