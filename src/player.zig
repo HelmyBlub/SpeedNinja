@@ -212,11 +212,12 @@ pub fn playerHit(player: *Player, state: *main.GameState) !void {
     try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_PLAYER_HIT, 0, 1);
 }
 
-pub fn getRandomAlivePlayerIndex(state: *main.GameState) usize {
+pub fn getRandomAlivePlayerIndex(state: *main.GameState) ?usize {
     var alivePlayerCount: usize = 0;
     for (state.players.items) |player| {
         if (!player.isDead) alivePlayerCount += 1;
     }
+    if (alivePlayerCount == 0) return null;
     const randomCount = std.crypto.random.intRangeLessThan(usize, 0, alivePlayerCount);
     alivePlayerCount = 0;
     for (state.players.items, 0..) |player, index| {

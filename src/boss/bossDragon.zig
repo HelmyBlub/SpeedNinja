@@ -395,10 +395,13 @@ fn tickFireBreathAction(fireBreathData: *FireBreathData, boss: *bossZig.Boss, pa
         if (data.paint.standingPerCent > 0.5) {
             try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BREATH_IN, 0, 1);
             fireBreathData.nextFireSpitTickTime = state.gameTime + fireBreathData.firstFireSpitDelay;
-            fireBreathData.targetPlayerIndex = playerZig.getRandomAlivePlayerIndex(state);
-            fireBreathData.spitEndTime = fireBreathData.nextFireSpitTickTime.? + fireBreathData.spitDuration;
-            setDirection(boss, std.math.pi / 2.0);
-            data.openMouth = true;
+            const optRandomPlayerIndex = playerZig.getRandomAlivePlayerIndex(state);
+            if (optRandomPlayerIndex) |playerIndex| {
+                fireBreathData.targetPlayerIndex = playerIndex;
+                fireBreathData.spitEndTime = fireBreathData.nextFireSpitTickTime.? + fireBreathData.spitDuration;
+                setDirection(boss, std.math.pi / 2.0);
+                data.openMouth = true;
+            }
         }
     } else {
         if (fireBreathData.spitEndTime - state.gameTime < fireBreathData.spitDuration and (data.soundData.lastFireBreathTime == null or data.soundData.lastFireBreathTime.? + 650 < state.gameTime)) {
@@ -571,21 +574,23 @@ fn tickTransitionFlyingPhase(flyingData: *TransitionFlyingData, boss: *bossZig.B
                 data.inAirHeight -= DEFAULT_FLYING_SPEED * @as(f32, @floatFromInt(passedTime));
             }
             var currentTargetPos = FLYING_TRANSITION_DRAGON_POSITIONS[flyingData.dragonFlyPositionIndex];
-            const randomPlayerIndex = playerZig.getRandomAlivePlayerIndex(state);
-            switch (flyingData.dragonFlyPositionIndex) {
-                0 => {
-                    const fMapRadius = @as(f32, @floatFromInt(state.mapData.tileRadiusHeight * main.TILESIZE));
-                    const offsetY: f32 = @max(@min(fMapRadius, state.players.items[randomPlayerIndex].position.y), -fMapRadius);
-                    currentTargetPos.y = offsetY;
-                },
-                1 => currentTargetPos.y = boss.position.y,
-                2 => {
-                    const fMapRadius = @as(f32, @floatFromInt(state.mapData.tileRadiusWidth * main.TILESIZE));
-                    const offsetX: f32 = @max(@min(fMapRadius, state.players.items[randomPlayerIndex].position.x), -fMapRadius);
-                    currentTargetPos.x = offsetX;
-                },
-                3 => currentTargetPos.x = boss.position.x,
-                else => {},
+            const optRandomPlayerIndex = playerZig.getRandomAlivePlayerIndex(state);
+            if (optRandomPlayerIndex) |randomPlayerIndex| {
+                switch (flyingData.dragonFlyPositionIndex) {
+                    0 => {
+                        const fMapRadius = @as(f32, @floatFromInt(state.mapData.tileRadiusHeight * main.TILESIZE));
+                        const offsetY: f32 = @max(@min(fMapRadius, state.players.items[randomPlayerIndex].position.y), -fMapRadius);
+                        currentTargetPos.y = offsetY;
+                    },
+                    1 => currentTargetPos.y = boss.position.y,
+                    2 => {
+                        const fMapRadius = @as(f32, @floatFromInt(state.mapData.tileRadiusWidth * main.TILESIZE));
+                        const offsetX: f32 = @max(@min(fMapRadius, state.players.items[randomPlayerIndex].position.x), -fMapRadius);
+                        currentTargetPos.x = offsetX;
+                    },
+                    3 => currentTargetPos.x = boss.position.x,
+                    else => {},
+                }
             }
 
             if (moveBossTick(boss, currentTargetPos, passedTime, DEFAULT_FLYING_SPEED)) {
