@@ -17,10 +17,10 @@ pub fn setupVertices(state: *main.GameState) !void {
     if (state.gamePhase != .shopping) return;
     try verticesForMovePieceModifications(state);
     try verticesForBuyOptions(state);
-    verticesForExitShop(state);
+    try verticesForExitShop(state);
 }
 
-fn verticesForExitShop(state: *main.GameState) void {
+fn verticesForExitShop(state: *main.GameState) !void {
     const tileRectangle = state.shop.exitShopArea;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
@@ -51,6 +51,36 @@ fn verticesForExitShop(state: *main.GameState) void {
         false,
         state,
     );
+
+    if (state.players.items.len > 1) {
+        const fontSize = 12;
+        const textColor: [4]f32 = .{ 1, 1, 1, 1 };
+        const textPos: main.Position = .{
+            .x = exitShopTopLeft.x - main.TILESIZE / 2,
+            .y = exitShopTopLeft.y - main.TILESIZE / 2 - fontSize,
+        };
+        var textWidth: f32 = 0;
+        textWidth += try fontVulkanZig.paintNumberGameMap(state.shop.playersOnExit, textPos, fontSize, textColor, &state.vkState.verticeData.font, state);
+        textWidth += fontVulkanZig.paintTextGameMap("/", .{
+            .x = textPos.x + textWidth,
+            .y = textPos.y,
+        }, fontSize, textColor, &state.vkState.verticeData.font, state);
+        textWidth += try fontVulkanZig.paintNumberGameMap(state.players.items.len, .{
+            .x = textPos.x + textWidth,
+            .y = textPos.y,
+        }, fontSize, textColor, &state.vkState.verticeData.font, state);
+        paintVulkanZig.verticesForComplexSprite(
+            .{ .x = textPos.x + textWidth + fontSize, .y = textPos.y + fontSize / 2 },
+            imageZig.IMAGE_CHECKMARK,
+            3,
+            3,
+            1,
+            0,
+            false,
+            false,
+            state,
+        );
+    }
 }
 
 fn verticesForMovePieceModifications(state: *main.GameState) !void {

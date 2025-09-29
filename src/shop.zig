@@ -81,6 +81,7 @@ pub const ShopData = struct {
     buyOptions: std.ArrayList(ShopBuyOption),
     equipOptionsLastLevelInShop: [equipmentZig.EQUIPMENT_SHOP_OPTIONS.len]u32 = undefined,
     exitShopArea: main.TileRectangle = .{ .pos = .{ .x = GRID_SIZE - 1, .y = -4 }, .height = 2, .width = 2 },
+    playersOnExit: u32 = 0,
 };
 
 pub const SHOP_BUTTONS = [_]PlayerShopButton{
@@ -174,7 +175,14 @@ pub fn executeShopActionForPlayer(player: *playerZig.Player, state: *main.GameSt
             return;
         }
     }
-    if (main.isTilePositionInTileRectangle(playerTile, state.shop.exitShopArea)) {
+    state.shop.playersOnExit = 0;
+    for (state.players.items) |*otherPlayer| {
+        const otherPlayerTile = main.gamePositionToTilePosition(otherPlayer.position);
+        if (main.isTilePositionInTileRectangle(otherPlayerTile, state.shop.exitShopArea)) {
+            state.shop.playersOnExit += 1;
+        }
+    }
+    if (state.shop.playersOnExit == state.players.items.len) {
         try main.endShoppingPhase(state);
     }
 }
@@ -202,6 +210,7 @@ pub fn startShoppingPhase(state: *main.GameState) !void {
     if (!state.gameOver) try statsZig.statsOnLevelFinished(state);
     state.suddenDeath = 0;
     state.camera.position = .{ .x = 0, .y = 0 };
+    state.shop.playersOnExit = 0;
     mapTileZig.setMapType(.default, state);
     state.gamePhase = .shopping;
     state.enemyData.enemies.clearRetainingCapacity();
