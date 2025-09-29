@@ -289,10 +289,28 @@ fn paintMovePieceInGrid(player: *playerZig.Player, gridGameTopLeft: main.Positio
 
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-    const size = main.TILESIZE;
+    var factor: f32 = 1;
+    var gamePosOffsetX = @as(f32, @floatFromInt(player.shop.gridDisplayPieceOffset.x)) * main.TILESIZE;
+    var gamePosOffsetY = @as(f32, @floatFromInt(player.shop.gridDisplayPieceOffset.y)) * main.TILESIZE;
+    if (player.shop.selectedOption == .combine) {
+        const boundingBox = movePieceZig.getBoundingBox(gridDisplayPiece);
+        const maxSize: f32 = @floatFromInt(@max(boundingBox.width, boundingBox.height));
+        factor = @min(1, shopZig.GRID_SIZE / maxSize);
+        gamePosOffsetX = -@as(f32, @floatFromInt(boundingBox.pos.x)) * main.TILESIZE * factor;
+        gamePosOffsetY = -@as(f32, @floatFromInt(boundingBox.pos.y)) * main.TILESIZE * factor;
+        if (shopZig.GRID_SIZE > boundingBox.width) {
+            const diffX = @as(f32, @floatFromInt(shopZig.GRID_SIZE - boundingBox.width));
+            gamePosOffsetX += @round(diffX / 2) * main.TILESIZE * factor;
+        }
+        if (shopZig.GRID_SIZE > boundingBox.height) {
+            const diffY = @as(f32, @floatFromInt(shopZig.GRID_SIZE - boundingBox.height));
+            gamePosOffsetY += @round(diffY / 2) * main.TILESIZE * factor;
+        }
+    }
+    const size: f32 = main.TILESIZE * factor;
     const gamePosition = .{
-        .x = gridGameTopLeft.x + @as(f32, @floatFromInt(player.shop.gridDisplayPieceOffset.x)) * main.TILESIZE,
-        .y = gridGameTopLeft.y + @as(f32, @floatFromInt(player.shop.gridDisplayPieceOffset.y)) * main.TILESIZE,
+        .x = gridGameTopLeft.x + gamePosOffsetX,
+        .y = gridGameTopLeft.y + gamePosOffsetY,
     };
     const vulkan: main.Position = .{
         .x = (-state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
@@ -300,8 +318,8 @@ fn paintMovePieceInGrid(player: *playerZig.Player, gridGameTopLeft: main.Positio
     };
     const width = size * onePixelXInVulkan * state.camera.zoom;
     const height = size * onePixelYInVulkan * state.camera.zoom;
-    var left = vulkan.x - width / 2;
-    var top = vulkan.y - height / 2;
+    var left = vulkan.x - width / 2 / factor;
+    var top = vulkan.y - height / 2 / factor;
 
     const fillColor: [4]f32 = .{ 0.25, 0.25, 0.25, 1 };
     const endPos = playerUxVulkanZig.verticesForMovePiece(
