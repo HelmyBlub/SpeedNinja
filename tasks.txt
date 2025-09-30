@@ -1,7 +1,9 @@
-Tasks:
-- new game+2
-    - boss missing:(50)
+speed run normal mode
+    - reset speedrun stats first, so no old times are in
 
+Tasks:
+- bug: restart ears helicopter
+- change: boss dragon fire on phase change should disappear
 - vertical layout
     - everything broken
     - gate/stairs outside of view
@@ -11,11 +13,12 @@ Next ideas:
 - save current run
 - vulkan changes
     - fallback visulize when not supported
-    - console log when having validation layers on
-- pratice mode
 - settings menu
-    - sound
+    - sound volume
     - fullscreen
     - display how to mutliplayer
         - display "hold button to join" if different input devices used
             - only when on one player
+- steam achievements
+- pratice mode
+- pvp

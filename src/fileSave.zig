@@ -10,7 +10,7 @@ pub fn getSavePath(allocator: std.mem.Allocator, filename: []const u8) ![]const 
 }
 
 pub fn getSaveDirectoryPath(allocator: std.mem.Allocator) ![]const u8 {
-    const game_name = "SpeedNinja";
+    const game_name = "SpeedTacticNinja";
     const save_folder = "saves";
 
     const base_dir = try std.fs.getAppDataDir(allocator, game_name);
