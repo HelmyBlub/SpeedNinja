@@ -4,12 +4,7 @@ Tasks:
 
 - multiplayer
     - kick player option
-        - in shop: put AFK text over AFK players
-        - kick AFK area: all non AFK players have to stand inside for 3sec to kick
-
-    - if player left when no timer in combat, should give kick option
-        - throw air attack on AFK players if only AFK players alive
-
+        - bug: somehow "player leave" was displaying after player kick
 
 - vertical layout
     - everything broken

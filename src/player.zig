@@ -344,6 +344,7 @@ pub fn playerLeave(playerIndex: usize, state: *main.GameState) !void {
                 if (keyBoardPlayerCount == 1) {
                     for (state.players.items) |*player| {
                         if (player.inputData.inputDevice != null and player.inputData.inputDevice.? == .keyboard) {
+                            player.inputData.holdingKeySinceForLeave = null;
                             player.inputData.inputDevice.?.keyboard = null;
                         }
                     }
