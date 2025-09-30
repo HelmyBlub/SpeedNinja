@@ -19,7 +19,7 @@ const SnowballState = enum {
 pub const BossSnowballData = struct {
     nextStateTime: i64 = 0,
     state: SnowballState = .stationary,
-    maxEnemyToSpawn: i8 = 19,
+    maxEnemyToSpawn: u8 = 19,
     enemyToSpawn: u8 = 19,
     rollDirection: u8 = 0,
     nextRollTime: i64 = 0,
@@ -42,14 +42,20 @@ pub fn createBoss() bossZig.LevelBossData {
 fn startBoss(state: *main.GameState) !void {
     const levelScaledHp = bossZig.getHpScalingForLevel(10, state);
     const scaledHp: u32 = levelScaledHp * @as(u32, @intCast(state.players.items.len));
-    try state.bosses.append(.{
+    var snowball: bossZig.Boss = .{
         .hp = scaledHp,
         .maxHp = scaledHp,
         .imageIndex = imageZig.IMAGE_BOSS_SNOWBALL,
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
         .typeData = .{ .snowball = .{} },
-    });
+    };
+    if (state.newGamePlus > 0) {
+        snowball.typeData.snowball.rollInterval = @divFloor(snowball.typeData.snowball.rollInterval, @as(i32, @intCast(state.newGamePlus + 1)));
+        snowball.typeData.snowball.maxEnemyToSpawn = @min(snowball.typeData.snowball.maxEnemyToSpawn * (state.newGamePlus + 1), 60);
+        snowball.typeData.snowball.enemyToSpawn = snowball.typeData.snowball.maxEnemyToSpawn;
+    }
+    try state.bosses.append(snowball);
     try mapTileZig.setMapRadius(6, 6, state);
     main.adjustZoom(state);
 }

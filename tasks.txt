@@ -2,10 +2,6 @@ Tasks:
 - new game+2
     - boss missing:(50)
 
-- bug: snowman on later levels
-- multiplayer
-    - boss fireroll might end up in just one player playing?
-        - check with play testing
 - some settings info area
     - display how to mutliplayer
         - display "hold button to join" if different input devices used
