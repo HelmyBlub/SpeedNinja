@@ -328,7 +328,7 @@ pub fn determinePlayerUxPositions(state: *main.GameState) void {
     }
 }
 
-fn playerLeave(playerIndex: usize, state: *main.GameState) !void {
+pub fn playerLeave(playerIndex: usize, state: *main.GameState) !void {
     if (state.players.items.len > 1 and playerIndex < state.players.items.len) {
         var removed = state.players.swapRemove(playerIndex);
         if (state.players.items.len == 1) {
@@ -394,6 +394,7 @@ fn playerJoin(playerInputData: inputZig.PlayerInputData, state: *main.GameState)
             otherPlayer.uxData.visualizeMovementKeys = true;
         }
     }
+    player.inputData.lastInputTime = state.gameTime;
     equipmentZig.equipStarterEquipment(player);
     try movePieceZig.setupMovePieces(player, state);
     state.statistics.active = false;

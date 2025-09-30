@@ -61,6 +61,7 @@ pub const PlayerShopButton = struct {
 pub const GRID_SIZE = 8;
 pub const GRID_OFFSET: main.TilePosition = .{ .x = 1, .y = 1 };
 pub const EARLY_SHOP_GRID_SIZE = 2;
+pub const SHOP_AFK_TIMER = 120_000;
 
 pub const ShopPlayerData = struct {
     piecesToBuy: [3]?movePieceZig.MovePiece = [3]?movePieceZig.MovePiece{ null, null, null },
@@ -83,6 +84,10 @@ pub const ShopData = struct {
     equipOptionsLastLevelInShop: [equipmentZig.EQUIPMENT_SHOP_OPTIONS.len]u32 = undefined,
     exitShopArea: main.TileRectangle = .{ .pos = .{ .x = GRID_SIZE / 2, .y = GRID_SIZE - 1 }, .height = 2, .width = 2 },
     playersOnExit: u32 = 0,
+    afkKickArea: main.TileRectangle = .{ .pos = .{ .x = 0, .y = 0 }, .height = 2, .width = 2 },
+    playersOnAfkKick: u32 = 0,
+    kickStartTime: ?i64 = null,
+    durationToKick: i32 = 5_000,
 };
 
 pub const SHOP_BUTTONS = [_]PlayerShopButton{
@@ -140,6 +145,7 @@ pub const SHOP_BUTTONS = [_]PlayerShopButton{
 };
 
 pub fn executeShopActionForPlayer(player: *playerZig.Player, state: *main.GameState) !void {
+    try handlePlayerAfkKick(player, state);
     const playerTile: main.TilePosition = main.gamePositionToTilePosition(player.position);
     if (player.shop.pieceShopTopLeft) |shopTopLeftTile| {
         for (SHOP_BUTTONS) |shopButton| {
@@ -198,6 +204,30 @@ pub fn executeShopActionForPlayer(player: *playerZig.Player, state: *main.GameSt
     }
 }
 
+fn handlePlayerAfkKick(player: *playerZig.Player, state: *main.GameState) !void {
+    state.shop.playersOnAfkKick = 0;
+    var afkPlayers: u32 = 0;
+    var playerIsOnKick = false;
+    for (state.players.items) |*otherPlayer| {
+        if (otherPlayer.inputData.lastInputTime + SHOP_AFK_TIMER < state.gameTime) {
+            afkPlayers += 1;
+        } else {
+            const otherPlayerTile = main.gamePositionToTilePosition(otherPlayer.position);
+            if (main.isTilePositionInTileRectangle(otherPlayerTile, state.shop.afkKickArea)) {
+                state.shop.playersOnAfkKick += 1;
+                if (otherPlayer == player) {
+                    playerIsOnKick = true;
+                }
+            }
+        }
+    }
+    if (playerIsOnKick and state.shop.playersOnAfkKick == state.players.items.len - afkPlayers) {
+        if (state.shop.kickStartTime == null) state.shop.kickStartTime = state.gameTime;
+    } else {
+        state.shop.kickStartTime = null;
+    }
+}
+
 pub fn getShopEarlyTriggerPosition(state: *main.GameState) main.TileRectangle {
     return main.TileRectangle{
         .pos = .{
@@ -222,6 +252,8 @@ pub fn startShoppingPhase(state: *main.GameState) !void {
     state.suddenDeath = 0;
     state.camera.position = .{ .x = 0, .y = 0 };
     state.shop.playersOnExit = 0;
+    state.shop.playersOnAfkKick = 0;
+    state.shop.kickStartTime = null;
     mapTileZig.setMapType(.default, state);
     state.gamePhase = .shopping;
     state.enemyData.enemies.clearRetainingCapacity();
@@ -689,6 +721,10 @@ pub fn setupShopAreas(state: *main.GameState) !void {
     const player0ShopTopLeft = state.players.items[0].shop.pieceShopTopLeft.?;
     state.shop.exitShopArea.pos = .{
         .x = player0ShopTopLeft.x + GRID_SIZE - 1,
+        .y = player0ShopTopLeft.y + GRID_SIZE + 2,
+    };
+    state.shop.afkKickArea.pos = .{
+        .x = player0ShopTopLeft.x - 2,
         .y = player0ShopTopLeft.y + GRID_SIZE + 2,
     };
     if (state.gamePhase == .shopping) {

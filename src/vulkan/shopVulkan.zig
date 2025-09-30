@@ -18,6 +18,85 @@ pub fn setupVertices(state: *main.GameState) !void {
     try verticesForMovePieceModifications(state);
     try verticesForBuyOptions(state);
     try verticesForExitShop(state);
+    try verticesForAfk(state);
+}
+
+fn verticesForAfk(state: *main.GameState) !void {
+    if (state.players.items.len <= 1) return;
+    var afkPlayerCount: u32 = 0;
+    const fontSize = 12;
+    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
+    for (state.players.items) |player| {
+        if (player.inputData.lastInputTime + shopZig.SHOP_AFK_TIMER < state.gameTime) {
+            afkPlayerCount += 1;
+            _ = fontVulkanZig.paintTextGameMap("AFK", .{
+                .x = player.position.x,
+                .y = player.position.y,
+            }, fontSize, textColor, &state.vkState.verticeData.font, state);
+        }
+    }
+    if (afkPlayerCount > 0) {
+        const tileRectangle = state.shop.afkKickArea;
+        const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+        const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+        const kickAfkTopLeft: main.Position = .{
+            .x = @floatFromInt(tileRectangle.pos.x * main.TILESIZE),
+            .y = @floatFromInt(tileRectangle.pos.y * main.TILESIZE),
+        };
+        const vulkan: main.Position = .{
+            .x = (-state.camera.position.x + kickAfkTopLeft.x) * state.camera.zoom * onePixelXInVulkan,
+            .y = (-state.camera.position.y + kickAfkTopLeft.y) * state.camera.zoom * onePixelYInVulkan,
+        };
+        const halveVulkanTileSizeX = main.TILESIZE * onePixelXInVulkan * state.camera.zoom / 2;
+        const halveVulkanTileSizeY = main.TILESIZE * onePixelYInVulkan * state.camera.zoom / 2;
+        const width = main.TILESIZE * shopZig.EARLY_SHOP_GRID_SIZE * onePixelXInVulkan * state.camera.zoom;
+        const height = main.TILESIZE * shopZig.EARLY_SHOP_GRID_SIZE * onePixelYInVulkan * state.camera.zoom;
+        const left = vulkan.x - halveVulkanTileSizeX;
+        const top = vulkan.y - halveVulkanTileSizeY;
+
+        paintVulkanZig.verticesForRectangle(left, top, width, height, .{ 1, 1, 1, 1 }, &state.vkState.verticeData.lines, null);
+        if (state.shop.kickStartTime) |kickStartTime| {
+            const fillPerCent: f32 = @as(f32, @floatFromInt(state.gameTime - kickStartTime)) / @as(f32, @floatFromInt(state.shop.durationToKick));
+            paintVulkanZig.verticesForRectangle(left, top, width * fillPerCent, height, .{ 0, 0, 0, 1 }, null, &state.vkState.verticeData.triangles);
+        }
+
+        _ = fontVulkanZig.paintTextGameMap("KICK", .{
+            .x = kickAfkTopLeft.x - main.TILESIZE / 2,
+            .y = kickAfkTopLeft.y - main.TILESIZE / 2,
+        }, fontSize, textColor, &state.vkState.verticeData.font, state);
+        _ = fontVulkanZig.paintTextGameMap("AFK", .{
+            .x = kickAfkTopLeft.x - main.TILESIZE / 2,
+            .y = kickAfkTopLeft.y - main.TILESIZE / 2 + fontSize,
+        }, fontSize, textColor, &state.vkState.verticeData.font, state);
+
+        if (state.players.items.len > 1) {
+            const textPos: main.Position = .{
+                .x = kickAfkTopLeft.x - main.TILESIZE / 2,
+                .y = kickAfkTopLeft.y - main.TILESIZE / 2 - fontSize,
+            };
+            var textWidth: f32 = 0;
+            textWidth += try fontVulkanZig.paintNumberGameMap(state.shop.playersOnAfkKick, textPos, fontSize, textColor, &state.vkState.verticeData.font, state);
+            textWidth += fontVulkanZig.paintTextGameMap("/", .{
+                .x = textPos.x + textWidth,
+                .y = textPos.y,
+            }, fontSize, textColor, &state.vkState.verticeData.font, state);
+            textWidth += try fontVulkanZig.paintNumberGameMap(state.players.items.len - afkPlayerCount, .{
+                .x = textPos.x + textWidth,
+                .y = textPos.y,
+            }, fontSize, textColor, &state.vkState.verticeData.font, state);
+            paintVulkanZig.verticesForComplexSprite(
+                .{ .x = textPos.x + textWidth + fontSize, .y = textPos.y + fontSize / 2 },
+                imageZig.IMAGE_CHECKMARK,
+                3,
+                3,
+                1,
+                0,
+                false,
+                false,
+                state,
+            );
+        }
+    }
 }
 
 fn verticesForExitShop(state: *main.GameState) !void {

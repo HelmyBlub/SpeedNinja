@@ -14,6 +14,7 @@ pub const PlayerInputData = struct {
     axis1DeadZone: bool = true,
     axis0Id: u8 = 0,
     axis1Id: u8 = 0,
+    lastInputTime: i64 = 0,
 };
 
 pub const InputJoinData = struct {
@@ -328,6 +329,7 @@ fn handlePlayerGamepadInput(event: sdl.SDL_Event, player: *playerZig.Player, gam
 }
 
 fn handlePlayerAction(action: PlayerAction, player: *playerZig.Player, state: *main.GameState) !void {
+    player.inputData.lastInputTime = state.gameTime;
     switch (action) {
         .moveLeft => {
             if (player.choosenMoveOptionIndex) |index| {

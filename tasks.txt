@@ -2,13 +2,14 @@ Tasks:
 - new game+2
     - boss missing:(50)
 
-- improve UX
-    - speedrun stats
+- multiplayer
+    - kick player option
+        - in shop: put AFK text over AFK players
+        - kick AFK area: all non AFK players have to stand inside for 3sec to kick
 
-- some settings info area
-    - display how to mutliplayer
-        - display "hold button to join" if different input devices used
-            - only when on one player
+    - if player left when no timer in combat, should give kick option
+        - throw air attack on AFK players if only AFK players alive
+
 
 - vertical layout
     - everything broken
@@ -16,20 +17,14 @@ Tasks:
     - overlapping stuff
 
 Next ideas:
-- multiplayer
-    - player speedrun stats?
-        - multiplayer don't display?
-            - only when run over?
-    - kick player option
-        - in shop "kick afk players" when idle player detected
-            - idle when no input in  1min
-            - stand on tile for 5seconds
-        - if player left when no timer in combat, should give kick option
+- save current run
 - vulkan changes
     - fallback visulize when not supported
     - console log when having validation layers on
 - pratice mode
-- save current run
 - settings menu
     - sound
     - fullscreen
+    - display how to mutliplayer
+        - display "hold button to join" if different input devices used
+            - only when on one player

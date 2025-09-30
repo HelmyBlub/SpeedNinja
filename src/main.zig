@@ -67,6 +67,7 @@ pub const GameState = struct {
     tutorialData: TutorialData = .{},
     gateOpenTime: ?i64 = null,
     uxData: GameUxData = .{},
+    lastAfkShootTime: ?i64 = null,
 };
 
 pub const GameUxData = struct {
@@ -217,6 +218,7 @@ fn mainLoop(state: *GameState) !void {
         try enemyZig.tickEnemies(passedTime, state);
         try bossZig.tickBosses(state, passedTime);
         tickMapObjects(state, passedTime);
+        try multiplayerAfkCheck(state);
         try tickGameOver(state);
         if (state.verifyMapData.checkReachable) try verifyMapZig.checkAndModifyMapIfNotEverythingReachable(state);
         try paintVulkanZig.drawFrame(state);
@@ -228,6 +230,39 @@ fn mainLoop(state: *GameState) !void {
             passedTime = 16;
         }
         state.gameTime += passedTime;
+    }
+}
+
+fn multiplayerAfkCheck(state: *GameState) !void {
+    if (state.players.items.len <= 1 or state.gameOver) return;
+    const afkTime = 60_000;
+    if (state.gamePhase != .shopping) {
+        for (state.players.items) |player| {
+            if (!player.isDead and player.inputData.lastInputTime + afkTime > state.gameTime) {
+                return;
+            }
+        }
+        if (state.lastAfkShootTime == null or state.lastAfkShootTime.? + 2000 < state.gameTime) {
+            for (state.players.items) |player| {
+                if (!player.isDead and player.inputData.lastInputTime + afkTime < state.gameTime) {
+                    try enemyObjectFallDownZig.spawnFallDown(player.position, 2000, true, state);
+                    state.lastAfkShootTime = state.gameTime;
+                }
+            }
+        }
+    } else {
+        if (state.shop.kickStartTime != null and state.shop.kickStartTime.? + state.shop.durationToKick < state.gameTime) {
+            state.shop.kickStartTime = null;
+            var currentIndex: usize = 0;
+            while (currentIndex < state.players.items.len and state.players.items.len > 1) {
+                const currentPlayer = state.players.items[currentIndex];
+                if (currentPlayer.inputData.lastInputTime + shopZig.SHOP_AFK_TIMER < state.gameTime) {
+                    try playerZig.playerLeave(currentIndex, state);
+                } else {
+                    currentIndex += 1;
+                }
+            }
+        }
     }
 }
 
@@ -403,6 +438,7 @@ pub fn startNextLevel(state: *GameState) !void {
     state.camera.position = .{ .x = 0, .y = 0 };
     state.enemyData.enemies.clearRetainingCapacity();
     state.enemyData.enemyObjects.clearRetainingCapacity();
+    state.lastAfkShootTime = null;
     mapTileZig.resetMapTiles(state.mapData.tiles);
     state.gamePhase = .combat;
     state.level += 1;
@@ -510,6 +546,7 @@ pub fn restart(state: *GameState, newGamePlus: u32) anyerror!void {
         player.uxData.piecesRefreshedVisualization = null;
         player.uxData.visualizeHpChange = null;
         player.uxData.visualizeMoney = null;
+        player.inputData.lastInputTime = 0;
     }
     for (0..state.shop.equipOptionsLastLevelInShop.len) |i| {
         state.shop.equipOptionsLastLevelInShop[i] = 0;
@@ -519,6 +556,8 @@ pub fn restart(state: *GameState, newGamePlus: u32) anyerror!void {
     state.mapObjects.clearAndFree();
     state.verifyMapData.lastCheckTime = 0;
     state.verifyMapData.checkReachable = false;
+    state.uxData.displayBossAcedUntilTime = null;
+    state.uxData.displayReceivedFreeContinue = null;
     try startNextLevel(state);
 }
 
