@@ -272,6 +272,7 @@ fn createInstance(vkState: *VkState, allocator: std.mem.Allocator) !void {
         .ppEnabledExtensionNames = null,
     };
     if (ENABLE_VALIDATION_LAYER) {
+        std.debug.print("!!!!!!!vulkan validation layers enabled!!!!!!\n", .{});
         instance_create_info.enabledLayerCount = VALIDATION_LAYERS.len;
         instance_create_info.ppEnabledLayerNames = &VALIDATION_LAYERS;
     }
@@ -357,7 +358,6 @@ fn createLogicalDevice(physicalDevice: vk.VkPhysicalDevice, vkState: *VkState) !
         device_create_info.ppEnabledLayerNames = &VALIDATION_LAYERS;
     }
     try vkcheck(vk.vkCreateDevice.?(physicalDevice, &device_create_info, null, &vkState.logicalDevice), "Failed to create logical device");
-    std.debug.print("Logical Device Created : {any}\n", .{vkState.logicalDevice});
     vk.vkGetDeviceQueue.?(vkState.logicalDevice, vkState.graphicsQueueFamilyIdx, 0, &vkState.queue);
 }
 
