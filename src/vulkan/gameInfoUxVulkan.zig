@@ -25,16 +25,20 @@ fn verticesForBossAcedAndFreeContinue(state: *main.GameState) void {
     const fontSize = 120;
     if (state.uxData.displayBossAcedUntilTime) |time| {
         if (time > state.gameTime) {
-            const textPos: main.Position = .{ .x = -0.6, .y = -0.2 };
-            _ = fontVulkanZig.paintText("ACED BOSS", textPos, fontSize, textColor, fontVertices);
+            const text = "Aced Boss";
+            const textWidth = fontVulkanZig.getTextVulkanWidth(text, fontSize);
+            const textPos: main.Position = .{ .x = 0 - textWidth / 2, .y = -fontSize * onePixelYInVulkan };
+            _ = fontVulkanZig.paintText(text, textPos, fontSize, textColor, fontVertices);
         } else {
             state.uxData.displayBossAcedUntilTime = null;
         }
     }
     if (state.uxData.displayReceivedFreeContinue) |time| {
         if (time > state.gameTime) {
-            const textPos: main.Position = .{ .x = -0.6, .y = -0.2 + fontSize * onePixelYInVulkan };
-            _ = fontVulkanZig.paintText("+Free Continue", textPos, fontSize, textColor, fontVertices);
+            const text = "+Free Continue";
+            const textWidth = fontVulkanZig.getTextVulkanWidth(text, fontSize);
+            const textPos: main.Position = .{ .x = 0 - textWidth / 2, .y = 0 };
+            _ = fontVulkanZig.paintText(text, textPos, fontSize, textColor, fontVertices);
         } else {
             state.uxData.displayReceivedFreeContinue = null;
         }

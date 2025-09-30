@@ -50,6 +50,17 @@ pub fn paintText(chars: []const u8, vulkanSurfacePosition: main.Position, fontSi
     return xOffset;
 }
 
+pub fn getTextVulkanWidth(chars: []const u8, fontSize: f32) f32 {
+    var texWidth: f32 = 0;
+    var texX: f32 = 0;
+    var textWidth: f32 = 0;
+    for (chars) |char| {
+        charToTexCoords(char, &texX, &texWidth);
+        textWidth += texWidth * 1600 / windowSdlZig.windowData.widthFloat * 2 / 40 * fontSize * 0.8;
+    }
+    return textWidth;
+}
+
 /// returns game width of text
 pub fn paintNumberGameMap(number: anytype, gamePosition: main.Position, fontSize: f32, color: [4]f32, vkFont: *dataVulkanZig.VkFont, state: *main.GameState) !f32 {
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;

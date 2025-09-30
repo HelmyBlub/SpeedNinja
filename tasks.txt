@@ -4,9 +4,7 @@ Tasks:
 
 - improve UX
     - free continues
-        - when defeating boss without taking damage
-            - display getting free continue
-            - display boss being aced
+        - center text to window
 
 - some settings info area
     - display how to mutliplayer
