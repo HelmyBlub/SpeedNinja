@@ -76,6 +76,8 @@ pub const GameUxData = struct {
     quitButtonHoldStart: ?i64 = null,
     playerUxVertical: bool = false,
     gameVulkanArea: Rectangle = .{ .pos = .{ .x = -0.75, .y = -0.75 }, .width = 1.5, .height = 1.5 },
+    displayBossAcedUntilTime: ?i64 = null,
+    displayReceivedFreeContinue: ?i64 = null,
 };
 
 pub const TutorialData = struct {
@@ -197,9 +199,10 @@ fn mainLoop(state: *GameState) !void {
                 try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BOSS_DEFEATED, 0, 0.6);
                 if (state.playerTookDamageOnLevel == false) {
                     state.continueData.bossesAced += 1;
+                    state.uxData.displayBossAcedUntilTime = state.gameTime + 3_500;
                     if (state.continueData.bossesAced >= state.continueData.nextBossAceFreeContinue) {
                         state.continueData.freeContinues += 1;
-                        std.debug.print("free continue\n", .{});
+                        state.uxData.displayReceivedFreeContinue = state.gameTime + 3_500;
                         state.continueData.nextBossAceFreeContinue += state.continueData.nextBossAceFreeContinueIncrease;
                         state.continueData.nextBossAceFreeContinueIncrease += 1;
                     }

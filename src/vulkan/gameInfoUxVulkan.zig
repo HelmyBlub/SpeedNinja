@@ -14,7 +14,31 @@ pub fn setupVertices(state: *main.GameState) !void {
     try verticesForLevelRoundNewGamePlus(state);
     try verticesForGameOver(state);
     try verticesForLeaveJoinInfo(state);
+    verticesForBossAcedAndFreeContinue(state);
     verticsForTutorial(state);
+}
+
+fn verticesForBossAcedAndFreeContinue(state: *main.GameState) void {
+    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
+    const fontVertices = &state.vkState.verticeData.font;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const fontSize = 120;
+    if (state.uxData.displayBossAcedUntilTime) |time| {
+        if (time > state.gameTime) {
+            const textPos: main.Position = .{ .x = -0.6, .y = -0.2 };
+            _ = fontVulkanZig.paintText("ACED BOSS", textPos, fontSize, textColor, fontVertices);
+        } else {
+            state.uxData.displayBossAcedUntilTime = null;
+        }
+    }
+    if (state.uxData.displayReceivedFreeContinue) |time| {
+        if (time > state.gameTime) {
+            const textPos: main.Position = .{ .x = -0.6, .y = -0.2 + fontSize * onePixelYInVulkan };
+            _ = fontVulkanZig.paintText("+Free Continue", textPos, fontSize, textColor, fontVertices);
+        } else {
+            state.uxData.displayReceivedFreeContinue = null;
+        }
+    }
 }
 
 fn verticesForBossHpBar(state: *main.GameState) !void {

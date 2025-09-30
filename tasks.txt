@@ -2,13 +2,16 @@ Tasks:
 - new game+2
     - boss missing:(50)
 
+- improve UX
+    - free continues
+        - when defeating boss without taking damage
+            - display getting free continue
+            - display boss being aced
+
 - some settings info area
     - display how to mutliplayer
         - display "hold button to join" if different input devices used
             - only when on one player
-
-- new game plus
-    - should image rotate when rolling?
 
 - vertical layout
     - everything broken
@@ -18,7 +21,6 @@ Tasks:
 Next ideas:
 - improve UX
     - speedrun stats
-    - free continues
 - multiplayer
     - player speedrun stats?
         - multiplayer don't display?
