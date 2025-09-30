@@ -180,5 +180,20 @@ fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) !void {
 }
 
 fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
-    paintVulkanZig.verticesForComplexSpriteDefault(boss.position, boss.imageIndex, state);
+    const divider: f32 = @floatFromInt(boss.typeData.snowball.rollInterval);
+    var rotation: f32 = if (boss.typeData.snowball.state == .rolling) @as(f32, @floatFromInt(state.gameTime)) / divider * 2 else 0;
+    if (boss.typeData.snowball.rollDirection == movePieceZig.DIRECTION_LEFT) {
+        rotation *= -1;
+    }
+    paintVulkanZig.verticesForComplexSprite(
+        boss.position,
+        boss.imageIndex,
+        1,
+        1,
+        1,
+        rotation,
+        false,
+        false,
+        state,
+    );
 }

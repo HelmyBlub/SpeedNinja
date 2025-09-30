@@ -8,8 +8,7 @@ Tasks:
             - only when on one player
 
 - new game plus
-    - check snowball being to slow?
-        - should image rotate when rolling?
+    - should image rotate when rolling?
 
 - vertical layout
     - everything broken
