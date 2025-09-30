@@ -189,22 +189,12 @@ pub fn initEnemy(state: *main.GameState) !void {
 
 pub fn setupSpawnEnemiesOnLevelChange(state: *main.GameState) !void {
     const enemySpawnData = &state.enemyData.enemySpawnData;
-    if (state.level == 0 or state.level == 1) {
-        enemySpawnData.enemyEntries.clearRetainingCapacity();
-    }
+    enemySpawnData.enemyEntries.clearRetainingCapacity();
     for (ENEMY_TYPE_SPAWN_LEVEL_DATA) |data| {
         var enemyType = data.enemyType;
         if (data.enemyType == .nothing and state.newGamePlus > 0) enemyType = .attack;
-        if (data.startingLevel == state.level) {
+        if (data.startingLevel <= state.level and (data.leavingLevel == null or data.leavingLevel.? > state.level)) {
             try enemySpawnData.enemyEntries.append(.{ .probability = 1, .enemy = createSpawnEnemyEntryEnemy(enemyType) });
-        }
-        if (data.leavingLevel == state.level) {
-            for (enemySpawnData.enemyEntries.items, 0..) |entry, index| {
-                if (entry.enemy.enemyTypeData == enemyType) {
-                    _ = enemySpawnData.enemyEntries.swapRemove(index);
-                    break;
-                }
-            }
         }
     }
     scaleEnemiesProbabilityToLevel(state);
