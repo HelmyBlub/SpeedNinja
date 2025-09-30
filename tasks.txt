@@ -3,8 +3,7 @@ Tasks:
     - boss missing:(50)
 
 - improve UX
-    - free continues
-        - center text to window
+    - speedrun stats
 
 - some settings info area
     - display how to mutliplayer
@@ -17,8 +16,6 @@ Tasks:
     - overlapping stuff
 
 Next ideas:
-- improve UX
-    - speedrun stats
 - multiplayer
     - player speedrun stats?
         - multiplayer don't display?

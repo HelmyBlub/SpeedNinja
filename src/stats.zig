@@ -139,6 +139,7 @@ pub fn destroyAndSave(state: *main.GameState) !void {
 pub fn setupVertices(state: *main.GameState) !void {
     if (!state.statistics.active) return;
     if (state.level <= 1) return;
+    if (state.players.items.len > 1 and state.gamePhase != .shopping) return;
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const topLeft: main.Position = .{ .x = 0.55, .y = -0.5 };
