@@ -651,12 +651,11 @@ fn destroyGameState(state: *GameState) !void {
 }
 
 fn executeContinue(state: *GameState) !void {
-    if (state.gameOverRealTime + 1000 > std.time.milliTimestamp()) {
-        return;
-    }
-    const optCost = getMoneyCostsForContinue(state);
-    if (optCost == null) return;
-    var openMoney = optCost.?;
+    if (state.level < 2) return;
+
+    const cost = getMoneyCostsForContinue(state);
+    if (!hasEnoughMoney(cost, state)) return;
+    var openMoney = cost;
     if (openMoney > 0) {
         const averagePlayerCosts = @divFloor(openMoney, state.players.items.len);
         for (state.players.items) |*player| {
@@ -691,19 +690,20 @@ fn executeContinue(state: *GameState) !void {
     state.gameOver = false;
 }
 
-/// returns null if players have not enough money for continue
-pub fn getMoneyCostsForContinue(state: *GameState) ?u32 {
-    if (state.level < 2) return null;
+pub fn getMoneyCostsForContinue(state: *GameState) u32 {
     if (state.continueData.freeContinues > 0) {
         return 0;
     }
     const costs: u32 = (state.continueData.paidContinues + 1) * state.level * 5 * @as(u32, @intCast(state.players.items.len));
+    return costs;
+}
+
+pub fn hasEnoughMoney(moneyAmount: u32, state: *GameState) bool {
     var maxPlayerMoney: u32 = 0;
     for (state.players.items) |*player| {
         maxPlayerMoney += player.money;
     }
-    if (maxPlayerMoney < costs) return null;
-    return costs;
+    return maxPlayerMoney >= moneyAmount;
 }
 
 pub fn isPositionEmpty(position: Position, state: *GameState) bool {

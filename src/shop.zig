@@ -734,7 +734,7 @@ pub fn setupShopAreas(state: *main.GameState) !void {
         .y = player0ShopTopLeft.y + GRID_SIZE + 2,
     };
     state.shop.afkKickArea.pos = .{
-        .x = player0ShopTopLeft.x - 2,
+        .x = player0ShopTopLeft.x - 3,
         .y = player0ShopTopLeft.y + GRID_SIZE + 2,
     };
     if (state.gamePhase == .shopping) {
