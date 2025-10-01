@@ -7,6 +7,7 @@ const bossZig = @import("../boss/boss.zig");
 const inputZig = @import("../input.zig");
 const playerZig = @import("../player.zig");
 const imageZig = @import("../image.zig");
+const statsZig = @import("../stats.zig");
 
 pub fn setupVertices(state: *main.GameState) !void {
     try verticesForBossHpBar(state);
@@ -16,6 +17,28 @@ pub fn setupVertices(state: *main.GameState) !void {
     try verticesForLeaveJoinInfo(state);
     verticesForBossAcedAndFreeContinue(state);
     verticsForTutorial(state);
+    try verticesForFinished(state);
+}
+
+fn verticesForFinished(state: *main.GameState) !void {
+    if (state.gamePhase != .finished) return;
+    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
+    const fontVertices = &state.vkState.verticeData.font;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const fontSize = 120;
+    const text = "You Win";
+    const textWidth = fontVulkanZig.getTextVulkanWidth(text, fontSize);
+    const textPos: main.Position = .{ .x = 0 - textWidth / 2, .y = -fontSize * onePixelYInVulkan };
+    _ = fontVulkanZig.paintText(text, textPos, fontSize, textColor, fontVertices);
+    const optFinishTime = try statsZig.getFinishTime(state);
+    const textPos2: main.Position = .{ .x = 0 - textWidth / 2, .y = 0 };
+    if (optFinishTime) |finishTime| {
+        const finishTextWidth = fontVulkanZig.paintText("Time:", textPos2, fontSize, textColor, fontVertices);
+        _ = try fontVulkanZig.paintTime(finishTime, .{
+            .x = textPos2.x + finishTextWidth,
+            .y = textPos2.y,
+        }, fontSize, true, textColor, fontVertices);
+    }
 }
 
 fn verticesForBossAcedAndFreeContinue(state: *main.GameState) void {
@@ -193,7 +216,7 @@ fn verticesForLevelRoundNewGamePlus(state: *main.GameState) !void {
         paintVulkanZig.verticesForRectangle(levelPos.x + newGamePlusStartX - paddingX, levelPos.y - paddingY, textWidth - newGamePlusStartX + paddingX * 3, fontSize * onePixelYInVulkan + paddingY * 2, white, &verticeData.lines, &verticeData.triangles);
     }
 
-    if (state.gamePhase != .boss) {
+    if (state.gamePhase != .boss and state.gamePhase != .finished) {
         textWidth += paddingX * 6;
         const roundStartX = textWidth;
         if (state.level > 4) {

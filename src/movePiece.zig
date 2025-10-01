@@ -169,7 +169,7 @@ pub fn tickPlayerMovePiece(player: *playerZig.Player, state: *main.GameState) !v
             }
             if (player.moveOptions.items.len == 0) {
                 try enemyObjectFallDownZig.spawnFallDown(player.position, 2000, true, state);
-            } else if (player.moveOptions.items.len == 2 and state.gamePhase != .shopping) {
+            } else if (player.moveOptions.items.len == 2 and state.gamePhase != .shopping and state.gamePhase != .finished) {
                 try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_MOVE_PIECE_WARNING, 0, 1);
             }
         }
@@ -177,7 +177,7 @@ pub fn tickPlayerMovePiece(player: *playerZig.Player, state: *main.GameState) !v
             ninjaDogVulkanZig.moveHandToCenter(player, state);
             if (state.gamePhase == .shopping) {
                 try shopZig.executeShopActionForPlayer(player, state);
-            } else {
+            } else if (state.gamePhase != .finished) {
                 try bossZig.onPlayerMoved(player, state);
                 const attackDelayOnSpawn = 100;
                 if (state.gameTime - state.roundStartedTime > attackDelayOnSpawn) try enemyZig.onPlayerMoved(player, state);
@@ -528,7 +528,7 @@ pub fn movePlayerByMovePiece(player: *playerZig.Player, movePieceIndex: usize, d
     }
     player.lastMoveDirection = directionInput;
     try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_NINJA_MOVE_INDICIES[0..], 0, 1);
-    if (state.gamePhase == .shopping and player.availableMovePieces.items.len == 0 and player.moveOptions.items.len == 0) {
+    if ((state.gamePhase == .shopping or state.gamePhase == .finished) and player.availableMovePieces.items.len == 0 and player.moveOptions.items.len == 0) {
         try resetPieces(player, true, state);
     }
 }

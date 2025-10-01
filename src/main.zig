@@ -22,6 +22,7 @@ pub const GamePhase = enum {
     combat,
     shopping,
     boss,
+    finished,
 };
 pub const COLOR_TILE_GREEN: [4]f32 = colorConv(0.533, 0.80, 0.231);
 pub const COLOR_SKY_BLUE: [4]f32 = colorConv(0.529, 0.808, 0.922);
@@ -198,7 +199,7 @@ fn mainLoop(state: *GameState) !void {
                     try playerZig.changePlayerMoneyBy(amount, player, true, state);
                 }
                 try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BOSS_DEFEATED, 0, 0.6);
-                if (state.playerTookDamageOnLevel == false) {
+                if (state.playerTookDamageOnLevel == false and state.level < LEVEL_COUNT) {
                     state.continueData.bossesAced += 1;
                     state.uxData.displayBossAcedUntilTime = state.gameTime + 3_500;
                     if (state.continueData.bossesAced >= state.continueData.nextBossAceFreeContinue) {
@@ -236,7 +237,7 @@ fn mainLoop(state: *GameState) !void {
 fn multiplayerAfkCheck(state: *GameState) !void {
     if (state.players.items.len <= 1 or state.gameOver) return;
     const afkTime = 60_000;
-    if (state.gamePhase != .shopping) {
+    if (state.gamePhase != .shopping and state.gamePhase != .finished) {
         for (state.players.items) |player| {
             if (!player.isDead and player.inputData.lastInputTime + afkTime > state.gameTime) {
                 return;
@@ -287,7 +288,7 @@ fn tickGameOver(state: *GameState) !void {
 
 fn suddenDeath(state: *GameState) !void {
     if (state.gameOver) return;
-    if (state.gamePhase == .shopping) return;
+    if (state.gamePhase == .shopping or state.gamePhase == .finished) return;
     if (state.gamePhase == .boss and state.newGamePlus < 2) return;
     if (state.newGamePlus >= 2 and state.level == LEVEL_COUNT) return;
     if (state.round <= 1 and state.gamePhase == .combat) return;
@@ -480,7 +481,7 @@ pub fn getDirectionFromTo(fromPosition: Position, toPosition: Position) u8 {
 
 fn shouldEndLevel(state: *GameState) bool {
     if (state.gamePhase == .boss and state.bosses.items.len == 0) return true;
-    if (state.gamePhase == .shopping) return false;
+    if (state.gamePhase == .shopping or state.gamePhase == .finished) return false;
     var atLeastOnePlayerAlive = false;
     for (state.players.items) |*player| {
         if (!player.isDead) atLeastOnePlayerAlive = true;

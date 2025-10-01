@@ -5,7 +5,12 @@ speed run normal mode
 
 Tasks:
 - ending
+    - display You Win
+    - display finish time
+    - ground break
+    - fall down to ground
     - credits?
+    - stairs to start new game plus
 
 - vertical layout
     - everything broken
@@ -15,9 +20,10 @@ Tasks:
 Next ideas:
 - save current run
 - steam achievements
+- start new game plus option when normal mode defeated
 
 - vulkan changes
-    - fallback visulize when not supported
+    - fallback visualize when not supported
 - settings menu
     - sound volume
     - fullscreen
@@ -27,3 +33,12 @@ Next ideas:
 - disable debug keys
 - pratice mode
 - pvp
+- modifiers
+    - before game start set modifiers to make game easier or harder
+        - gain more/less money
+        - more time/less
+        - newGamePlus
+        - more start pieces
+        - round requirment for continue to next level
+        - max start enemies
+

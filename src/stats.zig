@@ -68,8 +68,8 @@ pub fn statsSaveOnRestart(state: *main.GameState) !void {
     const isNewBestTotalTime = checkIfIsNewBestTotalTime(levelDatas, state);
 
     for (levelDatas, 0..) |*levelData, index| {
-        const shopping: u8 = if (state.gamePhase == .shopping) 1 else 0;
-        if (state.level - 1 + shopping <= index) break;
+        const levelBeat: u8 = if (state.gamePhase == .shopping or state.gamePhase == .finished) 1 else 0;
+        if (state.level - 1 + levelBeat <= index) break;
         if (levelData.fastestTime == null or levelData.currentTime < levelData.fastestTime.?) {
             levelData.fastestTime = levelData.currentTime;
             saveToFile = true;
@@ -85,9 +85,17 @@ pub fn statsSaveOnRestart(state: *main.GameState) !void {
     state.statistics.active = true;
 }
 
+pub fn getFinishTime(state: *main.GameState) !?i64 {
+    if (state.gamePhase != .finished) return null;
+    if (!state.statistics.active) return null;
+    const levelDatas = try getLevelDatas(state);
+    if (levelDatas.len < 50) return null;
+    return levelDatas[49].currentTotalTime;
+}
+
 fn checkIfIsNewBestTotalTime(levelDatas: []LevelStatistics, state: *main.GameState) bool {
     var isNewBestTotal: bool = false;
-    if (state.gamePhase == .shopping) {
+    if (state.gamePhase == .shopping or state.gamePhase == .finished) {
         var hasReachedHigherLevelBefore = false;
         if (levelDatas.len > state.level) {
             const nextLevelData = levelDatas[state.level];
@@ -139,7 +147,7 @@ pub fn destroyAndSave(state: *main.GameState) !void {
 pub fn setupVertices(state: *main.GameState) !void {
     if (!state.statistics.active) return;
     if (state.level <= 1) return;
-    if (state.players.items.len > 1 and state.gamePhase != .shopping) return;
+    if (state.players.items.len > 1 and state.gamePhase != .shopping and state.gamePhase != .finished) return;
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const topLeft: main.Position = .{ .x = 0.55, .y = -0.5 };
