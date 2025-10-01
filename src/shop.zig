@@ -61,7 +61,7 @@ pub const PlayerShopButton = struct {
 pub const GRID_SIZE = 8;
 pub const GRID_OFFSET: main.TilePosition = .{ .x = 1, .y = 1 };
 pub const EARLY_SHOP_GRID_SIZE = 2;
-pub const SHOP_AFK_TIMER = 12_000;
+pub const SHOP_AFK_TIMER = 120_000;
 
 pub const ShopPlayerData = struct {
     piecesToBuy: [3]?movePieceZig.MovePiece = [3]?movePieceZig.MovePiece{ null, null, null },
