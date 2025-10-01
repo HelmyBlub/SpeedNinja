@@ -4,7 +4,15 @@ speed run normal mode
     - hammer (46min)
 
 Tasks:
-- change: boss dragon fire on phase change should disappear
+- change: no choice enter shop reset choosen piece
+- visualize eyepatch/no choice
+    - icon on movePiece and hide key icon and maybe put alpha value on it
+- zoom out if player out of screen in single player but limited in the possible amount
+- return items for money in shop when bought in it
+- show continue option even if not enough money, so player knows it would be possible if he had enough
+- ending
+    - credits?
+
 - vertical layout
     - everything broken
     - gate/stairs outside of view
@@ -12,6 +20,8 @@ Tasks:
 
 Next ideas:
 - save current run
+- steam achievements
+
 - vulkan changes
     - fallback visulize when not supported
 - settings menu
@@ -20,10 +30,6 @@ Next ideas:
     - display how to mutliplayer
         - display "hold button to join" if different input devices used
             - only when on one player
-- steam achievements
-- ending
-    - credits?
+- disable debug keys
 - pratice mode
 - pvp
-- disable debug keys
-- return items for money in shop when bought in it

@@ -265,6 +265,7 @@ pub fn startShoppingPhase(state: *main.GameState) !void {
     for (state.players.items) |*player| {
         player.shop.gridDisplayPiece = null;
         player.shop.selectedOption = .none;
+        player.choosenMoveOptionIndex = null;
         if (player.isDead) player.isDead = false;
         movePlayerToHisShopPosition(player);
         try movePieceZig.resetPieces(player, true, state);
