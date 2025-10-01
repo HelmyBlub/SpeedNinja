@@ -685,6 +685,7 @@ fn executeContinue(state: *GameState) !void {
             _ = equipmentZig.equip(equipmentZig.getEquipmentOptionByIndexScaledToLevel(4, state.level).equipment, true, player);
         }
         player.isDead = false;
+        player.animateData.ears.lastUpdateTime = state.gameTime;
     }
     try shopZig.startShoppingPhase(state);
     state.gameOver = false;

@@ -1,8 +1,10 @@
 speed run normal mode
-    - reset speedrun stats first, so no old times are in
+    - kunai
+    - blade
+    - hammer (46min)
 
 Tasks:
-- bug: restart ears helicopter
+- bug: continue ears helicopter
 - change: boss dragon fire on phase change should disappear
 - vertical layout
     - everything broken
@@ -20,5 +22,9 @@ Next ideas:
         - display "hold button to join" if different input devices used
             - only when on one player
 - steam achievements
+- ending
+    - credits?
 - pratice mode
 - pvp
+- disable debug keys
+- return items for money in shop when bought in it
