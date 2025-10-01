@@ -10,6 +10,7 @@ const enemyObjectZig = @import("enemy/enemyObject.zig");
 const enemyObjectFallDownZig = @import("enemy/enemyObjectFallDown.zig");
 const mapTileZig = @import("mapTile.zig");
 const playerZig = @import("player.zig");
+const windowSdlZig = @import("windowSdl.zig");
 
 pub const MovePiece = struct {
     steps: []MoveStep,
@@ -184,6 +185,28 @@ pub fn tickPlayerMovePiece(player: *playerZig.Player, state: *main.GameState) !v
                     player.phase = .shopping;
                 }
             }
+            zoomIfPlayerOutsideOfScreen(player, state);
+        }
+    }
+}
+
+fn zoomIfPlayerOutsideOfScreen(player: *playerZig.Player, state: *main.GameState) void {
+    if (state.players.items.len > 1) return;
+    if (state.level > 4 or state.round > 4) return;
+    if (state.gamePhase == .shopping) return;
+    main.adjustZoom(state);
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const playerVulkanPosition: main.Position = .{
+        .x = (player.position.x - state.camera.position.x) * state.camera.zoom * onePixelXInVulkan,
+        .y = (player.position.y - state.camera.position.y) * state.camera.zoom * onePixelYInVulkan,
+    };
+    if (@abs(playerVulkanPosition.x) > 1 or @abs(playerVulkanPosition.y) > 1) {
+        const changeTo = state.camera.zoom / (@max(@abs(playerVulkanPosition.x), @abs(playerVulkanPosition.y)) + 0.1);
+        if (changeTo > 1.5) {
+            state.camera.zoom = changeTo;
+        } else {
+            state.camera.zoom = 1.5;
         }
     }
 }
