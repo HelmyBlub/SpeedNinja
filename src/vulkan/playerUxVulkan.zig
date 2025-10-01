@@ -9,8 +9,6 @@ const imageZig = @import("../image.zig");
 const inputZig = @import("../input.zig");
 const playerZig = @import("../player.zig");
 
-const INITIAL_PIECE_COLOR: [4]f32 = .{ 0.0, 0.0, 1, 1 };
-
 pub fn setupVertices(state: *main.GameState) !void {
     const verticeData = &state.vkState.verticeData;
 
@@ -339,6 +337,10 @@ fn verticesForMoveOptions(player: *playerZig.Player, verticeData: *dataVulkanZig
                 rectPieceFillColor = selctedColor;
                 rectFillColor = .{ 0.2, 0.2, 0.8, 1 };
             }
+            if (player.equipment.hasEyePatch and index != 0) {
+                rectFillColor[3] = 0.5;
+                rectPieceFillColor[3] = 0.5;
+            }
             paintVulkanZig.verticesForRectangle(startX, startY, width, height, rectFillColor, lines, triangles);
             var pieceDownScale: f32 = 4;
             if (boundingBox.width > 4 or boundingBox.height > 4) {
@@ -369,16 +371,39 @@ fn verticesForMoveOptions(player: *playerZig.Player, verticeData: *dataVulkanZig
                 triangles,
             );
         }
+        if (player.equipment.hasEyePatch) {
+            if (index == 1 or index == 2) {
+                const eyePatchData = imageZig.IMAGE_DATA[imageZig.IMAGE_EYEPATCH];
+                const scale: f32 = 0.5;
+                const eyePatchWidth = @as(f32, @floatFromInt(eyePatchData.width)) * scale;
+                const eyePatchHeight = @as(f32, @floatFromInt(eyePatchData.height)) * scale;
+                paintVulkanZig.verticesForComplexSpriteVulkan(
+                    .{ .x = startX + eyePatchWidth / 2 * onePixelXInVulkan, .y = startY + eyePatchHeight / 2 * onePixelYInVulkan },
+                    imageZig.IMAGE_EYEPATCH,
+                    eyePatchWidth,
+                    eyePatchHeight,
+                    1,
+                    0,
+                    false,
+                    false,
+                    state,
+                );
+            }
+        }
         if (player.uxData.visualizeChoiceKeys) {
             switch (index) {
                 0 => {
                     _ = fontVulkanZig.verticesForDisplayButton(.{ .x = startX, .y = startY }, .pieceSelect1, fontSize, player, state);
                 },
                 1 => {
-                    _ = fontVulkanZig.verticesForDisplayButton(.{ .x = startX, .y = startY }, .pieceSelect2, fontSize, player, state);
+                    if (!player.equipment.hasEyePatch) {
+                        _ = fontVulkanZig.verticesForDisplayButton(.{ .x = startX, .y = startY }, .pieceSelect2, fontSize, player, state);
+                    }
                 },
                 else => {
-                    _ = fontVulkanZig.verticesForDisplayButton(.{ .x = startX, .y = startY }, .pieceSelect3, fontSize, player, state);
+                    if (!player.equipment.hasEyePatch) {
+                        _ = fontVulkanZig.verticesForDisplayButton(.{ .x = startX, .y = startY }, .pieceSelect3, fontSize, player, state);
+                    }
                 },
             }
         }
@@ -406,7 +431,7 @@ pub fn verticesForMovePiece(
     var y: f32 = vulkanY;
     var sizeFactor: f32 = 1;
     const factor = 0.9;
-    if (!skipInitialRect) paintVulkanZig.verticesForRectangle(x, y, vulkanTileWidth, vulkanTileHeight, INITIAL_PIECE_COLOR, lines, triangles);
+    if (!skipInitialRect) paintVulkanZig.verticesForRectangle(x, y, vulkanTileWidth, vulkanTileHeight, .{ 0.0, 0.0, 1, fillColor[3] }, lines, triangles);
     for (movePiece.steps) |step| {
         const modStepDirection = @mod(step.direction + direction, 4);
         const stepDirection = movePieceZig.getStepDirection(modStepDirection);

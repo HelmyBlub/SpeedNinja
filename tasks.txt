@@ -4,7 +4,6 @@ speed run normal mode
     - hammer (46min)
 
 Tasks:
-- change: no choice enter shop reset choosen piece
 - visualize eyepatch/no choice
     - icon on movePiece and hide key icon and maybe put alpha value on it
 - zoom out if player out of screen in single player but limited in the possible amount

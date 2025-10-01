@@ -720,7 +720,7 @@ pub fn verticesForRectangle(x: f32, y: f32, width: f32, height: f32, fillColor: 
 
     if (optLines) |lines| {
         if (lines.verticeCount + 8 >= lines.vertices.len) return;
-        const borderColor: [4]f32 = .{ 0, 0, 0, 1 };
+        const borderColor: [4]f32 = .{ 0, 0, 0, fillColor[3] };
         lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ x, y }, .color = borderColor };
         lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ x + width, y }, .color = borderColor };
         lines.vertices[lines.verticeCount + 2] = .{ .pos = .{ x, y }, .color = borderColor };
