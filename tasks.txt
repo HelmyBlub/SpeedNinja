@@ -4,7 +4,6 @@ speed run normal mode
     - hammer (46min)
 
 Tasks:
-- zoom out if player out of screen in single player but limited in the possible amount
 - return items for money in shop when bought in it
 - show continue option even if not enough money, so player knows it would be possible if he had enough
 - ending

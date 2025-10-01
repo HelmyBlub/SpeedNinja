@@ -166,16 +166,21 @@ pub fn executeShopActionForPlayer(player: *playerZig.Player, state: *main.GameSt
     for (state.shop.buyOptions.items, 0..) |*buyOption, buyIndex| {
         if (buyOption.tilePosition.x == playerTile.x and buyOption.tilePosition.y == playerTile.y) {
             if (player.money >= buyOption.price) {
+                buyOption.equipment.returnMoney = buyOption.price;
                 const optOldEquip = equipmentZig.getEquipSlot(buyOption.equipment.slotTypeData, player);
-                if (equipmentZig.equip(buyOption.equipment, true, player)) {
+                const preventDowngrade = if (buyOption.price != 0) true else false;
+                if (equipmentZig.equip(buyOption.equipment, preventDowngrade, player)) {
                     try playerZig.changePlayerMoneyBy(-@as(i32, @intCast(buyOption.price)), player, true, state);
                     if (optOldEquip) |old| {
-                        buyOption.price = 0;
+                        try playerZig.changePlayerMoneyBy(@intCast(old.returnMoney), player, true, state);
+                        buyOption.price = old.returnMoney;
                         buyOption.equipment = old;
                         buyOption.imageIndex = old.imageIndex;
                     } else {
                         _ = state.shop.buyOptions.swapRemove(buyIndex);
                     }
+                } else {
+                    try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION_FAIL, 0, 0.5);
                 }
             } else {
                 try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION_FAIL, 0, 0.5);
@@ -266,6 +271,10 @@ pub fn startShoppingPhase(state: *main.GameState) !void {
         player.shop.gridDisplayPiece = null;
         player.shop.selectedOption = .none;
         player.choosenMoveOptionIndex = null;
+        if (player.equipment.equipmentSlotsData.head) |*head| head.returnMoney = 0;
+        if (player.equipment.equipmentSlotsData.body) |*body| body.returnMoney = 0;
+        if (player.equipment.equipmentSlotsData.feet) |*feet| feet.returnMoney = 0;
+        if (player.equipment.equipmentSlotsData.weapon) |*weapon| weapon.returnMoney = 0;
         if (player.isDead) player.isDead = false;
         movePlayerToHisShopPosition(player);
         try movePieceZig.resetPieces(player, true, state);

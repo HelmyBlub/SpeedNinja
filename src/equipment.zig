@@ -42,6 +42,7 @@ pub const EquipmentSlotData = struct {
     effectType: EquipmentEffectTypeData,
     imageIndex: u8,
     slotTypeData: EquipmentSlotTypeData,
+    returnMoney: u32 = 0,
 };
 
 const EquipmentHeadData = struct {
