@@ -8,19 +8,7 @@ const inputZig = @import("../input.zig");
 const playerZig = @import("../player.zig");
 const imageZig = @import("../image.zig");
 const statsZig = @import("../stats.zig");
-
-const CREDITS_TEXTS = [_][]const u8{
-    "You Win",
-    "",
-    "",
-    "",
-    "Credits:",
-    "",
-    "Everything done by:",
-    "Helmi Blub",
-    "",
-    "Thanks for playing",
-};
+const mapTileZig = @import("../mapTile.zig");
 
 pub fn setupVertices(state: *main.GameState) !void {
     try verticesForBossHpBar(state);
@@ -38,21 +26,18 @@ fn verticesForFinished(state: *main.GameState) !void {
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     const fontVertices = &state.vkState.verticeData.font;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-    const fontSize = 120;
+    const fontSize = state.uxData.creditsFontSize;
     var finishTimeOffsetY: f32 = -0.99;
     if (state.uxData.creditsScrollStart) |creditsTime| {
-        const scrollOffset: f32 = -@as(f32, @floatFromInt(state.gameTime - creditsTime)) / 5000;
+        const scrollOffset: f32 = -@as(f32, @floatFromInt(state.gameTime - creditsTime)) / state.uxData.creditsScrollSpeedSlowdown;
         finishTimeOffsetY = scrollOffset + fontSize * onePixelYInVulkan;
-        for (CREDITS_TEXTS, 0..) |creditsLine, lineIndex| {
+        for (main.CREDITS_TEXTS, 0..) |creditsLine, lineIndex| {
             const textWidth = fontVulkanZig.getTextVulkanWidth(creditsLine, fontSize);
             const textPos: main.Position = .{
                 .x = 0 - textWidth / 2,
                 .y = scrollOffset + @as(f32, @floatFromInt(lineIndex)) * fontSize * onePixelYInVulkan,
             };
             _ = fontVulkanZig.paintText(creditsLine, textPos, fontSize, textColor, fontVertices);
-        }
-        if (@abs(scrollOffset) > @as(f32, @floatFromInt(CREDITS_TEXTS.len)) * fontSize * onePixelYInVulkan + 1) {
-            state.uxData.creditsScrollStart = null;
         }
     }
     const optFinishTime = try statsZig.getFinishTime(state);

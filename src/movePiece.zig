@@ -157,7 +157,7 @@ pub fn tickPlayerMovePiece(player: *playerZig.Player, state: *main.GameState) !v
             player.executeMovePiece = .{ .steps = executeMovePiece.steps[1..] };
         } else {
             player.executeMovePiece = null;
-            if (state.mapData.mapType == .top) {
+            if (state.mapData.mapType == .top and state.gamePhase != .finished) {
                 const playerTile = main.gamePositionToTilePosition(player.position);
                 if (@abs(playerTile.x) > state.mapData.tileRadiusWidth or @abs(playerTile.y) > state.mapData.tileRadiusHeight) {
                     if (player.startedFallingState == null) player.startedFallingState = state.gameTime;

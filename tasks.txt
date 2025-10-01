@@ -10,11 +10,8 @@ Tasks:
         - fall to ground
         - camera move down
         - back to ground pattern
-    - animate text scrolling
-        - you Win
-        - time
-        - credits
-        - if available all stats
+    - check
+        - speedrun stats at game finished?
     - stairs to start new game plus
 
 - vertical layout
@@ -26,6 +23,7 @@ Next ideas:
 - save current run
 - steam achievements
 - start new game plus option when normal mode defeated
+- game ticking seperate from drawing
 
 - vulkan changes
     - fallback visualize when not supported

@@ -763,11 +763,11 @@ fn tickBodyStomp(stompData: *BodyStompData, boss: *bossZig.Boss, passedTime: i64
             if (data.phase == .phase1 and hpPerCent < PHASE_2_TRANSITION_PER_CENT) {
                 data.action = .{ .transitionFlyingPhase = .{} };
                 data.phase = .phase2;
-                try cutTilesForGroundBreakingEffect(state);
+                try cutTilesForGroundBreakingEffect(FLYING_TRANSITION_CAMERA_OFFSET_Y, state);
             } else if (data.phase == .phase2 and hpPerCent < PHASE_3_TRANSITION_PER_CENT) {
                 data.action = .{ .transitionFlyingPhase = .{} };
                 data.phase = .phase3;
-                try cutTilesForGroundBreakingEffect(state);
+                try cutTilesForGroundBreakingEffect(FLYING_TRANSITION_CAMERA_OFFSET_Y, state);
             } else {
                 chooseNextAttack(boss);
             }
@@ -788,7 +788,7 @@ fn tickBodyStomp(stompData: *BodyStompData, boss: *bossZig.Boss, passedTime: i64
     }
 }
 
-fn cutTilesForGroundBreakingEffect(state: *main.GameState) !void {
+pub fn cutTilesForGroundBreakingEffect(offsetY: f32, state: *main.GameState) !void {
     const mapGridWidth = state.mapData.tileRadiusWidth * 2 + 1;
     const mapGridHeight = state.mapData.tileRadiusHeight * 2 + 1;
     const fMapTileRadiusWidth: f32 = @floatFromInt(state.mapData.tileRadiusWidth);
@@ -799,7 +799,7 @@ fn cutTilesForGroundBreakingEffect(state: *main.GameState) !void {
             const y: f32 = (@as(f32, @floatFromInt(j)) - fMapTileRadiusHeight) * main.TILESIZE;
             try state.spriteCutAnimations.append(.{
                 .deathTime = state.gameTime,
-                .position = .{ .x = x, .y = y + FLYING_TRANSITION_CAMERA_OFFSET_Y },
+                .position = .{ .x = x, .y = y + offsetY },
                 .cutAngle = 0,
                 .force = -1,
                 .colorOrImageIndex = .{ .color = main.COLOR_TILE_GREEN },

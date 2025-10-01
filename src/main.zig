@@ -17,6 +17,7 @@ const statsZig = @import("stats.zig");
 const verifyMapZig = @import("verifyMap.zig");
 const inputZig = @import("input.zig");
 const playerZig = @import("player.zig");
+const bossDragonZig = @import("boss/bossDragon.zig");
 
 pub const GamePhase = enum {
     combat,
@@ -28,6 +29,19 @@ pub const COLOR_TILE_GREEN: [4]f32 = colorConv(0.533, 0.80, 0.231);
 pub const COLOR_SKY_BLUE: [4]f32 = colorConv(0.529, 0.808, 0.922);
 pub const COLOR_STONE_WALL: [4]f32 = colorConv(0.573, 0.522, 0.451);
 pub const LEVEL_COUNT = 50;
+const CREDITS_START_OFFSET_PLAYER_Y: comptime_int = -@as(comptime_int, @intCast(CREDITS_TEXTS.len)) * TILESIZE * 5;
+pub const CREDITS_TEXTS = [_][]const u8{
+    "You Win",
+    "",
+    "",
+    "",
+    "Credits:",
+    "",
+    "Everything done by:",
+    "Helmi Blub",
+    "",
+    "Thanks for playing",
+};
 
 pub const TILESIZE = 20;
 pub const GameState = struct {
@@ -81,6 +95,8 @@ pub const GameUxData = struct {
     displayBossAcedUntilTime: ?i64 = null,
     displayReceivedFreeContinue: ?i64 = null,
     creditsScrollStart: ?i64 = null,
+    creditsFontSize: f32 = 120,
+    creditsScrollSpeedSlowdown: f32 = 5000,
 };
 
 pub const TutorialData = struct {
@@ -222,6 +238,7 @@ fn mainLoop(state: *GameState) !void {
         tickMapObjects(state, passedTime);
         try multiplayerAfkCheck(state);
         try tickGameOver(state);
+        tickGameFinished(state);
         if (state.verifyMapData.checkReachable) try verifyMapZig.checkAndModifyMapIfNotEverythingReachable(state);
         try paintVulkanZig.drawFrame(state);
         std.Thread.sleep(5_000_000);
@@ -232,6 +249,23 @@ fn mainLoop(state: *GameState) !void {
             passedTime = 16;
         }
         state.gameTime += passedTime;
+    }
+}
+
+fn tickGameFinished(state: *GameState) void {
+    if (state.gamePhase != .finished) return;
+    const fontSize = state.uxData.creditsFontSize;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    if (state.uxData.creditsScrollStart) |creditsTime| {
+        const scrollOffset: f32 = -@as(f32, @floatFromInt(state.gameTime - creditsTime)) / state.uxData.creditsScrollSpeedSlowdown;
+        const scrollFinishedOffset = @as(f32, @floatFromInt(CREDITS_TEXTS.len)) * fontSize * onePixelYInVulkan + 1;
+        const creditsPerCent = 1 - @abs(scrollOffset) / scrollFinishedOffset;
+        state.camera.position.y = creditsPerCent * CREDITS_START_OFFSET_PLAYER_Y;
+        if (@abs(scrollOffset) > scrollFinishedOffset) {
+            state.uxData.creditsScrollStart = null;
+            mapTileZig.setMapType(.default, state);
+            state.camera.position.y = 0;
+        }
     }
 }
 
@@ -369,7 +403,7 @@ fn tickClouds(state: *GameState, passedTime: i64) void {
     if (state.mapData.mapType != .top) return;
     const fPassedTime: f32 = @floatFromInt(passedTime);
     for (state.mapData.paintData.backClouds[0..]) |*backCloud| {
-        if (backCloud.position.x > 600) {
+        if (backCloud.position.x > 600 and state.gamePhase != .finished) {
             backCloud.position.x = -600 + std.crypto.random.float(f32) * 200;
             backCloud.position.y = -150 + std.crypto.random.float(f32) * 150;
             backCloud.sizeFactor = 5;
@@ -377,7 +411,7 @@ fn tickClouds(state: *GameState, passedTime: i64) void {
         }
         backCloud.position.x += backCloud.speed * fPassedTime;
     }
-    if (state.mapData.paintData.frontCloud.position.x > 1000) {
+    if (state.mapData.paintData.frontCloud.position.x > 1000 and state.gamePhase != .finished) {
         state.mapData.paintData.frontCloud.position.x = -800 + std.crypto.random.float(f32) * 300;
         state.mapData.paintData.frontCloud.position.y = -150 + std.crypto.random.float(f32) * 300;
         state.mapData.paintData.frontCloud.sizeFactor = 15;
@@ -506,6 +540,28 @@ fn allPlayerOutOfMoveOptions(state: *GameState) bool {
         if (player.executeMovePiece != null) return false;
     }
     return true;
+}
+
+pub fn gameFinished(state: *GameState) !void {
+    if (!state.gameOver) try statsZig.statsOnLevelFinished(state);
+    state.gamePhase = .finished;
+    state.enemyData.enemies.clearRetainingCapacity();
+    state.enemyData.enemyObjects.clearRetainingCapacity();
+    state.uxData.creditsScrollStart = state.gameTime;
+    bossZig.clearBosses(state);
+
+    const creditsPlayerOffsetY = CREDITS_START_OFFSET_PLAYER_Y;
+    try bossDragonZig.cutTilesForGroundBreakingEffect(CREDITS_START_OFFSET_PLAYER_Y, state);
+    state.camera.position.y = creditsPlayerOffsetY;
+    for (state.mapData.paintData.backClouds[0..]) |*cloud| {
+        cloud.position.y = creditsPlayerOffsetY;
+    }
+    for (state.players.items) |*player| {
+        player.inAirHeight -= creditsPlayerOffsetY;
+        if (player.startedFallingState != null) {
+            player.startedFallingState = null;
+        }
+    }
 }
 
 pub fn restart(state: *GameState, newGamePlus: u32) anyerror!void {

@@ -253,15 +253,11 @@ pub fn isPlayerInShopTrigger(player: *playerZig.Player, state: *main.GameState) 
 }
 
 pub fn startShoppingPhase(state: *main.GameState) !void {
-    if (!state.gameOver) try statsZig.statsOnLevelFinished(state);
     if (state.level == 50) {
-        state.gamePhase = .finished;
-        state.enemyData.enemies.clearRetainingCapacity();
-        state.enemyData.enemyObjects.clearRetainingCapacity();
-        state.uxData.creditsScrollStart = state.gameTime;
-        bossZig.clearBosses(state);
+        try main.gameFinished(state);
         return;
     }
+    if (!state.gameOver) try statsZig.statsOnLevelFinished(state);
     state.suddenDeath = 0;
     state.camera.position = .{ .x = 0, .y = 0 };
     state.shop.playersOnExit = 0;

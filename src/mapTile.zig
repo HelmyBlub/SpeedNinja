@@ -154,7 +154,14 @@ pub fn setupVertices(state: *main.GameState) void {
         }
     }
     if (state.mapData.mapType == .top) {
-        stoneWallVertices(state);
+        if (state.gamePhase == .finished) {
+            const horizonVulkanY = (-state.camera.position.y - main.TILESIZE * 11) * state.camera.zoom * onePixelYInVulkan;
+            if (horizonVulkanY < 1) {
+                paintVulkanZig.verticesForRectangle(-1, horizonVulkanY, 2, 3, main.COLOR_TILE_GREEN, null, &state.vkState.verticeData.triangles);
+            }
+        } else {
+            stoneWallVertices(state);
+        }
     }
 }
 
