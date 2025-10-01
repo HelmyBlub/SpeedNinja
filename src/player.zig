@@ -385,6 +385,7 @@ fn playerJoin(playerInputData: inputZig.PlayerInputData, state: *main.GameState)
                     otherPlayer.inputData.inputDevice = .{ .keyboard = 0 };
                 }
                 otherPlayer.uxData.visualizeMovementKeys = true;
+                otherPlayer.uxData.visualizeChoiceKeys = true;
             }
         } else if (player.inputData.inputDevice.? == .keyboard and otherPlayer.inputData.inputDevice.? == .keyboard and otherPlayer.inputData.inputDevice.?.keyboard == null) {
             if (player.inputData.inputDevice.?.keyboard == 0) {
@@ -393,6 +394,7 @@ fn playerJoin(playerInputData: inputZig.PlayerInputData, state: *main.GameState)
                 otherPlayer.inputData.inputDevice = .{ .keyboard = 0 };
             }
             otherPlayer.uxData.visualizeMovementKeys = true;
+            otherPlayer.uxData.visualizeChoiceKeys = true;
         }
     }
     player.inputData.lastInputTime = state.gameTime;
