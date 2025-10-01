@@ -5,11 +5,16 @@ speed run normal mode
 
 Tasks:
 - ending
-    - display You Win
-    - display finish time
-    - ground break
-    - fall down to ground
-    - credits?
+    - animate 
+        - ground break
+        - fall to ground
+        - camera move down
+        - back to ground pattern
+    - animate text scrolling
+        - you Win
+        - time
+        - credits
+        - if available all stats
     - stairs to start new game plus
 
 - vertical layout

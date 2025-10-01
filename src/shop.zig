@@ -258,6 +258,7 @@ pub fn startShoppingPhase(state: *main.GameState) !void {
         state.gamePhase = .finished;
         state.enemyData.enemies.clearRetainingCapacity();
         state.enemyData.enemyObjects.clearRetainingCapacity();
+        state.uxData.creditsScrollStart = state.gameTime;
         bossZig.clearBosses(state);
         return;
     }

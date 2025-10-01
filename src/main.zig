@@ -80,6 +80,7 @@ pub const GameUxData = struct {
     gameVulkanArea: Rectangle = .{ .pos = .{ .x = -0.75, .y = -0.75 }, .width = 1.5, .height = 1.5 },
     displayBossAcedUntilTime: ?i64 = null,
     displayReceivedFreeContinue: ?i64 = null,
+    creditsScrollStart: ?i64 = null,
 };
 
 pub const TutorialData = struct {

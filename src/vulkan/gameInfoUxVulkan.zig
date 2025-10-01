@@ -9,6 +9,19 @@ const playerZig = @import("../player.zig");
 const imageZig = @import("../image.zig");
 const statsZig = @import("../stats.zig");
 
+const CREDITS_TEXTS = [_][]const u8{
+    "You Win",
+    "",
+    "",
+    "",
+    "Credits:",
+    "",
+    "Everything done by:",
+    "Helmi Blub",
+    "",
+    "Thanks for playing",
+};
+
 pub fn setupVertices(state: *main.GameState) !void {
     try verticesForBossHpBar(state);
     try verticesForTimer(state);
@@ -26,19 +39,33 @@ fn verticesForFinished(state: *main.GameState) !void {
     const fontVertices = &state.vkState.verticeData.font;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const fontSize = 120;
-    const text = "You Win";
-    const textWidth = fontVulkanZig.getTextVulkanWidth(text, fontSize);
-    const textPos: main.Position = .{ .x = 0 - textWidth / 2, .y = -fontSize * onePixelYInVulkan };
-    _ = fontVulkanZig.paintText(text, textPos, fontSize, textColor, fontVertices);
-    const optFinishTime = try statsZig.getFinishTime(state);
-    const textPos2: main.Position = .{ .x = 0 - textWidth / 2, .y = 0 };
-    if (optFinishTime) |finishTime| {
-        const finishTextWidth = fontVulkanZig.paintText("Time:", textPos2, fontSize, textColor, fontVertices);
-        _ = try fontVulkanZig.paintTime(finishTime, .{
-            .x = textPos2.x + finishTextWidth,
-            .y = textPos2.y,
-        }, fontSize, true, textColor, fontVertices);
+    var finishTimeOffsetY: f32 = -0.99;
+    if (state.uxData.creditsScrollStart) |creditsTime| {
+        const scrollOffset: f32 = -@as(f32, @floatFromInt(state.gameTime - creditsTime)) / 5000;
+        finishTimeOffsetY = scrollOffset + fontSize * onePixelYInVulkan;
+        for (CREDITS_TEXTS, 0..) |creditsLine, lineIndex| {
+            const textWidth = fontVulkanZig.getTextVulkanWidth(creditsLine, fontSize);
+            const textPos: main.Position = .{
+                .x = 0 - textWidth / 2,
+                .y = scrollOffset + @as(f32, @floatFromInt(lineIndex)) * fontSize * onePixelYInVulkan,
+            };
+            _ = fontVulkanZig.paintText(creditsLine, textPos, fontSize, textColor, fontVertices);
+        }
+        if (@abs(scrollOffset) > @as(f32, @floatFromInt(CREDITS_TEXTS.len)) * fontSize * onePixelYInVulkan + 1) {
+            state.uxData.creditsScrollStart = null;
+        }
     }
+    const optFinishTime = try statsZig.getFinishTime(state);
+    const finishTime = if (optFinishTime) |time| time else 0;
+    const textPos2: main.Position = .{
+        .x = -0.5,
+        .y = finishTimeOffsetY,
+    };
+    const finishTextWidth = fontVulkanZig.paintText("Time:", textPos2, fontSize, textColor, fontVertices);
+    _ = try fontVulkanZig.paintTime(finishTime, .{
+        .x = textPos2.x + finishTextWidth,
+        .y = textPos2.y,
+    }, fontSize, true, textColor, fontVertices);
 }
 
 fn verticesForBossAcedAndFreeContinue(state: *main.GameState) void {
