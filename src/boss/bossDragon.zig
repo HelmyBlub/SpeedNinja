@@ -556,6 +556,12 @@ fn tickTransitionFlyingPhase(flyingData: *TransitionFlyingData, boss: *bossZig.B
                         player.startedFallingState = state.gameTime + 3000;
                     }
                 }
+                for (state.enemyData.enemyObjects.items) |*object| {
+                    if (object.typeData == .fire) {
+                        object.typeData.fire.flyToPosition = object.position;
+                        object.typeData.fire.inAirHeight -= FLYING_TRANSITION_CAMERA_OFFSET_Y;
+                    }
+                }
                 state.mapData.paintData.frontCloud.position.y += FLYING_TRANSITION_CAMERA_OFFSET_Y;
             } else if (flyingData.keepCameraUntilTime.? <= state.gameTime) {
                 flyingData.moveCameraToDefaultTime = state.gameTime + FLYING_TRANSITION_CAMERA_MOVE_DURATION;

@@ -4,7 +4,6 @@ speed run normal mode
     - hammer (46min)
 
 Tasks:
-- bug: continue ears helicopter
 - change: boss dragon fire on phase change should disappear
 - vertical layout
     - everything broken
