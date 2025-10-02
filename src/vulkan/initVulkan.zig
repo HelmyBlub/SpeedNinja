@@ -7,6 +7,8 @@ const paintVulkanZig = @import("paintVulkan.zig");
 const dataVulkanZig = @import("dataVulkan.zig");
 const pipelinesVulkanZig = @import("pipelinesVulkan.zig");
 const fontVulkanZig = @import("fontVulkan.zig");
+const settingsMenuVulkanZig = @import("settingsMenuVulkan.zig");
+
 pub const vk = @cImport({
     @cInclude("Volk/volk.h");
 });
@@ -117,6 +119,7 @@ pub fn initVulkan(state: *main.GameState) !void {
     try createDescriptorSets(vkState, state.allocator);
     try createCommandBuffers(vkState, state.allocator);
     try createSyncObjects(vkState, state.allocator);
+    settingsMenuVulkanZig.setupUiLocations(state);
     std.debug.print("finished vulkan setup \n", .{});
 }
 
@@ -1186,6 +1189,7 @@ pub fn createSwapChainRelatedStuffAndCheckWindowSize(state: *main.GameState, all
         windowSdlZig.windowData.widthFloat = @floatFromInt(capabilities.currentExtent.width);
         windowSdlZig.windowData.heightFloat = @floatFromInt(capabilities.currentExtent.height);
         main.adjustZoom(state);
+        settingsMenuVulkanZig.setupUiLocations(state);
         return true;
     }
     return true;

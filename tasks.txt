@@ -6,7 +6,6 @@ speed run normal mode
     - enemy rounds
 
 Tasks:
-- boss 2 loss hp when shield loss
 - settings menu
     - sound volume
     - fullscreen

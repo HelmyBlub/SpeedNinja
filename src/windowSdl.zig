@@ -10,6 +10,7 @@ const main = @import("main.zig");
 const shopZig = @import("shop.zig");
 const inputZig = @import("input.zig");
 const equipmentZig = @import("equipment.zig");
+const settingsMenuVulkanZig = @import("vulkan/settingsMenuVulkan.zig");
 
 pub const WindowData = struct {
     window: *sdl.SDL_Window = undefined,
@@ -45,14 +46,12 @@ pub fn getWindowSize(width: *u32, height: *u32) void {
     height.* = @intCast(h);
 }
 
-pub fn toggleFullscreen() bool {
+pub fn setFullscreen(fullscreen: bool) void {
     const flags = sdl.SDL_GetWindowFlags(windowData.window);
-    if ((flags & sdl.SDL_WINDOW_FULLSCREEN) == 0) {
+    if (fullscreen and (flags & sdl.SDL_WINDOW_FULLSCREEN) == 0) {
         _ = sdl.SDL_SetWindowFullscreen(windowData.window, true);
-        return true;
-    } else {
+    } else if (!fullscreen and (flags & sdl.SDL_WINDOW_FULLSCREEN) != 0) {
         _ = sdl.SDL_SetWindowFullscreen(windowData.window, false);
-        return false;
     }
 }
 
@@ -72,6 +71,15 @@ pub fn handleEvents(state: *main.GameState) !void {
         }
         try handleGamePadEvents(event, state);
         try inputZig.handlePlayerInput(event, state);
+        if (event.type == sdl.SDL_EVENT_MOUSE_MOTION) {
+            try settingsMenuVulkanZig.mouseMove(.{ .x = event.motion.x, .y = event.motion.y }, state);
+        }
+        if (event.type == sdl.SDL_EVENT_MOUSE_BUTTON_DOWN) {
+            try settingsMenuVulkanZig.mouseDown(.{ .x = event.motion.x, .y = event.motion.y }, state);
+        }
+        if (event.type == sdl.SDL_EVENT_MOUSE_BUTTON_UP) {
+            try settingsMenuVulkanZig.mouseUp(.{ .x = event.motion.x, .y = event.motion.y }, state);
+        }
     }
 }
 
@@ -133,8 +141,6 @@ fn debugKeys(event: sdl.SDL_Event, state: *main.GameState) !void {
         try main.restart(state, state.newGamePlus + 1);
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F6) {
         state.continueData.freeContinues += 1;
-    } else if (event.key.scancode == sdl.SDL_SCANCODE_F7) {
-        _ = toggleFullscreen();
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F8) {
         _ = equipmentZig.equip(equipmentZig.getEquipmentOptionByIndexScaledToLevel(7, state.level).equipment, true, &state.players.items[0]);
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F9) {
@@ -162,8 +168,8 @@ pub fn mouseWindowPositionToVulkanSurfacePoisition(x: f32, y: f32) main.Position
     var width: u32 = 0;
     var height: u32 = 0;
     getWindowSize(&width, &height);
-    const widthFloat = @as(f64, @floatFromInt(width));
-    const heightFloat = @as(f64, @floatFromInt(height));
+    const widthFloat = @as(f32, @floatFromInt(width));
+    const heightFloat = @as(f32, @floatFromInt(height));
 
     return main.Position{
         .x = x / widthFloat * 2 - 1,

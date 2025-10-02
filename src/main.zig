@@ -18,6 +18,7 @@ const verifyMapZig = @import("verifyMap.zig");
 const inputZig = @import("input.zig");
 const playerZig = @import("player.zig");
 const bossDragonZig = @import("boss/bossDragon.zig");
+const settingsMenuVulkanZig = @import("vulkan/settingsMenuVulkan.zig");
 
 pub const GamePhase = enum {
     combat,
@@ -97,6 +98,7 @@ pub const GameUxData = struct {
     creditsScrollStart: ?i64 = null,
     creditsFontSize: f32 = 120,
     creditsScrollSpeedSlowdown: f32 = 5000,
+    settingsMenuUx: settingsMenuVulkanZig.SettingsUx = .{},
 };
 
 pub const TutorialData = struct {
@@ -240,6 +242,7 @@ fn mainLoop(state: *GameState) !void {
         try tickGameOver(state);
         tickGameFinished(state);
         if (state.verifyMapData.checkReachable) try verifyMapZig.checkAndModifyMapIfNotEverythingReachable(state);
+        try settingsMenuVulkanZig.tick(state);
         try paintVulkanZig.drawFrame(state);
         std.Thread.sleep(5_000_000);
         lastTime = currentTime;
@@ -857,6 +860,11 @@ pub fn rotateAroundPoint(point: Position, pivot: Position, angle: f32) Position 
 pub fn isTilePositionInTileRectangle(tilePosition: TilePosition, tileRectangle: TileRectangle) bool {
     return tileRectangle.pos.x <= tilePosition.x and tileRectangle.pos.x + tileRectangle.width > tilePosition.x and
         tileRectangle.pos.y <= tilePosition.y and tileRectangle.pos.y + tileRectangle.height > tilePosition.y;
+}
+
+pub fn isPositionInRectangle(position: Position, rectangle: Rectangle) bool {
+    return rectangle.pos.x <= position.x and rectangle.pos.x + rectangle.width > position.x and
+        rectangle.pos.y <= position.y and rectangle.pos.y + rectangle.height > position.y;
 }
 
 pub fn gamePositionToTilePosition(position: Position) TilePosition {

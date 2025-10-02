@@ -18,6 +18,7 @@ const enemyObjectZig = @import("../enemy/enemyObject.zig");
 const mapTileZig = @import("../mapTile.zig");
 const statsZig = @import("../stats.zig");
 const shopZig = @import("../shop.zig");
+const settingsMenuVulkanZig = @import("settingsMenuVulkan.zig");
 
 pub fn drawFrame(state: *main.GameState) !void {
     const vkState = &state.vkState;
@@ -42,6 +43,8 @@ pub fn drawFrame(state: *main.GameState) !void {
     try playerUxVulkanZig.setupVertices(state);
     try statsZig.setupVertices(state);
     try gameInfoUxZig.setupVertices(state);
+    try addDataVerticeDrawCut(&state.vkState.verticeData);
+    try settingsMenuVulkanZig.setupVertices(state);
     try setupVertexDataForGPU(vkState);
 
     if (!try initVulkanZig.createSwapChainRelatedStuffAndCheckWindowSize(state, state.allocator)) return;
