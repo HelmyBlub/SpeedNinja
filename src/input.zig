@@ -334,33 +334,33 @@ fn handlePlayerAction(action: PlayerAction, player: *playerZig.Player, state: *m
         .moveLeft => {
             if (player.choosenMoveOptionIndex) |index| {
                 try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_LEFT, state);
-            } else if (state.gamePhase == .shopping or state.gamePhase == .finished) {
+            } else if (state.gamePhase == .shopping) {
                 player.position.x -= main.TILESIZE;
-                if (state.gamePhase == .shopping) try shopZig.executeShopActionForPlayer(player, state);
+                try shopZig.executeShopActionForPlayer(player, state);
             }
         },
         .moveRight => {
             if (player.choosenMoveOptionIndex) |index| {
                 try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_RIGHT, state);
-            } else if (state.gamePhase == .shopping or state.gamePhase == .finished) {
+            } else if (state.gamePhase == .shopping) {
                 player.position.x += main.TILESIZE;
-                if (state.gamePhase == .shopping) try shopZig.executeShopActionForPlayer(player, state);
+                try shopZig.executeShopActionForPlayer(player, state);
             }
         },
         .moveUp => {
             if (player.choosenMoveOptionIndex) |index| {
                 try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_UP, state);
-            } else if (state.gamePhase == .shopping or state.gamePhase == .finished) {
+            } else if (state.gamePhase == .shopping) {
                 player.position.y -= main.TILESIZE;
-                if (state.gamePhase == .shopping) try shopZig.executeShopActionForPlayer(player, state);
+                try shopZig.executeShopActionForPlayer(player, state);
             }
         },
         .moveDown => {
             if (player.choosenMoveOptionIndex) |index| {
                 try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_DOWN, state);
-            } else if (state.gamePhase == .shopping or state.gamePhase == .finished) {
+            } else if (state.gamePhase == .shopping) {
                 player.position.y += main.TILESIZE;
-                if (state.gamePhase == .shopping) try shopZig.executeShopActionForPlayer(player, state);
+                try shopZig.executeShopActionForPlayer(player, state);
             }
         },
         .pieceSelect1 => {

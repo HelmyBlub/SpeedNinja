@@ -41,16 +41,17 @@ fn verticesForFinished(state: *main.GameState) !void {
         }
     }
     const optFinishTime = try statsZig.getFinishTime(state);
-    const finishTime = if (optFinishTime) |time| time else 0;
-    const textPos2: main.Position = .{
-        .x = -0.5,
-        .y = finishTimeOffsetY,
-    };
-    const finishTextWidth = fontVulkanZig.paintText("Time:", textPos2, fontSize, textColor, fontVertices);
-    _ = try fontVulkanZig.paintTime(finishTime, .{
-        .x = textPos2.x + finishTextWidth,
-        .y = textPos2.y,
-    }, fontSize, true, textColor, fontVertices);
+    if (optFinishTime) |finishTime| {
+        const textPos2: main.Position = .{
+            .x = -0.5,
+            .y = finishTimeOffsetY,
+        };
+        const finishTextWidth = fontVulkanZig.paintText("Time:", textPos2, fontSize, textColor, fontVertices);
+        _ = try fontVulkanZig.paintTime(finishTime, .{
+            .x = textPos2.x + finishTextWidth,
+            .y = textPos2.y,
+        }, fontSize, true, textColor, fontVertices);
+    }
 }
 
 fn verticesForBossAcedAndFreeContinue(state: *main.GameState) void {

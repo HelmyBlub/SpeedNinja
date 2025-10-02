@@ -42,6 +42,52 @@ pub fn setupVertices(state: *main.GameState) !void {
         lines.verticeCount += 2;
     }
     try verticesForEnterShop(state);
+    try verticesForNewGamePlusOnGameFinished(state);
+}
+
+fn verticesForNewGamePlusOnGameFinished(state: *main.GameState) !void {
+    if (state.gamePhase != .finished) return;
+    const verticeData = &state.vkState.verticeData;
+    const tileRectangle = shopZig.getShopEarlyTriggerPosition(state);
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const gridEnterNewGamePlusTopLeft: main.Position = .{
+        .x = @floatFromInt(tileRectangle.pos.x * main.TILESIZE),
+        .y = @floatFromInt(tileRectangle.pos.y * main.TILESIZE),
+    };
+    const vulkan: main.Position = .{
+        .x = (-state.camera.position.x + gridEnterNewGamePlusTopLeft.x) * state.camera.zoom * onePixelXInVulkan,
+        .y = (-state.camera.position.y + gridEnterNewGamePlusTopLeft.y) * state.camera.zoom * onePixelYInVulkan,
+    };
+    const halveVulkanTileSizeX = main.TILESIZE * onePixelXInVulkan * state.camera.zoom / 2;
+    const halveVulkanTileSizeY = main.TILESIZE * onePixelYInVulkan * state.camera.zoom / 2;
+    const width = main.TILESIZE * shopZig.EARLY_SHOP_GRID_SIZE * onePixelXInVulkan * state.camera.zoom;
+    const height = main.TILESIZE * shopZig.EARLY_SHOP_GRID_SIZE * onePixelYInVulkan * state.camera.zoom;
+    const left = vulkan.x - halveVulkanTileSizeX;
+    const top = vulkan.y - halveVulkanTileSizeY;
+    paintVulkanZig.verticesForRectangle(left, top, width, height, .{ 1, 1, 1, 1 }, &verticeData.lines, null);
+    paintVulkanZig.verticesForComplexSprite(
+        .{ .x = gridEnterNewGamePlusTopLeft.x + main.TILESIZE / 2, .y = gridEnterNewGamePlusTopLeft.y + main.TILESIZE },
+        imageZig.IMAGE_STAIRS,
+        4,
+        4,
+        1,
+        0,
+        false,
+        false,
+        state,
+    );
+
+    const fontSize = 10;
+    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
+    const textWidth = fontVulkanZig.paintTextGameMap("New Game +", .{
+        .x = gridEnterNewGamePlusTopLeft.x - main.TILESIZE / 2,
+        .y = gridEnterNewGamePlusTopLeft.y - main.TILESIZE / 2,
+    }, fontSize, textColor, &verticeData.font, state);
+    _ = try fontVulkanZig.paintNumberGameMap(state.newGamePlus + 1, .{
+        .x = gridEnterNewGamePlusTopLeft.x - main.TILESIZE / 2 + textWidth,
+        .y = gridEnterNewGamePlusTopLeft.y - main.TILESIZE / 2,
+    }, fontSize, textColor, &verticeData.font, state);
 }
 
 fn verticesForEnterShop(state: *main.GameState) !void {

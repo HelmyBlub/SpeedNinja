@@ -177,11 +177,15 @@ pub fn tickPlayerMovePiece(player: *playerZig.Player, state: *main.GameState) !v
             ninjaDogVulkanZig.moveHandToCenter(player, state);
             if (state.gamePhase == .shopping) {
                 try shopZig.executeShopActionForPlayer(player, state);
-            } else if (state.gamePhase != .finished) {
+            } else if (state.gamePhase == .finished) {
+                if (state.uxData.creditsScrollStart == null and shopZig.isPlayerInShopTrigger(player, state)) {
+                    try main.restart(state, state.newGamePlus + 1);
+                }
+            } else {
                 try bossZig.onPlayerMoved(player, state);
                 const attackDelayOnSpawn = 100;
                 if (state.gameTime - state.roundStartedTime > attackDelayOnSpawn) try enemyZig.onPlayerMoved(player, state);
-                if (shopZig.isPlayerInShopTrigger(player, state)) {
+                if (state.round >= state.roundToReachForNextLevel and shopZig.isPlayerInShopTrigger(player, state)) {
                     player.phase = .shopping;
                 }
             }

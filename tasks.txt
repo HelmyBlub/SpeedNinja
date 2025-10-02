@@ -4,7 +4,6 @@ speed run normal mode
     - hammer (46min)
 
 Tasks:
-- bug: ice tiles misplaced?
 - ending
     - stairs to start new game plus
 - settings menu

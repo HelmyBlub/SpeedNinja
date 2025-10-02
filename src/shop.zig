@@ -246,7 +246,6 @@ pub fn getShopEarlyTriggerPosition(state: *main.GameState) main.TileRectangle {
 
 pub fn isPlayerInShopTrigger(player: *playerZig.Player, state: *main.GameState) bool {
     if (state.gamePhase == .shopping) return false;
-    if (state.round < state.roundToReachForNextLevel) return false;
     const tileRectangle = getShopEarlyTriggerPosition(state);
     const playerTile = main.gamePositionToTilePosition(player.position);
     return main.isTilePositionInTileRectangle(playerTile, tileRectangle);
