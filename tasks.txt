@@ -2,10 +2,11 @@ speed run normal mode
     - kunai  (52min)
     - blade
     - hammer (46min)
+- test run newgame+2
+    - enemy rounds
 
 Tasks:
-- ending
-    - stairs to start new game plus
+- boss 2 loss hp when shield loss
 - settings menu
     - sound volume
     - fullscreen

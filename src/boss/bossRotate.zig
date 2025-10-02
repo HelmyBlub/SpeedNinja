@@ -118,6 +118,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
         },
         .immune => {
             if (state.enemyData.enemies.items.len == 0) {
+                boss.hp -|= 1;
                 rotateData.immune = false;
                 try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_IMMUNITY_DOWN, 0, 1);
                 rotateData.state = .rebuildPillars;
