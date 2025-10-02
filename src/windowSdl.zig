@@ -144,7 +144,9 @@ fn debugKeys(event: sdl.SDL_Event, state: *main.GameState) !void {
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F8) {
         _ = equipmentZig.equip(equipmentZig.getEquipmentOptionByIndexScaledToLevel(7, state.level).equipment, true, &state.players.items[0]);
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F9) {
-        state.players.items[0].money += 1000;
+        for (state.players.items) |*player| {
+            player.money += 200;
+        }
     }
 }
 

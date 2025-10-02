@@ -15,8 +15,8 @@ pub const SettingsUx = struct {
     uiElements: [5]UiElementData = [_]UiElementData{
         .{ .holdButton = .{ .label = "Restart", .onHoldDurationFinished = onHoldButtonRestart } },
         .{ .checkbox = .{ .label = "Fullscreen", .onSetChecked = onCheckboxFullscreen } },
-        .{ .slider = .{ .label = "Volume", .onChange = onSliderChangeVolume } },
-        .{ .slider = .{ .label = "UX Size", .onStopHolding = onSliderStopHoldingUxSize } },
+        .{ .slider = .{ .label = "Volume", .valuePerCent = 1, .onChange = onSliderChangeVolume } },
+        .{ .slider = .{ .label = "UX Size", .valuePerCent = 0.5, .onStopHolding = onSliderStopHoldingUxSize } },
         .{ .holdButton = .{ .label = "Quit", .onHoldDurationFinished = onHoldButtonQuit } },
     },
     baseFontSize: f32 = 26,
@@ -57,7 +57,7 @@ const UiElementCheckboxData = struct {
 const UiElementSliderData = struct {
     recSlider: main.Rectangle = undefined,
     recDragArea: main.Rectangle = undefined,
-    valuePerCent: f32 = 0,
+    valuePerCent: f32,
     hovering: bool = false,
     holding: bool = false,
     label: []const u8,
@@ -90,13 +90,10 @@ pub fn setupUiLocations(state: *main.GameState) void {
         },
     };
 
-    settingsMenuUx.settingsMenuRectangle = .{
-        .height = 300 * onePixelYInVulkan * uiSizeFactor,
-        .width = menuWidth,
-        .pos = .{
-            .x = 1 - menuWidth - vulkanSpacingX,
-            .y = -1 + vulkanSpacingY + iconHeight,
-        },
+    settingsMenuUx.settingsMenuRectangle.width = menuWidth;
+    settingsMenuUx.settingsMenuRectangle.pos = .{
+        .x = 1 - menuWidth - vulkanSpacingX,
+        .y = -1 + vulkanSpacingY + iconHeight,
     };
     const settingsMenuRec = settingsMenuUx.settingsMenuRectangle;
     var offsetY: f32 = settingsMenuRec.pos.y;
@@ -148,6 +145,7 @@ pub fn setupUiLocations(state: *main.GameState) void {
             },
         }
     }
+    settingsMenuUx.settingsMenuRectangle.height = offsetY - settingsMenuRec.pos.y + vulkanSpacingY;
 }
 
 pub fn mouseMove(mouseWindowPosition: main.Position, state: *main.GameState) !void {
