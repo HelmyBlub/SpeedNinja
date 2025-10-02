@@ -1,20 +1,20 @@
 speed run normal mode
-    - kunai
+    - kunai  (52min)
     - blade
     - hammer (46min)
 
 Tasks:
+- bug: ice tiles misplaced?
 - ending
-    - animate 
-        - ground break
-        - fall to ground
-        - camera move down
-        - back to ground pattern
-    - check
-        - speedrun stats at game finished?
     - stairs to start new game plus
+- settings menu
+    - sound volume
+    - fullscreen
+    - quit
+    - restart
 
 - vertical layout
+    - throw away or improve
     - everything broken
     - gate/stairs outside of view
     - overlapping stuff
@@ -28,8 +28,6 @@ Next ideas:
 - vulkan changes
     - fallback visualize when not supported
 - settings menu
-    - sound volume
-    - fullscreen
     - display how to mutliplayer
         - display "hold button to join" if different input devices used
             - only when on one player

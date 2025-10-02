@@ -68,13 +68,13 @@ pub fn deinit(state: *main.GameState) void {
 }
 
 pub fn getMapTilePositionType(tile: main.TilePosition, mapData: *MapData) MapTileType {
-    const index = tilePositionToTileIndex(tile, mapData);
+    const index = tilePositionToTileIndex(tile, mapData.tileRadiusWidth, mapData.tileRadiusHeight);
     if (index == null or index.? >= mapData.tiles.len) return .normal;
     return mapData.tiles[index.?];
 }
 
 pub fn setMapTilePositionType(tile: main.TilePosition, tileType: MapTileType, mapData: *MapData, checkReachable: bool, state: *main.GameState) void {
-    const index = tilePositionToTileIndex(tile, mapData);
+    const index = tilePositionToTileIndex(tile, mapData.tileRadiusWidth, mapData.tileRadiusHeight);
     if (index == null or index.? >= mapData.tiles.len) return;
     mapData.tiles[index.?] = tileType;
     if (checkReachable and !state.verifyMapData.checkReachable) {
@@ -82,10 +82,10 @@ pub fn setMapTilePositionType(tile: main.TilePosition, tileType: MapTileType, ma
     }
 }
 
-fn tilePositionToTileIndex(tilePosition: main.TilePosition, mapData: *MapData) ?usize {
-    const iTileRadiusWidth = @as(i32, @intCast(mapData.tileRadiusWidth));
-    const iTileRadiusHeight = @as(i32, @intCast(mapData.tileRadiusHeight));
-    const tileWidth = (mapData.tileRadiusWidth * 2 + 1);
+fn tilePositionToTileIndex(tilePosition: main.TilePosition, tileRadiusWidth: u32, tileRadiusHeight: u32) ?usize {
+    const iTileRadiusWidth = @as(i32, @intCast(tileRadiusWidth));
+    const iTileRadiusHeight = @as(i32, @intCast(tileRadiusHeight));
+    const tileWidth = (tileRadiusWidth * 2 + 1);
     if (@abs(tilePosition.x) > iTileRadiusWidth) return null;
     if (@abs(tilePosition.y) > iTileRadiusHeight) return null;
     return @as(u32, @intCast(tilePosition.x + iTileRadiusWidth)) + @as(u32, @intCast(tilePosition.y + iTileRadiusHeight)) * tileWidth;
@@ -109,7 +109,7 @@ pub fn setMapRadius(tileRadiusWidth: u32, tileRadiusHeight: u32, state: *main.Ga
     resetMapTiles(tiles);
     for (0..state.mapData.tiles.len) |oldTileIndex| {
         const tilePosition = tileIndexToTilePosition(oldTileIndex, &state.mapData);
-        const newTileIndex = tilePositionToTileIndex(tilePosition, &state.mapData);
+        const newTileIndex = tilePositionToTileIndex(tilePosition, tileRadiusWidth, tileRadiusHeight);
         if (newTileIndex == null or newTileIndex.? >= tiles.len) continue;
         tiles[newTileIndex.?] = state.mapData.tiles[oldTileIndex];
     }
