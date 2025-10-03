@@ -545,8 +545,8 @@ fn allPlayerOutOfMoveOptions(state: *GameState) bool {
 }
 
 pub fn gameFinished(state: *GameState) !void {
-    if (!state.gameOver) try statsZig.statsOnLevelFinished(state);
     state.gamePhase = .finished;
+    try statsZig.statsOnLevelFinished(state);
     state.enemyData.enemies.clearRetainingCapacity();
     state.enemyData.enemyObjects.clearRetainingCapacity();
     state.uxData.creditsScrollStart = state.gameTime;

@@ -252,7 +252,7 @@ pub fn isPlayerInShopTrigger(player: *playerZig.Player, state: *main.GameState) 
 }
 
 pub fn startShoppingPhase(state: *main.GameState) !void {
-    if (state.level == 50) {
+    if (state.level == main.LEVEL_COUNT) {
         try main.gameFinished(state);
         return;
     }

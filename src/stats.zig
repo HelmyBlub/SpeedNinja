@@ -7,6 +7,7 @@ const fileSaveZig = @import("fileSave.zig");
 pub const Statistics = struct {
     active: bool = true,
     runStartedTime: i64 = 0,
+    runFinishedTime: i64 = 0,
     totalShoppingTime: i64 = 0,
     levelDataWithPlayerCount: std.ArrayList(LevelStatiscticsWithPlayerCount),
 };
@@ -30,11 +31,12 @@ const FILE_NAME_STATISTICS_DATA = "statistics.dat";
 const SAFE_FILE_VERSION: u8 = 0;
 
 pub fn statsOnLevelFinished(state: *main.GameState) !void {
+    const currentTime = std.time.milliTimestamp();
+    if (state.level == main.LEVEL_COUNT and state.gamePhase == .finished) state.statistics.runFinishedTime = currentTime - state.statistics.runStartedTime;
     if (!state.statistics.active) return;
     if (state.level == 0) return;
     const levelDatas: []LevelStatistics = try getLevelDatas(state);
     const currentLevelData = &levelDatas[state.level - 1];
-    const currentTime = std.time.milliTimestamp();
     currentLevelData.currentTotalTime = currentTime - state.statistics.runStartedTime;
     currentLevelData.currentRound = state.round;
     if (state.level == 1) {
@@ -83,14 +85,6 @@ pub fn statsSaveOnRestart(state: *main.GameState) !void {
         try saveStatisticsDataToFile(state);
     }
     state.statistics.active = true;
-}
-
-pub fn getFinishTime(state: *main.GameState) !?i64 {
-    if (state.gamePhase != .finished) return null;
-    if (!state.statistics.active) return null;
-    const levelDatas = try getLevelDatas(state);
-    if (levelDatas.len < 50) return null;
-    return levelDatas[49].currentTotalTime;
 }
 
 fn checkIfIsNewBestTotalTime(levelDatas: []LevelStatistics, state: *main.GameState) bool {
