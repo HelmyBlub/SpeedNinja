@@ -79,6 +79,7 @@ pub fn loadCurrentRunFromFile(state: *main.GameState) !void {
         const player: *playerZig.Player = &state.players.items[index];
         player.money = try reader.readInt(u32, .little);
         try readPlayerMovePieces(player, reader, state);
+        try readEquipmentSlotData(player, reader, state);
     }
     try shopZig.startShoppingPhase(state);
     try readShopBuyOptions(reader, state);
@@ -114,9 +115,54 @@ pub fn saveCurrentRunToFile(state: *main.GameState) !void {
         try writeInputDeviceData(player, writer);
         _ = try writer.writeInt(u32, player.money, .little);
         try writePlayerMovePieces(player, writer);
-        //equipment
+        try writeEquipmentSlotData(player.equipment.equipmentSlotsData.head, writer);
+        try writeEquipmentSlotData(player.equipment.equipmentSlotsData.body, writer);
+        try writeEquipmentSlotData(player.equipment.equipmentSlotsData.feet, writer);
+        try writeEquipmentSlotData(player.equipment.equipmentSlotsData.weapon, writer);
     }
     try writeShopBuyOptions(writer, state);
+}
+
+fn writeEquipmentSlotData(optEquipSlotData: ?equipmentZig.EquipmentSlotData, writer: anytype) !void {
+    if (optEquipSlotData) |equipSlotData| {
+        var optMatchingEquipIndex: ?u8 = null;
+        for (equipmentZig.EQUIPMENT_SHOP_OPTIONS, 0..) |equipmentShopOption, equipIndex| {
+            if (equipmentShopOption.equipment.imageIndex == equipSlotData.imageIndex) {
+                optMatchingEquipIndex = @intCast(equipIndex);
+                break;
+            }
+        }
+        if (optMatchingEquipIndex) |matchingEquipIndex| {
+            _ = try writer.writeInt(u8, matchingEquipIndex + 1, .little);
+            if (equipSlotData.effectType == .hp) {
+                _ = try writer.writeInt(u8, equipSlotData.effectType.hp.hp, .little);
+            }
+            if (equipSlotData.effectType == .damage) {
+                _ = try writer.writeInt(u32, equipSlotData.effectType.damage.damage, .little);
+            }
+        } else {
+            _ = try writer.writeInt(u8, 0, .little);
+        }
+    } else {
+        _ = try writer.writeInt(u8, 0, .little);
+    }
+}
+
+fn readEquipmentSlotData(player: *playerZig.Player, reader: anytype, state: *main.GameState) !void {
+    for (0..4) |_| {
+        const equipIndexAndNull = try reader.readInt(u8, .little);
+        if (equipIndexAndNull != 0) {
+            const equipIndex = equipIndexAndNull - 1;
+            var equipOption = equipmentZig.getEquipmentOptionByIndexScaledToLevel(equipIndex, state.level);
+            if (equipOption.equipment.effectType == .hp) {
+                equipOption.equipment.effectType.hp.hp = try reader.readInt(u8, .little);
+            }
+            if (equipOption.equipment.effectType == .damage) {
+                equipOption.equipment.effectType.damage.damage = try reader.readInt(u32, .little);
+            }
+            _ = equipmentZig.equip(equipOption.equipment, false, player);
+        }
+    }
 }
 
 fn writePlayerMovePieces(player: *playerZig.Player, writer: anytype) !void {
@@ -154,10 +200,12 @@ fn writeShopBuyOptions(writer: anytype, state: *main.GameState) !void {
     _ = try writer.writeInt(usize, state.shop.buyOptions.items.len, .little);
     for (state.shop.buyOptions.items) |buyOption| {
         var matchingEquipIndex: u8 = 0;
-        for (equipmentZig.EQUIPMENT_SHOP_OPTIONS, 0..) |equipmentShopOption, equipIndex| {
-            if (equipmentShopOption.shopDisplayImage == buyOption.imageIndex) {
-                matchingEquipIndex = @intCast(equipIndex);
-                break;
+        if (buyOption.price > 0) {
+            for (equipmentZig.EQUIPMENT_SHOP_OPTIONS, 0..) |equipmentShopOption, equipIndex| {
+                if (equipmentShopOption.shopDisplayImage == buyOption.imageIndex) {
+                    matchingEquipIndex = @intCast(equipIndex + 1);
+                    break;
+                }
             }
         }
         _ = try writer.writeInt(u8, matchingEquipIndex, .little);
@@ -167,9 +215,10 @@ fn writeShopBuyOptions(writer: anytype, state: *main.GameState) !void {
 fn readShopBuyOptions(reader: anytype, state: *main.GameState) !void {
     const buyOptionCount = try reader.readInt(usize, .little);
     for (0..buyOptionCount) |index| {
-        const equipIndex = try reader.readInt(u8, .little);
+        const equipIndexPlus1 = try reader.readInt(u8, .little);
+        if (equipIndexPlus1 == 0) continue;
         if (index < state.shop.buyOptions.items.len) {
-            const randomEquip = equipmentZig.getEquipmentOptionByIndexScaledToLevel(equipIndex, state.level);
+            const randomEquip = equipmentZig.getEquipmentOptionByIndexScaledToLevel(equipIndexPlus1 - 1, state.level);
             const pos = state.shop.buyOptions.items[index].tilePosition;
             state.shop.buyOptions.items[index] = .{
                 .price = state.level * randomEquip.basePrice,
