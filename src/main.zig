@@ -676,7 +676,8 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
     statsZig.loadStatisticsDataFromFile(state);
     if (fileSaveZig.loadCurrentRunFromFile(state)) {
         std.debug.print("load last run successfull\n", .{});
-    } else |_| {
+    } else |err| {
+        std.debug.print("err: {}\n", .{err});
         try restart(state, 0);
     }
 }

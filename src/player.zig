@@ -347,7 +347,8 @@ pub fn playerLeave(playerIndex: usize, state: *main.GameState) !void {
     }
 }
 
-fn playerJoin(playerInputData: inputZig.PlayerInputData, state: *main.GameState) !void {
+pub fn playerJoin(playerInputData: inputZig.PlayerInputData, state: *main.GameState) !void {
+    if (playerInputData.inputDevice == null) return error.invalidPlayerInputData;
     if (state.players.items.len > 1 and playerInputData.inputDevice.? == .keyboard) {
         for (state.players.items) |*otherPlayer| {
             if (otherPlayer.inputData.inputDevice != null and otherPlayer.inputData.inputDevice.? == .keyboard and

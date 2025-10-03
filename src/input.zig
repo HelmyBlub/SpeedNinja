@@ -32,7 +32,7 @@ pub const InputDevice = enum {
     gamepad,
 };
 
-const InputDeviceData = union(InputDevice) {
+pub const InputDeviceData = union(InputDevice) {
     keyboard: ?u32,
     gamepad: u32,
 };
@@ -84,7 +84,7 @@ const KEYBOARD_MAPPING_3 = [_]KeyboardKeyBind{
     .{ .action = .pieceSelect2, .sdlKeyCode = sdl.SDL_SCANCODE_8 },
     .{ .action = .pieceSelect3, .sdlKeyCode = sdl.SDL_SCANCODE_9 },
 };
-const KEYBOARD_MAPPINGS = [_][]const KeyboardKeyBind{
+pub const KEYBOARD_MAPPINGS = [_][]const KeyboardKeyBind{
     &KEYBOARD_MAPPING_1,
     &KEYBOARD_MAPPING_2,
     &KEYBOARD_MAPPING_3,
