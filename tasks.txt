@@ -1,24 +1,21 @@
 speed run normal mode
     - kunai  (52min)
-    - blade
+    - blade  (53min)
     - hammer (46min)
 - test run newgame+2
-    - enemy rounds
+    - enemy rounds(41+)
 
 Tasks:
-- vertical layout
-    - throw away or improve
-    - everything broken
-    - gate/stairs outside of view
-    - overlapping stuff
+- layout only to one version
+    - imporve the one i take
+- player join not in boss fight display
+- player join position to centered top
 
 Next ideas:
 - save current run
 - settings
-    - save
-    - initial values
+    - save/load settings
 - steam achievements
-- start new game plus option when normal mode defeated
 - game ticking seperate from drawing
 
 - vulkan changes

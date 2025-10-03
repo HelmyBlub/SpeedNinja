@@ -297,11 +297,7 @@ pub fn determinePlayerUxPositions(state: *main.GameState) void {
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     var diffScale: f32 = 0;
     if (state.players.items.len <= 2) {
-        if (!state.uxData.playerUxVertical) {
-            diffScale = windowSdlZig.windowData.heightFloat / windowSdlZig.windowData.widthFloat;
-        } else {
-            diffScale = windowSdlZig.windowData.widthFloat / windowSdlZig.windowData.heightFloat;
-        }
+        diffScale = windowSdlZig.windowData.widthFloat / windowSdlZig.windowData.heightFloat;
         if (diffScale > 1.2) {
             scale = @max(1.0, @min(2.0, 1 + (diffScale - 1.2) * 2.0));
         }
@@ -319,11 +315,6 @@ pub fn determinePlayerUxPositions(state: *main.GameState) void {
             player.uxData.vulkanTopLeft.y = playerPosY[0];
         } else {
             player.uxData.vulkanTopLeft.y = playerPosY[@mod(@divFloor(index, 2), 2) + 1];
-        }
-        if (!state.uxData.playerUxVertical) {
-            const tempX = player.uxData.vulkanTopLeft.x;
-            player.uxData.vulkanTopLeft.x = player.uxData.vulkanTopLeft.y;
-            player.uxData.vulkanTopLeft.y = tempX;
         }
     }
 }

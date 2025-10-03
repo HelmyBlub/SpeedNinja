@@ -748,13 +748,8 @@ pub fn setupShopAreas(state: *main.GameState) !void {
 fn setupPlayerMovePieceAreas(state: *main.GameState) void {
     const spacing = GRID_SIZE + 4;
     const spaceForOtherShopStuff = 1;
-    var width: usize = @intFromFloat(@ceil(@sqrt(@as(f32, @floatFromInt(state.players.items.len)))));
-    var height: usize = if (width * width - width + 1 > state.players.items.len) width - 1 else width;
-    if (state.uxData.playerUxVertical) {
-        const temp = width;
-        width = height;
-        height = temp;
-    }
+    const height: usize = @intFromFloat(@ceil(@sqrt(@as(f32, @floatFromInt(state.players.items.len)))));
+    const width: usize = if (height * height - height + 1 > state.players.items.len) height - 1 else height;
     const xOffset: i32 = -@as(i32, @intCast(@divFloor(width * spacing, 2))) + 2;
     const yOffset: i32 = -@as(i32, @intCast(@divFloor(height * spacing, 2))) + 2;
     for (state.players.items, 0..) |*player, index| {

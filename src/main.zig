@@ -91,7 +91,6 @@ pub const GameUxData = struct {
     continueButtonHoldStart: ?i64 = null,
     restartButtonHoldStart: ?i64 = null,
     quitButtonHoldStart: ?i64 = null,
-    playerUxVertical: bool = false,
     gameVulkanArea: Rectangle = .{ .pos = .{ .x = -0.75, .y = -0.75 }, .width = 1.5, .height = 1.5 },
     displayBossAcedUntilTime: ?i64 = null,
     displayReceivedFreeContinue: ?i64 = null,
@@ -628,27 +627,19 @@ pub fn adjustZoom(state: *GameState) void {
     const mapSizeHeight: f32 = @floatFromInt((state.mapData.tileRadiusHeight * 2 + 1) * TILESIZE);
     const widthPerCent = mapSizeWidth / windowSdlZig.windowData.widthFloat;
     const heightPerCent = mapSizeHeight / windowSdlZig.windowData.heightFloat;
-    state.uxData.playerUxVertical = if (widthPerCent < heightPerCent) true else false;
     state.uxData.gameVulkanArea.width = 1.5;
     state.uxData.gameVulkanArea.height = 1.5;
     var targetMapScreenPerCent: f32 = state.uxData.gameVulkanArea.width / 2;
     if (state.gamePhase == .shopping) {
-        if (state.uxData.playerUxVertical) {
-            state.uxData.gameVulkanArea.height = 1.9;
-            targetMapScreenPerCent = state.uxData.gameVulkanArea.height / 2;
-        } else {
-            state.uxData.gameVulkanArea.width = 1.9;
-            targetMapScreenPerCent = state.uxData.gameVulkanArea.width / 2;
-        }
+        state.uxData.gameVulkanArea.height = 1.9;
+        targetMapScreenPerCent = state.uxData.gameVulkanArea.height / 2;
     }
 
     const biggerPerCent = @max(widthPerCent, heightPerCent);
     state.camera.zoom = targetMapScreenPerCent / biggerPerCent;
-    if (state.players.items.len > 1 and stairsAdditionTileWidth > 0 and state.uxData.playerUxVertical) {
+    if (state.players.items.len > 1 and stairsAdditionTileWidth > 0) {
         //offset so stairs are not under player2UI
         state.camera.position.x = @as(f32, @floatFromInt(stairsAdditionTileWidth)) * TILESIZE / 2;
-    } else {
-        state.camera.position.x = 0;
     }
     playerZig.determinePlayerUxPositions(state);
 }
