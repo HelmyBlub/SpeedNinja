@@ -65,7 +65,7 @@ pub const AfterImage = struct {
     deleteTime: i64,
 };
 
-pub const PLAYER_JOIN_BUTTON_HOLD_DURATION = 3000;
+pub const PLAYER_JOIN_BUTTON_HOLD_DURATION = 4000;
 
 pub fn tickPlayers(state: *main.GameState, passedTime: i64) !void {
     for (state.players.items) |*player| {

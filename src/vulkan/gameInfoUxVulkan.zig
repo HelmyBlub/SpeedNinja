@@ -284,6 +284,7 @@ fn verticsForTutorial(state: *main.GameState) void {
 }
 
 fn verticesForLeaveJoinInfo(state: *main.GameState) !void {
+    if (state.gamePhase == .boss) return;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     var counter: usize = 0;
     const realTime = std.time.milliTimestamp();
@@ -291,13 +292,14 @@ fn verticesForLeaveJoinInfo(state: *main.GameState) !void {
     const height = fontSize * onePixelYInVulkan;
     const verticeData = &state.vkState.verticeData;
     const fontVertices = &state.vkState.verticeData.font;
+    const displayTextWidthEstimate = fontVulkanZig.getTextVulkanWidth("player x joining", fontSize);
     if (state.inputJoinData.inputDeviceDatas.items.len > 0) {
         const textColor: [4]f32 = .{ 0.1, 1, 0.1, 1 };
         const fillColor: [4]f32 = .{ 0.9, 0.9, 0.9, 1 };
+        const left: f32 = -displayTextWidthEstimate / 2;
         for (state.inputJoinData.inputDeviceDatas.items) |joinData| {
             if (joinData.pressTime + 1_000 <= realTime) {
                 var textWidth: f32 = 0;
-                const left: comptime_float = 0;
                 const top: f32 = -0.99 + height * @as(f32, @floatFromInt(counter + 1)) * 1.1;
                 textWidth += fontVulkanZig.paintText("Player ", .{ .x = left + textWidth, .y = top }, fontSize, textColor, fontVertices);
                 textWidth += try fontVulkanZig.paintNumber(state.players.items.len + counter + 1, .{ .x = left + textWidth, .y = top }, fontSize, textColor, fontVertices);

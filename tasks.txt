@@ -6,10 +6,9 @@ speed run normal mode
     - enemy rounds(41+)
 
 Tasks:
-- layout only to one version
-    - imporve the one i take
 - player join not in boss fight display
 - player join position to centered top
+- always display total time at the end even if not in speedrun stats
 
 Next ideas:
 - save current run
