@@ -19,6 +19,7 @@ const inputZig = @import("input.zig");
 const playerZig = @import("player.zig");
 const bossDragonZig = @import("boss/bossDragon.zig");
 const settingsMenuVulkanZig = @import("vulkan/settingsMenuVulkan.zig");
+const fileSaveZig = @import("fileSave.zig");
 
 pub const GamePhase = enum {
     combat,
@@ -67,7 +68,7 @@ pub const GameState = struct {
     players: std.ArrayList(playerZig.Player),
     playerTookDamageOnLevel: bool = false,
     soundMixer: ?soundMixerZig.SoundMixer = null,
-    gameEnded: bool = false,
+    gameQuit: bool = false,
     gamePhase: GamePhase = .combat,
     shop: shopZig.ShopData,
     lastBossDefeatedTime: i64 = 0,
@@ -206,7 +207,7 @@ fn mainLoop(state: *GameState) !void {
     var lastTime = std.time.milliTimestamp();
     var currentTime = lastTime;
     var passedTime: i64 = 0;
-    while (!state.gameEnded) {
+    while (!state.gameQuit) {
         if (state.enemyData.enemies.items.len == 0 and state.gamePhase == .combat) {
             try startNextRound(state);
         } else if (shouldEndLevel(state)) {
@@ -318,7 +319,7 @@ fn tickGameOver(state: *GameState) !void {
         return;
     }
     if (state.uxData.quitButtonHoldStart != null and state.uxData.quitButtonHoldStart.? + state.uxData.holdDefaultDuration < timeStamp) {
-        state.gameEnded = true;
+        state.gameQuit = true;
         return;
     }
 }
@@ -673,10 +674,15 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
     state.mapObjects = std.ArrayList(MapObject).init(state.allocator);
     try state.players.append(playerZig.createPlayer(allocator));
     statsZig.loadStatisticsDataFromFile(state);
-    try restart(state, 0);
+    if (fileSaveZig.loadCurrentRunFromFile(state)) {
+        std.debug.print("load last run successfull\n", .{});
+    } else |_| {
+        try restart(state, 0);
+    }
 }
 
 fn destroyGameState(state: *GameState) !void {
+    fileSaveZig.saveCurrentRunToFile(state) catch std.debug.print("save current run failed\n", .{});
     initVulkanZig.destroyPaintVulkan(&state.vkState, state.allocator) catch {
         std.debug.print("failed to destroy window and vulkan\n", .{});
     };

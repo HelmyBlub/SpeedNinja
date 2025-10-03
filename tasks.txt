@@ -6,7 +6,9 @@ speed run normal mode
     - enemy rounds(41+)
 
 Tasks:
-- always display total time at the end even if not in speedrun stats
+- save current run
+    - always load and put player in shop as combat would be to dangerous
+
 
 Next ideas:
 - save current run

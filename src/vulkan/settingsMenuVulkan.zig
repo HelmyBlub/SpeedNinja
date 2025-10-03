@@ -358,7 +358,7 @@ fn onHoldButtonRestart(state: *main.GameState) anyerror!void {
 }
 
 fn onHoldButtonQuit(state: *main.GameState) anyerror!void {
-    state.gameEnded = true;
+    state.gameQuit = true;
 }
 
 fn onCheckboxFullscreen(checked: bool, state: *main.GameState) anyerror!void {
