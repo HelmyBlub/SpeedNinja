@@ -98,6 +98,7 @@ pub const IMAGE_STAIRS = 90;
 pub const IMAGE_CHECKMARK = 91;
 pub const IMAGE_SHOP_PODEST = 92;
 pub const IMAGE_SETTINGS_ICON = 93;
+pub const IMAGE_SHOP_DELETE = 94;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaFeet.png" },
@@ -194,6 +195,7 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/checkmark.png" },
     .{ .path = "images/shopPodest.png" },
     .{ .path = "images/settingsIcon.png" },
+    .{ .path = "images/shopDelete.png", .scale = 2 },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 pub const IMAGE_DOG__CENTER_BODY: main.Position = .{ .x = 99, .y = 128 };

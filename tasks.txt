@@ -5,8 +5,6 @@ speed run normal mode
     - speedrun stategy(43:25, 3death)
 
 Tasks:
-- save/load current run
-    - when quitting playin with some friend and gamepad. on next restart how to get rid of player2?
 - shop movePiece put movePiece icon to add/delete
 - shop movePiece cut don't select one piece long as first default
 - shop be able to put back item even if nothing left behind

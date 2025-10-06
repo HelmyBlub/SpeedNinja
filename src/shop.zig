@@ -99,7 +99,7 @@ pub const SHOP_BUTTONS = [_]PlayerShopButton{
     },
     .{
         .execute = executeDeletePiece,
-        .imageIndex = imageZig.IMAGE_WARNING_TILE,
+        .imageIndex = imageZig.IMAGE_SHOP_DELETE,
         .tileOffset = .{ .x = 4, .y = 0 },
         .option = .delete,
     },
@@ -773,11 +773,11 @@ fn isNextStepButtonVisible(player: *playerZig.Player) bool {
 
 fn arrowButtonAlpha(player: *playerZig.Player) f32 {
     if (player.shop.selectedOption == .none) {
-        return 0.4;
+        return 0.3;
     }
     if (player.shop.selectedOption == .combine) {
         if (player.shop.selectedOption.combine.combineStep == .reset) {
-            return 0.4;
+            return 0.3;
         }
     }
     return 1;
@@ -785,11 +785,11 @@ fn arrowButtonAlpha(player: *playerZig.Player) f32 {
 
 pub fn payButtonAlpha(player: *playerZig.Player) f32 {
     if (player.shop.selectedOption == .none) {
-        return 0.4;
+        return 0.3;
     }
     if (player.shop.selectedOption == .combine) {
         if (player.shop.selectedOption.combine.combineStep == .selectPiece1 or player.shop.selectedOption.combine.combineStep == .selectPiece2) {
-            return 0.4;
+            return 0.3;
         }
     }
     return 1;
