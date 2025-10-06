@@ -98,7 +98,7 @@ fn verticesForBossHpBar(state: *main.GameState) !void {
 }
 
 fn verticesForGameOver(state: *main.GameState) !void {
-    if (state.gameOver) {
+    if (state.gameOver and state.timeFreezeUntil == null) {
         const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
         const verticeData = &state.vkState.verticeData;
         const fontVertices = &verticeData.font;

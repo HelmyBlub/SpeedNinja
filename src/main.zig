@@ -85,6 +85,7 @@ pub const GameState = struct {
     gateOpenTime: ?i64 = null,
     uxData: GameUxData = .{},
     lastAfkShootTime: ?i64 = null,
+    timeFreezeUntil: ?i64 = null,
 };
 
 pub const GameUxData = struct {
@@ -248,6 +249,13 @@ fn mainLoop(state: *GameState) !void {
         lastTime = currentTime;
         currentTime = std.time.milliTimestamp();
         passedTime = currentTime - lastTime;
+        if (state.timeFreezeUntil) |timeFreeze| {
+            if (timeFreeze <= currentTime) {
+                state.timeFreezeUntil = null;
+            } else {
+                passedTime = 0;
+            }
+        }
         if (passedTime > 16) {
             passedTime = 16;
         }

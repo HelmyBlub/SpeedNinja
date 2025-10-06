@@ -5,14 +5,15 @@ speed run normal mode
     - speedrun stategy(43:25, 3death)
 
 Tasks:
-- free continues for normal difficulty
 - slow down time when being hit to be able to see mistake
+    - play test to see if it helps
+    - make menu option to reduce freeze time even to 0
 - shop boss hint next level
-
 
 Next ideas:
 - settings
     - save/load settings
+    - speedrun statistics options
 - steam achievements
 - game ticking seperate from drawing
 

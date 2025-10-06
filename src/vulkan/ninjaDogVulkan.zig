@@ -275,7 +275,6 @@ pub fn setupVertices(state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
 
     for (state.players.items) |*player| {
-        if (player.isDead) continue;
         if (player.phase == .shopping and state.gamePhase == .combat) continue;
         var currentAfterImageIndex: usize = 0;
         while (currentAfterImageIndex < player.afterImages.items.len) {
@@ -288,6 +287,7 @@ pub fn setupVertices(state: *main.GameState) void {
             drawNinjaDog(afterImage.position, afterImage.paintData, state);
             currentAfterImageIndex += 1;
         }
+        if (player.isDead) continue;
         const drawPosition: main.Position = .{
             .x = player.position.x,
             .y = player.position.y - player.inAirHeight,
