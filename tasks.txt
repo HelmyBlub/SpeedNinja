@@ -2,12 +2,21 @@ speed run normal mode
     - kunai  (52min)
     - blade  (53min)
     - hammer (46min)
-- test run newgame+2
-    - enemy rounds(41+)
+    - speedrun stategy(43:25, 3death)
 
 Tasks:
-- save current run
-    - always load and put player in shop as combat would be to dangerous
+- save/load current run
+    - test a bit more
+        - gameover
+            - use continue when quitting if possible
+    - when quitting playin with some friend and gamepad. on next restart how to get rid of player2?
+- shop movePiece put movePiece icon to add/delete
+- shop movePiece cut don't select one piece long as first default
+- shop be able to put back item even if nothing left behind
+    - visualize somehow that item can be returned?
+- free continues for normal difficulty
+- slow down time when being hit to be able to see mistake
+- shop boss hint next level
 
 
 Next ideas:

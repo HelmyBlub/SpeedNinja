@@ -709,7 +709,7 @@ fn destroyGameState(state: *GameState) !void {
     enemyZig.destroyEnemyData(state);
 }
 
-fn executeContinue(state: *GameState) !void {
+pub fn executeContinue(state: *GameState) !void {
     if (state.level < 2) return;
 
     const cost = getMoneyCostsForContinue(state);
