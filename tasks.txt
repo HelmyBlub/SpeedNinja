@@ -5,8 +5,6 @@ speed run normal mode
     - speedrun stategy(43:25, 3death)
 
 Tasks:
-- shop movePiece put movePiece icon to add/delete
-- shop movePiece cut don't select one piece long as first default
 - shop be able to put back item even if nothing left behind
     - visualize somehow that item can be returned?
 - free continues for normal difficulty

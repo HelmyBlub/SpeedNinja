@@ -193,7 +193,7 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/gate.png" },
     .{ .path = "images/stairs.png" },
     .{ .path = "images/checkmark.png" },
-    .{ .path = "images/shopPodest.png" },
+    .{ .path = "images/shopPodest.png", .scale = 3.33 },
     .{ .path = "images/settingsIcon.png" },
     .{ .path = "images/shopDelete.png", .scale = 2 },
 };

@@ -202,7 +202,7 @@ fn verticesForBuyOptions(state: *main.GameState) !void {
         };
         const fontSize = 7;
         if (buyOption.price > 0) {
-            paintVulkanZig.verticesForComplexSprite(buyOptionGamePosition, imageZig.IMAGE_SHOP_PODEST, 5, 5, 1, 0, false, false, state);
+            paintVulkanZig.verticesForComplexSprite(buyOptionGamePosition, imageZig.IMAGE_SHOP_PODEST, 1.5, 1.5, 1, 0, false, false, state);
             paintVulkanZig.verticesForComplexSprite(.{
                 .x = buyOptionGamePosition.x,
                 .y = buyOptionGamePosition.y - main.TILESIZE / 2 - 4,
@@ -216,56 +216,58 @@ fn verticesForBuyOptions(state: *main.GameState) !void {
             .x = buyOptionGamePosition.x - main.TILESIZE / 2,
             .y = buyOptionGamePosition.y + main.TILESIZE / 2,
         };
-        var secondaryEffect: ?equipmentZig.SecondaryEffect = null;
-        switch (buyOption.equipment.effectType) {
-            .hp => |data| {
-                const hpDisplayTextPos: main.Position = .{
-                    .x = secondaryInfoPosition.x + main.TILESIZE / 2,
-                    .y = secondaryInfoPosition.y + fontSize + 1,
+        if (buyOption.equipment) |equipment| {
+            var secondaryEffect: ?equipmentZig.SecondaryEffect = null;
+            switch (equipment.effectType) {
+                .hp => |data| {
+                    const hpDisplayTextPos: main.Position = .{
+                        .x = secondaryInfoPosition.x + main.TILESIZE / 2,
+                        .y = secondaryInfoPosition.y + fontSize + 1,
+                    };
+                    const textWidth = try fontVulkanZig.paintNumberGameMap(data.hp, hpDisplayTextPos, fontSize, textColor, &state.vkState.verticeData.font, state);
+                    const hpDisplayIconPos: main.Position = .{
+                        .x = hpDisplayTextPos.x + textWidth / 2,
+                        .y = hpDisplayTextPos.y + fontSize / 2,
+                    };
+                    paintVulkanZig.verticesForComplexSprite(hpDisplayIconPos, imageZig.IMAGE_ICON_HP, 2.5, 2.5, 1, 0, false, false, state);
+                    secondaryEffect = data.effect;
+                },
+                .damage => |data| {
+                    const damageDisplayTextPos: main.Position = .{
+                        .x = secondaryInfoPosition.x + main.TILESIZE / 2,
+                        .y = secondaryInfoPosition.y + fontSize + 1,
+                    };
+                    _ = try fontVulkanZig.paintNumberGameMap(data.damage, damageDisplayTextPos, fontSize, textColor, &state.vkState.verticeData.font, state);
+                    const DamageDisplayIconPos: main.Position = .{
+                        .x = damageDisplayTextPos.x - 2.5,
+                        .y = damageDisplayTextPos.y + fontSize / 2,
+                    };
+                    paintVulkanZig.verticesForComplexSprite(DamageDisplayIconPos, imageZig.IMAGE_ICON_DAMAGE, 2, 2, 1, 0, false, false, state);
+                    secondaryEffect = data.effect;
+                },
+                .damagePerCent => |data| {
+                    const damageDisplayTextPos: main.Position = .{
+                        .x = secondaryInfoPosition.x + 2,
+                        .y = secondaryInfoPosition.y + fontSize + 1,
+                    };
+                    const textWidth = fontVulkanZig.paintTextGameMap("x", damageDisplayTextPos, fontSize, textColor, &state.vkState.verticeData.font, state);
+                    _ = try fontVulkanZig.paintNumberGameMap((data.factor + 1), .{ .x = damageDisplayTextPos.x + textWidth, .y = damageDisplayTextPos.y }, fontSize, textColor, &state.vkState.verticeData.font, state);
+                    const DamageDisplayIconPos: main.Position = .{
+                        .x = damageDisplayTextPos.x - 2.5,
+                        .y = damageDisplayTextPos.y + fontSize / 2,
+                    };
+                    paintVulkanZig.verticesForComplexSprite(DamageDisplayIconPos, imageZig.IMAGE_ICON_DAMAGE, 2, 2, 1, 0, false, false, state);
+                    secondaryEffect = data.effect;
+                },
+                else => {},
+            }
+            if (secondaryEffect) |secEffect| {
+                const secEffectDisplayPos: main.Position = .{
+                    .x = secondaryInfoPosition.x,
+                    .y = secondaryInfoPosition.y + (fontSize + 1) * 2,
                 };
-                const textWidth = try fontVulkanZig.paintNumberGameMap(data.hp, hpDisplayTextPos, fontSize, textColor, &state.vkState.verticeData.font, state);
-                const hpDisplayIconPos: main.Position = .{
-                    .x = hpDisplayTextPos.x + textWidth / 2,
-                    .y = hpDisplayTextPos.y + fontSize / 2,
-                };
-                paintVulkanZig.verticesForComplexSprite(hpDisplayIconPos, imageZig.IMAGE_ICON_HP, 2.5, 2.5, 1, 0, false, false, state);
-                secondaryEffect = data.effect;
-            },
-            .damage => |data| {
-                const damageDisplayTextPos: main.Position = .{
-                    .x = secondaryInfoPosition.x + main.TILESIZE / 2,
-                    .y = secondaryInfoPosition.y + fontSize + 1,
-                };
-                _ = try fontVulkanZig.paintNumberGameMap(data.damage, damageDisplayTextPos, fontSize, textColor, &state.vkState.verticeData.font, state);
-                const DamageDisplayIconPos: main.Position = .{
-                    .x = damageDisplayTextPos.x - 2.5,
-                    .y = damageDisplayTextPos.y + fontSize / 2,
-                };
-                paintVulkanZig.verticesForComplexSprite(DamageDisplayIconPos, imageZig.IMAGE_ICON_DAMAGE, 2, 2, 1, 0, false, false, state);
-                secondaryEffect = data.effect;
-            },
-            .damagePerCent => |data| {
-                const damageDisplayTextPos: main.Position = .{
-                    .x = secondaryInfoPosition.x + 2,
-                    .y = secondaryInfoPosition.y + fontSize + 1,
-                };
-                const textWidth = fontVulkanZig.paintTextGameMap("x", damageDisplayTextPos, fontSize, textColor, &state.vkState.verticeData.font, state);
-                _ = try fontVulkanZig.paintNumberGameMap((data.factor + 1), .{ .x = damageDisplayTextPos.x + textWidth, .y = damageDisplayTextPos.y }, fontSize, textColor, &state.vkState.verticeData.font, state);
-                const DamageDisplayIconPos: main.Position = .{
-                    .x = damageDisplayTextPos.x - 2.5,
-                    .y = damageDisplayTextPos.y + fontSize / 2,
-                };
-                paintVulkanZig.verticesForComplexSprite(DamageDisplayIconPos, imageZig.IMAGE_ICON_DAMAGE, 2, 2, 1, 0, false, false, state);
-                secondaryEffect = data.effect;
-            },
-            else => {},
-        }
-        if (secondaryEffect) |secEffect| {
-            const secEffectDisplayPos: main.Position = .{
-                .x = secondaryInfoPosition.x,
-                .y = secondaryInfoPosition.y + (fontSize + 1) * 2,
-            };
-            equipmentZig.setupVerticesForShopEquipmentSecondaryEffect(secEffectDisplayPos, secEffect, fontSize, state);
+                equipmentZig.setupVerticesForShopEquipmentSecondaryEffect(secEffectDisplayPos, secEffect, fontSize, state);
+            }
         }
     }
 }

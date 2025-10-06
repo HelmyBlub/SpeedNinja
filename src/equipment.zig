@@ -380,7 +380,7 @@ pub fn getEquipSlot(slotType: EquipmentSlotTypes, player: *playerZig.Player) ?Eq
     }
 }
 
-fn unequip(slotType: EquipmentSlotTypes, player: *playerZig.Player) void {
+pub fn unequip(slotType: EquipmentSlotTypes, player: *playerZig.Player) void {
     switch (slotType) {
         .body => {
             _ = equipBody(null, false, player);

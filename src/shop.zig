@@ -76,7 +76,7 @@ pub const ShopBuyOption = struct {
     price: u32,
     imageIndex: u8,
     imageScale: f32 = 1,
-    equipment: equipmentZig.EquipmentSlotData,
+    equipment: ?equipmentZig.EquipmentSlotData,
 };
 
 pub const ShopData = struct {
@@ -163,21 +163,37 @@ pub fn executeShopActionForPlayer(player: *playerZig.Player, state: *main.GameSt
         }
     }
 
-    for (state.shop.buyOptions.items, 0..) |*buyOption, buyIndex| {
+    for (state.shop.buyOptions.items) |*buyOption| {
         if (buyOption.tilePosition.x == playerTile.x and buyOption.tilePosition.y == playerTile.y) {
             if (player.money >= buyOption.price) {
-                buyOption.equipment.returnMoney = buyOption.price;
-                const optOldEquip = equipmentZig.getEquipSlot(buyOption.equipment.slotTypeData, player);
+                var optOldEquip: ?equipmentZig.EquipmentSlotData = null;
+                if (buyOption.equipment) |*equipment| {
+                    equipment.returnMoney = buyOption.price;
+                    optOldEquip = equipmentZig.getEquipSlot(equipment.slotTypeData, player);
+                } else {
+                    if (player.equipment.equipmentSlotsData.head != null and player.equipment.equipmentSlotsData.head.?.returnMoney > 0) {
+                        optOldEquip = player.equipment.equipmentSlotsData.head;
+                    } else if (player.equipment.equipmentSlotsData.body != null and player.equipment.equipmentSlotsData.body.?.returnMoney > 0) {
+                        optOldEquip = player.equipment.equipmentSlotsData.body;
+                    } else if (player.equipment.equipmentSlotsData.feet != null and player.equipment.equipmentSlotsData.feet.?.returnMoney > 0) {
+                        optOldEquip = player.equipment.equipmentSlotsData.feet;
+                    } else if (player.equipment.equipmentSlotsData.weapon != null and player.equipment.equipmentSlotsData.weapon.?.returnMoney > 0) {
+                        optOldEquip = player.equipment.equipmentSlotsData.weapon;
+                    }
+                }
                 const preventDowngrade = if (buyOption.price != 0) true else false;
-                if (equipmentZig.equip(buyOption.equipment, preventDowngrade, player)) {
+                if (buyOption.equipment == null or equipmentZig.equip(buyOption.equipment.?, preventDowngrade, player)) {
                     try playerZig.changePlayerMoneyBy(-@as(i32, @intCast(buyOption.price)), player, true, state);
                     if (optOldEquip) |old| {
                         try playerZig.changePlayerMoneyBy(@intCast(old.returnMoney), player, true, state);
+                        if (buyOption.equipment == null) equipmentZig.unequip(old.slotTypeData, player);
                         buyOption.price = old.returnMoney;
                         buyOption.equipment = old;
                         buyOption.imageIndex = old.imageIndex;
                     } else {
-                        _ = state.shop.buyOptions.swapRemove(buyIndex);
+                        buyOption.price = 0;
+                        buyOption.equipment = null;
+                        buyOption.imageIndex = imageZig.IMAGE_SHOP_PODEST;
                     }
                 } else {
                     try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION_FAIL, 0, 0.5);
