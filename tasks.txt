@@ -5,8 +5,6 @@ speed run normal mode
     - speedrun stategy(43:25, 3death)
 
 Tasks:
-- shop be able to put back item even if nothing left behind
-    - visualize somehow that item can be returned?
 - free continues for normal difficulty
 - slow down time when being hit to be able to see mistake
 - shop boss hint next level

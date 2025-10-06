@@ -579,6 +579,8 @@ pub fn restart(state: *GameState, newGamePlus: u32) anyerror!void {
     state.gameTime = 0;
     state.roundStartedTime = 0;
     state.lastBossDefeatedTime = 0;
+    state.continueData = .{};
+    if (newGamePlus == 0) state.continueData.freeContinues = 2;
     if (state.enemyData.movePieceEnemyMovePiece) |movePiece| {
         state.allocator.free(movePiece.steps);
         state.enemyData.movePieceEnemyMovePiece = null;

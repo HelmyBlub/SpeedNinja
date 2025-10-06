@@ -124,14 +124,29 @@ fn verticesForGameOver(state: *main.GameState) !void {
                 const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
                 textWidth += onePixelXInVulkan * optionFontSize;
             }
-            textWidth += fontVulkanZig.paintText("Continue: $", .{
-                .x = continuePos.x + textWidth,
-                .y = continuePos.y,
-            }, optionFontSize, moneyTextColor, fontVertices);
-            textWidth += try fontVulkanZig.paintNumber(continueCosts, .{
-                .x = continuePos.x + textWidth,
-                .y = continuePos.y,
-            }, 60, moneyTextColor, fontVertices);
+            if (continueCosts > 0) {
+                textWidth += fontVulkanZig.paintText("Continue: $", .{
+                    .x = continuePos.x + textWidth,
+                    .y = continuePos.y,
+                }, optionFontSize, moneyTextColor, fontVertices);
+                textWidth += try fontVulkanZig.paintNumber(continueCosts, .{
+                    .x = continuePos.x + textWidth,
+                    .y = continuePos.y,
+                }, 60, moneyTextColor, fontVertices);
+            } else {
+                textWidth += fontVulkanZig.paintText("Continue: Free(", .{
+                    .x = continuePos.x + textWidth,
+                    .y = continuePos.y,
+                }, optionFontSize, moneyTextColor, fontVertices);
+                textWidth += try fontVulkanZig.paintNumber(state.continueData.freeContinues, .{
+                    .x = continuePos.x + textWidth,
+                    .y = continuePos.y,
+                }, 60, moneyTextColor, fontVertices);
+                textWidth += fontVulkanZig.paintText(")", .{
+                    .x = continuePos.x + textWidth,
+                    .y = continuePos.y,
+                }, optionFontSize, moneyTextColor, fontVertices);
+            }
             paintVulkanZig.verticesForRectangle(continuePos.x, continuePos.y, textWidth, optionHeight, black, &verticeData.lines, null);
             if (hasEnoughMoney and state.uxData.continueButtonHoldStart != null) {
                 const time = state.uxData.continueButtonHoldStart.?;
