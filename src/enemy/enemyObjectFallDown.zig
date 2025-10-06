@@ -54,6 +54,7 @@ fn tick(object: *enemyObjectZig.EnemyObject, passedTime: i64, state: *main.GameS
         };
         if (fallDown.onlyStationaryHit) {
             try enemyZig.checkStationaryPlayerHit(hitPosition, state);
+            try state.spriteCutAnimations.append(.{ .colorOrImageIndex = .{ .imageIndex = imageZig.IMAGE_CANNON_BALL }, .cutAngle = 0, .deathTime = state.gameTime, .position = hitPosition, .force = 0.5 });
         } else {
             try enemyZig.checkPlayerHit(hitPosition, state);
         }

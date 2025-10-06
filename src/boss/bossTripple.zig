@@ -10,6 +10,7 @@ const enemyObjectProjectileZig = @import("../enemy/enemyObjectProjectile.zig");
 const enemyObjectFireZig = @import("../enemy/enemyObjectFire.zig");
 const mapTileZig = @import("../mapTile.zig");
 const playerZig = @import("../player.zig");
+const enemyZig = @import("../enemy/enemy.zig");
 
 const AttackDelayed = struct {
     targetPosition: main.TilePosition,
@@ -174,12 +175,9 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     while (trippleData.airAttackPosition.items.len > airAttackIndex) {
         const attackTile = trippleData.airAttackPosition.items[airAttackIndex];
         if (attackTile.hitTime <= state.gameTime) {
-            for (state.players.items) |*player| {
-                const playerTile = main.gamePositionToTilePosition(player.position);
-                if (playerTile.x == attackTile.targetPosition.x and playerTile.y == attackTile.targetPosition.y) {
-                    try playerZig.playerHit(player, state);
-                }
-            }
+            const attackPosition = main.tilePositionToGamePosition(attackTile.targetPosition);
+            try enemyZig.checkPlayerHit(attackPosition, state);
+            try state.spriteCutAnimations.append(.{ .colorOrImageIndex = .{ .imageIndex = imageZig.IMAGE_CANNON_BALL }, .cutAngle = 0, .deathTime = state.gameTime, .position = attackPosition, .force = 0.5 });
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BALL_GROUND_INDICIES[0..], 0, 1);
             _ = trippleData.airAttackPosition.swapRemove(airAttackIndex);
         } else {

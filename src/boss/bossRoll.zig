@@ -101,12 +101,9 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     while (rollData.attackTilePositions.items.len > attackTileIndex) {
         const attackTile = rollData.attackTilePositions.items[attackTileIndex];
         if (attackTile.hitTime <= state.gameTime) {
-            for (state.players.items) |*player| {
-                const playerTile = main.gamePositionToTilePosition(player.position);
-                if (playerTile.x == attackTile.targetPosition.x and playerTile.y == attackTile.targetPosition.y) {
-                    try playerZig.playerHit(player, state);
-                }
-            }
+            const attackPosition = main.tilePositionToGamePosition(attackTile.targetPosition);
+            try enemyZig.checkPlayerHit(attackPosition, state);
+            try state.spriteCutAnimations.append(.{ .colorOrImageIndex = .{ .imageIndex = imageZig.IMAGE_CANNON_BALL }, .cutAngle = 0, .deathTime = state.gameTime, .position = attackPosition, .force = 0.5 });
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BALL_GROUND_INDICIES[0..], 0, 1);
             _ = rollData.attackTilePositions.swapRemove(attackTileIndex);
         } else {
