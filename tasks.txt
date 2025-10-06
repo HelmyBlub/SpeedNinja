@@ -6,9 +6,6 @@ speed run normal mode
 
 Tasks:
 - save/load current run
-    - test a bit more
-        - gameover
-            - use continue when quitting if possible
     - when quitting playin with some friend and gamepad. on next restart how to get rid of player2?
 - shop movePiece put movePiece icon to add/delete
 - shop movePiece cut don't select one piece long as first default

@@ -6,14 +6,16 @@ const fontVulkanZig = @import("fontVulkan.zig");
 const imageZig = @import("../image.zig");
 const inputZig = @import("../input.zig");
 const windowSdlZig = @import("../windowSdl.zig");
+const playerZig = @import("../player.zig");
 
 pub const SettingsUx = struct {
     menuOpen: bool = false,
     settingsIcon: main.Rectangle = undefined,
     settingsMenuRectangle: main.Rectangle = undefined,
     uiSizeDelayed: f32 = 1,
-    uiElements: [5]UiElementData = [_]UiElementData{
+    uiElements: [6]UiElementData = [_]UiElementData{
         .{ .holdButton = .{ .label = "Restart", .onHoldDurationFinished = onHoldButtonRestart } },
+        .{ .holdButton = .{ .label = "Kick Players", .onHoldDurationFinished = onHoldButtonKickPlayers } },
         .{ .checkbox = .{ .label = "Fullscreen", .onSetChecked = onCheckboxFullscreen } },
         .{ .slider = .{ .label = "Volume", .valuePerCent = 1, .onChange = onSliderChangeVolume } },
         .{ .slider = .{ .label = "UX Size", .valuePerCent = 0.5, .onStopHolding = onSliderStopHoldingUxSize } },
@@ -355,6 +357,12 @@ pub fn setupVertices(state: *main.GameState) !void {
 
 fn onHoldButtonRestart(state: *main.GameState) anyerror!void {
     try main.restart(state, state.newGamePlus);
+}
+
+fn onHoldButtonKickPlayers(state: *main.GameState) anyerror!void {
+    for (1..state.players.items.len) |_| {
+        try playerZig.playerLeave(1, state);
+    }
 }
 
 fn onHoldButtonQuit(state: *main.GameState) anyerror!void {
