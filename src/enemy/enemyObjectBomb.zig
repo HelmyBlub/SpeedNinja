@@ -52,6 +52,7 @@ fn tick(object: *enemyObjectZig.EnemyObject, passedTime: i64, state: *main.GameS
                 try enemyZig.checkStationaryPlayerHit(hitPosition, state);
             }
         }
+        try state.spriteCutAnimations.append(.{ .colorOrImageIndex = .{ .imageIndex = imageZig.IMAGE_BOMB }, .cutAngle = 0, .deathTime = state.gameTime - 200, .position = object.position, .force = 0.5 });
         bomb.exploded = true;
     }
 }

@@ -30,8 +30,8 @@ fn setupVerticesForCutSprite(cutSprite: main.CutSpriteAnimation, state: *main.Ga
     var height: f32 = 0;
     if (cutSprite.colorOrImageIndex == .imageIndex) {
         const imageData = imageZig.IMAGE_DATA[cutSprite.colorOrImageIndex.imageIndex];
-        width = @floatFromInt(imageData.width);
-        height = @floatFromInt(imageData.height);
+        width = @as(f32, @floatFromInt(imageData.width)) * imageData.scale;
+        height = @as(f32, @floatFromInt(imageData.height)) * imageData.scale;
     } else {
         width = main.TILESIZE * imageZig.IMAGE_TO_GAME_SIZE;
         height = main.TILESIZE * imageZig.IMAGE_TO_GAME_SIZE;
@@ -119,8 +119,8 @@ fn addTriangle(points: [3]main.Position, cutSprite: main.CutSpriteAnimation, off
     var height: f32 = main.TILESIZE;
     if (cutSprite.colorOrImageIndex == .imageIndex) {
         const imageData = imageZig.IMAGE_DATA[cutSprite.colorOrImageIndex.imageIndex];
-        width = @floatFromInt(imageData.width);
-        height = @floatFromInt(imageData.height);
+        width = @as(f32, @floatFromInt(imageData.width)) * imageData.scale;
+        height = @as(f32, @floatFromInt(imageData.height)) * imageData.scale;
     } else {
         if (verticeData.triangles.vertices.len <= verticeData.triangles.verticeCount + 3) return;
         width = main.TILESIZE * imageZig.IMAGE_TO_GAME_SIZE;

@@ -102,6 +102,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                 const playerTile = main.gamePositionToTilePosition(player.position);
                 if (playerTile.x == attackTile.pos.x and playerTile.y == attackTile.pos.y) {
                     try playerZig.playerHit(player, state);
+                    try state.spriteCutAnimations.append(.{ .colorOrImageIndex = .{ .color = .{ 0, 0, 0, 1 } }, .cutAngle = 0, .deathTime = state.gameTime, .position = player.position, .force = 0.5 });
                 }
             }
             if (main.isTileEmpty(attackTile.pos, state)) {
@@ -182,6 +183,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                     mapTileZig.setMapTilePositionType(.{ .x = damageTileRectangle.pos.x + @as(i32, @intCast(x)), .y = damageTileRectangle.pos.y + @as(i32, @intCast(y)) }, .normal, &state.mapData, false, state);
                 }
             }
+            try state.spriteCutAnimations.append(.{ .colorOrImageIndex = .{ .imageIndex = imageZig.IMAGE_BOMB }, .cutAngle = 0, .deathTime = state.gameTime - 200, .position = bomb.position, .force = 0.5 });
             _ = data.bombs.swapRemove(currentBombIndex);
         } else {
             currentBombIndex += 1;
@@ -237,7 +239,6 @@ fn setupVertices(boss: *bossZig.Boss, state: *main.GameState) void {
         paintVulkanZig.verticesForComplexSpriteDefault(
             bombPosition,
             imageZig.IMAGE_BOMB,
-
             state,
         );
     }
