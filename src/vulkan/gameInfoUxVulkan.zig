@@ -14,6 +14,7 @@ pub fn setupVertices(state: *main.GameState) !void {
     try verticesForBossHpBar(state);
     try verticesForTimer(state);
     try verticesForLevelRoundNewGamePlus(state);
+    try verticesForTimeFreeze(state);
     try verticesForGameOver(state);
     try verticesForLeaveJoinInfo(state);
     verticesForBossAcedAndFreeContinue(state);
@@ -97,15 +98,29 @@ fn verticesForBossHpBar(state: *main.GameState) !void {
     }
 }
 
+fn verticesForTimeFreeze(state: *main.GameState) !void {
+    if (state.timeFreezeStart == null) return;
+    const verticeData = &state.vkState.verticeData;
+    const fontVertices = &verticeData.font;
+    const textColor: [4]f32 = .{ 1, 1, 1, 0.8 };
+    const fontSize = 120;
+    const text = "TIME FREEZE";
+    const displayTextWidthEstimate = fontVulkanZig.getTextVulkanWidth(text, fontSize);
+    const textPosition: main.Position = .{ .x = -displayTextWidthEstimate / 2, .y = -0.8 };
+    _ = fontVulkanZig.paintText(text, textPosition, fontSize, textColor, fontVertices);
+}
+
 fn verticesForGameOver(state: *main.GameState) !void {
-    if (state.gameOver and state.timeFreezeUntil == null) {
+    if (state.gameOver and state.timeFreezeStart == null) {
         const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
         const verticeData = &state.vkState.verticeData;
         const fontVertices = &verticeData.font;
         const textColor: [4]f32 = .{ 1, 1, 1, 1 };
-        const gameOverPos: main.Position = .{ .x = -0.4, .y = -0.1 };
+        const gameOverText = "Game Over";
         const fontSize = 120;
-        _ = fontVulkanZig.paintText("GAME OVER", gameOverPos, fontSize, textColor, fontVertices);
+        const displayTextWidthEstimate = fontVulkanZig.getTextVulkanWidth(gameOverText, fontSize);
+        const gameOverPos: main.Position = .{ .x = -displayTextWidthEstimate / 2, .y = -0.1 };
+        _ = fontVulkanZig.paintText(gameOverText, gameOverPos, fontSize, textColor, fontVertices);
         const continueCosts = main.getMoneyCostsForContinue(state);
         const timestamp = std.time.milliTimestamp();
         const optionFontSize = 60;

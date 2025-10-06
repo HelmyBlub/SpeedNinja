@@ -5,10 +5,12 @@ speed run normal mode
     - speedrun stategy(43:25, 3death)
 
 Tasks:
-- slow down time when being hit to be able to see mistake
+- stop time when being hit, time continue after next move input
     - play test to see if it helps
-    - make menu option to reduce freeze time even to 0
+    - make menu option to disable
+    - not active in multiplayer
 - shop boss hint next level
+- level 1 no sudden death, but respawn stop
 
 Next ideas:
 - settings

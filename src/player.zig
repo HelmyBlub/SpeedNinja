@@ -189,7 +189,7 @@ pub fn playerHit(player: *Player, state: *main.GameState) !void {
     if (player.immunUntilTime >= state.gameTime) return;
     if (player.isDead) return;
     if (player.phase == .shopping and state.gamePhase == .combat) return;
-    state.timeFreezeUntil = std.time.milliTimestamp() + 2000;
+    if (state.players.items.len == 1 and state.timeFreezeOnHit) state.timeFreezeStart = std.time.milliTimestamp();
     if (!try equipmentZig.damageTakenByEquipment(player, state)) {
         player.isDead = true;
         state.gameOver = main.isGameOver(state);

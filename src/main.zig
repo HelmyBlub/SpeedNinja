@@ -85,7 +85,8 @@ pub const GameState = struct {
     gateOpenTime: ?i64 = null,
     uxData: GameUxData = .{},
     lastAfkShootTime: ?i64 = null,
-    timeFreezeUntil: ?i64 = null,
+    timeFreezeStart: ?i64 = null,
+    timeFreezeOnHit: bool = true,
 };
 
 pub const GameUxData = struct {
@@ -249,13 +250,7 @@ fn mainLoop(state: *GameState) !void {
         lastTime = currentTime;
         currentTime = std.time.milliTimestamp();
         passedTime = currentTime - lastTime;
-        if (state.timeFreezeUntil) |timeFreeze| {
-            if (timeFreeze <= currentTime) {
-                state.timeFreezeUntil = null;
-            } else {
-                passedTime = 0;
-            }
-        }
+        if (state.timeFreezeStart != null) passedTime = 0;
         if (passedTime > 16) {
             passedTime = 16;
         }
@@ -578,6 +573,7 @@ pub fn gameFinished(state: *GameState) !void {
 pub fn restart(state: *GameState, newGamePlus: u32) anyerror!void {
     try statsZig.statsSaveOnRestart(state);
     mapTileZig.setMapType(.default, state);
+    state.timeFreezeStart = null;
     state.gameOver = false;
     state.camera.position = .{ .x = 0, .y = 0 };
     state.level = 0;

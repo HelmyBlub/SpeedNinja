@@ -13,10 +13,11 @@ pub const SettingsUx = struct {
     settingsIcon: main.Rectangle = undefined,
     settingsMenuRectangle: main.Rectangle = undefined,
     uiSizeDelayed: f32 = 1,
-    uiElements: [6]UiElementData = [_]UiElementData{
+    uiElements: [7]UiElementData = [_]UiElementData{
         .{ .holdButton = .{ .label = "Restart", .onHoldDurationFinished = onHoldButtonRestart } },
         .{ .holdButton = .{ .label = "Kick Players", .onHoldDurationFinished = onHoldButtonKickPlayers } },
         .{ .checkbox = .{ .label = "Fullscreen", .onSetChecked = onCheckboxFullscreen } },
+        .{ .checkbox = .{ .label = "Freeze on hit", .onSetChecked = onCheckboxFreezeOnHit, .checked = true } },
         .{ .slider = .{ .label = "Volume", .valuePerCent = 1, .onChange = onSliderChangeVolume } },
         .{ .slider = .{ .label = "UX Size", .valuePerCent = 0.5, .onStopHolding = onSliderStopHoldingUxSize } },
         .{ .holdButton = .{ .label = "Quit", .onHoldDurationFinished = onHoldButtonQuit } },
@@ -372,6 +373,10 @@ fn onHoldButtonQuit(state: *main.GameState) anyerror!void {
 fn onCheckboxFullscreen(checked: bool, state: *main.GameState) anyerror!void {
     _ = state;
     _ = windowSdlZig.setFullscreen(checked);
+}
+
+fn onCheckboxFreezeOnHit(checked: bool, state: *main.GameState) anyerror!void {
+    state.timeFreezeOnHit = checked;
 }
 
 fn onSliderChangeVolume(sliderPerCent: f32, state: *main.GameState) anyerror!void {
