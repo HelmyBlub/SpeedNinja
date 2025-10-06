@@ -134,7 +134,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
         },
         .executeMovePiece => {
             if (rollData.nextStateTime <= state.gameTime) {
-                try movePieceZig.attackMovePieceCheckPlayerHit(&boss.position, rollData.movePieces[rollData.movePieceIndex], rollData.moveDirection, state);
+                try movePieceZig.attackMovePieceCheckPlayerHit(&boss.position, boss.imageIndex, rollData.movePieces[rollData.movePieceIndex], rollData.moveDirection, state);
                 rollData.state = .chooseRandomMovePiece;
                 rollData.moveAttackTiles.clearRetainingCapacity();
             }

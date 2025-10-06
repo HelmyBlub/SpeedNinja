@@ -17,7 +17,7 @@ pub const SettingsUx = struct {
         .{ .holdButton = .{ .label = "Restart", .onHoldDurationFinished = onHoldButtonRestart } },
         .{ .holdButton = .{ .label = "Kick Players", .onHoldDurationFinished = onHoldButtonKickPlayers } },
         .{ .checkbox = .{ .label = "Fullscreen", .onSetChecked = onCheckboxFullscreen } },
-        .{ .checkbox = .{ .label = "Freeze on hit", .onSetChecked = onCheckboxFreezeOnHit, .checked = true } },
+        .{ .checkbox = .{ .label = "Time Freeze", .onSetChecked = onCheckboxFreezeOnHit, .checked = true } },
         .{ .slider = .{ .label = "Volume", .valuePerCent = 1, .onChange = onSliderChangeVolume } },
         .{ .slider = .{ .label = "UX Size", .valuePerCent = 0.5, .onStopHolding = onSliderStopHoldingUxSize } },
         .{ .holdButton = .{ .label = "Quit", .onHoldDurationFinished = onHoldButtonQuit } },

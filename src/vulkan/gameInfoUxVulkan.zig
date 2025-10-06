@@ -106,7 +106,7 @@ fn verticesForTimeFreeze(state: *main.GameState) !void {
     const fontSize = 120;
     const text = "TIME FREEZE";
     const displayTextWidthEstimate = fontVulkanZig.getTextVulkanWidth(text, fontSize);
-    const textPosition: main.Position = .{ .x = -displayTextWidthEstimate / 2, .y = -0.8 };
+    const textPosition: main.Position = .{ .x = -displayTextWidthEstimate / 2, .y = -0.99 };
     _ = fontVulkanZig.paintText(text, textPosition, fontSize, textColor, fontVertices);
 }
 

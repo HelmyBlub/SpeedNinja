@@ -74,7 +74,7 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
     }
     if (data.executeMoveTime) |executeTime| {
         if (executeTime <= state.gameTime) {
-            try movePieceZig.attackMovePieceCheckPlayerHit(&enemy.position, state.enemyData.movePieceEnemyMovePiece.?, data.direction.?, state);
+            try movePieceZig.attackMovePieceCheckPlayerHit(&enemy.position, enemy.imageIndex, state.enemyData.movePieceEnemyMovePiece.?, data.direction.?, state);
             try chooseDirection(enemy, state);
             data.executeMoveTime = null;
         }

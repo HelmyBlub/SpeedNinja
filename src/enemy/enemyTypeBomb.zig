@@ -51,7 +51,7 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
     if (data.nextMoveTime) |nextMoveTime| {
         if (nextMoveTime <= state.gameTime) {
             try enemyObjectBombZig.spawnBomb(enemy.position, data.bombExplodeDelay, state);
-            try movePieceZig.attackMovePieceCheckPlayerHit(&enemy.position, state.enemyData.bombEnemyMovePiece, data.direction, state);
+            try movePieceZig.attackMovePieceCheckPlayerHit(&enemy.position, enemy.imageIndex, state.enemyData.bombEnemyMovePiece, data.direction, state);
             data.nextMoveTime = null;
         }
     } else {

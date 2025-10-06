@@ -20,8 +20,15 @@ pub const EnemyData = struct {
     enemies: std.ArrayList(Enemy) = undefined,
     enemySpawnData: EnemySpawnData = undefined,
     enemyObjects: std.ArrayList(enemyObjectZig.EnemyObject) = undefined,
+    afterImages: std.ArrayList(EnemyAfterImage) = undefined,
     movePieceEnemyMovePiece: ?movePieceZig.MovePiece = null,
     bombEnemyMovePiece: movePieceZig.MovePiece = undefined,
+};
+
+pub const EnemyAfterImage = struct {
+    position: main.Position,
+    imageIndex: u8,
+    deleteTime: i64,
 };
 
 pub const EnemyFunctions = struct {
@@ -90,6 +97,7 @@ const ENEMY_TYPE_SPAWN_LEVEL_DATA = [_]EnemyTypeSpawnLevelData{
     .{ .baseProbability = 1, .enemyType = .movePiece, .startingLevel = 40, .leavingLevel = null },
     .{ .baseProbability = 1, .enemyType = .bomb, .startingLevel = 45, .leavingLevel = null },
 };
+pub const AFTER_IMAGE_DURATION = 100;
 
 const EnemyTypeSpawnLevelData = struct {
     enemyType: EnemyType,
@@ -127,6 +135,14 @@ pub const MoveAttackWarningTile = struct {
 };
 
 pub fn tickEnemies(passedTime: i64, state: *main.GameState) !void {
+    var afterImageIndex: usize = 0;
+    while (afterImageIndex < state.enemyData.afterImages.items.len) {
+        if (state.enemyData.afterImages.items[afterImageIndex].deleteTime <= state.gameTime) {
+            _ = state.enemyData.afterImages.swapRemove(afterImageIndex);
+        } else {
+            afterImageIndex += 1;
+        }
+    }
     for (state.enemyData.enemies.items) |*enemy| {
         if (ENEMY_FUNCTIONS.get(enemy.enemyTypeData).tick) |tick| try tick(enemy, passedTime, state);
     }
@@ -183,6 +199,7 @@ pub fn initEnemy(state: *main.GameState) !void {
     state.enemyData.enemies = std.ArrayList(Enemy).init(state.allocator);
     state.enemyData.enemySpawnData.enemyEntries = std.ArrayList(EnemySpawnEntry).init(state.allocator);
     state.enemyData.enemyObjects = std.ArrayList(enemyObjectZig.EnemyObject).init(state.allocator);
+    state.enemyData.afterImages = std.ArrayList(EnemyAfterImage).init(state.allocator);
     try enemyTypeBombZig.setupMovePiece(state);
     try setupSpawnEnemiesOnLevelChange(state);
 }
@@ -220,6 +237,7 @@ pub fn destroyEnemyData(state: *main.GameState) void {
     state.enemyData.enemySpawnData.enemyEntries.deinit();
     state.enemyData.enemies.deinit();
     state.enemyData.enemyObjects.deinit();
+    state.enemyData.afterImages.deinit();
     if (state.enemyData.movePieceEnemyMovePiece) |movePiece| {
         state.allocator.free(movePiece.steps);
     }

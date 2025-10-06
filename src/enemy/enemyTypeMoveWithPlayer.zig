@@ -45,11 +45,14 @@ fn onPlayerMoved(enemy: *enemyZig.Enemy, player: *playerZig.Player, state: *main
     data.waitCount += 1;
     if (data.waitCount < state.players.items.len) return;
     const stepDirection = movePieceZig.getStepDirection(data.direction);
-    for (0..data.moveDistance) |_| {
+    for (0..data.moveDistance) |i| {
         const hitPosition: main.Position = .{
             .x = enemy.position.x + stepDirection.x * main.TILESIZE,
             .y = enemy.position.y + stepDirection.y * main.TILESIZE,
         };
+        if (i < data.moveDistance - 1) {
+            try state.enemyData.afterImages.append(.{ .position = hitPosition, .deleteTime = state.gameTime + enemyZig.AFTER_IMAGE_DURATION, .imageIndex = enemy.imageIndex });
+        }
         try enemyZig.checkPlayerHit(hitPosition, state);
         enemy.position = hitPosition;
     }

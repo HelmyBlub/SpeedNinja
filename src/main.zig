@@ -480,6 +480,7 @@ pub fn startNextLevel(state: *GameState) !void {
     state.camera.position = .{ .x = 0, .y = 0 };
     state.enemyData.enemies.clearRetainingCapacity();
     state.enemyData.enemyObjects.clearRetainingCapacity();
+    state.enemyData.afterImages.clearRetainingCapacity();
     state.lastAfkShootTime = null;
     mapTileZig.resetMapTiles(state.mapData.tiles);
     state.gamePhase = .combat;
@@ -553,6 +554,7 @@ pub fn gameFinished(state: *GameState) !void {
     try statsZig.statsOnLevelFinished(state);
     state.enemyData.enemies.clearRetainingCapacity();
     state.enemyData.enemyObjects.clearRetainingCapacity();
+    state.enemyData.afterImages.clearRetainingCapacity();
     state.uxData.creditsScrollStart = state.gameTime;
     bossZig.clearBosses(state);
 

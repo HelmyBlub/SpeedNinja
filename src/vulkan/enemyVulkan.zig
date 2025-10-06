@@ -9,6 +9,9 @@ const bossZig = @import("../boss/boss.zig");
 const enemyZig = @import("../enemy/enemy.zig");
 
 pub fn setupVertices(state: *main.GameState) void {
+    for (state.enemyData.afterImages.items) |*afterImage| {
+        paintVulkanZig.verticesForComplexSpriteAlpha(afterImage.position, afterImage.imageIndex, 0.5, state);
+    }
     for (state.enemyData.enemies.items) |*enemy| {
         if (enemyZig.ENEMY_FUNCTIONS.get(enemy.enemyTypeData).setupVertices) |fVertices| {
             fVertices(enemy, state);
@@ -83,7 +86,15 @@ fn addWarningTileSpritesWithImageIndex(gamePosition: main.Position, fillPerCent:
 }
 
 pub fn setupVerticesGroundForMovePiece(startTile: main.TilePosition, movePiece: movePieceZig.MovePiece, executeDirection: u8, fillPerCent: f32, state: *main.GameState) !void {
-    try movePieceZig.executeMovePieceWithCallbackPerStep(f32, movePiece, executeDirection, startTile, fillPerCent, setupVerticesGroundStepFunction, state);
+    try movePieceZig.executeMovePieceWithCallbackPerStep(
+        f32,
+        movePiece,
+        executeDirection,
+        startTile,
+        fillPerCent,
+        setupVerticesGroundStepFunction,
+        state,
+    );
 }
 
 fn setupVerticesGroundStepFunction(pos: main.TilePosition, visualizedDirection: u8, fillPerCent: f32, state: *main.GameState) !void {

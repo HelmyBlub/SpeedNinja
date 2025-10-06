@@ -60,7 +60,7 @@ fn attackMoveWithFirePlacing(boss: *bossZig.Boss, movePiece: movePieceZig.MovePi
 }
 
 fn attackMoveWithFirePlacingCallback(hitPosition: main.TilePosition, visualizedDirection: u8, boss: *bossZig.Boss, state: *main.GameState) !void {
-    try movePieceZig.moveEnemyAndCheckPlayerHitOnMoveStep(hitPosition, visualizedDirection, &boss.position, state);
+    try movePieceZig.moveEnemyAndCheckPlayerHitOnMoveStep(hitPosition, visualizedDirection, .{ .pos = &boss.position, .enemyImageIndex = boss.imageIndex }, state);
     const data = &boss.typeData.fireRoll;
     try enemyObjectFireZig.spawnEternalFire(boss.position, null, 0, state);
     if (state.enemyData.enemyObjects.items.len > data.maxEternalFire) {

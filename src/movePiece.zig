@@ -21,6 +21,11 @@ pub const MoveStep = struct {
     stepCount: u8,
 };
 
+const EnemyMovePieceData = struct {
+    pos: *main.Position,
+    enemyImageIndex: u8,
+};
+
 pub const DIRECTION_RIGHT = 0;
 pub const DIRECTION_DOWN = 1;
 pub const DIRECTION_LEFT = 2;
@@ -228,9 +233,17 @@ fn movePositionByPieceCallback(pos: main.TilePosition, visualizationDirection: u
     movePosition.y = @floatFromInt(pos.y * main.TILESIZE);
 }
 
-pub fn attackMovePieceCheckPlayerHit(position: *main.Position, movePiece: MovePiece, executeDirection: u8, state: *main.GameState) !void {
+pub fn attackMovePieceCheckPlayerHit(position: *main.Position, enemyImageIndex: u8, movePiece: MovePiece, executeDirection: u8, state: *main.GameState) !void {
     const startPosition: main.TilePosition = main.gamePositionToTilePosition(position.*);
-    try executeMovePieceWithCallbackPerStep(*main.Position, movePiece, executeDirection, startPosition, position, moveEnemyAndCheckPlayerHitOnMoveStep, state);
+    try executeMovePieceWithCallbackPerStep(
+        EnemyMovePieceData,
+        movePiece,
+        executeDirection,
+        startPosition,
+        EnemyMovePieceData{ .pos = position, .enemyImageIndex = enemyImageIndex },
+        moveEnemyAndCheckPlayerHitOnMoveStep,
+        state,
+    );
 }
 
 pub fn combineMovePieces(player: *playerZig.Player, movePieceIndex1: usize, movePieceIndex2: usize, combineDirection: u8, state: *main.GameState) !void {
@@ -683,7 +696,7 @@ fn checkEnemyHitOnMoveStepWithHitArea(player: *playerZig.Player, hitDirection: u
     return hitSomething;
 }
 
-pub fn moveEnemyAndCheckPlayerHitOnMoveStep(hitPosition: main.TilePosition, visualizedDirection: u8, enemyPos: *main.Position, state: *main.GameState) !void {
+pub fn moveEnemyAndCheckPlayerHitOnMoveStep(hitPosition: main.TilePosition, visualizedDirection: u8, enemyData: EnemyMovePieceData, state: *main.GameState) !void {
     _ = visualizedDirection;
     for (state.players.items) |*player| {
         const playerTile = main.gamePositionToTilePosition(player.position);
@@ -691,8 +704,10 @@ pub fn moveEnemyAndCheckPlayerHitOnMoveStep(hitPosition: main.TilePosition, visu
             try playerZig.playerHit(player, state);
         }
     }
-    enemyPos.x = @floatFromInt(hitPosition.x * main.TILESIZE);
-    enemyPos.y = @floatFromInt(hitPosition.y * main.TILESIZE);
+
+    enemyData.pos.x = @floatFromInt(hitPosition.x * main.TILESIZE);
+    enemyData.pos.y = @floatFromInt(hitPosition.y * main.TILESIZE);
+    try state.enemyData.afterImages.append(.{ .position = enemyData.pos.*, .deleteTime = state.gameTime + enemyZig.AFTER_IMAGE_DURATION, .imageIndex = enemyData.enemyImageIndex });
 }
 
 pub fn getMovePieceTileDistances(movePiece: MovePiece) [2]i32 {

@@ -3,12 +3,22 @@ speed run normal mode
     - blade  (53min)
     - hammer (46min)
     - speedrun stategy(43:25, 3death)
+- play test for freeze time
 
 Tasks:
 - stop time when being hit, time continue after next move input
-    - play test to see if it helps
-    - make menu option to disable
-    - not active in multiplayer
+    - need more enemy hit animations animations, so freeze time is easier to understand what hit the player
+        - eye after image
+        - enemy move piece
+        - boss roll. air attack(breaking shot), move attack(after image)
+        - boss tripple air attack(breaking shot)
+        - no move piece left air attack
+        
+        - tree hit direction
+        - enemy shield aoe
+        - boss bomb: bomb explode, wall fall down
+        - enemy bomb
+        - boss dragon
 - shop boss hint next level
 - level 1 no sudden death, but respawn stop
 
