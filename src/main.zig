@@ -479,6 +479,9 @@ pub fn startNextRound(state: *GameState) !void {
 pub fn endShoppingPhase(state: *GameState) !void {
     state.gamePhase = .combat;
     try statsZig.statsOnLevelShopFinishedAndNextLevelStart(state);
+    for (state.players.items) |*player| {
+        player.moneyOnShopLeftForSave = player.money;
+    }
     try startNextLevel(state);
 }
 
@@ -611,6 +614,7 @@ pub fn restart(state: *GameState, newGamePlus: u32) anyerror!void {
     mapTileZig.resetMapTiles(state.mapData.tiles);
     for (state.players.items) |*player| {
         player.money = 0;
+        player.moneyOnShopLeftForSave = 0;
         player.phase = .combat;
         player.isDead = false;
         player.position.x = 0;

@@ -26,6 +26,7 @@ pub const Player = struct {
     animateData: ninjaDogVulkanZig.NinjaDogAnimationStateData = .{},
     slashedLastMoveTile: bool = false,
     money: u32 = 0,
+    moneyOnShopLeftForSave: u32 = 0,
     isDead: bool = false,
     shop: shopZig.ShopPlayerData = .{},
     inAirHeight: f32 = 0,

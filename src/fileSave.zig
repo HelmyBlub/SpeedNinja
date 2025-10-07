@@ -172,7 +172,11 @@ pub fn saveCurrentRunToFile(state: *main.GameState) !void {
     _ = try writer.writeInt(usize, state.players.items.len, .little);
     for (state.players.items) |*player| {
         try writeInputDeviceData(player, writer);
-        _ = try writer.writeInt(u32, player.money, .little);
+        if (state.gamePhase != .shopping) {
+            _ = try writer.writeInt(u32, player.moneyOnShopLeftForSave, .little);
+        } else {
+            _ = try writer.writeInt(u32, player.money, .little);
+        }
         try writePlayerMovePieces(player, writer);
         try writeEquipmentSlotData(player.equipment.equipmentSlotsData.head, writer);
         try writeEquipmentSlotData(player.equipment.equipmentSlotsData.body, writer);
