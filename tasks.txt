@@ -6,7 +6,6 @@ speed run normal mode
 - play test for freeze time
 
 Tasks:
-- bug: game close and restart money farm cheat
 - bug: losing head armor. Restarting. Head armor back
 - boss rotate immune sound?
     - make barrier more noticeable

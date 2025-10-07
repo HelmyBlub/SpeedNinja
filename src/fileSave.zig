@@ -212,7 +212,7 @@ fn writeEquipmentSlotData(optEquipSlotData: ?equipmentZig.EquipmentSlotData, wri
 }
 
 fn readEquipmentSlotData(player: *playerZig.Player, reader: anytype, state: *main.GameState) !void {
-    for (0..4) |_| {
+    for (0..4) |i| {
         const equipIndexAndNull = try reader.readInt(u8, .little);
         if (equipIndexAndNull != 0) {
             const equipIndex = equipIndexAndNull - 1;
@@ -224,6 +224,12 @@ fn readEquipmentSlotData(player: *playerZig.Player, reader: anytype, state: *mai
                 equipOption.equipment.effectType.damage.damage = try reader.readInt(u32, .little);
             }
             _ = equipmentZig.equip(equipOption.equipment, false, player);
+        } else {
+            if (i == 0) {
+                equipmentZig.unequip(.head, player);
+            } else if (i == 1) {
+                equipmentZig.unequip(.body, player);
+            }
         }
     }
 }
