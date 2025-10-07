@@ -130,6 +130,9 @@ fn checkSpawnEnemy(boss: *bossZig.Boss, state: *main.GameState) !void {
             var enemy = enemyZig.ENEMY_FUNCTIONS.get(.ice).createSpawnEnemyEntryEnemy();
             enemy.position = getRandomFreePosition(state);
             data.enemyToSpawn -|= 1;
+            if (state.newGamePlus > 0) {
+                if (enemyZig.ENEMY_FUNCTIONS.get(enemy.enemyTypeData).scaleEnemyForNewGamePlus) |scale| scale(&enemy, state.newGamePlus);
+            }
             try state.enemyData.enemies.append(enemy);
         } else {
             spawnMore = false;
