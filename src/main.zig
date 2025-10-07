@@ -520,7 +520,7 @@ pub fn startNextLevel(state: *GameState) !void {
     if (bossZig.isBossLevel(state.level)) {
         if (state.newGamePlus >= 2) {
             const timeShoesBonusTime = equipmentZig.getTimeShoesBonusRoundTime(state);
-            const maxTime = state.gameTime + state.minimalTimePerRequiredRounds * 2 + timeShoesBonusTime;
+            const maxTime = state.gameTime + state.minimalTimePerRequiredRounds * 3 + timeShoesBonusTime;
             state.suddenDeathTimeMs = maxTime;
         }
 
