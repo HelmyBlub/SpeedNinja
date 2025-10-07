@@ -149,6 +149,8 @@ fn debugKeys(event: sdl.SDL_Event, state: *main.GameState) !void {
         for (state.players.items) |*player| {
             player.money += 200;
         }
+    } else if (event.key.scancode == sdl.SDL_SCANCODE_F10) {
+        std.debug.print("{}\n", .{state.tutorialData});
     }
 }
 

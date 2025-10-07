@@ -83,7 +83,7 @@ fn verticesForBossHpBar(state: *main.GameState) !void {
     if (state.gamePhase == .boss) {
         const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
         const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-        const fontSize = 30;
+        const fontSize = 30 * state.uxData.settingsMenuUx.uiSizeDelayed;
         if (state.bosses.items.len == 0) return;
         const spacingX = onePixelXInVulkan * 5;
         const top = -0.99;
@@ -190,14 +190,14 @@ fn verticesForGameOver(state: *main.GameState) !void {
 }
 
 fn verticesForTimer(state: *main.GameState) !void {
-    const verticeData = &state.vkState.verticeData;
-    const fontVertices = &verticeData.font;
-    const fontSize = 50;
     const isBossTimer = state.gamePhase == .boss and state.newGamePlus >= 2 and state.level != main.LEVEL_COUNT;
-    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     if (state.round > 1 and state.gamePhase == .combat or isBossTimer) {
+        const verticeData = &state.vkState.verticeData;
+        const fontVertices = &verticeData.font;
+        const textColor: [4]f32 = .{ 1, 1, 1, 1 };
         const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
         const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+        const fontSize = windowSdlZig.windowData.heightFloat / 14;
         var timePos: main.Position = .{
             .x = 0,
             .y = -0.99,
@@ -244,7 +244,7 @@ fn verticesForTimer(state: *main.GameState) !void {
 fn verticesForLevelRoundNewGamePlus(state: *main.GameState) !void {
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     const white: [4]f32 = .{ 1, 1, 1, 1 };
-    const fontSize = 30;
+    const fontSize = 30 * state.uxData.settingsMenuUx.uiSizeDelayed;
     const verticeData = &state.vkState.verticeData;
     const fontVertices = &verticeData.font;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
@@ -298,8 +298,8 @@ fn verticsForTutorial(state: *main.GameState) void {
             state.tutorialData.active = false;
         } else {
             const realTime = std.time.milliTimestamp();
-            const fontSizeTutorial = 60;
-            const height = fontSizeTutorial * onePixelYInVulkan;
+            const fontSize = 60 * state.uxData.settingsMenuUx.uiSizeDelayed;
+            const height = fontSize * onePixelYInVulkan;
             const hintWaitDelay = 10_000;
             if (state.tutorialData.firstKeyDownInput.? + hintWaitDelay < realTime) {
                 var textWidth: f32 = 0;
@@ -307,22 +307,22 @@ fn verticsForTutorial(state: *main.GameState) void {
                 const top: f32 = 0 + height / 2;
                 const player = &state.players.items[0];
                 if (state.tutorialData.playerFirstValidPieceSelection == null) {
-                    textWidth += fontVulkanZig.paintText("Press ", .{ .x = left + textWidth, .y = top }, fontSizeTutorial, textColor, fontVertices);
-                    textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .pieceSelect1, fontSizeTutorial, player, state);
-                    textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .pieceSelect2, fontSizeTutorial, player, state);
-                    textWidth += fontVulkanZig.paintText("or ", .{ .x = left + textWidth, .y = top }, fontSizeTutorial, textColor, fontVertices);
-                    textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .pieceSelect3, fontSizeTutorial, player, state);
+                    textWidth += fontVulkanZig.paintText("Press ", .{ .x = left + textWidth, .y = top }, fontSize, textColor, fontVertices);
+                    textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .pieceSelect1, fontSize, player, state);
+                    textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .pieceSelect2, fontSize, player, state);
+                    textWidth += fontVulkanZig.paintText("or ", .{ .x = left + textWidth, .y = top }, fontSize, textColor, fontVertices);
+                    textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .pieceSelect3, fontSize, player, state);
                 } else if (!state.tutorialData.playerFirstValidMove and state.tutorialData.playerFirstValidPieceSelection.? + hintWaitDelay < realTime) {
                     const inputDevice = inputZig.getPlayerInputDevice(player);
                     if (inputDevice == null or inputDevice.? == .keyboard) {
-                        textWidth += fontVulkanZig.paintText("Press ", .{ .x = left + textWidth, .y = top }, fontSizeTutorial, textColor, fontVertices);
-                        textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .moveUp, fontSizeTutorial, player, state);
-                        textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .moveLeft, fontSizeTutorial, player, state);
-                        textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .moveDown, fontSizeTutorial, player, state);
-                        textWidth += fontVulkanZig.paintText("or ", .{ .x = left + textWidth, .y = top }, fontSizeTutorial, textColor, fontVertices);
-                        textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .moveRight, fontSizeTutorial, player, state);
+                        textWidth += fontVulkanZig.paintText("Press ", .{ .x = left + textWidth, .y = top }, fontSize, textColor, fontVertices);
+                        textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .moveUp, fontSize, player, state);
+                        textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .moveLeft, fontSize, player, state);
+                        textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .moveDown, fontSize, player, state);
+                        textWidth += fontVulkanZig.paintText("or ", .{ .x = left + textWidth, .y = top }, fontSize, textColor, fontVertices);
+                        textWidth += fontVulkanZig.verticesForDisplayButton(.{ .x = left + textWidth, .y = top }, .moveRight, fontSize, player, state);
                     } else {
-                        textWidth += fontVulkanZig.paintText("Use Analog Stick ", .{ .x = left + textWidth, .y = top }, fontSizeTutorial, textColor, fontVertices);
+                        textWidth += fontVulkanZig.paintText("Use Analog Stick ", .{ .x = left + textWidth, .y = top }, fontSize, textColor, fontVertices);
                     }
                 }
             }
@@ -335,7 +335,7 @@ fn verticesForLeaveJoinInfo(state: *main.GameState) !void {
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     var counter: usize = 0;
     const realTime = std.time.milliTimestamp();
-    const fontSize = 60;
+    const fontSize = 60 * state.uxData.settingsMenuUx.uiSizeDelayed;
     const height = fontSize * onePixelYInVulkan;
     const verticeData = &state.vkState.verticeData;
     const fontVertices = &state.vkState.verticeData.font;

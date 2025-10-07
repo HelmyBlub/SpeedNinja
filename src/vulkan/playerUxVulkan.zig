@@ -270,7 +270,7 @@ fn verticesForMoveOptions(player: *playerZig.Player, verticeData: *dataVulkanZig
     const startX = player.uxData.vulkanTopLeft.x;
     var startY = player.uxData.vulkanTopLeft.y + height * ((spacingFactor - 1) * 0.5);
 
-    const gameInfoTopHeight = 40 * onePixelYInVulkan;
+    const gameInfoTopHeight = (30 * state.uxData.settingsMenuUx.uiSizeDelayed + 10) * onePixelYInVulkan;
     const gameInfoLeftWidth = 200 * onePixelYInVulkan;
     if (startY < -1 + gameInfoTopHeight and startX < -1 + gameInfoLeftWidth) {
         const cutAmount = -1 + gameInfoTopHeight - startY;
