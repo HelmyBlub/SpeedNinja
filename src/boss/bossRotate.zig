@@ -157,14 +157,15 @@ fn spawnAttackTiles(boss: *bossZig.Boss) !void {
 
 fn isBossHit(boss: *bossZig.Boss, player: *playerZig.Player, hitArea: main.TileRectangle, cutRotation: f32, hitDirection: u8, state: *main.GameState) !bool {
     _ = hitDirection;
-    _ = state;
     _ = cutRotation;
     const rotate = &boss.typeData.rotate;
-    if (!rotate.immune) {
-        const bossTile = main.gamePositionToTilePosition(boss.position);
-        if (main.isTilePositionInTileRectangle(bossTile, hitArea)) {
+    const bossTile = main.gamePositionToTilePosition(boss.position);
+    if (main.isTilePositionInTileRectangle(bossTile, hitArea)) {
+        if (!rotate.immune) {
             boss.hp -|= playerZig.getPlayerDamage(player);
             return true;
+        } else {
+            try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_IMMUNE, 0, 1);
         }
     }
     return false;

@@ -108,6 +108,7 @@ var SOUND_FILE_PATHES = [_][]const u8{
     "sounds/shopAction3.mp3",
     "sounds/shopActionFail.mp3",
     "sounds/payMoney.mp3",
+    "sounds/immune.mp3",
 };
 
 pub const SOUND_NINJA_MOVE_INDICIES = [_]usize{ 0, 1, 2 };
@@ -141,6 +142,7 @@ pub const SOUND_BOSS_DEFEATED = 65;
 pub const SOUND_SHOP_ACTION = [_]usize{ 66, 67, 68 };
 pub const SOUND_SHOP_ACTION_FAIL = 69;
 pub const SOUND_PAY_MONEY = 70;
+pub const SOUND_IMMUNE = 71;
 
 pub fn createSoundMixer(state: *main.GameState, allocator: std.mem.Allocator) !void {
     state.soundMixer = .{

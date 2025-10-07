@@ -8,7 +8,6 @@ speed run normal mode
 Tasks:
 - boss rotate immune sound?
     - make barrier more noticeable
-- new game +2 more time for bosses?
 
 Next ideas:
 - settings
