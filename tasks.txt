@@ -8,7 +8,6 @@ speed run normal mode
 Tasks:
 - freeze time when being hit, time continue after next move input
     - need more enemy hit animations animations, so freeze time is easier to understand what hit the player
-        - enemy shield aoe
         - tree hit direction
         - boss dragon
 - shop boss hint next level

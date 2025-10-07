@@ -58,7 +58,7 @@ pub const EnemyType = enum {
 
 pub const EnemyTypeData = union(EnemyType) {
     nothing,
-    attack: EnemyTypeDelayedActionData,
+    attack: enemyTypeAttackZig.EnemyTypeAttackData,
     move: EnemyTypeDelayedActionData,
     moveWithPlayer: enemyTypeMoveWithPlayerZig.EnemyTypeMoveWithPlayerData,
     projectileAttack: enemyTypeProjectileAttackZig.EnemyTypeDelayedProjectileActionData,
