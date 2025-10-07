@@ -111,6 +111,8 @@ pub const BossDragonData = struct {
         stopWings: bool = false,
         rotation: f32 = 0,
         alpha: f32 = 1,
+        lastAttackRectangle: main.Rectangle = .{ .pos = .{ .x = 0, .y = 0 }, .width = 0, .height = 0 },
+        visualizeAttackPosition: ?i64 = null,
     } = .{},
     soundData: struct {
         windSoundPlayer: bool = false,
@@ -119,6 +121,7 @@ pub const BossDragonData = struct {
     attackTiles: std.ArrayList(main.TilePosition),
 };
 
+const ATTACK_VISAULIZE_DURATION = 200;
 const DEFAULT_FYLING_HEIGHT = 150;
 const BOSS_NAME = "Dragon";
 const LANDING_STOMP_AREA_RADIUS_X = 2;
@@ -257,6 +260,12 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                         try playerZig.playerHit(player, state);
                     }
                 }
+                data.paint.visualizeAttackPosition = state.gameTime + ATTACK_VISAULIZE_DURATION;
+                data.paint.lastAttackRectangle = .{
+                    .pos = .{ .x = @as(f32, @floatFromInt(damageTileRectangle.pos.x)) * main.TILESIZE, .y = @as(f32, @floatFromInt(damageTileRectangle.pos.y)) * main.TILESIZE },
+                    .width = @as(f32, @floatFromInt(damageTileRectangle.width)) * main.TILESIZE,
+                    .height = @as(f32, @floatFromInt(damageTileRectangle.height)) * main.TILESIZE,
+                };
                 chooseNextAttack(boss);
             }
         },
@@ -784,6 +793,12 @@ fn tickBodyStomp(stompData: *BodyStompData, boss: *bossZig.Boss, passedTime: i64
                     try playerZig.playerHit(player, state);
                 }
             }
+            data.paint.visualizeAttackPosition = state.gameTime + ATTACK_VISAULIZE_DURATION;
+            data.paint.lastAttackRectangle = .{
+                .pos = .{ .x = @as(f32, @floatFromInt(damageTileRectangle.pos.x)) * main.TILESIZE, .y = @as(f32, @floatFromInt(damageTileRectangle.pos.y)) * main.TILESIZE },
+                .width = @as(f32, @floatFromInt(damageTileRectangle.width)) * main.TILESIZE,
+                .height = @as(f32, @floatFromInt(damageTileRectangle.height)) * main.TILESIZE,
+            };
         }
     }
 }
@@ -872,6 +887,12 @@ fn setDirection(boss: *bossZig.Boss, newDirection: f32) void {
 
 fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) !void {
     const data = boss.typeData.dragon;
+    if (data.paint.visualizeAttackPosition) |time| {
+        if (time > state.gameTime) {
+            const alphaPerCent: f32 = @as(f32, @floatFromInt(time - state.gameTime)) / @as(f32, @floatFromInt(ATTACK_VISAULIZE_DURATION));
+            paintVulkanZig.verticesForGameRectangle(data.paint.lastAttackRectangle, .{ 0.8, 0, 0, alphaPerCent }, state);
+        }
+    }
     switch (data.action) {
         .landingStomp => |stompData| {
             if (stompData.stompTime) |stompTime| {
