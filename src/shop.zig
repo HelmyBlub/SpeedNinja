@@ -249,7 +249,7 @@ fn handlePlayerAfkKick(player: *playerZig.Player, state: *main.GameState) !void 
     }
 }
 
-pub fn getShopEarlyTriggerPosition(state: *main.GameState) main.TileRectangle {
+pub fn getShopTriggerPosition(state: *main.GameState) main.TileRectangle {
     return main.TileRectangle{
         .pos = .{
             .x = @intCast(state.mapData.tileRadiusWidth + 2),
@@ -262,7 +262,7 @@ pub fn getShopEarlyTriggerPosition(state: *main.GameState) main.TileRectangle {
 
 pub fn isPlayerInShopTrigger(player: *playerZig.Player, state: *main.GameState) bool {
     if (state.gamePhase == .shopping) return false;
-    const tileRectangle = getShopEarlyTriggerPosition(state);
+    const tileRectangle = getShopTriggerPosition(state);
     const playerTile = main.gamePositionToTilePosition(player.position);
     return main.isTilePositionInTileRectangle(playerTile, tileRectangle);
 }

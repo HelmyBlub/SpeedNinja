@@ -19,6 +19,7 @@ const mapTileZig = @import("../mapTile.zig");
 const statsZig = @import("../stats.zig");
 const shopZig = @import("../shop.zig");
 const settingsMenuVulkanZig = @import("settingsMenuVulkan.zig");
+const movePieceZig = @import("../movePiece.zig");
 
 pub fn drawFrame(state: *main.GameState) !void {
     const vkState = &state.vkState;
@@ -103,6 +104,14 @@ pub fn drawFrame(state: *main.GameState) !void {
 }
 
 fn verticesForSuddenDeathFire(state: *main.GameState) void {
+    if (main.preventSuddenDeathStartCondition(state) and state.suddenDeathTimeMs + 15_000 < state.gameTime) {
+        const shopTriggerPos = shopZig.getShopTriggerPosition(state);
+        const animateOffsetY = @sin(@as(f32, @floatFromInt(state.gameTime)) / 300) * main.TILESIZE;
+        choosenMovePieceVulkanZig.verticesForFilledArrowGame(.{
+            .x = @as(f32, @floatFromInt(shopTriggerPos.pos.x * main.TILESIZE + main.TILESIZE)),
+            .y = @as(f32, @floatFromInt(shopTriggerPos.pos.y * main.TILESIZE - main.TILESIZE / 2)) + animateOffsetY,
+        }, main.TILESIZE * 1.5, movePieceZig.DIRECTION_DOWN, .{ 1, 1, 1, 1 }, state);
+    }
     if (state.suddenDeath == 0) return;
     const animatePerCent: f32 = @mod(@as(f32, @floatFromInt(state.gameTime)) / 500, 1);
     const insideWidth = state.mapData.tileRadiusWidth * 2 + 3;
@@ -119,7 +128,7 @@ fn verticesForSuddenDeathFire(state: *main.GameState) void {
                 .x = (@as(f32, @floatFromInt(i)) - fRadiusWidth) * main.TILESIZE,
                 .y = (@as(f32, @floatFromInt(j)) - fRadiusHeight) * main.TILESIZE,
             };
-            const shopTrigger = shopZig.getShopEarlyTriggerPosition(state);
+            const shopTrigger = shopZig.getShopTriggerPosition(state);
             if (main.isTilePositionInTileRectangle(main.gamePositionToTilePosition(pos), shopTrigger)) {
                 continue;
             }

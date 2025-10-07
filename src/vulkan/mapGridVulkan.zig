@@ -48,7 +48,7 @@ pub fn setupVertices(state: *main.GameState) !void {
 fn verticesForNewGamePlusOnGameFinished(state: *main.GameState) !void {
     if (state.gamePhase != .finished) return;
     const verticeData = &state.vkState.verticeData;
-    const tileRectangle = shopZig.getShopEarlyTriggerPosition(state);
+    const tileRectangle = shopZig.getShopTriggerPosition(state);
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const gridEnterNewGamePlusTopLeft: main.Position = .{
@@ -93,7 +93,7 @@ fn verticesForNewGamePlusOnGameFinished(state: *main.GameState) !void {
 fn verticesForEnterShop(state: *main.GameState) !void {
     if (state.gamePhase != .combat) return;
     const verticeData = &state.vkState.verticeData;
-    const tileRectangle = shopZig.getShopEarlyTriggerPosition(state);
+    const tileRectangle = shopZig.getShopTriggerPosition(state);
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const gridEnterShopTopLeft: main.Position = .{

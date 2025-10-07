@@ -6,8 +6,9 @@ speed run normal mode
 - play test for freeze time
 
 Tasks:
-- shop boss hint next level
 - level 1 no sudden death, but respawn stop
+    - arrow pointing towards exit
+- onePiexelXVulkan calculation only once
 
 Next ideas:
 - settings

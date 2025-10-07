@@ -280,6 +280,18 @@ fn verticesForArrow(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTile
     }
 }
 
+pub fn verticesForFilledArrowGame(gamePosition: main.Position, size: f32, arrowDirection: u8, fillColor: [4]f32, state: *main.GameState) void {
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const vulkan: main.Position = .{
+        .x = (gamePosition.x - state.camera.position.x - main.TILESIZE / 2) * state.camera.zoom * onePixelXInVulkan,
+        .y = (gamePosition.y - state.camera.position.y - main.TILESIZE / 2) * state.camera.zoom * onePixelYInVulkan,
+    };
+    const vulkanWidth = size * onePixelXInVulkan * state.camera.zoom;
+    const vulkanHeight = size * onePixelYInVulkan * state.camera.zoom;
+    verticesForFilledArrow(vulkan.x, vulkan.y, vulkanWidth, vulkanHeight, arrowDirection, fillColor, &state.vkState.verticeData.lines, &state.vkState.verticeData.triangles);
+}
+
 fn verticesForFilledArrow(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTileHeight: f32, arrowDirection: u8, fillColor: [4]f32, lines: *dataVulkanZig.VkColoredVertexes, triangles: *dataVulkanZig.VkColoredVertexes) void {
     if (triangles.verticeCount + 9 >= triangles.vertices.len) return;
     const lineColor: [4]f32 = .{ 0, 0, 0, 1 };

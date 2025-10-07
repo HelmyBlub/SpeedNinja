@@ -210,9 +210,7 @@ fn mainLoop(state: *GameState) !void {
     var currentTime = lastTime;
     var passedTime: i64 = 0;
     while (!state.gameQuit) {
-        if (state.enemyData.enemies.items.len == 0 and state.gamePhase == .combat) {
-            try startNextRound(state);
-        } else if (shouldEndLevel(state)) {
+        if (shouldEndLevel(state)) {
             if (state.gamePhase == .boss) {
                 state.lastBossDefeatedTime = state.gameTime;
                 for (state.players.items) |*player| {
@@ -232,6 +230,8 @@ fn mainLoop(state: *GameState) !void {
                 }
             }
             try shopZig.startShoppingPhase(state);
+        } else if (state.enemyData.enemies.items.len == 0 and state.gamePhase == .combat) {
+            try startNextRound(state);
         }
         try suddenDeath(state);
         try windowSdlZig.handleEvents(state);
@@ -353,6 +353,7 @@ fn suddenDeath(state: *GameState) !void {
         }
         return;
     }
+    if (preventSuddenDeathStartCondition(state)) return;
 
     const overTime = state.gameTime - state.suddenDeathTimeMs;
     const spawnInterval = 1050;
@@ -382,6 +383,10 @@ fn suddenDeath(state: *GameState) !void {
             try playerZig.playerHit(player, state);
         }
     }
+}
+
+pub fn preventSuddenDeathStartCondition(state: *GameState) bool {
+    return state.level == 1 and state.gamePhase == .combat and state.newGamePlus == 0 and state.round >= state.roundToReachForNextLevel;
 }
 
 fn tickMapObjects(state: *GameState, passedTime: i64) void {
@@ -428,6 +433,7 @@ fn tickClouds(state: *GameState, passedTime: i64) void {
 }
 
 pub fn startNextRound(state: *GameState) !void {
+    if (preventSuddenDeathStartCondition(state) and state.suddenDeathTimeMs < state.gameTime) return; // instead of sudden death => no more enemy spawns
     state.enemyData.enemies.clearRetainingCapacity();
     const timeShoesBonusTime = equipmentZig.getTimeShoesBonusRoundTime(state);
     const maxTime = state.gameTime + state.minimalTimePerRequiredRounds + timeShoesBonusTime;
