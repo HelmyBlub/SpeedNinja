@@ -1,19 +1,29 @@
-speed run normal mode
-    - kunai  (52min)
-    - blade  (53min)
-    - hammer (46min)
+testruns:
+- beat boss 5 without spending money
+- beat game with only starting move pieces
+- speed run normal mode
     - speedrun stategy(43:25, 3death)
-- play test for freeze time
+
 
 Tasks:
-- boss rotate immune sound?
-    - make barrier more noticeable
+- speedrun statistics options
+    - settings menu to disable different columns
+- be able to choose new game plus on start
+    - available once game beaten on normal mode
 
 Next ideas:
 - settings
-    - save/load settings
     - speedrun statistics options
 - steam achievements
+    - destory first tree
+    - beat each boss (10 achievemnts)
+    - beat newGame+1 
+    - beat game in under 45min
+    - beat boss 5 without spending money (first try myself)
+    - beat game with only starting move pieces
+    - beat game without taking damage
+    - ???beat newGame+2???
+    
 - code performance
     - automated testing
     - check performance change when: onePiexelXVulkan calculation only once
