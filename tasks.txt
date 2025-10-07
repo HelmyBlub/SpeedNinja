@@ -6,15 +6,16 @@ speed run normal mode
 - play test for freeze time
 
 Tasks:
-- level 1 no sudden death, but respawn stop
-    - arrow pointing towards exit
-- onePiexelXVulkan calculation only once
+- time change visualizations
 
 Next ideas:
 - settings
     - save/load settings
     - speedrun statistics options
 - steam achievements
+- code performance
+    - automated testing
+    - check performance change when: onePiexelXVulkan calculation only once
 - game ticking seperate from drawing
 
 - vulkan changes

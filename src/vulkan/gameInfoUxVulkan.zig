@@ -192,9 +192,9 @@ fn verticesForGameOver(state: *main.GameState) !void {
 fn verticesForTimer(state: *main.GameState) !void {
     const verticeData = &state.vkState.verticeData;
     const fontVertices = &verticeData.font;
-    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     const fontSize = 50;
     const isBossTimer = state.gamePhase == .boss and state.newGamePlus >= 2 and state.level != main.LEVEL_COUNT;
+    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     if (state.round > 1 and state.gamePhase == .combat or isBossTimer) {
         const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
         const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
@@ -217,7 +217,27 @@ fn verticesForTimer(state: *main.GameState) !void {
             state,
         );
         const remainingTime: i64 = @max(0, @divFloor(state.suddenDeathTimeMs - state.gameTime, 1000));
-        _ = try fontVulkanZig.paintNumber(remainingTime, .{ .x = timePos.x, .y = timePos.y }, fontSize, textColor, fontVertices);
+        var textWidth = try fontVulkanZig.paintNumber(remainingTime, .{ .x = timePos.x, .y = timePos.y }, fontSize, textColor, fontVertices);
+        if (state.uxData.timeChangeVisualization != null and state.uxData.timeChangeVisualization.? > state.gameTime) {
+            if (state.uxData.timeChange == .timeAdded) {
+                const addedTimeColor: [4]f32 = .{ 0.1, 1, 0.1, 1 };
+                textWidth += fontVulkanZig.paintText(" +", .{ .x = timePos.x + textWidth, .y = timePos.y }, fontSize, addedTimeColor, fontVertices);
+                _ = try fontVulkanZig.paintNumber(@divFloor(state.uxData.timeChange.timeAdded, 1000), .{ .x = timePos.x + textWidth, .y = timePos.y }, fontSize, addedTimeColor, fontVertices);
+            } else {
+                const rotation: f32 = @as(f32, @floatFromInt(state.gameTime)) / 200;
+                paintVulkanZig.verticesForComplexSpriteVulkan(
+                    .{ .x = timePos.x + fontSize * onePixelYInVulkan, .y = timePos.y + fontSize / 2 * onePixelYInVulkan },
+                    imageZig.IMAGE_ICON_REFRESH,
+                    fontSize,
+                    fontSize,
+                    1,
+                    rotation,
+                    false,
+                    false,
+                    state,
+                );
+            }
+        }
     }
 }
 

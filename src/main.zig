@@ -101,6 +101,13 @@ pub const GameUxData = struct {
     creditsFontSize: f32 = 120,
     creditsScrollSpeedSlowdown: f32 = 5000,
     settingsMenuUx: settingsMenuVulkanZig.SettingsUx = .{},
+    timeChangeVisualization: ?i64 = null,
+    timeChange: TimeChangeUnion = .{ .refresh = false },
+};
+
+const TimeChangeUnion = union(enum) {
+    refresh: bool,
+    timeAdded: i32,
 };
 
 pub const TutorialData = struct {
@@ -439,12 +446,16 @@ pub fn startNextRound(state: *GameState) !void {
     const maxTime = state.gameTime + state.minimalTimePerRequiredRounds + timeShoesBonusTime;
     if (state.round < state.roundToReachForNextLevel) {
         state.suddenDeathTimeMs = maxTime;
+        state.uxData.timeChangeVisualization = state.gameTime + 2_000;
+        state.uxData.timeChange = .{ .refresh = true };
     } else {
         if (state.suddenDeathTimeMs < state.gameTime) state.suddenDeathTimeMs = state.gameTime;
         state.suddenDeathTimeMs += state.bonusTimePerRoundFinished;
         if (state.suddenDeathTimeMs > maxTime) {
             state.suddenDeathTimeMs = maxTime;
         }
+        state.uxData.timeChangeVisualization = state.gameTime + 3_000;
+        state.uxData.timeChange = .{ .timeAdded = state.bonusTimePerRoundFinished };
     }
     state.suddenDeath = 0;
     state.soundData.suddenDeathPlayed = false;
