@@ -668,6 +668,7 @@ pub fn adjustZoom(state: *GameState) void {
         state.camera.position.x = @as(f32, @floatFromInt(stairsAdditionTileWidth)) * TILESIZE / 2;
     }
     playerZig.determinePlayerUxPositions(state);
+    state.uxData.creditsFontSize = windowSdlZig.windowData.heightFloat * 0.15;
 }
 
 pub fn isGameOver(state: *GameState) bool {

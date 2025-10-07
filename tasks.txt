@@ -7,14 +7,6 @@ speed run normal mode
 
 Tasks:
 - settings ux size should affect more texts
-    - top left
-    - boss hp bar
-    - player/join leave
-    - tutorial
-
-    - timer/boss timer 
-
-
     - game over
     - freeze text
     - boss aced information

@@ -33,12 +33,18 @@ fn verticesForFinished(state: *main.GameState) !void {
         const scrollOffset: f32 = -@as(f32, @floatFromInt(state.gameTime - creditsTime)) / state.uxData.creditsScrollSpeedSlowdown;
         finishTimeOffsetY = scrollOffset + fontSize * onePixelYInVulkan;
         for (main.CREDITS_TEXTS, 0..) |creditsLine, lineIndex| {
-            const textWidth = fontVulkanZig.getTextVulkanWidth(creditsLine, fontSize);
+            var textWidth = fontVulkanZig.getTextVulkanWidth(creditsLine, fontSize);
+            var fittedFontSize = fontSize;
+            if (textWidth > 2) {
+                const changeFactor = 2 / textWidth;
+                fittedFontSize *= changeFactor;
+                textWidth *= changeFactor;
+            }
             const textPos: main.Position = .{
                 .x = 0 - textWidth / 2,
                 .y = scrollOffset + @as(f32, @floatFromInt(lineIndex)) * fontSize * onePixelYInVulkan,
             };
-            _ = fontVulkanZig.paintText(creditsLine, textPos, fontSize, textColor, fontVertices);
+            _ = fontVulkanZig.paintText(creditsLine, textPos, fittedFontSize, textColor, fontVertices);
         }
     }
     const textPos2: main.Position = .{
@@ -56,7 +62,7 @@ fn verticesForBossAcedAndFreeContinue(state: *main.GameState) void {
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     const fontVertices = &state.vkState.verticeData.font;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-    const fontSize = 120;
+    const fontSize = windowSdlZig.windowData.heightFloat * 0.15;
     if (state.uxData.displayBossAcedUntilTime) |time| {
         if (time > state.gameTime) {
             const text = "Aced Boss";
@@ -103,7 +109,7 @@ fn verticesForTimeFreeze(state: *main.GameState) !void {
     const verticeData = &state.vkState.verticeData;
     const fontVertices = &verticeData.font;
     const textColor: [4]f32 = .{ 1, 1, 1, 0.8 };
-    const fontSize = 120;
+    const fontSize = windowSdlZig.windowData.heightFloat * 0.15;
     const text = "TIME FREEZE";
     const displayTextWidthEstimate = fontVulkanZig.getTextVulkanWidth(text, fontSize);
     const textPosition: main.Position = .{ .x = -displayTextWidthEstimate / 2, .y = -0.99 };
@@ -117,13 +123,14 @@ fn verticesForGameOver(state: *main.GameState) !void {
         const fontVertices = &verticeData.font;
         const textColor: [4]f32 = .{ 1, 1, 1, 1 };
         const gameOverText = "Game Over";
-        const fontSize = 120;
+        const textSizePerCent = 0.15;
+        const fontSize = windowSdlZig.windowData.heightFloat * textSizePerCent;
         const displayTextWidthEstimate = fontVulkanZig.getTextVulkanWidth(gameOverText, fontSize);
-        const gameOverPos: main.Position = .{ .x = -displayTextWidthEstimate / 2, .y = -0.1 };
+        const gameOverPos: main.Position = .{ .x = -displayTextWidthEstimate / 2, .y = -textSizePerCent * 3 };
         _ = fontVulkanZig.paintText(gameOverText, gameOverPos, fontSize, textColor, fontVertices);
         const continueCosts = main.getMoneyCostsForContinue(state);
         const timestamp = std.time.milliTimestamp();
-        const optionFontSize = 60;
+        const optionFontSize = windowSdlZig.windowData.heightFloat * textSizePerCent / 2;
         const optionHeight = optionFontSize * onePixelYInVulkan;
         const spacing = onePixelYInVulkan * 5;
         const black: [4]f32 = .{ 0.0, 0.0, 0.0, 1 };
@@ -147,7 +154,7 @@ fn verticesForGameOver(state: *main.GameState) !void {
                 textWidth += try fontVulkanZig.paintNumber(continueCosts, .{
                     .x = continuePos.x + textWidth,
                     .y = continuePos.y,
-                }, 60, moneyTextColor, fontVertices);
+                }, optionFontSize, moneyTextColor, fontVertices);
             } else {
                 textWidth += fontVulkanZig.paintText("Continue: Free(", .{
                     .x = continuePos.x + textWidth,
@@ -156,7 +163,7 @@ fn verticesForGameOver(state: *main.GameState) !void {
                 textWidth += try fontVulkanZig.paintNumber(state.continueData.freeContinues, .{
                     .x = continuePos.x + textWidth,
                     .y = continuePos.y,
-                }, 60, moneyTextColor, fontVertices);
+                }, optionFontSize, moneyTextColor, fontVertices);
                 textWidth += fontVulkanZig.paintText(")", .{
                     .x = continuePos.x + textWidth,
                     .y = continuePos.y,
