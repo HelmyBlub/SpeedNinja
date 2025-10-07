@@ -709,6 +709,18 @@ fn updateUniformBuffer(state: *main.GameState) !void {
     }
 }
 
+pub fn verticesForGameRectangle(gameRectangle: main.Rectangle, fillColor: [4]f32, state: *main.GameState) void {
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const width = onePixelXInVulkan * gameRectangle.width * state.camera.zoom;
+    const height = onePixelYInVulkan * gameRectangle.height * state.camera.zoom;
+    const vulkan: main.Position = .{
+        .x = (gameRectangle.pos.x - state.camera.position.x - main.TILESIZE / 2) * state.camera.zoom * onePixelXInVulkan,
+        .y = (gameRectangle.pos.y - state.camera.position.y - main.TILESIZE / 2) * state.camera.zoom * onePixelYInVulkan,
+    };
+    verticesForRectangle(vulkan.x, vulkan.y, width, height, fillColor, &state.vkState.verticeData.lines, &state.vkState.verticeData.triangles);
+}
+
 pub fn verticesForRectangle(x: f32, y: f32, width: f32, height: f32, fillColor: [4]f32, optLines: ?*dataVulkanZig.VkColoredVertexes, optTriangles: ?*dataVulkanZig.VkColoredVertexes) void {
     if (optTriangles) |triangles| {
         if (triangles.verticeCount + 6 >= triangles.vertices.len) return;

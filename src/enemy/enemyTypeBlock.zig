@@ -14,6 +14,8 @@ pub const EnemyTypeBlockData = struct {
     minTurnInterval: i32 = 4000,
     aoeAttackDelay: i32 = 2000,
     aoeAttackTime: ?i64 = null,
+    aoeDamageVisualization: ?i64 = null,
+    aoeDamageVisualizationDuration: i32 = 250,
     attackTileRadius: i8 = 1,
 };
 
@@ -74,6 +76,12 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
                 try playerZig.playerHit(player, state);
             }
         }
+        data.aoeDamageVisualization = state.gameTime + data.aoeDamageVisualizationDuration;
+    }
+    if (data.aoeDamageVisualization) |visualizationTime| {
+        if (visualizationTime <= state.gameTime) {
+            data.aoeDamageVisualization = null;
+        }
     }
 }
 
@@ -93,6 +101,20 @@ fn isEnemyHit(enemy: *enemyZig.Enemy, hitArea: main.TileRectangle, hitDirection:
 
 fn setupVerticesGround(enemy: *enemyZig.Enemy, state: *main.GameState) !void {
     const data = enemy.enemyTypeData.block;
+    if (data.aoeDamageVisualization) |visualizationTime| {
+        if (visualizationTime > state.gameTime) {
+            const alphaPerCent: f32 = @as(f32, @floatFromInt(visualizationTime - state.gameTime)) / @as(f32, @floatFromInt(data.aoeDamageVisualizationDuration));
+            paintVulkanZig.verticesForGameRectangle(
+                .{
+                    .pos = .{ .x = enemy.position.x - main.TILESIZE, .y = enemy.position.y - main.TILESIZE },
+                    .width = (@as(f32, @floatFromInt(data.attackTileRadius)) * 2 + 1) * main.TILESIZE,
+                    .height = (@as(f32, @floatFromInt(data.attackTileRadius)) * 2 + 1) * main.TILESIZE,
+                },
+                .{ 0.8, 0, 0, alphaPerCent },
+                state,
+            );
+        }
+    }
     if (data.aoeAttackTime) |attackTime| {
         const fillPerCent: f32 = 1 - @min(1, @max(0, @as(f32, @floatFromInt(attackTime - state.gameTime)) / @as(f32, @floatFromInt(data.aoeAttackDelay))));
         const size: usize = @intCast(data.attackTileRadius * 2 + 1);
