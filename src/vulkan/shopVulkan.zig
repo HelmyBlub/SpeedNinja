@@ -131,9 +131,9 @@ fn verticesForExitShop(state: *main.GameState) !void {
         state,
     );
 
+    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     if (state.players.items.len > 1) {
         const fontSize = 12;
-        const textColor: [4]f32 = .{ 1, 1, 1, 1 };
         const textPos: main.Position = .{
             .x = exitShopTopLeft.x - main.TILESIZE / 2,
             .y = exitShopTopLeft.y - main.TILESIZE / 2 - fontSize,
@@ -159,6 +159,18 @@ fn verticesForExitShop(state: *main.GameState) !void {
             false,
             state,
         );
+    }
+    if (@mod(state.level, 5) == 4) {
+        const fontSize = 13;
+        const textPos: main.Position = .{
+            .x = exitShopTopLeft.x - main.TILESIZE / 2,
+            .y = exitShopTopLeft.y - main.TILESIZE / 2 + 2,
+        };
+
+        _ = fontVulkanZig.paintTextGameMap("Boss", .{
+            .x = textPos.x,
+            .y = textPos.y,
+        }, fontSize, textColor, &state.vkState.verticeData.font, state);
     }
 }
 
