@@ -30,9 +30,9 @@ fn verticeForPlayerStateInfo(player: *playerZig.Player, state: *main.GameState) 
 }
 
 fn verticeForInfo(player: *playerZig.Player, text: *const [4]u8, textColor: [4]f32, state: *main.GameState) void {
-    const fontSize = 75 * player.uxData.vulkanScale;
-    const verticeData = &state.vkState.verticeData;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const fontSize = player.uxData.vulkanScale * windowSdlZig.windowData.heightFloat / 12;
+    const verticeData = &state.vkState.verticeData;
     _ = fontVulkanZig.paintText(text[0..1], .{
         .x = player.uxData.vulkanTopLeft.x,
         .y = player.uxData.vulkanTopLeft.y + onePixelYInVulkan * fontSize,

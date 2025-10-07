@@ -6,11 +6,6 @@ speed run normal mode
 - play test for freeze time
 
 Tasks:
-- settings ux size should affect more texts
-    - game over
-    - freeze text
-    - boss aced information
-    - gameFinish
 - bug: playerUX dead/shop text not scaling correctly
 - bug: game close and restart money farm cheat
 - boss rotate immune sound?
