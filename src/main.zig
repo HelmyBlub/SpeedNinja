@@ -705,10 +705,12 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
         std.debug.print("err: {}\n", .{err});
         try restart(state, 0);
     }
+    fileSaveZig.loadSettingsFromFile(state) catch {};
 }
 
 fn destroyGameState(state: *GameState) !void {
     fileSaveZig.saveCurrentRunToFile(state) catch std.debug.print("save current run failed\n", .{});
+    fileSaveZig.saveSettingsToFile(state) catch std.debug.print("save settings failed\n", .{});
     initVulkanZig.destroyPaintVulkan(&state.vkState, state.allocator) catch {
         std.debug.print("failed to destroy window and vulkan\n", .{});
     };

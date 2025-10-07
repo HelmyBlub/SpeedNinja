@@ -6,7 +6,11 @@ speed run normal mode
 - play test for freeze time
 
 Tasks:
-- time change visualizations
+- save/load settings
+    - check if ux size should affect more texts
+- boss rotate immune sound?
+    - make barrier more noticeable
+- new game +2 more time for bosses?
 
 Next ideas:
 - settings

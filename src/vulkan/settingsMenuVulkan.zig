@@ -19,7 +19,7 @@ pub const SettingsUx = struct {
         .{ .checkbox = .{ .label = "Fullscreen", .onSetChecked = onCheckboxFullscreen } },
         .{ .checkbox = .{ .label = "Time Freeze", .onSetChecked = onCheckboxFreezeOnHit, .checked = true } },
         .{ .slider = .{ .label = "Volume", .valuePerCent = 1, .onChange = onSliderChangeVolume } },
-        .{ .slider = .{ .label = "UX Size", .valuePerCent = 0.5, .onStopHolding = onSliderStopHoldingUxSize } },
+        .{ .slider = .{ .label = "UI Size", .valuePerCent = 0.5, .onStopHolding = onSliderStopHoldingUxSize } },
         .{ .holdButton = .{ .label = "Quit", .onHoldDurationFinished = onHoldButtonQuit } },
     },
     baseFontSize: f32 = 26,

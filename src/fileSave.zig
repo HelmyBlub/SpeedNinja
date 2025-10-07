@@ -6,8 +6,11 @@ const inputZig = @import("input.zig");
 const equipmentZig = @import("equipment.zig");
 const movePieceZig = @import("movePiece.zig");
 
-const SAFE_FILE_VERSION_SAVE_RUN: u8 = 0;
+const FILE_VERSION_SAVE_RUN: u8 = 0;
 const FILE_NAME_SAVE_RUN = "currenRun.dat";
+
+const FILE_VERSION_SETTINGS: u8 = 0;
+const FILE_NAME_SETTINGS = "settings.dat";
 
 pub fn getSavePath(allocator: std.mem.Allocator, filename: []const u8) ![]const u8 {
     const directory_path = try getSaveDirectoryPath(allocator);
@@ -35,6 +38,61 @@ pub fn deleteFile(filename: []const u8, allocator: std.mem.Allocator) !void {
     try std.fs.deleteFileAbsolute(filepath);
 }
 
+pub fn loadSettingsFromFile(state: *main.GameState) !void {
+    const filepath = try getSavePath(state.allocator, FILE_NAME_SETTINGS);
+    defer state.allocator.free(filepath);
+
+    const file = try std.fs.cwd().openFile(filepath, .{});
+    defer file.close();
+
+    const reader = file.reader();
+    const fileVersion = try reader.readByte();
+    if (fileVersion != FILE_VERSION_SETTINGS) {
+        // do stuff if different versions exist
+    }
+    for (&state.uxData.settingsMenuUx.uiElements) |*uiElement| {
+        switch (uiElement.*) {
+            .holdButton => {},
+            .checkbox => |*data| {
+                const checked = try reader.readInt(u8, .little);
+                data.checked = if (checked != 0) true else false;
+                try data.onSetChecked(data.checked, state);
+            },
+            .slider => |*data| {
+                const valuePerCent: f32 = @bitCast(try reader.readInt(u32, .little));
+                data.valuePerCent = valuePerCent;
+                if (data.onStopHolding) |stopHolding| {
+                    try stopHolding(data.valuePerCent, state);
+                } else if (data.onChange) |change| {
+                    try change(data.valuePerCent, state);
+                }
+            },
+        }
+    }
+}
+
+pub fn saveSettingsToFile(state: *main.GameState) !void {
+    const filepath = try getSavePath(state.allocator, FILE_NAME_SETTINGS);
+    defer state.allocator.free(filepath);
+
+    const file = try std.fs.cwd().createFile(filepath, .{ .truncate = true });
+    defer file.close();
+
+    const writer = file.writer();
+    _ = try writer.writeByte(FILE_VERSION_SETTINGS);
+    for (state.uxData.settingsMenuUx.uiElements) |uiElement| {
+        switch (uiElement) {
+            .holdButton => {},
+            .checkbox => |data| {
+                try writer.writeInt(u8, if (data.checked) 1 else 0, .little);
+            },
+            .slider => |data| {
+                try writer.writeInt(u32, @bitCast(data.valuePerCent), .little);
+            },
+        }
+    }
+}
+
 pub fn loadCurrentRunFromFile(state: *main.GameState) !void {
     const filepath = try getSavePath(state.allocator, FILE_NAME_SAVE_RUN);
     defer state.allocator.free(filepath);
@@ -44,7 +102,7 @@ pub fn loadCurrentRunFromFile(state: *main.GameState) !void {
 
     const reader = file.reader();
     const safeFileVersion = try reader.readByte();
-    if (safeFileVersion != SAFE_FILE_VERSION_SAVE_RUN) {
+    if (safeFileVersion != FILE_VERSION_SAVE_RUN) {
         // std.debug.print("not loading outdated save file version");
     }
 
@@ -99,7 +157,7 @@ pub fn saveCurrentRunToFile(state: *main.GameState) !void {
 
     const timestamp = std.time.milliTimestamp();
     const writer = file.writer();
-    _ = try writer.writeByte(SAFE_FILE_VERSION_SAVE_RUN);
+    _ = try writer.writeByte(FILE_VERSION_SAVE_RUN);
     const saveLevel = if (state.gamePhase == .shopping) state.level + 1 else state.level;
     _ = try writer.writeInt(u32, saveLevel, .little);
     _ = try writer.writeInt(u32, state.newGamePlus, .little);
