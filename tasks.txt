@@ -5,9 +5,15 @@ testruns:
 
 
 Tasks:
-- speedrun statistics options
-    - settings menu to disable different columns
-        - each column as settings checkbox?
+- settings menu
+    - height
+    - width
+    - change rec on tab change
+- speedrun statistics
+    - display furthest/fastest endtime
+    - slider for future level display
+    - slider for max level display
+    - positioning
 - be able to choose new game plus on start
     - available once game beaten on normal mode
 

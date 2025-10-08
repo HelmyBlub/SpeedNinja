@@ -11,7 +11,6 @@ const playerZig = @import("../player.zig");
 pub const SettingsUx = struct {
     menuOpen: bool = false,
     settingsIcon: main.Rectangle = undefined,
-    settingsMenuRectangle: main.Rectangle = undefined,
     uiSizeDelayed: f32 = 1,
     uiTabs: [2]UiTabsData = [_]UiTabsData{
         .{ .uiElements = &UI_ELEMENTS_MAIN, .label = "main" },
@@ -51,7 +50,8 @@ const UiElement = enum {
 const UiTabsData = struct {
     label: []const u8,
     uiElements: []UiElementData,
-    rec: main.Rectangle = .{ .pos = .{ .x = 0, .y = 0 }, .width = 0, .height = 0 },
+    labelRec: main.Rectangle = .{ .pos = .{ .x = 0, .y = 0 }, .width = 0, .height = 0 },
+    contentRec: main.Rectangle = .{ .pos = .{ .x = 0, .y = 0 }, .width = 0, .height = 0 },
 };
 
 const UiElementData = union(UiElement) {
@@ -98,10 +98,9 @@ pub fn setupUiLocations(state: *main.GameState) void {
     const vulkanSpacingX = SPACING_PIXELS * onePixelXInVulkan * uiSizeFactor;
     const vulkanSpacingY = SPACING_PIXELS * onePixelYInVulkan * uiSizeFactor;
     const vulkanSpacingLargerY = 20.0 * onePixelYInVulkan * uiSizeFactor;
-    const menuWidth = 255 * onePixelXInVulkan * uiSizeFactor;
     const sliderSpacingX = 20.0 * onePixelXInVulkan * uiSizeFactor;
     const sliderWidth = 20 * onePixelXInVulkan * uiSizeFactor;
-    const dragAreaWidth = (menuWidth - sliderSpacingX * 2 - sliderWidth);
+    const dragAreaWidth = 255 * onePixelXInVulkan * uiSizeFactor - sliderSpacingX * 2 - sliderWidth;
 
     const iconWidth = 40 * onePixelXInVulkan * uiSizeFactor;
     const iconHeight = 40 * onePixelYInVulkan * uiSizeFactor;
@@ -114,12 +113,6 @@ pub fn setupUiLocations(state: *main.GameState) void {
         },
     };
 
-    settingsMenuUx.settingsMenuRectangle.width = menuWidth;
-    settingsMenuUx.settingsMenuRectangle.pos = .{
-        .x = 1 - menuWidth - vulkanSpacingX,
-        .y = -1 + vulkanSpacingY + iconHeight,
-    };
-    const settingsMenuRec = settingsMenuUx.settingsMenuRectangle;
     const tabsHeight = settingsMenuUx.baseFontSize * 2 / windowSdlZig.windowData.heightFloat * uiSizeFactor + vulkanSpacingY * 2;
     var tabOffsetX: f32 = 0;
     for (0..settingsMenuUx.uiTabs.len) |tabCount| {
@@ -127,27 +120,34 @@ pub fn setupUiLocations(state: *main.GameState) void {
         const tab = &settingsMenuUx.uiTabs[tabIndex];
         const tabTextWidth = fontVulkanZig.getTextVulkanWidth(tab.label, settingsMenuUx.baseFontSize) * uiSizeFactor;
         const tabWidth = tabTextWidth + vulkanSpacingX * 2;
-        tab.rec = .{
-            .pos = .{ .x = settingsMenuRec.pos.x + settingsMenuRec.width - tabWidth + tabOffsetX, .y = settingsMenuRec.pos.y },
+        tab.labelRec = .{
+            .pos = .{ .x = 0.99 - tabWidth + tabOffsetX, .y = -1 + vulkanSpacingY + iconHeight },
             .width = tabWidth,
             .height = tabsHeight,
         };
-        tabOffsetX -= tab.rec.width;
+        tabOffsetX -= tab.labelRec.width;
     }
-
     for (&settingsMenuUx.uiTabs) |*tab| {
-        var offsetY: f32 = settingsMenuRec.pos.y + tabsHeight;
+        var maxTabWidth: f32 = 0;
+        tab.contentRec.width = 0;
+        tab.contentRec.height = 0;
+        tab.contentRec.pos.y = tab.labelRec.pos.y + tab.labelRec.height;
+
+        var offsetY: f32 = tab.contentRec.pos.y;
         for (tab.uiElements) |*element| {
             switch (element.*) {
                 .holdButton => |*data| {
+                    const textWidthEstimate = fontVulkanZig.getTextVulkanWidth(data.label, settingsMenuUx.baseFontSize) * uiSizeFactor;
                     data.rec = main.Rectangle{
                         .height = data.baseHeight / windowSdlZig.windowData.heightFloat * uiSizeFactor,
-                        .width = menuWidth - vulkanSpacingX * 2,
+                        .width = textWidthEstimate + vulkanSpacingX * 2,
                         .pos = .{
-                            .x = settingsMenuRec.pos.x + vulkanSpacingX,
+                            .x = tab.contentRec.pos.x + vulkanSpacingX,
                             .y = offsetY + vulkanSpacingY,
                         },
                     };
+                    const widthEstimate = data.rec.width + vulkanSpacingX * 2;
+                    if (widthEstimate > maxTabWidth) maxTabWidth = widthEstimate;
                     offsetY = data.rec.pos.y + data.rec.height;
                 },
                 .checkbox => |*data| {
@@ -155,10 +155,13 @@ pub fn setupUiLocations(state: *main.GameState) void {
                         .height = data.baseSize / windowSdlZig.windowData.heightFloat * uiSizeFactor,
                         .width = data.baseSize / windowSdlZig.windowData.widthFloat * uiSizeFactor,
                         .pos = .{
-                            .x = settingsMenuRec.pos.x + vulkanSpacingX,
+                            .x = tab.contentRec.pos.x + vulkanSpacingX,
                             .y = offsetY + vulkanSpacingLargerY,
                         },
                     };
+                    const textWidthEstimate = fontVulkanZig.getTextVulkanWidth(data.label, settingsMenuUx.baseFontSize) * uiSizeFactor;
+                    const widthEstimate = textWidthEstimate + data.rec.width + vulkanSpacingX * 3;
+                    if (widthEstimate > maxTabWidth) maxTabWidth = widthEstimate;
                     offsetY = data.rec.pos.y + data.rec.height;
                 },
                 .slider => |*data| {
@@ -169,7 +172,7 @@ pub fn setupUiLocations(state: *main.GameState) void {
                         .height = data.baseHeight / windowSdlZig.windowData.heightFloat * uiSizeFactor,
                         .width = sliderWidth,
                         .pos = .{
-                            .x = settingsMenuRec.pos.x + sliderOffsetX + vulkanSpacingX,
+                            .x = tab.contentRec.pos.x + sliderOffsetX + vulkanSpacingX,
                             .y = offsetY + vulkanSpacingLargerY,
                         },
                     };
@@ -177,16 +180,38 @@ pub fn setupUiLocations(state: *main.GameState) void {
                         .height = data.baseHeight / 4 / windowSdlZig.windowData.heightFloat * uiSizeFactor,
                         .width = dragAreaWidth,
                         .pos = .{
-                            .x = settingsMenuRec.pos.x + sliderWidth / 2 + vulkanSpacingX,
+                            .x = tab.contentRec.pos.x + sliderWidth / 2 + vulkanSpacingX,
                             .y = data.recSlider.pos.y + data.baseHeight / 8 * 3 / windowSdlZig.windowData.heightFloat * uiSizeFactor,
                         },
                     };
+                    const textWidthEstimate = fontVulkanZig.getTextVulkanWidth(data.label, settingsMenuUx.baseFontSize) * uiSizeFactor;
+                    const numberWidthEstimate = settingsMenuUx.baseFontSize * uiSizeFactor * 3 * onePixelXInVulkan + vulkanSpacingX * 2;
+                    const widthEstimate = @max(dragAreaWidth + sliderWidth, textWidthEstimate + numberWidthEstimate) + vulkanSpacingX * 2;
+                    if (widthEstimate > maxTabWidth) maxTabWidth = widthEstimate;
                     offsetY = data.recSlider.pos.y + data.recSlider.height;
                 },
             }
+            tab.contentRec.height = offsetY - tab.contentRec.pos.y + vulkanSpacingY;
+            tab.contentRec.width = maxTabWidth;
         }
-        const tabHeight = offsetY - settingsMenuRec.pos.y + vulkanSpacingY;
-        if (tabHeight > settingsMenuUx.settingsMenuRectangle.height) settingsMenuUx.settingsMenuRectangle.height = tabHeight;
+    }
+    for (&settingsMenuUx.uiTabs) |*tab| {
+        tab.contentRec.pos.x = 0.99 - tab.contentRec.width;
+        for (tab.uiElements) |*element| {
+            switch (element.*) {
+                .holdButton => |*data| {
+                    data.rec.pos.x = tab.contentRec.pos.x + vulkanSpacingX;
+                },
+                .checkbox => |*data| {
+                    data.rec.pos.x = tab.contentRec.pos.x + vulkanSpacingX;
+                },
+                .slider => |*data| {
+                    data.recDragArea.pos.x = tab.contentRec.pos.x + sliderWidth / 2 + vulkanSpacingX;
+                    const sliderOffsetX = data.valuePerCent * dragAreaWidth;
+                    data.recSlider.pos.x = tab.contentRec.pos.x + sliderOffsetX + vulkanSpacingX;
+                },
+            }
+        }
     }
 }
 
@@ -204,7 +229,7 @@ pub fn mouseMove(mouseWindowPosition: main.Position, state: *main.GameState) !vo
 
     settingsMenuUx.hoverTabIndex = null;
     for (&settingsMenuUx.uiTabs, 0..) |*tab, tabIndex| {
-        if (main.isPositionInRectangle(vulkanMousePos, tab.rec)) {
+        if (main.isPositionInRectangle(vulkanMousePos, tab.labelRec)) {
             settingsMenuUx.hoverTabIndex = tabIndex;
             break;
         }
@@ -277,7 +302,7 @@ pub fn mouseDown(mouseWindowPosition: main.Position, state: *main.GameState) !vo
     }
     if (!settingsMenuUx.menuOpen) return;
     for (&settingsMenuUx.uiTabs, 0..) |*tab, tabIndex| {
-        if (main.isPositionInRectangle(vulkanMousePos, tab.rec)) {
+        if (main.isPositionInRectangle(vulkanMousePos, tab.labelRec)) {
             settingsMenuUx.activeTabIndex = tabIndex;
             return;
         }
@@ -357,34 +382,34 @@ pub fn setupVertices(state: *main.GameState) !void {
         const vulkanSpacingY = SPACING_PIXELS * onePixelYInVulkan * uiSizeFactor;
         const fontSize: f32 = settingsMenuUx.baseFontSize * uiSizeFactor;
         const fontVulkanHeight = fontSize * onePixelYInVulkan;
-        const menuRec = settingsMenuUx.settingsMenuRectangle;
+        const menuRec = settingsMenuUx.uiTabs[settingsMenuUx.activeTabIndex].contentRec;
         paintVulkanZig.verticesForRectangle(menuRec.pos.x, menuRec.pos.y, menuRec.width, menuRec.height, color, &verticeData.lines, &verticeData.triangles);
         const timestamp = std.time.milliTimestamp();
         var tabsOffsetX: f32 = 0;
         for (settingsMenuUx.uiTabs, 0..) |tab, tabIndex| {
             const tabsAlpha: f32 = if (tabIndex == settingsMenuUx.activeTabIndex) 1 else 0.5;
             const textWidth = fontVulkanZig.paintText(tab.label, .{
-                .x = tab.rec.pos.x + vulkanSpacingX,
-                .y = tab.rec.pos.y + vulkanSpacingY,
+                .x = tab.labelRec.pos.x + vulkanSpacingX,
+                .y = tab.labelRec.pos.y + vulkanSpacingY,
             }, fontSize, .{ 1, 1, 1, tabsAlpha }, &verticeData.font);
             if (tabIndex == settingsMenuUx.activeTabIndex) {
                 const lines = &verticeData.lines;
                 if (lines.verticeCount + 6 < lines.vertices.len) {
                     const borderColor: [4]f32 = .{ 0, 0, 0, 1 };
-                    lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ tab.rec.pos.x, tab.rec.pos.y }, .color = borderColor };
-                    lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ tab.rec.pos.x + tab.rec.width, tab.rec.pos.y }, .color = borderColor };
-                    lines.vertices[lines.verticeCount + 2] = .{ .pos = .{ tab.rec.pos.x, tab.rec.pos.y }, .color = borderColor };
-                    lines.vertices[lines.verticeCount + 3] = .{ .pos = .{ tab.rec.pos.x, tab.rec.pos.y + tab.rec.height }, .color = borderColor };
-                    lines.vertices[lines.verticeCount + 4] = .{ .pos = .{ tab.rec.pos.x + tab.rec.width, tab.rec.pos.y }, .color = borderColor };
-                    lines.vertices[lines.verticeCount + 5] = .{ .pos = .{ tab.rec.pos.x + tab.rec.width, tab.rec.pos.y + tab.rec.height }, .color = borderColor };
+                    lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ tab.labelRec.pos.x, tab.labelRec.pos.y }, .color = borderColor };
+                    lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ tab.labelRec.pos.x + tab.labelRec.width, tab.labelRec.pos.y }, .color = borderColor };
+                    lines.vertices[lines.verticeCount + 2] = .{ .pos = .{ tab.labelRec.pos.x, tab.labelRec.pos.y }, .color = borderColor };
+                    lines.vertices[lines.verticeCount + 3] = .{ .pos = .{ tab.labelRec.pos.x, tab.labelRec.pos.y + tab.labelRec.height }, .color = borderColor };
+                    lines.vertices[lines.verticeCount + 4] = .{ .pos = .{ tab.labelRec.pos.x + tab.labelRec.width, tab.labelRec.pos.y }, .color = borderColor };
+                    lines.vertices[lines.verticeCount + 5] = .{ .pos = .{ tab.labelRec.pos.x + tab.labelRec.width, tab.labelRec.pos.y + tab.labelRec.height }, .color = borderColor };
                     lines.verticeCount += 6;
                 }
                 if (tabIndex == settingsMenuUx.hoverTabIndex) {
-                    paintVulkanZig.verticesForRectangle(tab.rec.pos.x, tab.rec.pos.y, tab.rec.width, tab.rec.height, hoverColor, null, &verticeData.triangles);
+                    paintVulkanZig.verticesForRectangle(tab.labelRec.pos.x, tab.labelRec.pos.y, tab.labelRec.width, tab.labelRec.height, hoverColor, null, &verticeData.triangles);
                 }
             } else {
                 const triangles = if (tabIndex == settingsMenuUx.hoverTabIndex) &verticeData.triangles else null;
-                paintVulkanZig.verticesForRectangle(tab.rec.pos.x, tab.rec.pos.y, tab.rec.width, tab.rec.height, hoverColor, &verticeData.lines, triangles);
+                paintVulkanZig.verticesForRectangle(tab.labelRec.pos.x, tab.labelRec.pos.y, tab.labelRec.width, tab.labelRec.height, hoverColor, &verticeData.lines, triangles);
             }
             tabsOffsetX += textWidth + vulkanSpacingX * 2;
         }
