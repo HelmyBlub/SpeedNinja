@@ -1,11 +1,11 @@
 testruns:
-- beat boss 5 without spending money
 - beat game with only starting move pieces
 - speed run normal mode
     - speedrun stategy(43:25, 3death)
 
 
 Tasks:
+- bug: boss snake hit me one tile to early? or why moving? does head hit while moving?
 - speedrun statistics options
     - settings menu to disable different columns
 - be able to choose new game plus on start
@@ -19,8 +19,8 @@ Next ideas:
     - beat each boss (10 achievemnts)
     - beat newGame+1 
     - beat game in under 45min
-    - beat boss 5 without spending money (first try myself)
-    - beat game with only starting move pieces
+    - beat boss 5 without spending money
+    - beat game with only starting move pieces (need to beat myself fire)
     - beat game without taking damage
     - ???beat newGame+2???
     
@@ -38,6 +38,7 @@ Next ideas:
 - disable debug keys
 - pratice mode
 - pvp
+- visualize achievments in game
 - modifiers
     - before game start set modifiers to make game easier or harder
         - gain more/less money

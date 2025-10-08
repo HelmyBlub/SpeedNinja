@@ -81,7 +81,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             .x = boss.position.x + stepDirection.x * main.TILESIZE,
             .y = boss.position.y + stepDirection.y * main.TILESIZE,
         };
-        try enemyZig.checkPlayerHit(movePosition, state);
+        try enemyZig.checkStationaryPlayerHit(movePosition, state);
         try enemyObjectFireZig.spawnFire(movePosition, snakeData.fireDuration, false, state);
         var rotation: f32 = @as(f32, @floatFromInt(snakeData.nextMoveDirection)) * std.math.pi / 2.0;
         if (snakeData.snakeBodyParts.items.len > 0) {
