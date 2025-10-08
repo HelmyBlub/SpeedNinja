@@ -47,7 +47,7 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
                 .x = enemy.position.x + stepDirection.x * main.TILESIZE,
                 .y = enemy.position.y + stepDirection.y * main.TILESIZE,
             };
-            try enemyZig.checkPlayerHit(hitPosition, state);
+            try enemyZig.checkStationaryPlayerHit(hitPosition, state);
             data.oldDirection = data.direction;
             data.visualizeAttack = state.gameTime + ATTACK_VISUALIZE_DURATION;
             data.startTime = null;

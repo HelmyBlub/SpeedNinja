@@ -5,7 +5,6 @@ testruns:
 
 
 Tasks:
-- bug: boss snake hit me one tile to early? or why moving? does head hit while moving?
 - speedrun statistics options
     - settings menu to disable different columns
 - be able to choose new game plus on start

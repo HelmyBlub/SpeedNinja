@@ -49,7 +49,7 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
                 .x = enemy.position.x + stepDirection.x * main.TILESIZE,
                 .y = enemy.position.y + stepDirection.y * main.TILESIZE,
             };
-            try enemyZig.checkPlayerHit(moveToPosition, state);
+            try enemyZig.checkStationaryPlayerHit(moveToPosition, state);
             try enemyObjectFireZig.spawnFire(moveToPosition, data.fireDuration, false, state);
             enemy.position = moveToPosition;
             data.nextMoveTime = null;

@@ -176,7 +176,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
         const attackTile = trippleData.airAttackPosition.items[airAttackIndex];
         if (attackTile.hitTime <= state.gameTime) {
             const attackPosition = main.tilePositionToGamePosition(attackTile.targetPosition);
-            try enemyZig.checkPlayerHit(attackPosition, state);
+            try enemyZig.checkStationaryPlayerHit(attackPosition, state);
             try state.spriteCutAnimations.append(.{ .colorOrImageIndex = .{ .imageIndex = imageZig.IMAGE_CANNON_BALL }, .cutAngle = 0, .deathTime = state.gameTime, .position = attackPosition, .force = 0.5 });
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BALL_GROUND_INDICIES[0..], 0, 1);
             _ = trippleData.airAttackPosition.swapRemove(airAttackIndex);
