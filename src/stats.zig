@@ -15,6 +15,17 @@ pub const Statistics = struct {
 
 pub const StatisticsUxData = struct {
     display: bool = true,
+    fontSize: f32 = 16,
+    columnsData: []ColumnData = &COLUMNS_DATA,
+    currentTimestamp: i64 = 0,
+    displayNextLevelData: bool = true,
+};
+
+const ColumnData = struct {
+    name: []const u8,
+    display: bool,
+    pixelWidth: f32,
+    setupVertices: *const fn (level: u32, levelDatas: []LevelStatistics, paintPos: main.Position, state: *main.GameState) anyerror!void,
 };
 
 const LevelStatiscticsWithPlayerCount = struct {
@@ -35,6 +46,13 @@ const LevelStatistics = struct {
 const FILE_NAME_STATISTICS_DATA = "statistics.dat";
 const SAFE_FILE_VERSION: u8 = 0;
 
+var COLUMNS_DATA = [_]ColumnData{
+    .{ .name = "Level", .display = true, .pixelWidth = 100, .setupVertices = setupVerticesLevel },
+    .{ .name = "Time", .display = true, .pixelWidth = 100, .setupVertices = setupVerticesTime },
+    .{ .name = "+/-", .display = true, .pixelWidth = 100, .setupVertices = setupVerticesTotalDiff },
+    .{ .name = "Gold", .display = true, .pixelWidth = 100, .setupVertices = setupVerticesLevelDiff },
+};
+
 pub fn statsOnLevelFinished(state: *main.GameState) !void {
     const currentTime = std.time.milliTimestamp();
     if (state.level == main.LEVEL_COUNT and state.gamePhase == .finished) state.statistics.runFinishedTime = currentTime - state.statistics.runStartedTime;
@@ -48,7 +66,7 @@ pub fn statsOnLevelFinished(state: *main.GameState) !void {
         currentLevelData.currentTime = currentLevelData.currentTotalTime;
     } else {
         const lastLevelData = &levelDatas[state.level - 2];
-        currentLevelData.currentTime = currentTime - lastLevelData.currentTotalTime - lastLevelData.currentShoppingTime;
+        currentLevelData.currentTime = currentLevelData.currentTotalTime - lastLevelData.currentTotalTime - lastLevelData.currentShoppingTime;
     }
 }
 
@@ -58,7 +76,7 @@ pub fn statsOnLevelShopFinishedAndNextLevelStart(state: *main.GameState) !void {
     const levelDatas: []LevelStatistics = try getLevelDatas(state);
     const currentLevelData = &levelDatas[state.level - 1];
     const currentTime = std.time.milliTimestamp();
-    currentLevelData.currentShoppingTime = currentTime - currentLevelData.currentTotalTime;
+    currentLevelData.currentShoppingTime = currentTime - state.statistics.runStartedTime - currentLevelData.currentTotalTime;
     state.statistics.totalShoppingTime += currentLevelData.currentShoppingTime;
 }
 
@@ -121,9 +139,6 @@ fn checkIfIsNewBestTotalTime(levelDatas: []LevelStatistics, state: *main.GameSta
             }
         }
     }
-    if (isNewBestTotal) {
-        std.debug.print("new best score\n", .{});
-    }
     return isNewBestTotal;
 }
 
@@ -146,58 +161,116 @@ pub fn destroyAndSave(state: *main.GameState) !void {
 pub fn setupVertices(state: *main.GameState) !void {
     if (!state.statistics.active) return;
     if (!state.statistics.uxData.display) return;
-    if (state.level <= 1) return;
+    // if (state.level <= 1) return;
     if (state.players.items.len > 1 and state.gamePhase != .shopping and state.gamePhase != .finished) return;
+    state.statistics.uxData.currentTimestamp = std.time.milliTimestamp();
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const topLeft: main.Position = .{ .x = 0.55, .y = -0.5 };
     const levelDatas: []LevelStatistics = try getLevelDatas(state);
-    const fontSize = 16;
+    const fontSize = state.statistics.uxData.fontSize;
     const firstDisplayLevel = if (state.level > 10) state.level - 10 else 1;
-    const levelTextWidth = fontVulkanZig.paintText("Level  ", .{ .x = topLeft.x, .y = topLeft.y }, fontSize, textColor, &state.vkState.verticeData.font);
-    const offsetX1 = topLeft.x + levelTextWidth;
-    const timeTextWidth = fontVulkanZig.paintText("Time      ", .{ .x = offsetX1, .y = topLeft.y }, fontSize, textColor, &state.vkState.verticeData.font);
-    const offsetX2 = offsetX1 + timeTextWidth;
-    const diffTotalTextWidth = fontVulkanZig.paintText("DiffTotal  ", .{ .x = offsetX2, .y = topLeft.y }, fontSize, textColor, &state.vkState.verticeData.font);
-    const offsetX3 = offsetX2 + diffTotalTextWidth;
-    _ = fontVulkanZig.paintText("DiffLevel", .{ .x = offsetX3, .y = topLeft.y }, fontSize, textColor, &state.vkState.verticeData.font);
-    const red: [4]f32 = .{ 0.7, 0, 0, 1 };
-    const green: [4]f32 = .{ 0.1, 1, 0.1, 1 };
-    const currentTime = std.time.milliTimestamp();
-    for (firstDisplayLevel..state.level + 1) |level| {
-        const levelData = levelDatas[level - 1];
-        const offsetY = onePixelYInVulkan * @as(f32, @floatFromInt(fontSize * (level - firstDisplayLevel + 1)));
-        _ = try fontVulkanZig.paintNumber(level, .{ .x = topLeft.x, .y = topLeft.y + offsetY }, fontSize, textColor, &state.vkState.verticeData.font);
-        var currentTotalTime = levelData.currentTotalTime;
-        if (currentTotalTime == 0) {
-            currentTotalTime = state.gameTime;
+    const lastDisplayLevel = if (state.statistics.uxData.displayNextLevelData and state.level < main.LEVEL_COUNT) state.level + 2 else state.level + 1;
+    var columnOffsetX: f32 = 0;
+    for (state.statistics.uxData.columnsData) |column| {
+        if (!column.display) continue;
+        _ = fontVulkanZig.paintText(column.name, .{ .x = topLeft.x + columnOffsetX, .y = topLeft.y }, fontSize, textColor, &state.vkState.verticeData.font);
+        columnOffsetX += column.pixelWidth * onePixelXInVulkan;
+    }
+    for (firstDisplayLevel..lastDisplayLevel) |level| {
+        const row: f32 = @as(f32, @floatFromInt(level - firstDisplayLevel)) + 1;
+        columnOffsetX = 0;
+        for (state.statistics.uxData.columnsData) |column| {
+            if (!column.display) continue;
+            try column.setupVertices(@intCast(level), levelDatas, .{ .x = topLeft.x + columnOffsetX, .y = topLeft.y + row * fontSize * onePixelYInVulkan }, state);
+            columnOffsetX += column.pixelWidth * onePixelXInVulkan;
         }
-        _ = try fontVulkanZig.paintTime(currentTotalTime, .{ .x = offsetX1, .y = topLeft.y + offsetY }, fontSize, true, textColor, &state.vkState.verticeData.font);
-        if (levelData.fastestTotalTime != null and levelData.fastestTime != null) {
-            var levelCurrentTime = levelData.currentTime;
-            if (levelCurrentTime == 0) {
-                if (level > 1) {
-                    const lastLevelData = &levelDatas[level - 2];
-                    levelCurrentTime = currentTime - lastLevelData.currentTotalTime - lastLevelData.currentShoppingTime;
+    }
+}
+
+fn setupVerticesLevel(level: u32, levelDatas: []LevelStatistics, paintPos: main.Position, state: *main.GameState) anyerror!void {
+    _ = levelDatas;
+    const alpha: f32 = if (level > state.level) 0.5 else 1;
+    _ = try fontVulkanZig.paintNumber(level, .{ .x = paintPos.x, .y = paintPos.y }, state.statistics.uxData.fontSize, .{ 1, 1, 1, alpha }, &state.vkState.verticeData.font);
+}
+
+fn setupVerticesTime(level: u32, levelDatas: []LevelStatistics, paintPos: main.Position, state: *main.GameState) anyerror!void {
+    const alpha: f32 = if (level > state.level) 0.5 else 1;
+    const textColor: [4]f32 = .{ 1, 1, 1, alpha };
+    if (level - 1 < levelDatas.len) {
+        const levelData = levelDatas[level - 1];
+        var displayTime = levelData.currentTotalTime;
+        if (level == state.level and state.gamePhase != .shopping) {
+            displayTime = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime;
+        } else if (level > state.level) {
+            if (levelData.fastestTotalTime) |fastestTotalTime| {
+                displayTime = fastestTotalTime;
+            } else {
+                _ = fontVulkanZig.paintText("--", paintPos, state.statistics.uxData.fontSize, textColor, &state.vkState.verticeData.font);
+                return;
+            }
+        }
+        _ = try fontVulkanZig.paintTime(displayTime, paintPos, state.statistics.uxData.fontSize, true, textColor, &state.vkState.verticeData.font);
+    } else {
+        _ = fontVulkanZig.paintText("--", paintPos, state.statistics.uxData.fontSize, textColor, &state.vkState.verticeData.font);
+    }
+}
+
+fn setupVerticesLevelDiff(level: u32, levelDatas: []LevelStatistics, paintPos: main.Position, state: *main.GameState) anyerror!void {
+    if (level - 1 < levelDatas.len) {
+        const levelData = levelDatas[level - 1];
+        if (levelData.fastestTime) |fastestTime| {
+            const fontSize = state.statistics.uxData.fontSize;
+            if (level > state.level) {
+                _ = try fontVulkanZig.paintTime(fastestTime, .{ .x = paintPos.x, .y = paintPos.y }, fontSize, true, .{ 1, 1, 1, 0.5 }, &state.vkState.verticeData.font);
+            } else {
+                const red: [4]f32 = .{ 0.7, 0, 0, 1 };
+                const green: [4]f32 = .{ 0.1, 1, 0.1, 1 };
+                var levelCurrentTime = levelData.currentTime;
+                if (level == state.level and state.gamePhase != .shopping) {
+                    if (level > 1) {
+                        const lastLevelData = &levelDatas[level - 2];
+                        levelCurrentTime = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - lastLevelData.currentTotalTime - lastLevelData.currentShoppingTime;
+                    } else {
+                        levelCurrentTime = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime;
+                    }
+                }
+                const diff = levelCurrentTime - fastestTime;
+                const color = if (diff > 0) red else green;
+                if (diff > 0) {
+                    const plusWidth = fontVulkanZig.paintText("+", .{ .x = paintPos.x, .y = paintPos.y }, fontSize, color, &state.vkState.verticeData.font);
+                    _ = try fontVulkanZig.paintTime(diff, .{ .x = paintPos.x + plusWidth, .y = paintPos.y }, fontSize, true, color, &state.vkState.verticeData.font);
                 } else {
-                    levelCurrentTime = currentTime;
+                    _ = try fontVulkanZig.paintTime(diff, .{ .x = paintPos.x, .y = paintPos.y }, fontSize, true, color, &state.vkState.verticeData.font);
                 }
             }
-            const diffTotal = currentTotalTime - levelData.fastestTotalTime.?;
-            var color: [4]f32 = if (diffTotal > 0) red else green;
-            if (diffTotal > 0) {
-                const plusWidth = fontVulkanZig.paintText("+", .{ .x = offsetX2, .y = topLeft.y + offsetY }, fontSize, color, &state.vkState.verticeData.font);
-                _ = try fontVulkanZig.paintTime(diffTotal, .{ .x = offsetX2 + plusWidth, .y = topLeft.y + offsetY }, fontSize, true, color, &state.vkState.verticeData.font);
-            } else {
-                _ = try fontVulkanZig.paintTime(diffTotal, .{ .x = offsetX2, .y = topLeft.y + offsetY }, fontSize, true, color, &state.vkState.verticeData.font);
-            }
-            const diff = levelCurrentTime - levelData.fastestTime.?;
-            color = if (diff > 0) red else green;
-            if (diff > 0) {
-                const plusWidth = fontVulkanZig.paintText("+", .{ .x = offsetX3, .y = topLeft.y + offsetY }, fontSize, color, &state.vkState.verticeData.font);
-                _ = try fontVulkanZig.paintTime(diff, .{ .x = offsetX3 + plusWidth, .y = topLeft.y + offsetY }, fontSize, true, color, &state.vkState.verticeData.font);
-            } else {
-                _ = try fontVulkanZig.paintTime(diff, .{ .x = offsetX3, .y = topLeft.y + offsetY }, fontSize, true, color, &state.vkState.verticeData.font);
+        }
+    }
+}
+
+fn setupVerticesTotalDiff(level: u32, levelDatas: []LevelStatistics, paintPos: main.Position, state: *main.GameState) anyerror!void {
+    if (level - 1 < levelDatas.len) {
+        const levelData = levelDatas[level - 1];
+        if (levelData.fastestTotalTime) |fastestTime| {
+            const fontSize = state.statistics.uxData.fontSize;
+            if (level <= state.level) {
+                const red: [4]f32 = .{ 0.7, 0, 0, 1 };
+                const green: [4]f32 = .{ 0.1, 1, 0.1, 1 };
+                var diffTotal: i64 = 0;
+                if (level == state.level and state.gamePhase != .shopping) {
+                    diffTotal = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - fastestTime;
+                } else {
+                    diffTotal = levelData.currentTotalTime - fastestTime;
+                }
+
+                const color: [4]f32 = if (diffTotal > 0) red else green;
+                if (diffTotal > 0) {
+                    const plusWidth = fontVulkanZig.paintText("+", .{ .x = paintPos.x, .y = paintPos.y }, fontSize, color, &state.vkState.verticeData.font);
+                    _ = try fontVulkanZig.paintTime(diffTotal, .{ .x = paintPos.x + plusWidth, .y = paintPos.y }, fontSize, true, color, &state.vkState.verticeData.font);
+                } else {
+                    _ = try fontVulkanZig.paintTime(diffTotal, .{ .x = paintPos.x, .y = paintPos.y }, fontSize, true, color, &state.vkState.verticeData.font);
+                }
             }
         }
     }
