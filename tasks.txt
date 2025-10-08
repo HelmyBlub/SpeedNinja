@@ -7,6 +7,7 @@ testruns:
 Tasks:
 - speedrun statistics options
     - settings menu to disable different columns
+        - split settings menu in more tabs
 - be able to choose new game plus on start
     - available once game beaten on normal mode
 

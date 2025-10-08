@@ -50,23 +50,25 @@ pub fn loadSettingsFromFile(state: *main.GameState) !void {
     if (fileVersion != FILE_VERSION_SETTINGS) {
         // do stuff if different versions exist
     }
-    for (&state.uxData.settingsMenuUx.uiElements) |*uiElement| {
-        switch (uiElement.*) {
-            .holdButton => {},
-            .checkbox => |*data| {
-                const checked = try reader.readInt(u8, .little);
-                data.checked = if (checked != 0) true else false;
-                try data.onSetChecked(data.checked, state);
-            },
-            .slider => |*data| {
-                const valuePerCent: f32 = @bitCast(try reader.readInt(u32, .little));
-                data.valuePerCent = valuePerCent;
-                if (data.onStopHolding) |stopHolding| {
-                    try stopHolding(data.valuePerCent, state);
-                } else if (data.onChange) |change| {
-                    try change(data.valuePerCent, state);
-                }
-            },
+    for (&state.uxData.settingsMenuUx.uiTabs) |*tab| {
+        for (tab.uiElements) |*uiElement| {
+            switch (uiElement.*) {
+                .holdButton => {},
+                .checkbox => |*data| {
+                    const checked = try reader.readInt(u8, .little);
+                    data.checked = if (checked != 0) true else false;
+                    try data.onSetChecked(data.checked, state);
+                },
+                .slider => |*data| {
+                    const valuePerCent: f32 = @bitCast(try reader.readInt(u32, .little));
+                    data.valuePerCent = valuePerCent;
+                    if (data.onStopHolding) |stopHolding| {
+                        try stopHolding(data.valuePerCent, state);
+                    } else if (data.onChange) |change| {
+                        try change(data.valuePerCent, state);
+                    }
+                },
+            }
         }
     }
 }
@@ -80,15 +82,17 @@ pub fn saveSettingsToFile(state: *main.GameState) !void {
 
     const writer = file.writer();
     _ = try writer.writeByte(FILE_VERSION_SETTINGS);
-    for (state.uxData.settingsMenuUx.uiElements) |uiElement| {
-        switch (uiElement) {
-            .holdButton => {},
-            .checkbox => |data| {
-                try writer.writeInt(u8, if (data.checked) 1 else 0, .little);
-            },
-            .slider => |data| {
-                try writer.writeInt(u32, @bitCast(data.valuePerCent), .little);
-            },
+    for (state.uxData.settingsMenuUx.uiTabs) |tab| {
+        for (tab.uiElements) |uiElement| {
+            switch (uiElement) {
+                .holdButton => {},
+                .checkbox => |data| {
+                    try writer.writeInt(u8, if (data.checked) 1 else 0, .little);
+                },
+                .slider => |data| {
+                    try writer.writeInt(u32, @bitCast(data.valuePerCent), .little);
+                },
+            }
         }
     }
 }

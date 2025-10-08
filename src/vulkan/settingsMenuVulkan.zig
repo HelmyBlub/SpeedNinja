@@ -13,24 +13,41 @@ pub const SettingsUx = struct {
     settingsIcon: main.Rectangle = undefined,
     settingsMenuRectangle: main.Rectangle = undefined,
     uiSizeDelayed: f32 = 1,
-    uiElements: [7]UiElementData = [_]UiElementData{
-        .{ .holdButton = .{ .label = "Restart", .onHoldDurationFinished = onHoldButtonRestart } },
-        .{ .holdButton = .{ .label = "Kick Players", .onHoldDurationFinished = onHoldButtonKickPlayers } },
-        .{ .checkbox = .{ .label = "Fullscreen", .onSetChecked = onCheckboxFullscreen } },
-        .{ .checkbox = .{ .label = "Time Freeze", .onSetChecked = onCheckboxFreezeOnHit, .checked = true } },
-        .{ .slider = .{ .label = "Volume", .valuePerCent = 1, .onChange = onSliderChangeVolume } },
-        .{ .slider = .{ .label = "UI Size", .valuePerCent = 0.5, .onStopHolding = onSliderStopHoldingUxSize } },
-        .{ .holdButton = .{ .label = "Quit", .onHoldDurationFinished = onHoldButtonQuit } },
+    uiTabs: [2]UiTabsData = [_]UiTabsData{
+        .{ .uiElements = &UI_ELEMENTS_MAIN, .label = "main" },
+        .{ .uiElements = &UI_ELEMENTS_SPEEDRUN_STATS, .label = "stats" },
     },
+    activeTabIndex: usize = 0,
+    hoverTabIndex: ?usize = null,
     baseFontSize: f32 = 26,
     settingsIconHovered: bool = false,
 };
 const BUTTON_HOLD_DURATION_MS = 2000;
+const SPACING_PIXELS = 5.0;
+var UI_ELEMENTS_MAIN = [_]UiElementData{
+    .{ .holdButton = .{ .label = "Restart", .onHoldDurationFinished = onHoldButtonRestart } },
+    .{ .holdButton = .{ .label = "Kick Players", .onHoldDurationFinished = onHoldButtonKickPlayers } },
+    .{ .checkbox = .{ .label = "Fullscreen", .onSetChecked = onCheckboxFullscreen } },
+    .{ .checkbox = .{ .label = "Time Freeze", .onSetChecked = onCheckboxFreezeOnHit, .checked = true } },
+    .{ .slider = .{ .label = "Volume", .valuePerCent = 1, .onChange = onSliderChangeVolume } },
+    .{ .slider = .{ .label = "UI Size", .valuePerCent = 0.5, .onStopHolding = onSliderStopHoldingUxSize } },
+    .{ .holdButton = .{ .label = "Quit", .onHoldDurationFinished = onHoldButtonQuit } },
+};
+
+var UI_ELEMENTS_SPEEDRUN_STATS = [_]UiElementData{
+    .{ .checkbox = .{ .label = "Speedrun Stats", .onSetChecked = onCheckboxSpeedrunStats, .checked = true } },
+};
 
 const UiElement = enum {
     slider,
     checkbox,
     holdButton,
+};
+
+const UiTabsData = struct {
+    label: []const u8,
+    uiElements: []UiElementData,
+    rec: main.Rectangle = .{ .pos = .{ .x = 0, .y = 0 }, .width = 0, .height = 0 },
 };
 
 const UiElementData = union(UiElement) {
@@ -74,8 +91,8 @@ pub fn setupUiLocations(state: *main.GameState) void {
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const settingsMenuUx = &state.uxData.settingsMenuUx;
     const uiSizeFactor = settingsMenuUx.uiSizeDelayed;
-    const vulkanSpacingX = 5.0 * onePixelXInVulkan * uiSizeFactor;
-    const vulkanSpacingY = 5 * onePixelYInVulkan * uiSizeFactor;
+    const vulkanSpacingX = SPACING_PIXELS * onePixelXInVulkan * uiSizeFactor;
+    const vulkanSpacingY = SPACING_PIXELS * onePixelYInVulkan * uiSizeFactor;
     const vulkanSpacingLargerY = 20.0 * onePixelYInVulkan * uiSizeFactor;
     const menuWidth = 255 * onePixelXInVulkan * uiSizeFactor;
     const sliderSpacingX = 20.0 * onePixelXInVulkan * uiSizeFactor;
@@ -99,56 +116,74 @@ pub fn setupUiLocations(state: *main.GameState) void {
         .y = -1 + vulkanSpacingY + iconHeight,
     };
     const settingsMenuRec = settingsMenuUx.settingsMenuRectangle;
-    var offsetY: f32 = settingsMenuRec.pos.y;
-    for (&settingsMenuUx.uiElements) |*element| {
-        switch (element.*) {
-            .holdButton => |*data| {
-                data.rec = main.Rectangle{
-                    .height = data.baseHeight / windowSdlZig.windowData.heightFloat * uiSizeFactor,
-                    .width = menuWidth - vulkanSpacingX * 2,
-                    .pos = .{
-                        .x = settingsMenuRec.pos.x + vulkanSpacingX,
-                        .y = offsetY + vulkanSpacingY,
-                    },
-                };
-                offsetY = data.rec.pos.y + data.rec.height;
-            },
-            .checkbox => |*data| {
-                data.rec = main.Rectangle{
-                    .height = data.baseSize / windowSdlZig.windowData.heightFloat * uiSizeFactor,
-                    .width = data.baseSize / windowSdlZig.windowData.widthFloat * uiSizeFactor,
-                    .pos = .{
-                        .x = settingsMenuRec.pos.x + vulkanSpacingX,
-                        .y = offsetY + vulkanSpacingLargerY,
-                    },
-                };
-                offsetY = data.rec.pos.y + data.rec.height;
-            },
-            .slider => |*data| {
-                const labelOffsetY = settingsMenuUx.baseFontSize * onePixelYInVulkan;
-                offsetY += labelOffsetY;
-                const sliderOffsetX = data.valuePerCent * dragAreaWidth;
-                data.recSlider = main.Rectangle{
-                    .height = data.baseHeight / windowSdlZig.windowData.heightFloat * uiSizeFactor,
-                    .width = sliderWidth,
-                    .pos = .{
-                        .x = settingsMenuRec.pos.x + sliderOffsetX + vulkanSpacingX,
-                        .y = offsetY + vulkanSpacingLargerY,
-                    },
-                };
-                data.recDragArea = main.Rectangle{
-                    .height = data.baseHeight / 4 / windowSdlZig.windowData.heightFloat * uiSizeFactor,
-                    .width = dragAreaWidth,
-                    .pos = .{
-                        .x = settingsMenuRec.pos.x + sliderWidth / 2 + vulkanSpacingX,
-                        .y = data.recSlider.pos.y + data.baseHeight / 8 * 3 / windowSdlZig.windowData.heightFloat * uiSizeFactor,
-                    },
-                };
-                offsetY = data.recSlider.pos.y + data.recSlider.height;
-            },
-        }
+    const tabsHeight = settingsMenuUx.baseFontSize * 2 / windowSdlZig.windowData.heightFloat * uiSizeFactor + vulkanSpacingY * 2;
+    var tabOffsetX: f32 = 0;
+    for (0..settingsMenuUx.uiTabs.len) |tabCount| {
+        const tabIndex = settingsMenuUx.uiTabs.len - 1 - tabCount;
+        const tab = &settingsMenuUx.uiTabs[tabIndex];
+        const tabTextWidth = fontVulkanZig.getTextVulkanWidth(tab.label, settingsMenuUx.baseFontSize) * uiSizeFactor;
+        const tabWidth = tabTextWidth + vulkanSpacingX * 2;
+        tab.rec = .{
+            .pos = .{ .x = settingsMenuRec.pos.x + settingsMenuRec.width - tabWidth + tabOffsetX, .y = settingsMenuRec.pos.y },
+            .width = tabWidth,
+            .height = tabsHeight,
+        };
+        tabOffsetX -= tab.rec.width;
     }
-    settingsMenuUx.settingsMenuRectangle.height = offsetY - settingsMenuRec.pos.y + vulkanSpacingY;
+
+    for (&settingsMenuUx.uiTabs) |*tab| {
+        var offsetY: f32 = settingsMenuRec.pos.y + tabsHeight;
+        for (tab.uiElements) |*element| {
+            switch (element.*) {
+                .holdButton => |*data| {
+                    data.rec = main.Rectangle{
+                        .height = data.baseHeight / windowSdlZig.windowData.heightFloat * uiSizeFactor,
+                        .width = menuWidth - vulkanSpacingX * 2,
+                        .pos = .{
+                            .x = settingsMenuRec.pos.x + vulkanSpacingX,
+                            .y = offsetY + vulkanSpacingY,
+                        },
+                    };
+                    offsetY = data.rec.pos.y + data.rec.height;
+                },
+                .checkbox => |*data| {
+                    data.rec = main.Rectangle{
+                        .height = data.baseSize / windowSdlZig.windowData.heightFloat * uiSizeFactor,
+                        .width = data.baseSize / windowSdlZig.windowData.widthFloat * uiSizeFactor,
+                        .pos = .{
+                            .x = settingsMenuRec.pos.x + vulkanSpacingX,
+                            .y = offsetY + vulkanSpacingLargerY,
+                        },
+                    };
+                    offsetY = data.rec.pos.y + data.rec.height;
+                },
+                .slider => |*data| {
+                    const labelOffsetY = settingsMenuUx.baseFontSize * onePixelYInVulkan;
+                    offsetY += labelOffsetY;
+                    const sliderOffsetX = data.valuePerCent * dragAreaWidth;
+                    data.recSlider = main.Rectangle{
+                        .height = data.baseHeight / windowSdlZig.windowData.heightFloat * uiSizeFactor,
+                        .width = sliderWidth,
+                        .pos = .{
+                            .x = settingsMenuRec.pos.x + sliderOffsetX + vulkanSpacingX,
+                            .y = offsetY + vulkanSpacingLargerY,
+                        },
+                    };
+                    data.recDragArea = main.Rectangle{
+                        .height = data.baseHeight / 4 / windowSdlZig.windowData.heightFloat * uiSizeFactor,
+                        .width = dragAreaWidth,
+                        .pos = .{
+                            .x = settingsMenuRec.pos.x + sliderWidth / 2 + vulkanSpacingX,
+                            .y = data.recSlider.pos.y + data.baseHeight / 8 * 3 / windowSdlZig.windowData.heightFloat * uiSizeFactor,
+                        },
+                    };
+                    offsetY = data.recSlider.pos.y + data.recSlider.height;
+                },
+            }
+        }
+        const tabHeight = offsetY - settingsMenuRec.pos.y + vulkanSpacingY;
+        if (tabHeight > settingsMenuUx.settingsMenuRectangle.height) settingsMenuUx.settingsMenuRectangle.height = tabHeight;
+    }
 }
 
 pub fn mouseMove(mouseWindowPosition: main.Position, state: *main.GameState) !void {
@@ -163,12 +198,22 @@ pub fn mouseMove(mouseWindowPosition: main.Position, state: *main.GameState) !vo
     }
     if (!settingsMenuUx.menuOpen) return;
 
-    for (&settingsMenuUx.uiElements) |*element| {
+    settingsMenuUx.hoverTabIndex = null;
+    for (&settingsMenuUx.uiTabs, 0..) |*tab, tabIndex| {
+        if (main.isPositionInRectangle(vulkanMousePos, tab.rec)) {
+            settingsMenuUx.hoverTabIndex = tabIndex;
+            break;
+        }
+    }
+
+    const currentTab = &settingsMenuUx.uiTabs[settingsMenuUx.activeTabIndex];
+    for (currentTab.uiElements) |*element| {
         switch (element.*) {
             .holdButton => |*data| {
                 if (main.isPositionInRectangle(vulkanMousePos, data.rec)) {
                     data.hovering = true;
                 } else {
+                    data.hovering = false;
                     if (data.holdStartTime != null) {
                         data.holdStartTime = null;
                     }
@@ -199,7 +244,8 @@ pub fn mouseMove(mouseWindowPosition: main.Position, state: *main.GameState) !vo
 
 pub fn mouseUp(mouseWindowPosition: main.Position, state: *main.GameState) !void {
     const settingsMenuUx = &state.uxData.settingsMenuUx;
-    for (&settingsMenuUx.uiElements) |*element| {
+    const currentTab = &settingsMenuUx.uiTabs[settingsMenuUx.activeTabIndex];
+    for (currentTab.uiElements) |*element| {
         switch (element.*) {
             .holdButton => |*data| {
                 data.holdStartTime = null;
@@ -226,8 +272,14 @@ pub fn mouseDown(mouseWindowPosition: main.Position, state: *main.GameState) !vo
         return;
     }
     if (!settingsMenuUx.menuOpen) return;
-
-    for (&settingsMenuUx.uiElements) |*element| {
+    for (&settingsMenuUx.uiTabs, 0..) |*tab, tabIndex| {
+        if (main.isPositionInRectangle(vulkanMousePos, tab.rec)) {
+            settingsMenuUx.activeTabIndex = tabIndex;
+            return;
+        }
+    }
+    const currentTab = &settingsMenuUx.uiTabs[settingsMenuUx.activeTabIndex];
+    for (currentTab.uiElements) |*element| {
         switch (element.*) {
             .holdButton => |*data| {
                 if (main.isPositionInRectangle(vulkanMousePos, data.rec)) {
@@ -262,7 +314,8 @@ pub fn mouseDown(mouseWindowPosition: main.Position, state: *main.GameState) !vo
 pub fn tick(state: *main.GameState) !void {
     const settingsMenuUx = &state.uxData.settingsMenuUx;
     const timestamp = std.time.milliTimestamp();
-    for (&settingsMenuUx.uiElements) |*element| {
+    const currentTab = &settingsMenuUx.uiTabs[settingsMenuUx.activeTabIndex];
+    for (currentTab.uiElements) |*element| {
         switch (element.*) {
             .holdButton => |*data| {
                 if (data.holdStartTime != null and data.holdStartTime.? + BUTTON_HOLD_DURATION_MS < timestamp) {
@@ -296,13 +349,44 @@ pub fn setupVertices(state: *main.GameState) !void {
     }, imageZig.IMAGE_SETTINGS_ICON, icon.width / onePixelXInVulkan, icon.height / onePixelYInVulkan, 1, 0, false, false, state);
 
     if (settingsMenuUx.menuOpen) {
+        const vulkanSpacingX = SPACING_PIXELS * onePixelXInVulkan * uiSizeFactor;
+        const vulkanSpacingY = SPACING_PIXELS * onePixelYInVulkan * uiSizeFactor;
         const fontSize: f32 = settingsMenuUx.baseFontSize * uiSizeFactor;
         const fontVulkanHeight = fontSize * onePixelYInVulkan;
         const menuRec = settingsMenuUx.settingsMenuRectangle;
         paintVulkanZig.verticesForRectangle(menuRec.pos.x, menuRec.pos.y, menuRec.width, menuRec.height, color, &verticeData.lines, &verticeData.triangles);
         const timestamp = std.time.milliTimestamp();
-        for (settingsMenuUx.uiElements) |element| {
-            switch (element) {
+        var tabsOffsetX: f32 = 0;
+        for (settingsMenuUx.uiTabs, 0..) |tab, tabIndex| {
+            const tabsAlpha: f32 = if (tabIndex == settingsMenuUx.activeTabIndex) 1 else 0.5;
+            const textWidth = fontVulkanZig.paintText(tab.label, .{
+                .x = tab.rec.pos.x + vulkanSpacingX,
+                .y = tab.rec.pos.y + vulkanSpacingY,
+            }, fontSize, .{ 1, 1, 1, tabsAlpha }, &verticeData.font);
+            if (tabIndex == settingsMenuUx.activeTabIndex) {
+                const lines = &verticeData.lines;
+                if (lines.verticeCount + 6 < lines.vertices.len) {
+                    const borderColor: [4]f32 = .{ 0, 0, 0, 1 };
+                    lines.vertices[lines.verticeCount + 0] = .{ .pos = .{ tab.rec.pos.x, tab.rec.pos.y }, .color = borderColor };
+                    lines.vertices[lines.verticeCount + 1] = .{ .pos = .{ tab.rec.pos.x + tab.rec.width, tab.rec.pos.y }, .color = borderColor };
+                    lines.vertices[lines.verticeCount + 2] = .{ .pos = .{ tab.rec.pos.x, tab.rec.pos.y }, .color = borderColor };
+                    lines.vertices[lines.verticeCount + 3] = .{ .pos = .{ tab.rec.pos.x, tab.rec.pos.y + tab.rec.height }, .color = borderColor };
+                    lines.vertices[lines.verticeCount + 4] = .{ .pos = .{ tab.rec.pos.x + tab.rec.width, tab.rec.pos.y }, .color = borderColor };
+                    lines.vertices[lines.verticeCount + 5] = .{ .pos = .{ tab.rec.pos.x + tab.rec.width, tab.rec.pos.y + tab.rec.height }, .color = borderColor };
+                    lines.verticeCount += 6;
+                }
+                if (tabIndex == settingsMenuUx.hoverTabIndex) {
+                    paintVulkanZig.verticesForRectangle(tab.rec.pos.x, tab.rec.pos.y, tab.rec.width, tab.rec.height, hoverColor, null, &verticeData.triangles);
+                }
+            } else {
+                const triangles = if (tabIndex == settingsMenuUx.hoverTabIndex) &verticeData.triangles else null;
+                paintVulkanZig.verticesForRectangle(tab.rec.pos.x, tab.rec.pos.y, tab.rec.width, tab.rec.height, hoverColor, &verticeData.lines, triangles);
+            }
+            tabsOffsetX += textWidth + vulkanSpacingX * 2;
+        }
+        const currentTab = &settingsMenuUx.uiTabs[settingsMenuUx.activeTabIndex];
+        for (currentTab.uiElements) |*element| {
+            switch (element.*) {
                 .holdButton => |*data| {
                     const restartFillColor = if (data.hovering) hoverColor else buttonFillColor;
                     paintVulkanZig.verticesForRectangle(data.rec.pos.x, data.rec.pos.y, data.rec.width, data.rec.height, restartFillColor, &verticeData.lines, &verticeData.triangles);
@@ -377,6 +461,10 @@ fn onCheckboxFullscreen(checked: bool, state: *main.GameState) anyerror!void {
 
 fn onCheckboxFreezeOnHit(checked: bool, state: *main.GameState) anyerror!void {
     state.timeFreezeOnHit = checked;
+}
+
+fn onCheckboxSpeedrunStats(checked: bool, state: *main.GameState) anyerror!void {
+    state.statistics.uxData.display = checked;
 }
 
 fn onSliderChangeVolume(sliderPerCent: f32, state: *main.GameState) anyerror!void {

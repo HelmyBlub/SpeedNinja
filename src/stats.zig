@@ -10,6 +10,11 @@ pub const Statistics = struct {
     runFinishedTime: i64 = 0,
     totalShoppingTime: i64 = 0,
     levelDataWithPlayerCount: std.ArrayList(LevelStatiscticsWithPlayerCount),
+    uxData: StatisticsUxData = .{},
+};
+
+pub const StatisticsUxData = struct {
+    display: bool = true,
 };
 
 const LevelStatiscticsWithPlayerCount = struct {
@@ -140,6 +145,7 @@ pub fn destroyAndSave(state: *main.GameState) !void {
 
 pub fn setupVertices(state: *main.GameState) !void {
     if (!state.statistics.active) return;
+    if (!state.statistics.uxData.display) return;
     if (state.level <= 1) return;
     if (state.players.items.len > 1 and state.gamePhase != .shopping and state.gamePhase != .finished) return;
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
