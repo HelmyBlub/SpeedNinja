@@ -36,6 +36,10 @@ var UI_ELEMENTS_MAIN = [_]UiElementData{
 
 var UI_ELEMENTS_SPEEDRUN_STATS = [_]UiElementData{
     .{ .checkbox = .{ .label = "Speedrun Stats", .onSetChecked = onCheckboxSpeedrunStats, .checked = true } },
+    .{ .checkbox = .{ .label = "Column Time", .onSetChecked = onCheckboxStatsColumnTime, .checked = true } },
+    .{ .checkbox = .{ .label = "Column +/-", .onSetChecked = onCheckboxStatsColumnPlusMinus, .checked = true } },
+    .{ .checkbox = .{ .label = "Column Gold", .onSetChecked = onCheckboxStatsColumnGold, .checked = true } },
+    .{ .checkbox = .{ .label = "Next Level", .onSetChecked = onCheckboxStatsNextLevel, .checked = true } },
 };
 
 const UiElement = enum {
@@ -465,6 +469,34 @@ fn onCheckboxFreezeOnHit(checked: bool, state: *main.GameState) anyerror!void {
 
 fn onCheckboxSpeedrunStats(checked: bool, state: *main.GameState) anyerror!void {
     state.statistics.uxData.display = checked;
+}
+
+fn onCheckboxStatsColumnTime(checked: bool, state: *main.GameState) anyerror!void {
+    for (state.statistics.uxData.columnsData) |*column| {
+        if (std.mem.eql(u8, "Time", column.name)) {
+            column.display = checked;
+        }
+    }
+}
+
+fn onCheckboxStatsColumnPlusMinus(checked: bool, state: *main.GameState) anyerror!void {
+    for (state.statistics.uxData.columnsData) |*column| {
+        if (std.mem.eql(u8, "+/-", column.name)) {
+            column.display = checked;
+        }
+    }
+}
+
+fn onCheckboxStatsColumnGold(checked: bool, state: *main.GameState) anyerror!void {
+    for (state.statistics.uxData.columnsData) |*column| {
+        if (std.mem.eql(u8, "Gold", column.name)) {
+            column.display = checked;
+        }
+    }
+}
+
+fn onCheckboxStatsNextLevel(checked: bool, state: *main.GameState) anyerror!void {
+    state.statistics.uxData.displayNextLevelData = checked;
 }
 
 fn onSliderChangeVolume(sliderPerCent: f32, state: *main.GameState) anyerror!void {
