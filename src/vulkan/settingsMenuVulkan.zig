@@ -24,21 +24,21 @@ pub const SettingsUx = struct {
 const BUTTON_HOLD_DURATION_MS = 2000;
 const SPACING_PIXELS = 5.0;
 var UI_ELEMENTS_MAIN = [_]UiElementData{
-    .{ .holdButton = .{ .label = "Restart", .onHoldDurationFinished = onHoldButtonRestart } },
-    .{ .holdButton = .{ .label = "Kick Players", .onHoldDurationFinished = onHoldButtonKickPlayers } },
-    .{ .checkbox = .{ .label = "Fullscreen", .onSetChecked = onCheckboxFullscreen } },
-    .{ .checkbox = .{ .label = "Time Freeze", .onSetChecked = onCheckboxFreezeOnHit, .checked = true } },
-    .{ .slider = .{ .label = "Volume", .valuePerCent = 1, .onChange = onSliderChangeVolume } },
-    .{ .slider = .{ .label = "UI Size", .valuePerCent = 0.5, .onStopHolding = onSliderStopHoldingUxSize } },
-    .{ .holdButton = .{ .label = "Quit", .onHoldDurationFinished = onHoldButtonQuit } },
+    .{ .typeData = .{ .holdButton = .{ .label = "Restart", .onHoldDurationFinished = onHoldButtonRestart } } },
+    .{ .typeData = .{ .holdButton = .{ .label = "Kick Players", .onHoldDurationFinished = onHoldButtonKickPlayers } } },
+    .{ .typeData = .{ .checkbox = .{ .label = "Fullscreen", .onSetChecked = onCheckboxFullscreen } } },
+    .{ .typeData = .{ .checkbox = .{ .label = "Time Freeze", .onSetChecked = onCheckboxFreezeOnHit, .checked = true } } },
+    .{ .typeData = .{ .slider = .{ .label = "Volume", .valuePerCent = 1, .onChange = onSliderChangeVolume } } },
+    .{ .typeData = .{ .slider = .{ .label = "UI Size", .valuePerCent = 0.5, .onStopHolding = onSliderStopHoldingUxSize } } },
+    .{ .typeData = .{ .holdButton = .{ .label = "Quit", .onHoldDurationFinished = onHoldButtonQuit } } },
 };
 
 var UI_ELEMENTS_SPEEDRUN_STATS = [_]UiElementData{
-    .{ .checkbox = .{ .label = "Speedrun Stats", .onSetChecked = onCheckboxSpeedrunStats, .checked = true } },
-    .{ .checkbox = .{ .label = "Column Time", .onSetChecked = onCheckboxStatsColumnTime, .checked = true } },
-    .{ .checkbox = .{ .label = "Column +/-", .onSetChecked = onCheckboxStatsColumnPlusMinus, .checked = true } },
-    .{ .checkbox = .{ .label = "Column Gold", .onSetChecked = onCheckboxStatsColumnGold, .checked = true } },
-    .{ .checkbox = .{ .label = "Next Level", .onSetChecked = onCheckboxStatsNextLevel, .checked = true } },
+    .{ .typeData = .{ .checkbox = .{ .label = "Speedrun Stats", .onSetChecked = onCheckboxSpeedrunStats, .checked = false } } },
+    .{ .typeData = .{ .checkbox = .{ .label = "Column Time", .onSetChecked = onCheckboxStatsColumnTime, .checked = true } }, .active = false },
+    .{ .typeData = .{ .checkbox = .{ .label = "Column +/-", .onSetChecked = onCheckboxStatsColumnPlusMinus, .checked = true } }, .active = false },
+    .{ .typeData = .{ .checkbox = .{ .label = "Column Gold", .onSetChecked = onCheckboxStatsColumnGold, .checked = true } }, .active = false },
+    .{ .typeData = .{ .checkbox = .{ .label = "Next Level", .onSetChecked = onCheckboxStatsNextLevel, .checked = true } }, .active = false },
 };
 
 const UiElement = enum {
@@ -55,7 +55,12 @@ const UiTabsData = struct {
     contentRec: main.Rectangle = .{ .pos = .{ .x = 0, .y = 0 }, .width = 0, .height = 0 },
 };
 
-const UiElementData = union(UiElement) {
+const UiElementData = struct {
+    typeData: UiElementTypeData,
+    active: bool = true,
+};
+
+const UiElementTypeData = union(UiElement) {
     slider: UiElementSliderData,
     checkbox: UiElementCheckboxData,
     holdButton: UiElementHoldButtonData,
@@ -152,7 +157,7 @@ fn settupUiLocationSingleTab(tab: *UiTabsData, baseFontSize: f32, uiSizeFactor: 
 
     var offsetY: f32 = tab.contentRec.pos.y;
     for (tab.uiElements) |*element| {
-        switch (element.*) {
+        switch (element.typeData) {
             .holdButton => |*data| {
                 const textWidthEstimate = fontVulkanZig.getTextVulkanWidth(data.label, baseFontSize) * uiSizeFactor;
                 data.rec = main.Rectangle{
@@ -214,7 +219,7 @@ fn settupUiLocationSingleTab(tab: *UiTabsData, baseFontSize: f32, uiSizeFactor: 
 
     tab.contentRec.pos.x = 0.99 - tab.contentRec.width;
     for (tab.uiElements) |*element| {
-        switch (element.*) {
+        switch (element.typeData) {
             .holdButton => |*data| {
                 data.rec.pos.x = tab.contentRec.pos.x + vulkanSpacingX;
             },
@@ -252,7 +257,8 @@ pub fn mouseMove(mouseWindowPosition: main.Position, state: *main.GameState) !vo
 
     const currentTab = &settingsMenuUx.uiTabs[settingsMenuUx.activeTabIndex];
     for (currentTab.uiElements) |*element| {
-        switch (element.*) {
+        if (!element.active) continue;
+        switch (element.typeData) {
             .holdButton => |*data| {
                 if (main.isPositionInRectangle(vulkanMousePos, data.rec)) {
                     data.hovering = true;
@@ -290,7 +296,8 @@ pub fn mouseUp(mouseWindowPosition: main.Position, state: *main.GameState) !void
     const settingsMenuUx = &state.uxData.settingsMenuUx;
     const currentTab = &settingsMenuUx.uiTabs[settingsMenuUx.activeTabIndex];
     for (currentTab.uiElements) |*element| {
-        switch (element.*) {
+        if (!element.active) continue;
+        switch (element.typeData) {
             .holdButton => |*data| {
                 data.holdStartTime = null;
             },
@@ -324,7 +331,8 @@ pub fn mouseDown(mouseWindowPosition: main.Position, state: *main.GameState) !vo
     }
     const currentTab = &settingsMenuUx.uiTabs[settingsMenuUx.activeTabIndex];
     for (currentTab.uiElements) |*element| {
-        switch (element.*) {
+        if (!element.active) continue;
+        switch (element.typeData) {
             .holdButton => |*data| {
                 if (main.isPositionInRectangle(vulkanMousePos, data.rec)) {
                     data.holdStartTime = std.time.milliTimestamp();
@@ -360,7 +368,7 @@ pub fn tick(state: *main.GameState) !void {
     const timestamp = std.time.milliTimestamp();
     const currentTab = &settingsMenuUx.uiTabs[settingsMenuUx.activeTabIndex];
     for (currentTab.uiElements) |*element| {
-        switch (element.*) {
+        switch (element.typeData) {
             .holdButton => |*data| {
                 if (data.holdStartTime != null and data.holdStartTime.? + BUTTON_HOLD_DURATION_MS < timestamp) {
                     data.holdStartTime = null;
@@ -379,7 +387,6 @@ pub fn setupVertices(state: *main.GameState) !void {
     const buttonFillColor: [4]f32 = .{ 0.7, 0.7, 0.7, 1 };
     const hoverColor: [4]f32 = .{ 0.4, 0.4, 0.4, 1 };
     const color: [4]f32 = .{ 1, 1, 1, 1 };
-    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     const settingsMenuUx = &state.uxData.settingsMenuUx;
     const uiSizeFactor = settingsMenuUx.uiSizeDelayed;
     const icon = settingsMenuUx.settingsIcon;
@@ -438,9 +445,12 @@ pub fn setupVertices(state: *main.GameState) !void {
         const tabFontSize: f32 = settingsMenuUx.baseFontSize * currentTab.uiSize;
         const tabFontVulkanHeight = tabFontSize * onePixelYInVulkan;
         for (currentTab.uiElements) |*element| {
-            switch (element.*) {
+            const alpha: f32 = if (element.active) 1 else 0.3;
+            const elementTextColor: [4]f32 = .{ 1, 1, 1, alpha };
+            switch (element.typeData) {
                 .holdButton => |*data| {
-                    const restartFillColor = if (data.hovering) hoverColor else buttonFillColor;
+                    var restartFillColor = if (data.hovering and element.active) hoverColor else buttonFillColor;
+                    restartFillColor[3] = alpha;
                     paintVulkanZig.verticesForRectangle(data.rec.pos.x, data.rec.pos.y, data.rec.width, data.rec.height, restartFillColor, &verticeData.lines, &verticeData.triangles);
                     if (data.holdStartTime) |time| {
                         const timeDiff = @max(0, time + BUTTON_HOLD_DURATION_MS - timestamp);
@@ -451,39 +461,40 @@ pub fn setupVertices(state: *main.GameState) !void {
                     _ = fontVulkanZig.paintText(data.label, .{
                         .x = data.rec.pos.x,
                         .y = data.rec.pos.y + (data.rec.height - tabFontVulkanHeight) / 2,
-                    }, tabFontSize, textColor, &verticeData.font);
+                    }, tabFontSize, elementTextColor, &verticeData.font);
                 },
                 .checkbox => |*data| {
-                    const checkboxFillColor = if (data.hovering) hoverColor else buttonFillColor;
+                    const checkboxFillColor = if (data.hovering and element.active) hoverColor else buttonFillColor;
                     paintVulkanZig.verticesForRectangle(data.rec.pos.x, data.rec.pos.y, data.rec.width, data.rec.height, checkboxFillColor, &verticeData.lines, &verticeData.triangles);
                     _ = fontVulkanZig.paintText(data.label, .{
                         .x = data.rec.pos.x + data.rec.width * 1.05,
                         .y = data.rec.pos.y - data.rec.height * 0.1,
-                    }, tabFontSize, textColor, &verticeData.font);
+                    }, tabFontSize, elementTextColor, &verticeData.font);
                     if (data.checked) {
                         paintVulkanZig.verticesForComplexSpriteVulkan(.{
                             .x = data.rec.pos.x + data.rec.width / 2,
                             .y = data.rec.pos.y + data.rec.height / 2,
-                        }, imageZig.IMAGE_CHECKMARK, data.rec.width / onePixelXInVulkan, data.rec.height / onePixelYInVulkan, 1, 0, false, false, state);
+                        }, imageZig.IMAGE_CHECKMARK, data.rec.width / onePixelXInVulkan, data.rec.height / onePixelYInVulkan, alpha, 0, false, false, state);
                     }
                 },
                 .slider => |*data| {
-                    paintVulkanZig.verticesForRectangle(data.recDragArea.pos.x, data.recDragArea.pos.y, data.recDragArea.width, data.recDragArea.height, color, &verticeData.lines, &verticeData.triangles);
-                    const sliderFillColor = if (data.hovering) hoverColor else buttonFillColor;
+                    paintVulkanZig.verticesForRectangle(data.recDragArea.pos.x, data.recDragArea.pos.y, data.recDragArea.width, data.recDragArea.height, .{ 1, 1, 1, alpha }, &verticeData.lines, &verticeData.triangles);
+                    var sliderFillColor = if (data.hovering and element.active) hoverColor else buttonFillColor;
+                    sliderFillColor[3] = alpha;
                     paintVulkanZig.verticesForRectangle(data.recSlider.pos.x, data.recSlider.pos.y, data.recSlider.width, data.recSlider.height, sliderFillColor, &verticeData.lines, &verticeData.triangles);
 
                     const textWidthVolume = fontVulkanZig.paintText(
                         data.label,
                         .{ .x = data.recDragArea.pos.x, .y = data.recSlider.pos.y - tabFontVulkanHeight },
                         tabFontSize,
-                        textColor,
+                        elementTextColor,
                         &verticeData.font,
                     );
                     _ = try fontVulkanZig.paintNumber(
                         @as(u32, @intFromFloat(data.valuePerCent * 100)),
                         .{ .x = data.recDragArea.pos.x + textWidthVolume + tabFontSize * onePixelXInVulkan, .y = data.recSlider.pos.y - tabFontVulkanHeight },
                         tabFontSize,
-                        textColor,
+                        elementTextColor,
                         &verticeData.font,
                     );
                 },
@@ -517,6 +528,14 @@ fn onCheckboxFreezeOnHit(checked: bool, state: *main.GameState) anyerror!void {
 
 fn onCheckboxSpeedrunStats(checked: bool, state: *main.GameState) anyerror!void {
     state.statistics.uxData.display = checked;
+    for (state.uxData.settingsMenuUx.uiTabs) |tab| {
+        if (std.mem.eql(u8, "stats", tab.label)) {
+            for (1..tab.uiElements.len) |i| {
+                tab.uiElements[i].active = checked;
+            }
+            break;
+        }
+    }
 }
 
 fn onCheckboxStatsColumnTime(checked: bool, state: *main.GameState) anyerror!void {

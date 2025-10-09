@@ -4,16 +4,17 @@ testruns:
 
 
 Tasks:
-- settings menu
-    - tabs background missing. Check if bottom line can be removed from tab label
-- bug: when UI size scaling bigger than window -> limit ui size
 - speedrun statistics
+    - gray out checkboxes when speedrun stats disabled
     - display furthest/fastest endtime
     - slider for future level display
     - slider for max level display
     - positioning
         - font size scaling with ui scale
     - settings menu explanation of options
+    - 5-level grouping
+    - shopping average time
+    - display stats when game finished
 - be able to choose new game plus on start
     - available once game beaten on normal mode
 
