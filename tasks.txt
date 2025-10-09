@@ -5,12 +5,11 @@ testruns:
 
 Tasks:
 - speedrun statistics
-    - gray out checkboxes when speedrun stats disabled
+    - positioning
+        - font size scaling with ui scale
     - display furthest/fastest endtime
     - slider for future level display
     - slider for max level display
-    - positioning
-        - font size scaling with ui scale
     - settings menu explanation of options
     - 5-level grouping
     - shopping average time

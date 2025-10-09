@@ -74,6 +74,34 @@ pub fn paintNumberGameMap(number: anytype, gamePosition: main.Position, fontSize
     return vulkanWidth / onePixelXInVulkan / state.camera.zoom;
 }
 
+pub fn getTimeTextVulkanWidth(timeMilli: i64, fontSize: f32, showOneMilli: bool) !f32 {
+    var zeroPrefix = false;
+    var textWidth: f32 = 0;
+    const absTimeMilli = @abs(timeMilli);
+    if (timeMilli < 0) {
+        textWidth += getTextVulkanWidth("-", fontSize);
+    }
+    if (absTimeMilli >= 60 * 60 * 1000) {
+        const hours = @divFloor(absTimeMilli, 1000 * 60 * 60);
+        textWidth += try getNumberTextVulkanWidth(hours, fontSize, false, true);
+        textWidth += getTextVulkanWidth(":", fontSize);
+        zeroPrefix = true;
+    }
+    if (absTimeMilli >= 60 * 1000) {
+        const minutes = @mod(@divFloor(absTimeMilli, 1000 * 60), 60);
+        textWidth += try getNumberTextVulkanWidth(minutes, fontSize, zeroPrefix, true);
+        textWidth += getTextVulkanWidth(":", fontSize);
+        zeroPrefix = true;
+    }
+    textWidth += try getNumberTextVulkanWidth(@mod(@divFloor(absTimeMilli, 1000), 60), fontSize, zeroPrefix, true);
+    if (showOneMilli) {
+        const milli = @mod(@divFloor(absTimeMilli, 100), 10);
+        textWidth += getTextVulkanWidth(".", fontSize);
+        textWidth += try getNumberTextVulkanWidth(milli, fontSize, false, true);
+    }
+    return textWidth;
+}
+
 /// time in hh:mm:ss format
 pub fn paintTime(timeMilli: i64, vulkanSurfacePosition: main.Position, fontSize: f32, showOneMilli: bool, color: [4]f32, vkFont: *dataVulkanZig.VkFont) !f32 {
     var zeroPrefix = false;
@@ -90,24 +118,54 @@ pub fn paintTime(timeMilli: i64, vulkanSurfacePosition: main.Position, fontSize:
     }
     if (absTimeMilli >= 60 * 1000) {
         const minutes = @mod(@divFloor(absTimeMilli, 1000 * 60), 60);
-        textWidth += try paintNumberWithZeroPrefix(minutes, .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, color, vkFont, zeroPrefix);
+        textWidth += try paintNumberWithZeroPrefix(minutes, .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, color, vkFont, zeroPrefix, true);
         textWidth += paintText(":", .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, color, vkFont);
         zeroPrefix = true;
     }
-    textWidth += try paintNumberWithZeroPrefix(@mod(@divFloor(absTimeMilli, 1000), 60), .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, color, vkFont, zeroPrefix);
+    textWidth += try paintNumberWithZeroPrefix(@mod(@divFloor(absTimeMilli, 1000), 60), .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, color, vkFont, zeroPrefix, true);
     if (showOneMilli) {
         const milli = @mod(@divFloor(absTimeMilli, 100), 10);
         textWidth += paintText(".", .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, color, vkFont);
-        textWidth += try paintNumberWithZeroPrefix(milli, .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, color, vkFont, false);
+        textWidth += try paintNumberWithZeroPrefix(milli, .{ .x = vulkanSurfacePosition.x + textWidth, .y = vulkanSurfacePosition.y }, fontSize, color, vkFont, false, true);
     }
     return textWidth;
 }
 
 pub fn paintNumber(number: anytype, vulkanSurfacePosition: main.Position, fontSize: f32, color: [4]f32, vkFont: *dataVulkanZig.VkFont) !f32 {
-    return paintNumberWithZeroPrefix(number, vulkanSurfacePosition, fontSize, color, vkFont, false);
+    return paintNumberWithZeroPrefix(number, vulkanSurfacePosition, fontSize, color, vkFont, false, false);
 }
 
-fn paintNumberWithZeroPrefix(number: anytype, vulkanSurfacePosition: main.Position, fontSize: f32, color: [4]f32, vkFont: *dataVulkanZig.VkFont, singleZeroPrefixWhenSmallerTen: bool) !f32 {
+pub fn paintNumberSameWidth(number: anytype, vulkanSurfacePosition: main.Position, fontSize: f32, color: [4]f32, vkFont: *dataVulkanZig.VkFont) !f32 {
+    return paintNumberWithZeroPrefix(number, vulkanSurfacePosition, fontSize, color, vkFont, false, true);
+}
+
+fn getNumberTextVulkanWidth(number: anytype, fontSize: f32, singleZeroPrefixWhenSmallerTen: bool, forceFixedWidth: bool) !f32 {
+    const max_len = 20;
+    var buf: [max_len]u8 = undefined;
+    var numberAsString: []u8 = undefined;
+    if (@TypeOf(number) == f32) {
+        numberAsString = try std.fmt.bufPrint(&buf, "{d:.1}", .{number});
+    } else {
+        if (singleZeroPrefixWhenSmallerTen and number < 10) {
+            numberAsString = try std.fmt.bufPrint(&buf, "0{d}", .{number});
+        } else {
+            numberAsString = try std.fmt.bufPrint(&buf, "{d}", .{number});
+        }
+    }
+
+    var texX: f32 = 0;
+    var textWidth: f32 = 0;
+    var xOffset: f32 = 0;
+    const defaultWidth = 33 / windowSdlZig.windowData.widthFloat;
+    for (numberAsString) |char| {
+        charToTexCoords(char, &texX, &textWidth);
+        if (forceFixedWidth) textWidth = defaultWidth;
+        xOffset += textWidth * 1600 / windowSdlZig.windowData.widthFloat * 2 / 40 * fontSize * 0.8;
+    }
+    return xOffset;
+}
+
+fn paintNumberWithZeroPrefix(number: anytype, vulkanSurfacePosition: main.Position, fontSize: f32, color: [4]f32, vkFont: *dataVulkanZig.VkFont, singleZeroPrefixWhenSmallerTen: bool, forceFixedWidth: bool) !f32 {
     const max_len = 20;
     var buf: [max_len]u8 = undefined;
     var numberAsString: []u8 = undefined;
@@ -123,10 +181,14 @@ fn paintNumberWithZeroPrefix(number: anytype, vulkanSurfacePosition: main.Positi
 
     var texX: f32 = 0;
     var texWidth: f32 = 0;
+    var textWidth: f32 = 0;
     var xOffset: f32 = 0;
+    const defaultWidht = 33 / windowSdlZig.windowData.widthFloat;
     for (numberAsString) |char| {
         if (vkFont.verticeCount >= vkFont.vertices.len) break;
         charToTexCoords(char, &texX, &texWidth);
+        textWidth = if (forceFixedWidth) defaultWidht else texWidth;
+
         vkFont.vertices[vkFont.verticeCount] = .{
             .pos = .{ vulkanSurfacePosition.x + xOffset, vulkanSurfacePosition.y },
             .color = color,
@@ -134,7 +196,7 @@ fn paintNumberWithZeroPrefix(number: anytype, vulkanSurfacePosition: main.Positi
             .texWidth = texWidth,
             .size = fontSize,
         };
-        xOffset += texWidth * 1600 / windowSdlZig.windowData.widthFloat * 2 / 40 * fontSize * 0.8;
+        xOffset += textWidth * 1600 / windowSdlZig.windowData.widthFloat * 2 / 40 * fontSize * 0.8;
         vkFont.verticeCount += 1;
     }
     return xOffset;

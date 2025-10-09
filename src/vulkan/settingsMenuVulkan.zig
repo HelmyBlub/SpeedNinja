@@ -39,6 +39,8 @@ var UI_ELEMENTS_SPEEDRUN_STATS = [_]UiElementData{
     .{ .typeData = .{ .checkbox = .{ .label = "Column +/-", .onSetChecked = onCheckboxStatsColumnPlusMinus, .checked = true } }, .active = false },
     .{ .typeData = .{ .checkbox = .{ .label = "Column Gold", .onSetChecked = onCheckboxStatsColumnGold, .checked = true } }, .active = false },
     .{ .typeData = .{ .checkbox = .{ .label = "Next Level", .onSetChecked = onCheckboxStatsNextLevel, .checked = true } }, .active = false },
+    .{ .typeData = .{ .slider = .{ .label = "Position X", .valuePerCent = 0.5, .onChange = onSliderStatsPositionX } } },
+    .{ .typeData = .{ .slider = .{ .label = "Position Y", .valuePerCent = 0.5, .onChange = onSliderStatsPositionY } } },
 };
 
 const UiElement = enum {
@@ -573,4 +575,12 @@ fn onSliderChangeVolume(sliderPerCent: f32, state: *main.GameState) anyerror!voi
 fn onSliderStopHoldingUxSize(sliderPerCent: f32, state: *main.GameState) anyerror!void {
     state.uxData.settingsMenuUx.uiSizeDelayed = 0.5 + sliderPerCent;
     setupUiLocations(state);
+}
+
+fn onSliderStatsPositionX(sliderPerCent: f32, state: *main.GameState) anyerror!void {
+    state.statistics.uxData.vulkanPosition.x = sliderPerCent * 2 - 1;
+}
+
+fn onSliderStatsPositionY(sliderPerCent: f32, state: *main.GameState) anyerror!void {
+    state.statistics.uxData.vulkanPosition.y = sliderPerCent * 2 - 1;
 }
