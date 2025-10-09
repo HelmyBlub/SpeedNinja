@@ -5,9 +5,12 @@ testruns:
 
 Tasks:
 - speedrun statistics
-    - display furthest/fastest endtime
+    - continue: slider position incorrect on start
+        - change: slider position should not be part of position setup and calculated on paint based on percent
+        - something was confusing with slider width hight being calculated differently
     - slider for future level display
     - slider for max level display
+
     - settings menu explanation of options
     - 5-level grouping
     - shopping average time

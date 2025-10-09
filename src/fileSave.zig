@@ -63,9 +63,9 @@ pub fn loadSettingsFromFile(state: *main.GameState) !void {
                     const valuePerCent: f32 = @max(0, @min(1, @as(f32, @bitCast(try reader.readInt(u32, .little)))));
                     data.valuePerCent = valuePerCent;
                     if (data.onStopHolding) |stopHolding| {
-                        try stopHolding(data.valuePerCent, state);
+                        try stopHolding(data.valuePerCent, uiElement, state);
                     } else if (data.onChange) |change| {
-                        try change(data.valuePerCent, state);
+                        try change(data.valuePerCent, uiElement, state);
                     }
                 },
             }

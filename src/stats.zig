@@ -19,8 +19,9 @@ pub const StatisticsUxData = struct {
     fontSize: f32 = 16,
     columnsData: []ColumnData = &COLUMNS_DATA,
     currentTimestamp: i64 = 0,
-    displayNextLevelData: bool = true,
     displayBestRun: bool = true,
+    displayNextLevelCount: u8 = 5,
+    displayLevelCount: u8 = 5,
 };
 
 const ColumnData = struct {
@@ -173,8 +174,8 @@ pub fn setupVertices(state: *main.GameState) !void {
     const levelDatas: []LevelStatistics = try getLevelDatas(state);
     state.statistics.uxData.fontSize = 16 * state.uxData.settingsMenuUx.uiSizeDelayed;
     const fontSize = state.statistics.uxData.fontSize;
-    const firstDisplayLevel = if (state.level > 10) state.level - 10 else 1;
-    const lastDisplayLevel = if (state.statistics.uxData.displayNextLevelData and state.level < main.LEVEL_COUNT) state.level + 2 else state.level + 1;
+    const firstDisplayLevel = if (state.level > state.statistics.uxData.displayLevelCount) state.level - state.statistics.uxData.displayLevelCount else 1;
+    const lastDisplayLevel = @min(main.LEVEL_COUNT + 1, state.level + 1 + state.statistics.uxData.displayNextLevelCount);
     var columnOffsetX: f32 = 0;
     for (state.statistics.uxData.columnsData) |column| {
         if (!column.display) continue;

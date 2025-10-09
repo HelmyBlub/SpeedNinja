@@ -38,10 +38,11 @@ var UI_ELEMENTS_SPEEDRUN_STATS = [_]UiElementData{
     .{ .typeData = .{ .checkbox = .{ .label = "Column Time", .onSetChecked = onCheckboxStatsColumnTime, .checked = true } }, .active = false },
     .{ .typeData = .{ .checkbox = .{ .label = "Column +/-", .onSetChecked = onCheckboxStatsColumnPlusMinus, .checked = true } }, .active = false },
     .{ .typeData = .{ .checkbox = .{ .label = "Column Gold", .onSetChecked = onCheckboxStatsColumnGold, .checked = true } }, .active = false },
-    .{ .typeData = .{ .checkbox = .{ .label = "Next Level", .onSetChecked = onCheckboxStatsNextLevel, .checked = true } }, .active = false },
     .{ .typeData = .{ .checkbox = .{ .label = "Best Run", .onSetChecked = onCheckboxStatsBestRun, .checked = true } }, .active = false },
     .{ .typeData = .{ .slider = .{ .label = "Position X", .valuePerCent = 0.5, .onChange = onSliderStatsPositionX } } },
     .{ .typeData = .{ .slider = .{ .label = "Position Y", .valuePerCent = 0.5, .onChange = onSliderStatsPositionY } } },
+    .{ .typeData = .{ .slider = .{ .label = "Next Level Count", .valuePerCent = 0, .onChange = onSliderStatsNextLevelCount } } },
+    .{ .typeData = .{ .slider = .{ .label = "Past Level Count", .valuePerCent = 0.5, .onChange = onSliderStatsPastLevelCount } } },
 };
 
 const UiElement = enum {
@@ -91,12 +92,13 @@ const UiElementSliderData = struct {
     recSlider: main.Rectangle = undefined,
     recDragArea: main.Rectangle = undefined,
     valuePerCent: f32,
+    altDisplayValue: ?i32 = null,
     hovering: bool = false,
     holding: bool = false,
     label: []const u8,
     baseHeight: f32 = 40,
-    onChange: ?*const fn (sliderPerCent: f32, state: *main.GameState) anyerror!void = null,
-    onStopHolding: ?*const fn (sliderPerCent: f32, state: *main.GameState) anyerror!void = null,
+    onChange: ?*const fn (sliderPerCent: f32, uiElement: *UiElementData, state: *main.GameState) anyerror!void = null,
+    onStopHolding: ?*const fn (sliderPerCent: f32, uiElement: *UiElementData, state: *main.GameState) anyerror!void = null,
 };
 
 pub fn setupUiLocations(state: *main.GameState) void {
@@ -286,8 +288,9 @@ pub fn mouseMove(mouseWindowPosition: main.Position, state: *main.GameState) !vo
                     data.hovering = false;
                 }
                 if (data.holding) {
-                    data.valuePerCent = @min(@max(0, @as(f32, @floatCast(vulkanMousePos.x - data.recDragArea.pos.x)) / data.recDragArea.width), 1);
-                    if (data.onChange) |onChange| try onChange(data.valuePerCent, state);
+                    const valuePerCent = @min(@max(0, @as(f32, @floatCast(vulkanMousePos.x - data.recDragArea.pos.x)) / data.recDragArea.width), 1);
+                    data.valuePerCent = valuePerCent;
+                    if (data.onChange) |onChange| try onChange(valuePerCent, element, state);
                     setupUiLocations(state);
                 }
             },
@@ -308,9 +311,9 @@ pub fn mouseUp(mouseWindowPosition: main.Position, state: *main.GameState) !void
             .slider => |*data| {
                 if (data.holding) {
                     const vulkanMousePos = windowSdlZig.mouseWindowPositionToVulkanSurfacePoisition(mouseWindowPosition.x, mouseWindowPosition.y);
-                    data.valuePerCent = @min(@max(0, @as(f32, @floatCast(vulkanMousePos.x - data.recDragArea.pos.x)) / data.recDragArea.width), 1);
-                    if (data.onChange) |onChange| try onChange(data.valuePerCent, state);
-                    if (data.onStopHolding) |stopHold| try stopHold(data.valuePerCent, state);
+                    const valuePerCent = @min(@max(0, @as(f32, @floatCast(vulkanMousePos.x - data.recDragArea.pos.x)) / data.recDragArea.width), 1);
+                    if (data.onChange) |onChange| try onChange(valuePerCent, element, state);
+                    if (data.onStopHolding) |stopHold| try stopHold(valuePerCent, element, state);
                 }
                 data.holding = false;
             },
@@ -493,8 +496,9 @@ pub fn setupVertices(state: *main.GameState) !void {
                         elementTextColor,
                         &verticeData.font,
                     );
+                    const displayValue = if (data.altDisplayValue) |alt| alt else @as(i32, @intFromFloat(data.valuePerCent * 100));
                     _ = try fontVulkanZig.paintNumber(
-                        @as(u32, @intFromFloat(data.valuePerCent * 100)),
+                        displayValue,
                         .{ .x = data.recDragArea.pos.x + textWidthVolume + tabFontSize * onePixelXInVulkan, .y = data.recSlider.pos.y - tabFontVulkanHeight },
                         tabFontSize,
                         elementTextColor,
@@ -573,19 +577,35 @@ fn onCheckboxStatsBestRun(checked: bool, state: *main.GameState) anyerror!void {
     state.statistics.uxData.displayBestRun = checked;
 }
 
-fn onSliderChangeVolume(sliderPerCent: f32, state: *main.GameState) anyerror!void {
+fn onSliderChangeVolume(sliderPerCent: f32, uiElement: *UiElementData, state: *main.GameState) anyerror!void {
+    uiElement.typeData.slider.valuePerCent = sliderPerCent;
     state.soundMixer.?.volume = sliderPerCent;
 }
 
-fn onSliderStopHoldingUxSize(sliderPerCent: f32, state: *main.GameState) anyerror!void {
+fn onSliderStopHoldingUxSize(sliderPerCent: f32, uiElement: *UiElementData, state: *main.GameState) anyerror!void {
+    uiElement.typeData.slider.valuePerCent = sliderPerCent;
     state.uxData.settingsMenuUx.uiSizeDelayed = 0.5 + sliderPerCent;
     setupUiLocations(state);
 }
 
-fn onSliderStatsPositionX(sliderPerCent: f32, state: *main.GameState) anyerror!void {
+fn onSliderStatsPositionX(sliderPerCent: f32, uiElement: *UiElementData, state: *main.GameState) anyerror!void {
+    uiElement.typeData.slider.valuePerCent = sliderPerCent;
     state.statistics.uxData.vulkanPosition.x = sliderPerCent * 2 - 1;
 }
 
-fn onSliderStatsPositionY(sliderPerCent: f32, state: *main.GameState) anyerror!void {
+fn onSliderStatsPositionY(sliderPerCent: f32, uiElement: *UiElementData, state: *main.GameState) anyerror!void {
+    uiElement.typeData.slider.valuePerCent = sliderPerCent;
     state.statistics.uxData.vulkanPosition.y = sliderPerCent * 2 - 1;
+}
+
+fn onSliderStatsPastLevelCount(sliderPerCent: f32, uiElement: *UiElementData, state: *main.GameState) anyerror!void {
+    uiElement.typeData.slider.valuePerCent = sliderPerCent;
+    state.statistics.uxData.displayLevelCount = @intFromFloat(sliderPerCent * 50);
+    uiElement.typeData.slider.altDisplayValue = @intCast(state.statistics.uxData.displayLevelCount);
+}
+
+fn onSliderStatsNextLevelCount(sliderPerCent: f32, uiElement: *UiElementData, state: *main.GameState) anyerror!void {
+    uiElement.typeData.slider.valuePerCent = sliderPerCent;
+    state.statistics.uxData.displayNextLevelCount = @intFromFloat(sliderPerCent * 50);
+    uiElement.typeData.slider.altDisplayValue = @intCast(state.statistics.uxData.displayNextLevelCount);
 }
