@@ -150,7 +150,7 @@ fn debugKeys(event: sdl.SDL_Event, state: *main.GameState) !void {
             player.money += 200;
         }
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F10) {
-        std.debug.print("{}\n", .{state.tutorialData});
+        std.debug.print("{}\n", .{state.uxData.settingsMenuUx.uiTabs[state.uxData.settingsMenuUx.activeTabIndex].contentRec});
     }
 }
 
