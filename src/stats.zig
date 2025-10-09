@@ -20,6 +20,7 @@ pub const StatisticsUxData = struct {
     columnsData: []ColumnData = &COLUMNS_DATA,
     currentTimestamp: i64 = 0,
     displayNextLevelData: bool = true,
+    displayBestRun: bool = true,
 };
 
 const ColumnData = struct {
@@ -193,6 +194,32 @@ pub fn setupVertices(state: *main.GameState) !void {
             try column.setupVertices(@intCast(level), levelDatas, .{ .x = topLeft.x + columnOffsetX, .y = topLeft.y + row * fontSize * onePixelYInVulkan }, column, state);
             columnOffsetX += column.pixelWidth * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
         }
+    }
+    const currentY = topLeft.y + @as(f32, @floatFromInt(lastDisplayLevel - firstDisplayLevel + 2)) * fontSize * onePixelYInVulkan;
+    if (state.statistics.uxData.displayBestRun) {
+        var furthestDataIndex: usize = 0;
+        for (levelDatas, 0..) |level, index| {
+            if (level.fastestTotalTime != null) {
+                furthestDataIndex = index;
+            }
+        }
+        var textWidth: f32 = 0;
+        textWidth += fontVulkanZig.paintText("Best Run: Level ", .{
+            .x = topLeft.x + textWidth,
+            .y = currentY,
+        }, fontSize, textColor, &state.vkState.verticeData.font);
+        textWidth += try fontVulkanZig.paintNumber(furthestDataIndex + 1, .{
+            .x = topLeft.x + textWidth,
+            .y = currentY,
+        }, fontSize, textColor, &state.vkState.verticeData.font);
+        textWidth += fontVulkanZig.paintText(" in ", .{
+            .x = topLeft.x + textWidth,
+            .y = currentY,
+        }, fontSize, textColor, &state.vkState.verticeData.font);
+        _ = try fontVulkanZig.paintTime(levelDatas[furthestDataIndex].fastestTotalTime.?, .{
+            .x = topLeft.x + textWidth,
+            .y = currentY,
+        }, fontSize, true, textColor, &state.vkState.verticeData.font);
     }
 }
 

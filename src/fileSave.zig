@@ -60,7 +60,7 @@ pub fn loadSettingsFromFile(state: *main.GameState) !void {
                     try data.onSetChecked(data.checked, state);
                 },
                 .slider => |*data| {
-                    const valuePerCent: f32 = @bitCast(try reader.readInt(u32, .little));
+                    const valuePerCent: f32 = @max(0, @min(1, @as(f32, @bitCast(try reader.readInt(u32, .little)))));
                     data.valuePerCent = valuePerCent;
                     if (data.onStopHolding) |stopHolding| {
                         try stopHolding(data.valuePerCent, state);

@@ -5,8 +5,6 @@ testruns:
 
 Tasks:
 - speedrun statistics
-    - positioning
-        - font size scaling with ui scale
     - display furthest/fastest endtime
     - slider for future level display
     - slider for max level display
