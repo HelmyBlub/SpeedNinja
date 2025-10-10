@@ -5,7 +5,6 @@ testruns:
 
 
 Tasks:
-- bug?: check second boss dying from immunity break. one steps to late?
 - bug: on level start enemy can be on player position
 - speedrun statistics
     - continue: slider position incorrect on start

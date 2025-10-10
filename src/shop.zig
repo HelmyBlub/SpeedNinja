@@ -253,7 +253,7 @@ pub fn getShopTriggerPosition(state: *main.GameState) main.TileRectangle {
     return main.TileRectangle{
         .pos = .{
             .x = @intCast(state.mapData.tileRadiusWidth + 2),
-            .y = @intCast(@divFloor(state.mapData.tileRadiusHeight, 2) - 1),
+            .y = @as(i32, @intCast(@divFloor(state.mapData.tileRadiusHeight, 2))) - 1,
         },
         .height = EARLY_SHOP_GRID_SIZE,
         .width = EARLY_SHOP_GRID_SIZE,

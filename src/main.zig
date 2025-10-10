@@ -529,6 +529,36 @@ pub fn startNextLevel(state: *GameState) !void {
         try startNextRound(state);
     }
     playerZig.movePlayerToLevelSpawnPosition(state);
+    checkForEnemyAndPlayerOnSamePosition(state);
+}
+
+fn checkForEnemyAndPlayerOnSamePosition(state: *GameState) void {
+    const lengthX: f32 = @floatFromInt(state.mapData.tileRadiusWidth * 2 + 1);
+    const lengthY: f32 = @floatFromInt(state.mapData.tileRadiusHeight * 2 + 1);
+    for (state.enemyData.enemies.items) |*enemy| {
+        const enemyTile = gamePositionToTilePosition(enemy.position);
+        for (state.players.items) |*player| {
+            const playerTile = gamePositionToTilePosition(player.position);
+            if (playerTile.x == enemyTile.x and playerTile.y == enemyTile.y) {
+                var enemyMoved = false;
+                var tries: u32 = 0;
+                const maxTries = 10;
+                while (!enemyMoved and tries < maxTries) {
+                    tries += 1;
+                    const randomTileX: i16 = @as(i16, @intFromFloat(std.crypto.random.float(f32) * lengthX - lengthX / 2));
+                    const randomTileY: i16 = @as(i16, @intFromFloat(std.crypto.random.float(f32) * lengthY - lengthY / 2));
+                    const randomPos: Position = .{
+                        .x = @floatFromInt(randomTileX * TILESIZE),
+                        .y = @floatFromInt(randomTileY * TILESIZE),
+                    };
+                    if (isPositionEmpty(randomPos, state)) {
+                        enemy.position = randomPos;
+                        enemyMoved = true;
+                    }
+                }
+            }
+        }
+    }
 }
 
 pub fn getDirectionFromTo(fromPosition: Position, toPosition: Position) u8 {
