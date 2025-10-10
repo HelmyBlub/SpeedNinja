@@ -6,10 +6,6 @@ testruns:
 
 Tasks:
 - speedrun statistics
-    - best still possible time
-        - is the time correct?
-        - can it crash when no levelData?
-        
     - shopping average time
 
     - settings menu explanation of options

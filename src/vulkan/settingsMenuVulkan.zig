@@ -38,6 +38,7 @@ var UI_ELEMENTS_SPEEDRUN_STATS = [_]UiElementData{
     .{ .typeData = .{ .checkbox = .{ .label = "Column Time", .onSetChecked = onCheckboxStatsColumnTime, .checked = true } }, .active = false },
     .{ .typeData = .{ .checkbox = .{ .label = "Column +/-", .onSetChecked = onCheckboxStatsColumnPlusMinus, .checked = true } }, .active = false },
     .{ .typeData = .{ .checkbox = .{ .label = "Column Gold", .onSetChecked = onCheckboxStatsColumnGold, .checked = true } }, .active = false },
+    .{ .typeData = .{ .checkbox = .{ .label = "Row Time in Shop", .onSetChecked = onCheckboxStatsTimeInShop, .checked = true } }, .active = false },
     .{ .typeData = .{ .checkbox = .{ .label = "Row Best Run", .onSetChecked = onCheckboxStatsBestRun, .checked = true } }, .active = false },
     .{ .typeData = .{ .checkbox = .{ .label = "Row Gold Run", .onSetChecked = onCheckboxStatsGoldRun, .checked = true } }, .active = false },
     .{ .typeData = .{ .checkbox = .{ .label = "Row Best Time", .onSetChecked = onCheckboxStatsBestTime, .checked = true } }, .active = false },
@@ -586,6 +587,10 @@ fn onCheckboxStatsGoldRun(checked: bool, state: *main.GameState) anyerror!void {
 
 fn onCheckboxStatsBestTime(checked: bool, state: *main.GameState) anyerror!void {
     state.statistics.uxData.displayBestPossibleTime = checked;
+}
+
+fn onCheckboxStatsTimeInShop(checked: bool, state: *main.GameState) anyerror!void {
+    state.statistics.uxData.displayTimeInShop = checked;
 }
 
 fn onSliderChangeVolume(sliderPerCent: f32, uiElement: *UiElementData, state: *main.GameState) anyerror!void {

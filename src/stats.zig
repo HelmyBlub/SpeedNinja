@@ -28,6 +28,7 @@ pub const StatisticsUxData = struct {
     displayBestPossibleTime: bool = true,
     displayBestPossibleTimeValue: ?i64 = null,
     displayBestPossibleTimeLevel: u32 = 0,
+    displayTimeInShop: bool = true,
 };
 
 const ColumnData = struct {
@@ -202,7 +203,23 @@ pub fn setupVertices(state: *main.GameState) !void {
             columnOffsetX += column.pixelWidth * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
         }
     }
-    var currentY = topLeft.y + @as(f32, @floatFromInt(lastDisplayLevel - firstDisplayLevel + 2)) * fontSize * onePixelYInVulkan;
+    var currentY = topLeft.y + @as(f32, @floatFromInt(lastDisplayLevel - firstDisplayLevel + 1)) * fontSize * onePixelYInVulkan;
+    if (state.statistics.uxData.displayTimeInShop) {
+        var shopppingTime = state.statistics.totalShoppingTime;
+        if (state.gamePhase == .shopping) {
+            shopppingTime += state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - levelDatas[state.level - 1].currentTotalTime;
+        }
+        const textWidth = fontVulkanZig.paintText("Shop: ", .{
+            .x = topLeft.x,
+            .y = currentY,
+        }, fontSize, textColor, &state.vkState.verticeData.font);
+        _ = try fontVulkanZig.paintTime(shopppingTime, .{
+            .x = topLeft.x + textWidth,
+            .y = currentY,
+        }, fontSize, true, textColor, &state.vkState.verticeData.font);
+        currentY += fontSize * onePixelYInVulkan;
+    }
+    currentY += fontSize * onePixelYInVulkan;
     if (state.statistics.uxData.displayBestPossibleTime) {
         if (state.statistics.uxData.displayBestPossibleTimeValue == null) {
             try calculateSumOfGoldsOfRemainingLevels(state);
@@ -413,7 +430,7 @@ fn setupVerticesTotalDiff(level: u32, levelDatas: []LevelStatistics, paintPos: m
     }
 }
 
-fn getLevelDatas(state: *main.GameState) ![]LevelStatistics {
+pub fn getLevelDatas(state: *main.GameState) ![]LevelStatistics {
     var optLevelDatas: ?*std.ArrayList(LevelStatistics) = null;
     for (state.statistics.levelDataWithPlayerCount.items) |*levelDataForPlayerCount| {
         if (state.players.items.len == levelDataForPlayerCount.playerCount and state.newGamePlus == levelDataForPlayerCount.newGamePlus) {

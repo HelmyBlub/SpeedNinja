@@ -810,6 +810,11 @@ pub fn executeContinue(state: *GameState) !void {
         player.animateData.ears.lastUpdateTime = state.gameTime;
     }
     try shopZig.startShoppingPhase(state);
+    if (state.statistics.active) {
+        const levelDatas = try statsZig.getLevelDatas(state);
+        const currentLevelData = &levelDatas[state.level - 1];
+        state.statistics.totalShoppingTime -= currentLevelData.currentShoppingTime;
+    }
     state.gameOver = false;
 }
 
