@@ -25,6 +25,9 @@ pub const StatisticsUxData = struct {
     displayGoldRun: bool = true,
     displayGoldRunValue: ?i64 = null,
     displayGoldRunLevel: u32 = 0,
+    displayBestPossibleTime: bool = true,
+    displayBestPossibleTimeValue: ?i64 = null,
+    displayBestPossibleTimeLevel: u32 = 0,
 };
 
 const ColumnData = struct {
@@ -201,6 +204,34 @@ pub fn setupVertices(state: *main.GameState) !void {
     }
     var currentY = topLeft.y + @as(f32, @floatFromInt(lastDisplayLevel - firstDisplayLevel + 2)) * fontSize * onePixelYInVulkan;
     if (state.statistics.uxData.displayBestRun) {
+        if (state.statistics.uxData.displayBestPossibleTimeValue == null) {
+            try calculateSumOfGoldsOfRemainingLevels(state);
+        }
+        var pastTimePart: i64 = 0;
+        if (state.level == 1) {
+            if (levelDatas[0].fastestTime) |fastestTime| {
+                pastTimePart = @max(fastestTime, state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime);
+            }
+        } else {
+            if (levelDatas[state.level - 1].fastestTime) |fastestTime| {
+                const lastLevelFinishTime = levelDatas[state.level - 2].currentTotalTime;
+                const currentLevelEstimate = @max(fastestTime, state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - lastLevelFinishTime);
+                pastTimePart = lastLevelFinishTime + currentLevelEstimate;
+            }
+        }
+        try displayTextNumberTextTime(
+            "Best Possible Run: Level ",
+            state.statistics.uxData.displayBestPossibleTimeLevel,
+            " in ",
+            state.statistics.uxData.displayBestPossibleTimeValue.? + pastTimePart,
+            .{ .x = topLeft.x, .y = currentY },
+            fontSize,
+            textColor,
+            state,
+        );
+        currentY += fontSize * onePixelYInVulkan;
+    }
+    if (state.statistics.uxData.displayBestRun) {
         var furthestDataIndex: usize = 0;
         for (levelDatas, 0..) |level, index| {
             if (level.fastestTotalTime != null) {
@@ -208,23 +239,16 @@ pub fn setupVertices(state: *main.GameState) !void {
             }
         }
         if (levelDatas[furthestDataIndex].fastestTotalTime) |fastestTotalTime| {
-            var textWidth: f32 = 0;
-            textWidth += fontVulkanZig.paintText("Best Run: Level ", .{
-                .x = topLeft.x + textWidth,
-                .y = currentY,
-            }, fontSize, textColor, &state.vkState.verticeData.font);
-            textWidth += try fontVulkanZig.paintNumber(furthestDataIndex + 1, .{
-                .x = topLeft.x + textWidth,
-                .y = currentY,
-            }, fontSize, textColor, &state.vkState.verticeData.font);
-            textWidth += fontVulkanZig.paintText(" in ", .{
-                .x = topLeft.x + textWidth,
-                .y = currentY,
-            }, fontSize, textColor, &state.vkState.verticeData.font);
-            _ = try fontVulkanZig.paintTime(fastestTotalTime, .{
-                .x = topLeft.x + textWidth,
-                .y = currentY,
-            }, fontSize, true, textColor, &state.vkState.verticeData.font);
+            try displayTextNumberTextTime(
+                "Best Run: Level ",
+                furthestDataIndex + 1,
+                " in ",
+                fastestTotalTime,
+                .{ .x = topLeft.x, .y = currentY },
+                fontSize,
+                textColor,
+                state,
+            );
             currentY += fontSize * onePixelYInVulkan;
         }
     }
@@ -232,24 +256,38 @@ pub fn setupVertices(state: *main.GameState) !void {
         if (state.statistics.uxData.displayGoldRunValue == null) {
             try calculateSumOfGolds(state);
         }
-        var textWidth: f32 = 0;
-        textWidth += fontVulkanZig.paintText("Gold Run: Level ", .{
-            .x = topLeft.x + textWidth,
-            .y = currentY,
-        }, fontSize, textColor, &state.vkState.verticeData.font);
-        textWidth += try fontVulkanZig.paintNumber(state.statistics.uxData.displayGoldRunLevel, .{
-            .x = topLeft.x + textWidth,
-            .y = currentY,
-        }, fontSize, textColor, &state.vkState.verticeData.font);
-        textWidth += fontVulkanZig.paintText(" in ", .{
-            .x = topLeft.x + textWidth,
-            .y = currentY,
-        }, fontSize, textColor, &state.vkState.verticeData.font);
-        _ = try fontVulkanZig.paintTime(state.statistics.uxData.displayGoldRunValue.?, .{
-            .x = topLeft.x + textWidth,
-            .y = currentY,
-        }, fontSize, true, textColor, &state.vkState.verticeData.font);
+        try displayTextNumberTextTime(
+            "Gold Run: Level ",
+            state.statistics.uxData.displayGoldRunLevel,
+            " in ",
+            state.statistics.uxData.displayGoldRunValue.?,
+            .{ .x = topLeft.x, .y = currentY },
+            fontSize,
+            textColor,
+            state,
+        );
+        currentY += fontSize * onePixelYInVulkan;
     }
+}
+
+fn displayTextNumberTextTime(text1: []const u8, number: anytype, text2: []const u8, time: i64, topLeft: main.Position, fontSize: f32, textColor: [4]f32, state: *main.GameState) !void {
+    var textWidth: f32 = 0;
+    textWidth += fontVulkanZig.paintText(text1, .{
+        .x = topLeft.x + textWidth,
+        .y = topLeft.y,
+    }, fontSize, textColor, &state.vkState.verticeData.font);
+    textWidth += try fontVulkanZig.paintNumber(number, .{
+        .x = topLeft.x + textWidth,
+        .y = topLeft.y,
+    }, fontSize, textColor, &state.vkState.verticeData.font);
+    textWidth += fontVulkanZig.paintText(text2, .{
+        .x = topLeft.x + textWidth,
+        .y = topLeft.y,
+    }, fontSize, textColor, &state.vkState.verticeData.font);
+    _ = try fontVulkanZig.paintTime(time, .{
+        .x = topLeft.x + textWidth,
+        .y = topLeft.y,
+    }, fontSize, true, textColor, &state.vkState.verticeData.font);
 }
 
 fn setupVerticesLevel(level: u32, levelDatas: []LevelStatistics, paintPos: main.Position, columnData: ColumnData, state: *main.GameState) anyerror!void {
@@ -459,4 +497,17 @@ fn calculateSumOfGolds(state: *main.GameState) !void {
         }
     }
     state.statistics.uxData.displayGoldRunValue = sumOfGold;
+}
+
+fn calculateSumOfGoldsOfRemainingLevels(state: *main.GameState) !void {
+    const levelDatas: []LevelStatistics = try getLevelDatas(state);
+    var sumOfGoldRemaining: i64 = 0;
+    for ((state.level)..levelDatas.len) |index| {
+        const level = levelDatas[index];
+        if (level.fastestTime) |fastestTime| {
+            sumOfGoldRemaining += fastestTime;
+            state.statistics.uxData.displayBestPossibleTimeLevel = @intCast(index + 1);
+        }
+    }
+    state.statistics.uxData.displayBestPossibleTimeValue = sumOfGoldRemaining;
 }

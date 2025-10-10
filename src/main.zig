@@ -506,6 +506,7 @@ pub fn startNextLevel(state: *GameState) !void {
     state.gamePhase = .combat;
     state.level += 1;
     state.round = 0;
+    state.statistics.uxData.displayBestPossibleTimeValue = null;
     bossZig.clearBosses(state);
     for (state.players.items) |*player| {
         try movePieceZig.resetPieces(player, false, state);
@@ -679,6 +680,7 @@ pub fn restart(state: *GameState, newGamePlus: u32) anyerror!void {
     state.uxData.displayBossAcedUntilTime = null;
     state.uxData.displayReceivedFreeContinue = null;
     state.statistics.uxData.displayGoldRunValue = null;
+    state.statistics.uxData.displayBestPossibleTimeValue = null;
     try startNextLevel(state);
 }
 

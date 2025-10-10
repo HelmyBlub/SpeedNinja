@@ -6,8 +6,6 @@ testruns:
 
 Tasks:
 - speedrun statistics
-    - sum of gold times
-        - what to do with shopping times?
     - best still possible time
     - shopping average time
 
