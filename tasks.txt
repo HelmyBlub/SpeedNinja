@@ -5,7 +5,6 @@ testruns:
 
 
 Tasks:
-- bug: on level start enemy can be on player position
 - speedrun statistics
     - continue: slider position incorrect on start
         - change: slider position should not be part of position setup and calculated on paint based on percent

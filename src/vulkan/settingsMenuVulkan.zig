@@ -89,7 +89,8 @@ const UiElementCheckboxData = struct {
 };
 
 const UiElementSliderData = struct {
-    recSlider: main.Rectangle = undefined,
+    sliderWidth: f32 = 0,
+    sliderHeight: f32 = 0,
     recDragArea: main.Rectangle = undefined,
     valuePerCent: f32,
     altDisplayValue: ?i32 = null,
@@ -194,28 +195,21 @@ fn settupUiLocationSingleTab(tab: *UiTabsData, baseFontSize: f32, uiSizeFactor: 
             .slider => |*data| {
                 const labelOffsetY = baseFontSize * onePixelYInVulkan * uiSizeFactor;
                 offsetY += labelOffsetY;
-                const sliderOffsetX = data.valuePerCent * dragAreaWidth;
-                data.recSlider = main.Rectangle{
-                    .height = data.baseHeight / windowSdlZig.windowData.heightFloat * uiSizeFactor,
-                    .width = sliderWidth,
-                    .pos = .{
-                        .x = tab.contentRec.pos.x + sliderOffsetX + vulkanSpacingX,
-                        .y = offsetY + vulkanSpacingLargerY,
-                    },
-                };
+                data.sliderWidth = sliderWidth;
+                data.sliderHeight = data.baseHeight / windowSdlZig.windowData.heightFloat * uiSizeFactor;
                 data.recDragArea = main.Rectangle{
                     .height = data.baseHeight / 4 / windowSdlZig.windowData.heightFloat * uiSizeFactor,
                     .width = dragAreaWidth,
                     .pos = .{
                         .x = tab.contentRec.pos.x + sliderWidth / 2 + vulkanSpacingX,
-                        .y = data.recSlider.pos.y + data.baseHeight / 8 * 3 / windowSdlZig.windowData.heightFloat * uiSizeFactor,
+                        .y = offsetY + vulkanSpacingLargerY + data.baseHeight / 8 * 3 / windowSdlZig.windowData.heightFloat * uiSizeFactor,
                     },
                 };
                 const textWidthEstimate = fontVulkanZig.getTextVulkanWidth(data.label, baseFontSize) * uiSizeFactor;
                 const numberWidthEstimate = baseFontSize * uiSizeFactor * 3 * onePixelXInVulkan + vulkanSpacingX * 2;
                 const widthEstimate = @max(dragAreaWidth + sliderWidth, textWidthEstimate + numberWidthEstimate) + vulkanSpacingX * 2;
                 if (widthEstimate > maxTabWidth) maxTabWidth = widthEstimate;
-                offsetY = data.recSlider.pos.y + data.recSlider.height;
+                offsetY = offsetY + vulkanSpacingLargerY + data.sliderHeight;
             },
         }
         tab.contentRec.height = offsetY - tab.contentRec.pos.y + vulkanSpacingY;
@@ -233,8 +227,6 @@ fn settupUiLocationSingleTab(tab: *UiTabsData, baseFontSize: f32, uiSizeFactor: 
             },
             .slider => |*data| {
                 data.recDragArea.pos.x = tab.contentRec.pos.x + sliderWidth / 2 + vulkanSpacingX;
-                const sliderOffsetX = data.valuePerCent * dragAreaWidth;
-                data.recSlider.pos.x = tab.contentRec.pos.x + sliderOffsetX + vulkanSpacingX;
             },
         }
     }
@@ -282,7 +274,12 @@ pub fn mouseMove(mouseWindowPosition: main.Position, state: *main.GameState) !vo
                 }
             },
             .slider => |*data| {
-                if (main.isPositionInRectangle(vulkanMousePos, data.recSlider)) {
+                const recSlider: main.Rectangle = .{ .pos = .{
+                    .x = data.recDragArea.pos.x + data.valuePerCent * data.recDragArea.width - data.sliderWidth / 2,
+                    .y = data.recDragArea.pos.y - data.sliderHeight / 8 * 3,
+                }, .width = data.sliderWidth, .height = data.sliderHeight };
+
+                if (main.isPositionInRectangle(vulkanMousePos, recSlider)) {
                     data.hovering = true;
                 } else {
                     data.hovering = false;
@@ -354,9 +351,9 @@ pub fn mouseDown(mouseWindowPosition: main.Position, state: *main.GameState) !vo
             },
             .slider => |*data| {
                 const interactBox: main.Rectangle = .{
-                    .pos = .{ .x = data.recDragArea.pos.x - data.recSlider.width / 2, .y = data.recSlider.pos.y },
-                    .width = data.recDragArea.width + data.recSlider.width,
-                    .height = data.recSlider.height,
+                    .pos = .{ .x = data.recDragArea.pos.x - data.sliderWidth / 2, .y = data.recDragArea.pos.y - data.sliderHeight / 8 * 3 },
+                    .width = data.recDragArea.width + data.sliderWidth,
+                    .height = data.sliderHeight,
                 };
                 if (main.isPositionInRectangle(vulkanMousePos, interactBox)) {
                     data.valuePerCent = @min(@max(0, @as(f32, @floatCast(vulkanMousePos.x - data.recDragArea.pos.x)) / data.recDragArea.width), 1);
@@ -487,11 +484,15 @@ pub fn setupVertices(state: *main.GameState) !void {
                     paintVulkanZig.verticesForRectangle(data.recDragArea.pos.x, data.recDragArea.pos.y, data.recDragArea.width, data.recDragArea.height, .{ 1, 1, 1, alpha }, &verticeData.lines, &verticeData.triangles);
                     var sliderFillColor = if (data.hovering and element.active) hoverColor else buttonFillColor;
                     sliderFillColor[3] = alpha;
-                    paintVulkanZig.verticesForRectangle(data.recSlider.pos.x, data.recSlider.pos.y, data.recSlider.width, data.recSlider.height, sliderFillColor, &verticeData.lines, &verticeData.triangles);
+                    const recSlider: main.Rectangle = .{ .pos = .{
+                        .x = data.recDragArea.pos.x + data.valuePerCent * data.recDragArea.width - data.sliderWidth / 2,
+                        .y = data.recDragArea.pos.y - data.sliderHeight / 8 * 3,
+                    }, .width = data.sliderWidth, .height = data.sliderHeight };
+                    paintVulkanZig.verticesForRectangle(recSlider.pos.x, recSlider.pos.y, recSlider.width, recSlider.height, sliderFillColor, &verticeData.lines, &verticeData.triangles);
 
-                    const textWidthVolume = fontVulkanZig.paintText(
+                    const textWidthSlider = fontVulkanZig.paintText(
                         data.label,
-                        .{ .x = data.recDragArea.pos.x, .y = data.recSlider.pos.y - tabFontVulkanHeight },
+                        .{ .x = data.recDragArea.pos.x, .y = recSlider.pos.y - tabFontVulkanHeight },
                         tabFontSize,
                         elementTextColor,
                         &verticeData.font,
@@ -499,7 +500,7 @@ pub fn setupVertices(state: *main.GameState) !void {
                     const displayValue = if (data.altDisplayValue) |alt| alt else @as(i32, @intFromFloat(data.valuePerCent * 100));
                     _ = try fontVulkanZig.paintNumber(
                         displayValue,
-                        .{ .x = data.recDragArea.pos.x + textWidthVolume + tabFontSize * onePixelXInVulkan, .y = data.recSlider.pos.y - tabFontVulkanHeight },
+                        .{ .x = data.recDragArea.pos.x + textWidthSlider + tabFontSize * onePixelXInVulkan, .y = recSlider.pos.y - tabFontVulkanHeight },
                         tabFontSize,
                         elementTextColor,
                         &verticeData.font,
