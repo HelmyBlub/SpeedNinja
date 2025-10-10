@@ -6,11 +6,8 @@ testruns:
 
 Tasks:
 - speedrun statistics
-    - shopping average time
-
-    - settings menu explanation of options
     - 5-level grouping
-    - display stats when game finished
+    - settings menu explanation of options
 - be able to choose new game plus on start
     - available once game beaten on normal mode
 - speedrun stats:

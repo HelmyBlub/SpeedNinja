@@ -46,6 +46,7 @@ var UI_ELEMENTS_SPEEDRUN_STATS = [_]UiElementData{
     .{ .typeData = .{ .slider = .{ .label = "Position Y", .valuePerCent = 0.5, .onChange = onSliderStatsPositionY } } },
     .{ .typeData = .{ .slider = .{ .label = "Next Level Count", .valuePerCent = 0, .onChange = onSliderStatsNextLevelCount } } },
     .{ .typeData = .{ .slider = .{ .label = "Past Level Count", .valuePerCent = 0.5, .onChange = onSliderStatsPastLevelCount } } },
+    .{ .typeData = .{ .checkbox = .{ .label = "Group Levels in 5", .onSetChecked = onCheckboxStatsGroupLevels, .checked = true } }, .active = false },
 };
 
 const UiElement = enum {
@@ -587,6 +588,10 @@ fn onCheckboxStatsGoldRun(checked: bool, state: *main.GameState) anyerror!void {
 
 fn onCheckboxStatsBestTime(checked: bool, state: *main.GameState) anyerror!void {
     state.statistics.uxData.displayBestPossibleTime = checked;
+}
+
+fn onCheckboxStatsGroupLevels(checked: bool, state: *main.GameState) anyerror!void {
+    state.statistics.uxData.groupingLevelsInFive = checked;
 }
 
 fn onCheckboxStatsTimeInShop(checked: bool, state: *main.GameState) anyerror!void {

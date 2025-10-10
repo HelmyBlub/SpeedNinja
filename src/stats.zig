@@ -29,6 +29,7 @@ pub const StatisticsUxData = struct {
     displayBestPossibleTimeValue: ?i64 = null,
     displayBestPossibleTimeLevel: u32 = 0,
     displayTimeInShop: bool = true,
+    groupingLevelsInFive: bool = true,
 };
 
 const ColumnData = struct {
@@ -181,8 +182,6 @@ pub fn setupVertices(state: *main.GameState) !void {
     const levelDatas: []LevelStatistics = try getLevelDatas(state);
     state.statistics.uxData.fontSize = 16 * state.uxData.settingsMenuUx.uiSizeDelayed;
     const fontSize = state.statistics.uxData.fontSize;
-    const firstDisplayLevel = if (state.level > state.statistics.uxData.displayLevelCount) state.level - state.statistics.uxData.displayLevelCount else 1;
-    const lastDisplayLevel = @min(main.LEVEL_COUNT + 1, state.level + 1 + state.statistics.uxData.displayNextLevelCount);
     var columnOffsetX: f32 = 0;
     for (state.statistics.uxData.columnsData) |column| {
         if (!column.display) continue;
@@ -194,8 +193,17 @@ pub fn setupVertices(state: *main.GameState) !void {
         }, fontSize, textColor, &state.vkState.verticeData.font);
         columnOffsetX += columnWidth;
     }
-    for (firstDisplayLevel..lastDisplayLevel) |level| {
-        const row: f32 = @as(f32, @floatFromInt(level - firstDisplayLevel)) + 1;
+    var firstDisplayLevel: usize = 0;
+    const groupingMultiplay: usize = if (state.statistics.uxData.groupingLevelsInFive) 5 else 1;
+    if (state.level > state.statistics.uxData.displayLevelCount * groupingMultiplay) {
+        firstDisplayLevel = @divFloor(state.level, groupingMultiplay) - state.statistics.uxData.displayLevelCount;
+    } else {
+        firstDisplayLevel = 1;
+    }
+    const lastDisplayLevel: usize = @min(@divFloor(main.LEVEL_COUNT, groupingMultiplay), @divFloor(state.level + state.statistics.uxData.displayNextLevelCount, groupingMultiplay)) + 1;
+    for (firstDisplayLevel..lastDisplayLevel) |levelWithoutMult| {
+        const level = groupingMultiplay * levelWithoutMult;
+        const row: f32 = @as(f32, @floatFromInt(levelWithoutMult - firstDisplayLevel)) + 1;
         columnOffsetX = 0;
         for (state.statistics.uxData.columnsData) |column| {
             if (!column.display) continue;
@@ -322,9 +330,9 @@ fn setupVerticesLevel(level: u32, levelDatas: []LevelStatistics, paintPos: main.
     const alpha: f32 = if (level > state.level) 0.5 else 1;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const columnWidth = columnData.pixelWidth * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
-    const textWidht = fontVulkanZig.getTextVulkanWidth(columnData.name, state.statistics.uxData.fontSize);
+    const textWidth = fontVulkanZig.getTextVulkanWidth(columnData.name, state.statistics.uxData.fontSize);
     _ = try fontVulkanZig.paintNumber(level, .{
-        .x = paintPos.x + columnWidth - textWidht,
+        .x = paintPos.x + columnWidth - textWidth,
         .y = paintPos.y,
     }, state.statistics.uxData.fontSize, .{ 1, 1, 1, alpha }, &state.vkState.verticeData.font);
 }
@@ -337,7 +345,9 @@ fn setupVerticesTime(level: u32, levelDatas: []LevelStatistics, paintPos: main.P
     if (level - 1 < levelDatas.len) {
         const levelData = levelDatas[level - 1];
         var displayTime = levelData.currentTotalTime;
-        if (level == state.level and state.gamePhase != .shopping) {
+        if (state.statistics.uxData.groupingLevelsInFive and @divFloor(level, 5) == @divFloor(state.level - 1, 5) + 1 and (state.gamePhase != .shopping or @mod(state.level, 5) != 0)) {
+            displayTime = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime;
+        } else if (level == state.level and state.gamePhase != .shopping) {
             displayTime = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime;
         } else if (level > state.level) {
             if (levelData.fastestTotalTime) |fastestTotalTime| {
@@ -362,11 +372,18 @@ fn setupVerticesTime(level: u32, levelDatas: []LevelStatistics, paintPos: main.P
 fn setupVerticesLevelDiff(level: u32, levelDatas: []LevelStatistics, paintPos: main.Position, columnData: ColumnData, state: *main.GameState) anyerror!void {
     if (level - 1 >= levelDatas.len) return;
     const levelData = levelDatas[level - 1];
-    if (levelData.fastestTime) |fastestTime| {
+    if (levelData.fastestTime) |levelFastestTime| {
+        var fastestTime = levelFastestTime;
+        if (state.statistics.uxData.groupingLevelsInFive) {
+            for (1..5) |i| {
+                fastestTime += levelDatas[level - i].fastestTime.?;
+            }
+        }
         const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
         const columnWidth = columnData.pixelWidth * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
         const fontSize = state.statistics.uxData.fontSize;
-        if (level > state.level) {
+        const currentDisplayLevelOfPlayer = if (state.statistics.uxData.groupingLevelsInFive) @divFloor(state.level - 1, 5) * 5 + 5 else state.level;
+        if (level > currentDisplayLevelOfPlayer) {
             const textWidht = try fontVulkanZig.getTimeTextVulkanWidth(fastestTime, fontSize, true);
             const paintX = paintPos.x + columnWidth - textWidht;
             _ = try fontVulkanZig.paintTime(fastestTime, .{ .x = paintX, .y = paintPos.y }, fontSize, true, .{ 1, 1, 1, 0.5 }, &state.vkState.verticeData.font);
@@ -374,7 +391,33 @@ fn setupVerticesLevelDiff(level: u32, levelDatas: []LevelStatistics, paintPos: m
             const red: [4]f32 = .{ 0.7, 0, 0, 1 };
             const green: [4]f32 = .{ 0.1, 1, 0.1, 1 };
             var levelCurrentTime = levelData.currentTime;
-            if (level == state.level and state.gamePhase != .shopping) {
+            if (state.statistics.uxData.groupingLevelsInFive) {
+                if (currentDisplayLevelOfPlayer == level) {
+                    if (state.level == 1) {
+                        if (state.gamePhase != .shopping) {
+                            levelCurrentTime = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime;
+                        } else {
+                            levelCurrentTime = levelDatas[0].currentTime;
+                        }
+                    } else {
+                        const levelItCount = @mod(state.level - 1, 5);
+                        levelCurrentTime = 0;
+                        for (0..levelItCount) |i| {
+                            levelCurrentTime += levelDatas[level - (4 - i) - 1].currentTime;
+                        }
+                        if (state.gamePhase != .shopping) {
+                            const lastLevelData = &levelDatas[state.level - 2];
+                            levelCurrentTime += state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - lastLevelData.currentTotalTime - lastLevelData.currentShoppingTime;
+                        } else {
+                            levelCurrentTime += levelDatas[state.level - 1].currentTime;
+                        }
+                    }
+                } else {
+                    for (1..5) |i| {
+                        levelCurrentTime += levelDatas[level - i].currentTime;
+                    }
+                }
+            } else if (level == state.level and state.gamePhase != .shopping) {
                 if (level > 1) {
                     const lastLevelData = &levelDatas[level - 2];
                     levelCurrentTime = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - lastLevelData.currentTotalTime - lastLevelData.currentShoppingTime;
