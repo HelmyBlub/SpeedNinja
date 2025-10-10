@@ -22,6 +22,9 @@ pub const StatisticsUxData = struct {
     displayBestRun: bool = true,
     displayNextLevelCount: u8 = 5,
     displayLevelCount: u8 = 5,
+    displayGoldRun: bool = true,
+    displayGoldRunValue: ?i64 = null,
+    displayGoldRunLevel: u32 = 0,
 };
 
 const ColumnData = struct {
@@ -196,7 +199,7 @@ pub fn setupVertices(state: *main.GameState) !void {
             columnOffsetX += column.pixelWidth * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
         }
     }
-    const currentY = topLeft.y + @as(f32, @floatFromInt(lastDisplayLevel - firstDisplayLevel + 2)) * fontSize * onePixelYInVulkan;
+    var currentY = topLeft.y + @as(f32, @floatFromInt(lastDisplayLevel - firstDisplayLevel + 2)) * fontSize * onePixelYInVulkan;
     if (state.statistics.uxData.displayBestRun) {
         var furthestDataIndex: usize = 0;
         for (levelDatas, 0..) |level, index| {
@@ -222,7 +225,30 @@ pub fn setupVertices(state: *main.GameState) !void {
                 .x = topLeft.x + textWidth,
                 .y = currentY,
             }, fontSize, true, textColor, &state.vkState.verticeData.font);
+            currentY += fontSize * onePixelYInVulkan;
         }
+    }
+    if (state.statistics.uxData.displayGoldRun) {
+        if (state.statistics.uxData.displayGoldRunValue == null) {
+            try calculateSumOfGolds(state);
+        }
+        var textWidth: f32 = 0;
+        textWidth += fontVulkanZig.paintText("Gold Run: Level ", .{
+            .x = topLeft.x + textWidth,
+            .y = currentY,
+        }, fontSize, textColor, &state.vkState.verticeData.font);
+        textWidth += try fontVulkanZig.paintNumber(state.statistics.uxData.displayGoldRunLevel, .{
+            .x = topLeft.x + textWidth,
+            .y = currentY,
+        }, fontSize, textColor, &state.vkState.verticeData.font);
+        textWidth += fontVulkanZig.paintText(" in ", .{
+            .x = topLeft.x + textWidth,
+            .y = currentY,
+        }, fontSize, textColor, &state.vkState.verticeData.font);
+        _ = try fontVulkanZig.paintTime(state.statistics.uxData.displayGoldRunValue.?, .{
+            .x = topLeft.x + textWidth,
+            .y = currentY,
+        }, fontSize, true, textColor, &state.vkState.verticeData.font);
     }
 }
 
@@ -421,4 +447,16 @@ fn saveStatisticsDataToFile(state: *main.GameState) !void {
             _ = try writer.writeInt(i64, if (levelStatistics.fastestTotalTime) |ftt| ftt else -1, .little);
         }
     }
+}
+
+fn calculateSumOfGolds(state: *main.GameState) !void {
+    const levelDatas: []LevelStatistics = try getLevelDatas(state);
+    var sumOfGold: i64 = 0;
+    for (levelDatas, 0..) |level, index| {
+        if (level.fastestTime) |fastestTime| {
+            sumOfGold += fastestTime;
+            state.statistics.uxData.displayGoldRunLevel = @intCast(index + 1);
+        }
+    }
+    state.statistics.uxData.displayGoldRunValue = sumOfGold;
 }

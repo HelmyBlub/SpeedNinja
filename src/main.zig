@@ -678,6 +678,7 @@ pub fn restart(state: *GameState, newGamePlus: u32) anyerror!void {
     state.verifyMapData.checkReachable = false;
     state.uxData.displayBossAcedUntilTime = null;
     state.uxData.displayReceivedFreeContinue = null;
+    state.statistics.uxData.displayGoldRunValue = null;
     try startNextLevel(state);
 }
 

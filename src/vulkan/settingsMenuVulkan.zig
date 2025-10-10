@@ -38,7 +38,8 @@ var UI_ELEMENTS_SPEEDRUN_STATS = [_]UiElementData{
     .{ .typeData = .{ .checkbox = .{ .label = "Column Time", .onSetChecked = onCheckboxStatsColumnTime, .checked = true } }, .active = false },
     .{ .typeData = .{ .checkbox = .{ .label = "Column +/-", .onSetChecked = onCheckboxStatsColumnPlusMinus, .checked = true } }, .active = false },
     .{ .typeData = .{ .checkbox = .{ .label = "Column Gold", .onSetChecked = onCheckboxStatsColumnGold, .checked = true } }, .active = false },
-    .{ .typeData = .{ .checkbox = .{ .label = "Best Run", .onSetChecked = onCheckboxStatsBestRun, .checked = true } }, .active = false },
+    .{ .typeData = .{ .checkbox = .{ .label = "Row Best Run", .onSetChecked = onCheckboxStatsBestRun, .checked = true } }, .active = false },
+    .{ .typeData = .{ .checkbox = .{ .label = "Row Gold Run", .onSetChecked = onCheckboxStatsGoldRun, .checked = true } }, .active = false },
     .{ .typeData = .{ .slider = .{ .label = "Position X", .valuePerCent = 0.5, .onChange = onSliderStatsPositionX } } },
     .{ .typeData = .{ .slider = .{ .label = "Position Y", .valuePerCent = 0.5, .onChange = onSliderStatsPositionY } } },
     .{ .typeData = .{ .slider = .{ .label = "Next Level Count", .valuePerCent = 0, .onChange = onSliderStatsNextLevelCount } } },
@@ -576,6 +577,10 @@ fn onCheckboxStatsNextLevel(checked: bool, state: *main.GameState) anyerror!void
 
 fn onCheckboxStatsBestRun(checked: bool, state: *main.GameState) anyerror!void {
     state.statistics.uxData.displayBestRun = checked;
+}
+
+fn onCheckboxStatsGoldRun(checked: bool, state: *main.GameState) anyerror!void {
+    state.statistics.uxData.displayGoldRun = checked;
 }
 
 fn onSliderChangeVolume(sliderPerCent: f32, uiElement: *UiElementData, state: *main.GameState) anyerror!void {
