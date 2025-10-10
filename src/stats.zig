@@ -203,12 +203,18 @@ pub fn setupVertices(state: *main.GameState) !void {
         }
     }
     var currentY = topLeft.y + @as(f32, @floatFromInt(lastDisplayLevel - firstDisplayLevel + 2)) * fontSize * onePixelYInVulkan;
-    if (state.statistics.uxData.displayBestRun) {
+    if (state.statistics.uxData.displayBestPossibleTime) {
         if (state.statistics.uxData.displayBestPossibleTimeValue == null) {
             try calculateSumOfGoldsOfRemainingLevels(state);
         }
-        var pastTimePart: i64 = 0;
-        if (state.level == 1) {
+        var pastTimePart: ?i64 = null;
+        if (state.gamePhase == .shopping) {
+            if (levelDatas.len > state.level and levelDatas[state.level].fastestTime != null) {
+                const lastLevelFinishTime = levelDatas[state.level - 1].currentTotalTime;
+                const currentLevelEstimate = @max(levelDatas[state.level].fastestTime.?, state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - lastLevelFinishTime);
+                pastTimePart = lastLevelFinishTime + currentLevelEstimate;
+            }
+        } else if (state.level == 1) {
             if (levelDatas[0].fastestTime) |fastestTime| {
                 pastTimePart = @max(fastestTime, state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime);
             }
@@ -219,17 +225,19 @@ pub fn setupVertices(state: *main.GameState) !void {
                 pastTimePart = lastLevelFinishTime + currentLevelEstimate;
             }
         }
-        try displayTextNumberTextTime(
-            "Best Possible Run: Level ",
-            state.statistics.uxData.displayBestPossibleTimeLevel,
-            " in ",
-            state.statistics.uxData.displayBestPossibleTimeValue.? + pastTimePart,
-            .{ .x = topLeft.x, .y = currentY },
-            fontSize,
-            textColor,
-            state,
-        );
-        currentY += fontSize * onePixelYInVulkan;
+        if (pastTimePart) |timePart| {
+            try displayTextNumberTextTime(
+                "Best Possible Time: Level ",
+                state.statistics.uxData.displayBestPossibleTimeLevel,
+                " in ",
+                state.statistics.uxData.displayBestPossibleTimeValue.? + timePart,
+                .{ .x = topLeft.x, .y = currentY },
+                fontSize,
+                textColor,
+                state,
+            );
+            currentY += fontSize * onePixelYInVulkan;
+        }
     }
     if (state.statistics.uxData.displayBestRun) {
         var furthestDataIndex: usize = 0;
@@ -256,17 +264,19 @@ pub fn setupVertices(state: *main.GameState) !void {
         if (state.statistics.uxData.displayGoldRunValue == null) {
             try calculateSumOfGolds(state);
         }
-        try displayTextNumberTextTime(
-            "Gold Run: Level ",
-            state.statistics.uxData.displayGoldRunLevel,
-            " in ",
-            state.statistics.uxData.displayGoldRunValue.?,
-            .{ .x = topLeft.x, .y = currentY },
-            fontSize,
-            textColor,
-            state,
-        );
-        currentY += fontSize * onePixelYInVulkan;
+        if (state.statistics.uxData.displayGoldRunValue) |goldRunTime| {
+            try displayTextNumberTextTime(
+                "Gold Run: Level ",
+                state.statistics.uxData.displayGoldRunLevel,
+                " in ",
+                goldRunTime,
+                .{ .x = topLeft.x, .y = currentY },
+                fontSize,
+                textColor,
+                state,
+            );
+            currentY += fontSize * onePixelYInVulkan;
+        }
     }
 }
 
@@ -496,13 +506,18 @@ fn calculateSumOfGolds(state: *main.GameState) !void {
             state.statistics.uxData.displayGoldRunLevel = @intCast(index + 1);
         }
     }
-    state.statistics.uxData.displayGoldRunValue = sumOfGold;
+    if (sumOfGold > 0) {
+        state.statistics.uxData.displayGoldRunValue = sumOfGold;
+    } else {
+        state.statistics.uxData.displayGoldRunValue = null;
+    }
 }
 
 fn calculateSumOfGoldsOfRemainingLevels(state: *main.GameState) !void {
     const levelDatas: []LevelStatistics = try getLevelDatas(state);
     var sumOfGoldRemaining: i64 = 0;
-    for ((state.level)..levelDatas.len) |index| {
+    const startLevel = if (state.gamePhase == .shopping) state.level + 1 else state.level;
+    for (startLevel..levelDatas.len) |index| {
         const level = levelDatas[index];
         if (level.fastestTime) |fastestTime| {
             sumOfGoldRemaining += fastestTime;

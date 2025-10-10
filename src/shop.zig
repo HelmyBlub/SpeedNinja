@@ -283,6 +283,7 @@ pub fn startShoppingPhase(state: *main.GameState) !void {
     state.enemyData.enemies.clearRetainingCapacity();
     state.enemyData.enemyObjects.clearRetainingCapacity();
     state.enemyData.afterImages.clearRetainingCapacity();
+    state.statistics.uxData.displayBestPossibleTimeValue = null;
     mapTileZig.resetMapTiles(state.mapData.tiles);
     bossZig.clearBosses(state);
     try setupShopAreas(state);

@@ -680,7 +680,6 @@ pub fn restart(state: *GameState, newGamePlus: u32) anyerror!void {
     state.uxData.displayBossAcedUntilTime = null;
     state.uxData.displayReceivedFreeContinue = null;
     state.statistics.uxData.displayGoldRunValue = null;
-    state.statistics.uxData.displayBestPossibleTimeValue = null;
     try startNextLevel(state);
 }
 
