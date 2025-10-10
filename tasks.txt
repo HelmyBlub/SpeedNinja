@@ -1,9 +1,12 @@
 testruns:
+- try run newGame+2?
 - speed run normal mode
     - speedrun stategy(43:25, 3death)
 
 
 Tasks:
+- bug?: check second boss dying from immunity break. one steps to late?
+- bug: on level start enemy can be on player position
 - speedrun statistics
     - continue: slider position incorrect on start
         - change: slider position should not be part of position setup and calculated on paint based on percent

@@ -132,23 +132,28 @@ pub fn isBossHit(hitArea: main.TileRectangle, player: *playerZig.Player, hitDire
             if (isBossHitDefault(boss, playerZig.getPlayerDamage(player), hitArea)) aBossHit = true;
         }
         if (boss.hp == 0) {
-            var deadBoss = state.bosses.swapRemove(bossIndex);
             const cutAngle = player.paintData.weaponRotation + std.math.pi / 2.0;
-            try state.spriteCutAnimations.append(
-                .{
-                    .deathTime = state.gameTime,
-                    .position = deadBoss.position,
-                    .cutAngle = cutAngle,
-                    .force = std.crypto.random.float(f32) + 0.2,
-                    .colorOrImageIndex = .{ .imageIndex = boss.imageIndex },
-                },
-            );
-            if (levelBossData.deinit) |deinit| deinit(&deadBoss, state.allocator);
+            try removeBoss(bossIndex, cutAngle, state);
         } else {
             bossIndex += 1;
         }
     }
     return aBossHit;
+}
+
+fn removeBoss(bossIndex: usize, cutAngle: f32, state: *main.GameState) !void {
+    var deadBoss = state.bosses.swapRemove(bossIndex);
+    const levelBossData = LEVEL_BOSS_DATA.get(deadBoss.typeData);
+    try state.spriteCutAnimations.append(
+        .{
+            .deathTime = state.gameTime,
+            .position = deadBoss.position,
+            .cutAngle = cutAngle,
+            .force = std.crypto.random.float(f32) + 0.2,
+            .colorOrImageIndex = .{ .imageIndex = deadBoss.imageIndex },
+        },
+    );
+    if (levelBossData.deinit) |deinit| deinit(&deadBoss, state.allocator);
 }
 
 fn isBossHitDefault(boss: *Boss, damage: u32, hitArea: main.TileRectangle) bool {
@@ -161,7 +166,14 @@ fn isBossHitDefault(boss: *Boss, damage: u32, hitArea: main.TileRectangle) bool 
 }
 
 pub fn tickBosses(state: *main.GameState, passedTime: i64) !void {
-    for (state.bosses.items) |*boss| {
+    var bossIndex: usize = 0;
+    while (bossIndex < state.bosses.items.len) {
+        const boss = &state.bosses.items[bossIndex];
         if (LEVEL_BOSS_DATA.get(boss.typeData).tickBoss) |fTickBoss| try fTickBoss(boss, passedTime, state);
+        if (boss.hp == 0) {
+            try removeBoss(bossIndex, 1, state);
+        } else {
+            bossIndex += 1;
+        }
     }
 }

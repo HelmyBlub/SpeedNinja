@@ -204,23 +204,25 @@ pub fn setupVertices(state: *main.GameState) !void {
                 furthestDataIndex = index;
             }
         }
-        var textWidth: f32 = 0;
-        textWidth += fontVulkanZig.paintText("Best Run: Level ", .{
-            .x = topLeft.x + textWidth,
-            .y = currentY,
-        }, fontSize, textColor, &state.vkState.verticeData.font);
-        textWidth += try fontVulkanZig.paintNumber(furthestDataIndex + 1, .{
-            .x = topLeft.x + textWidth,
-            .y = currentY,
-        }, fontSize, textColor, &state.vkState.verticeData.font);
-        textWidth += fontVulkanZig.paintText(" in ", .{
-            .x = topLeft.x + textWidth,
-            .y = currentY,
-        }, fontSize, textColor, &state.vkState.verticeData.font);
-        _ = try fontVulkanZig.paintTime(levelDatas[furthestDataIndex].fastestTotalTime.?, .{
-            .x = topLeft.x + textWidth,
-            .y = currentY,
-        }, fontSize, true, textColor, &state.vkState.verticeData.font);
+        if (levelDatas[furthestDataIndex].fastestTotalTime) |fastestTotalTime| {
+            var textWidth: f32 = 0;
+            textWidth += fontVulkanZig.paintText("Best Run: Level ", .{
+                .x = topLeft.x + textWidth,
+                .y = currentY,
+            }, fontSize, textColor, &state.vkState.verticeData.font);
+            textWidth += try fontVulkanZig.paintNumber(furthestDataIndex + 1, .{
+                .x = topLeft.x + textWidth,
+                .y = currentY,
+            }, fontSize, textColor, &state.vkState.verticeData.font);
+            textWidth += fontVulkanZig.paintText(" in ", .{
+                .x = topLeft.x + textWidth,
+                .y = currentY,
+            }, fontSize, textColor, &state.vkState.verticeData.font);
+            _ = try fontVulkanZig.paintTime(fastestTotalTime, .{
+                .x = topLeft.x + textWidth,
+                .y = currentY,
+            }, fontSize, true, textColor, &state.vkState.verticeData.font);
+        }
     }
 }
 
