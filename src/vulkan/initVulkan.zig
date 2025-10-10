@@ -14,7 +14,7 @@ pub const vk = @cImport({
 });
 
 const DEFAULT_VERTEX_BUFFER_INITIAL_SIZE = 1000;
-const ENABLE_VALIDATION_LAYER = true;
+const ENABLE_VALIDATION_LAYER = false;
 pub const VALIDATION_LAYERS = [_][*c]const u8{"VK_LAYER_KHRONOS_validation"};
 
 pub const VkState = struct {

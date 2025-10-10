@@ -7,6 +7,9 @@ testruns:
 Tasks:
 - speedrun statistics
     - 5-level grouping
+        - continue: stats for totalDiff missing
+        - move checkbox to others
+            - somehow miss it at the end
     - settings menu explanation of options
 - be able to choose new game plus on start
     - available once game beaten on normal mode
