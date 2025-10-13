@@ -67,7 +67,6 @@ var COLUMNS_DATA = [_]ColumnData{
 pub fn statsOnLevelFinished(state: *main.GameState) !void {
     const currentTime = std.time.milliTimestamp();
     if (state.level == main.LEVEL_COUNT and state.gamePhase == .finished) state.statistics.runFinishedTime = currentTime - state.statistics.runStartedTime;
-    if (!state.statistics.active) return;
     if (state.level == 0) return;
     const levelDatas: []LevelStatistics = try getLevelDatas(state);
     const currentLevelData = &levelDatas[state.level - 1];
@@ -82,7 +81,6 @@ pub fn statsOnLevelFinished(state: *main.GameState) !void {
 }
 
 pub fn statsOnLevelShopFinishedAndNextLevelStart(state: *main.GameState) !void {
-    if (!state.statistics.active) return;
     if (state.level == 0) return;
     const levelDatas: []LevelStatistics = try getLevelDatas(state);
     const currentLevelData = &levelDatas[state.level - 1];
@@ -170,9 +168,7 @@ pub fn destroyAndSave(state: *main.GameState) !void {
 }
 
 pub fn setupVertices(state: *main.GameState) !void {
-    if (!state.statistics.active) return;
     if (!state.statistics.uxData.display) return;
-    // if (state.level <= 1) return;
     if (state.players.items.len > 1 and state.gamePhase != .shopping and state.gamePhase != .finished) return;
     state.statistics.uxData.currentTimestamp = std.time.milliTimestamp();
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
@@ -376,7 +372,7 @@ fn setupVerticesLevelDiff(level: u32, levelDatas: []LevelStatistics, paintPos: m
         var fastestTime = levelFastestTime;
         if (state.statistics.uxData.groupingLevelsInFive) {
             for (1..5) |i| {
-                fastestTime += levelDatas[level - i].fastestTime.?;
+                fastestTime += levelDatas[level - i - 1].fastestTime.?;
             }
         }
         const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
@@ -414,7 +410,7 @@ fn setupVerticesLevelDiff(level: u32, levelDatas: []LevelStatistics, paintPos: m
                     }
                 } else {
                     for (1..5) |i| {
-                        levelCurrentTime += levelDatas[level - i].currentTime;
+                        levelCurrentTime += levelDatas[level - i - 1].currentTime;
                     }
                 }
             } else if (level == state.level and state.gamePhase != .shopping) {
@@ -448,11 +444,12 @@ fn setupVerticesTotalDiff(level: u32, levelDatas: []LevelStatistics, paintPos: m
         const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
         const columnWidth = columnData.pixelWidth * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
         const fontSize = state.statistics.uxData.fontSize;
-        if (level <= state.level) {
+        const currentDisplayLevelOfPlayer = if (state.statistics.uxData.groupingLevelsInFive) @divFloor(state.level - 1, 5) * 5 + 5 else state.level;
+        if (level <= currentDisplayLevelOfPlayer) {
             const red: [4]f32 = .{ 0.7, 0, 0, 1 };
             const green: [4]f32 = .{ 0.1, 1, 0.1, 1 };
             var diffTotal: i64 = 0;
-            if (level == state.level and state.gamePhase != .shopping) {
+            if (level > state.level or (level == state.level and state.gamePhase != .shopping)) {
                 diffTotal = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - fastestTime;
             } else {
                 diffTotal = levelData.currentTotalTime - fastestTime;

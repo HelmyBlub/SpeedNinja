@@ -5,7 +5,6 @@ testruns:
 
 
 Tasks:
-- check: boss dragon cheese: long piece
 - speedrun statistics
     - 5-level grouping
         - continue: stats for totalDiff missing
