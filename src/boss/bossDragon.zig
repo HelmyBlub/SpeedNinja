@@ -75,6 +75,7 @@ const BodyStompData = struct {
     stompTime: ?i64 = null,
     standUpMaxPerCent: f32 = 0,
     delay: i32 = 1500,
+    latestStompStartTime: ?i64 = null,
 };
 
 const TransitionFlyingData = struct {
@@ -749,14 +750,21 @@ fn tickBodyStomp(stompData: *BodyStompData, boss: *bossZig.Boss, passedTime: i64
         standUpOrDownTick(boss, true, passedTime);
     } else if (stompData.stompTime == null) {
         if (playerZig.getClosestPlayer(boss.position, state).player) |targetPlayer| {
-            const direction = main.calculateDirection(boss.position, targetPlayer.position);
-            setDirection(boss, direction);
-            const distance = main.calculateDistance(boss.position, targetPlayer.position);
-            if (distance > 40) {
-                const moveDistance: f32 = data.moveSpeed * @as(f32, @floatFromInt(passedTime));
-                boss.position = main.moveByDirectionAndDistance(boss.position, data.direction, moveDistance);
-            } else {
+            if (stompData.latestStompStartTime == null) {
+                stompData.latestStompStartTime = state.gameTime + 5000;
+            }
+            if (stompData.latestStompStartTime.? < state.gameTime) {
                 stompData.stompTime = state.gameTime + stompData.delay;
+            } else {
+                const direction = main.calculateDirection(boss.position, targetPlayer.position);
+                setDirection(boss, direction);
+                const distance = main.calculateDistance(boss.position, targetPlayer.position);
+                if (distance > 40) {
+                    const moveDistance: f32 = data.moveSpeed * @as(f32, @floatFromInt(passedTime));
+                    boss.position = main.moveByDirectionAndDistance(boss.position, data.direction, moveDistance);
+                } else {
+                    stompData.stompTime = state.gameTime + stompData.delay;
+                }
             }
         }
     } else {

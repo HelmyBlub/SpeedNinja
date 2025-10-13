@@ -5,12 +5,15 @@ testruns:
 
 
 Tasks:
+- check: boss dragon cheese: long piece
 - speedrun statistics
     - 5-level grouping
         - continue: stats for totalDiff missing
         - move checkbox to others
             - somehow miss it at the end
+        - check continue behavior
     - settings menu explanation of options
+        - also for freeze time. Maybe disable freeze time by default
 - be able to choose new game plus on start
     - available once game beaten on normal mode
 - speedrun stats:
