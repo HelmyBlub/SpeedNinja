@@ -202,7 +202,7 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
         .basePrice = 10,
         .shopDisplayImage = imageZig.IMAGE_ROLLERBLADES,
         .equipment = .{
-            .effectType = .{ .damagePerCent = .{ .factor = 0.5, .effect = .noBackMovement } },
+            .effectType = .{ .damagePerCent = .{ .factor = 0.8, .effect = .noBackMovement } },
             .imageIndex = imageZig.IMAGE_ROLLERBLADES,
             .slotTypeData = .feet,
         },
@@ -211,7 +211,7 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
         .basePrice = 10,
         .shopDisplayImage = imageZig.IMAGE_PIRATE_LEG_LEFT,
         .equipment = .{
-            .effectType = .{ .damagePerCent = .{ .factor = 0.5, .effect = .noLeftMovement } },
+            .effectType = .{ .damagePerCent = .{ .factor = 0.8, .effect = .noLeftMovement } },
             .imageIndex = imageZig.IMAGE_PIRATE_LEG_LEFT,
             .slotTypeData = .feet,
         },
@@ -220,7 +220,7 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
         .basePrice = 10,
         .shopDisplayImage = imageZig.IMAGE_PIRATE_LEG_RIGHT,
         .equipment = .{
-            .effectType = .{ .damagePerCent = .{ .factor = 0.5, .effect = .noRightMovement } },
+            .effectType = .{ .damagePerCent = .{ .factor = 0.8, .effect = .noRightMovement } },
             .imageIndex = imageZig.IMAGE_PIRATE_LEG_RIGHT,
             .slotTypeData = .feet,
         },

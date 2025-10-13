@@ -1,16 +1,16 @@
 testruns:
 - try run newGame+2?
-- run with pirate food
+- run with pirate foot
 - run with rollerblades
 - speed run normal mode
     - speedrun stategy(43:25, 3death)
 
 
 Tasks:
-- speedrun statistics
-    - settings menu explanation of options
-        - also for freeze time. Maybe disable freeze time by default
 - more mouse hover information
+    - for player UX
+    - topLeft info
+    - shop?
 - be able to choose new game plus on start
     - available once game beaten on normal mode
 - speedrun stats:
