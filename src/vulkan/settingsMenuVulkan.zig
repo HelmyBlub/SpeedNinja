@@ -42,11 +42,11 @@ var UI_ELEMENTS_SPEEDRUN_STATS = [_]UiElementData{
     .{ .typeData = .{ .checkbox = .{ .label = "Row Best Run", .onSetChecked = onCheckboxStatsBestRun, .checked = true } }, .active = false },
     .{ .typeData = .{ .checkbox = .{ .label = "Row Gold Run", .onSetChecked = onCheckboxStatsGoldRun, .checked = true } }, .active = false },
     .{ .typeData = .{ .checkbox = .{ .label = "Row Best Time", .onSetChecked = onCheckboxStatsBestTime, .checked = true } }, .active = false },
+    .{ .typeData = .{ .checkbox = .{ .label = "Group Levels in 5", .onSetChecked = onCheckboxStatsGroupLevels, .checked = true } }, .active = false },
     .{ .typeData = .{ .slider = .{ .label = "Position X", .valuePerCent = 0.5, .onChange = onSliderStatsPositionX } } },
     .{ .typeData = .{ .slider = .{ .label = "Position Y", .valuePerCent = 0.5, .onChange = onSliderStatsPositionY } } },
     .{ .typeData = .{ .slider = .{ .label = "Next Level Count", .valuePerCent = 0, .onChange = onSliderStatsNextLevelCount } } },
     .{ .typeData = .{ .slider = .{ .label = "Past Level Count", .valuePerCent = 0.5, .onChange = onSliderStatsPastLevelCount } } },
-    .{ .typeData = .{ .checkbox = .{ .label = "Group Levels in 5", .onSetChecked = onCheckboxStatsGroupLevels, .checked = true } }, .active = false },
 };
 
 const UiElement = enum {
