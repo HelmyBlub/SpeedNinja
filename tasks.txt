@@ -1,23 +1,24 @@
 testruns:
 - try run newGame+2?
+- run with pirate food
+- run with rollerblades
 - speed run normal mode
     - speedrun stategy(43:25, 3death)
 
 
 Tasks:
 - speedrun statistics
-    - 5-level grouping
-        - move checkbox to others
-            - somehow miss it at the end
-        - check continue behavior   
     - settings menu explanation of options
         - also for freeze time. Maybe disable freeze time by default
+- more mouse hover information
 - be able to choose new game plus on start
     - available once game beaten on normal mode
 - speedrun stats:
     - mixed player count run
     - only disable when cheating
     - save stats even when quitting and returning later
+- somehow scalue UI dependant on window size
+    - some user have big screen/resoluation and default ui size is very small in this case
 
 Next ideas:
 - settings

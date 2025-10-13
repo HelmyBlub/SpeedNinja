@@ -24,10 +24,13 @@ pub const SettingsUx = struct {
 const BUTTON_HOLD_DURATION_MS = 2000;
 const SPACING_PIXELS = 5.0;
 var UI_ELEMENTS_MAIN = [_]UiElementData{
-    .{ .typeData = .{ .holdButton = .{ .label = "Restart", .onHoldDurationFinished = onHoldButtonRestart } } },
-    .{ .typeData = .{ .holdButton = .{ .label = "Kick Players", .onHoldDurationFinished = onHoldButtonKickPlayers } } },
+    .{ .typeData = .{ .holdButton = .{ .label = "Restart", .onHoldDurationFinished = onHoldButtonRestart } }, .information = &[_][]const u8{"hold to restart"} },
+    .{ .typeData = .{ .holdButton = .{ .label = "Kick Players", .onHoldDurationFinished = onHoldButtonKickPlayers } }, .information = &[_][]const u8{"hold to kick players but one"} },
     .{ .typeData = .{ .checkbox = .{ .label = "Fullscreen", .onSetChecked = onCheckboxFullscreen } } },
-    .{ .typeData = .{ .checkbox = .{ .label = "Time Freeze", .onSetChecked = onCheckboxFreezeOnHit, .checked = true } } },
+    .{
+        .typeData = .{ .checkbox = .{ .label = "Time Freeze", .onSetChecked = onCheckboxFreezeOnHit, .checked = false } },
+        .information = &[_][]const u8{ "freeze time when taking damage in singleplayer", "Can use this freeze time to determine from what you took damage" },
+    },
     .{ .typeData = .{ .slider = .{ .label = "Volume", .valuePerCent = 1, .onChange = onSliderChangeVolume } } },
     .{ .typeData = .{ .slider = .{ .label = "UI Size", .valuePerCent = 0.5, .onStopHolding = onSliderStopHoldingUxSize } } },
     .{ .typeData = .{ .holdButton = .{ .label = "Quit", .onHoldDurationFinished = onHoldButtonQuit } } },
@@ -35,13 +38,41 @@ var UI_ELEMENTS_MAIN = [_]UiElementData{
 
 var UI_ELEMENTS_SPEEDRUN_STATS = [_]UiElementData{
     .{ .typeData = .{ .checkbox = .{ .label = "Speedrun Stats", .onSetChecked = onCheckboxSpeedrunStats, .checked = false } } },
-    .{ .typeData = .{ .checkbox = .{ .label = "Column Time", .onSetChecked = onCheckboxStatsColumnTime, .checked = true } }, .active = false },
-    .{ .typeData = .{ .checkbox = .{ .label = "Column +/-", .onSetChecked = onCheckboxStatsColumnPlusMinus, .checked = true } }, .active = false },
-    .{ .typeData = .{ .checkbox = .{ .label = "Column Gold", .onSetChecked = onCheckboxStatsColumnGold, .checked = true } }, .active = false },
-    .{ .typeData = .{ .checkbox = .{ .label = "Row Time in Shop", .onSetChecked = onCheckboxStatsTimeInShop, .checked = true } }, .active = false },
-    .{ .typeData = .{ .checkbox = .{ .label = "Row Best Run", .onSetChecked = onCheckboxStatsBestRun, .checked = true } }, .active = false },
-    .{ .typeData = .{ .checkbox = .{ .label = "Row Gold Run", .onSetChecked = onCheckboxStatsGoldRun, .checked = true } }, .active = false },
-    .{ .typeData = .{ .checkbox = .{ .label = "Row Best Time", .onSetChecked = onCheckboxStatsBestTime, .checked = true } }, .active = false },
+    .{
+        .typeData = .{ .checkbox = .{ .label = "Column Time", .onSetChecked = onCheckboxStatsColumnTime, .checked = true } },
+        .active = false,
+        .information = &[_][]const u8{ "Displays time since run start for you current level.", "Displays time of best run for next levels", "displays time used for current run in past levels." },
+    },
+    .{
+        .typeData = .{ .checkbox = .{ .label = "Column +/-", .onSetChecked = onCheckboxStatsColumnPlusMinus, .checked = true } },
+        .active = false,
+        .information = &[_][]const u8{"Displays time difference to best run."},
+    },
+    .{
+        .typeData = .{ .checkbox = .{ .label = "Column Gold", .onSetChecked = onCheckboxStatsColumnGold, .checked = false } },
+        .active = false,
+        .information = &[_][]const u8{"Displays time difference to fastest level time."},
+    },
+    .{
+        .typeData = .{ .checkbox = .{ .label = "Row Time in Shop", .onSetChecked = onCheckboxStatsTimeInShop, .checked = true } },
+        .active = false,
+        .information = &[_][]const u8{"Displays time spend in shop for currren run"},
+    },
+    .{
+        .typeData = .{ .checkbox = .{ .label = "Row Best Run", .onSetChecked = onCheckboxStatsBestRun, .checked = false } },
+        .active = false,
+        .information = &[_][]const u8{"Displays time of your furthest or fastest completed run."},
+    },
+    .{
+        .typeData = .{ .checkbox = .{ .label = "Row Gold Run", .onSetChecked = onCheckboxStatsGoldRun, .checked = false } },
+        .active = false,
+        .information = &[_][]const u8{ "Displays time for theoretical optimal run.", "Gets calculated by adding up all level gold times.", "Shop times excluded." },
+    },
+    .{
+        .typeData = .{ .checkbox = .{ .label = "Row Best Time", .onSetChecked = onCheckboxStatsBestTime, .checked = false } },
+        .active = false,
+        .information = &[_][]const u8{ "Displays time for theoretical optimal remaining run.", "Gets calculated by adding up all level gold times for all remaining levels.", "Shop times excluded." },
+    },
     .{ .typeData = .{ .checkbox = .{ .label = "Group Levels in 5", .onSetChecked = onCheckboxStatsGroupLevels, .checked = true } }, .active = false },
     .{ .typeData = .{ .slider = .{ .label = "Position X", .valuePerCent = 0.5, .onChange = onSliderStatsPositionX } } },
     .{ .typeData = .{ .slider = .{ .label = "Position Y", .valuePerCent = 0.5, .onChange = onSliderStatsPositionY } } },
@@ -66,6 +97,9 @@ const UiTabsData = struct {
 const UiElementData = struct {
     typeData: UiElementTypeData,
     active: bool = true,
+    information: ?[]const []const u8 = null,
+    informationHover: bool = false,
+    informationHoverRec: main.Rectangle = .{ .pos = .{ .x = 0, .y = 0 }, .width = 0, .height = 0 },
 };
 
 const UiElementTypeData = union(UiElement) {
@@ -157,6 +191,8 @@ fn settupUiLocationSingleTab(tab: *UiTabsData, baseFontSize: f32, uiSizeFactor: 
     const vulkanSpacingY = SPACING_PIXELS * onePixelYInVulkan * uiSizeFactor;
     const vulkanSpacingLargerY = 20.0 * onePixelYInVulkan * uiSizeFactor;
     const sliderSpacingX = 20.0 * onePixelXInVulkan * uiSizeFactor;
+    const infoWidth = baseFontSize * onePixelXInVulkan * uiSizeFactor + vulkanSpacingX;
+    const infoHeight = baseFontSize * onePixelYInVulkan * uiSizeFactor + vulkanSpacingY;
     const sliderWidth = 20 * onePixelXInVulkan * uiSizeFactor;
     const dragAreaWidth = 255 * onePixelXInVulkan * uiSizeFactor - sliderSpacingX * 2 - sliderWidth;
     tab.uiSize = uiSizeFactor;
@@ -178,7 +214,19 @@ fn settupUiLocationSingleTab(tab: *UiTabsData, baseFontSize: f32, uiSizeFactor: 
                         .y = offsetY + vulkanSpacingY,
                     },
                 };
-                const widthEstimate = data.rec.width + vulkanSpacingX * 2;
+                var widthEstimate = data.rec.width + vulkanSpacingX * 2;
+                if (element.information != null) {
+                    element.informationHoverRec = .{
+                        .pos = .{
+                            .x = data.rec.pos.x + data.rec.width + vulkanSpacingX,
+                            .y = data.rec.pos.y,
+                        },
+                        .width = infoWidth,
+                        .height = infoHeight,
+                    };
+                    widthEstimate += infoWidth + vulkanSpacingX;
+                }
+
                 if (widthEstimate > maxTabWidth) maxTabWidth = widthEstimate;
                 offsetY = data.rec.pos.y + data.rec.height;
             },
@@ -192,7 +240,19 @@ fn settupUiLocationSingleTab(tab: *UiTabsData, baseFontSize: f32, uiSizeFactor: 
                     },
                 };
                 const textWidthEstimate = fontVulkanZig.getTextVulkanWidth(data.label, baseFontSize) * uiSizeFactor;
-                const widthEstimate = textWidthEstimate + data.rec.width + vulkanSpacingX * 3;
+                var widthEstimate = textWidthEstimate + data.rec.width + vulkanSpacingX * 3;
+                if (element.information != null) {
+                    element.informationHoverRec = .{
+                        .pos = .{
+                            .x = data.rec.pos.x + widthEstimate - vulkanSpacingX,
+                            .y = data.rec.pos.y,
+                        },
+                        .width = infoWidth,
+                        .height = infoHeight,
+                    };
+                    widthEstimate += infoWidth + vulkanSpacingX;
+                }
+
                 if (widthEstimate > maxTabWidth) maxTabWidth = widthEstimate;
                 offsetY = data.rec.pos.y + data.rec.height;
             },
@@ -211,11 +271,23 @@ fn settupUiLocationSingleTab(tab: *UiTabsData, baseFontSize: f32, uiSizeFactor: 
                 };
                 const textWidthEstimate = fontVulkanZig.getTextVulkanWidth(data.label, baseFontSize) * uiSizeFactor;
                 const numberWidthEstimate = baseFontSize * uiSizeFactor * 3 * onePixelXInVulkan + vulkanSpacingX * 2;
-                const widthEstimate = @max(dragAreaWidth + sliderWidth, textWidthEstimate + numberWidthEstimate) + vulkanSpacingX * 2;
+                var widthEstimate = @max(dragAreaWidth + sliderWidth, textWidthEstimate + numberWidthEstimate) + vulkanSpacingX * 2;
+                if (element.information != null) {
+                    element.informationHoverRec = .{
+                        .pos = .{
+                            .x = data.recDragArea.pos.x + textWidthEstimate + numberWidthEstimate - vulkanSpacingX,
+                            .y = data.recDragArea.pos.y - data.sliderHeight / 8 * 3 - baseFontSize * onePixelYInVulkan * uiSizeFactor,
+                        },
+                        .width = infoWidth,
+                        .height = infoHeight,
+                    };
+                    widthEstimate = @max(dragAreaWidth + sliderWidth, textWidthEstimate + numberWidthEstimate + infoWidth + vulkanSpacingX) + vulkanSpacingX * 2;
+                }
                 if (widthEstimate > maxTabWidth) maxTabWidth = widthEstimate;
                 offsetY = offsetY + vulkanSpacingLargerY + data.sliderHeight;
             },
         }
+
         tab.contentRec.height = offsetY - tab.contentRec.pos.y + vulkanSpacingY;
         tab.contentRec.width = maxTabWidth;
     }
@@ -224,13 +296,19 @@ fn settupUiLocationSingleTab(tab: *UiTabsData, baseFontSize: f32, uiSizeFactor: 
     for (tab.uiElements) |*element| {
         switch (element.typeData) {
             .holdButton => |*data| {
-                data.rec.pos.x = tab.contentRec.pos.x + vulkanSpacingX;
+                const moveTo = tab.contentRec.pos.x + vulkanSpacingX;
+                element.informationHoverRec.pos.x += moveTo - data.rec.pos.x;
+                data.rec.pos.x = moveTo;
             },
             .checkbox => |*data| {
-                data.rec.pos.x = tab.contentRec.pos.x + vulkanSpacingX;
+                const moveTo = tab.contentRec.pos.x + vulkanSpacingX;
+                element.informationHoverRec.pos.x += moveTo - data.rec.pos.x;
+                data.rec.pos.x = moveTo;
             },
             .slider => |*data| {
-                data.recDragArea.pos.x = tab.contentRec.pos.x + sliderWidth / 2 + vulkanSpacingX;
+                const moveTo = tab.contentRec.pos.x + sliderWidth / 2 + vulkanSpacingX;
+                element.informationHoverRec.pos.x += moveTo - data.recDragArea.pos.x;
+                data.recDragArea.pos.x = moveTo;
             },
         }
     }
@@ -295,6 +373,13 @@ pub fn mouseMove(mouseWindowPosition: main.Position, state: *main.GameState) !vo
                     setupUiLocations(state);
                 }
             },
+        }
+        if (element.information != null) {
+            if (main.isPositionInRectangle(vulkanMousePos, element.informationHoverRec)) {
+                element.informationHover = true;
+            } else {
+                element.informationHover = false;
+            }
         }
     }
 }
@@ -510,6 +595,38 @@ pub fn setupVertices(state: *main.GameState) !void {
                         &verticeData.font,
                     );
                 },
+            }
+            if (element.active and element.information != null) {
+                if (element.informationHover) {
+                    var maxWidth: f32 = 0;
+                    const info = element.information.?;
+                    for (info) |line| {
+                        const lineWidth = fontVulkanZig.getTextVulkanWidth(line, tabFontSize);
+                        if (lineWidth > maxWidth) maxWidth = lineWidth;
+                    }
+                    paintVulkanZig.verticesForRectangle(
+                        menuRec.pos.x - maxWidth - vulkanSpacingX * 2,
+                        element.informationHoverRec.pos.y - vulkanSpacingY,
+                        maxWidth + vulkanSpacingX * 2,
+                        @as(f32, @floatFromInt(info.len)) * tabFontVulkanHeight + vulkanSpacingY * 2,
+                        color,
+                        &verticeData.lines,
+                        &verticeData.triangles,
+                    );
+                    for (info, 0..) |line, lineIndex| {
+                        _ = fontVulkanZig.paintText(line, .{
+                            .x = menuRec.pos.x - maxWidth - vulkanSpacingX,
+                            .y = element.informationHoverRec.pos.y + @as(f32, @floatFromInt(lineIndex)) * tabFontVulkanHeight,
+                        }, tabFontSize, elementTextColor, &verticeData.font);
+                    }
+                }
+                const infoRec = element.informationHoverRec;
+                const infoFillColor: [4]f32 = if (element.informationHover) .{ 0.2, 0.2, 1, 1 } else .{ 0.7, 0.7, 1.0, 1 };
+                paintVulkanZig.verticesForRectangle(infoRec.pos.x, infoRec.pos.y, infoRec.width, infoRec.height, infoFillColor, &verticeData.lines, &verticeData.triangles);
+                _ = fontVulkanZig.paintText("I", .{
+                    .x = infoRec.pos.x + infoRec.width / 2 - tabFontSize * onePixelXInVulkan / 4,
+                    .y = infoRec.pos.y + vulkanSpacingY,
+                }, tabFontSize, elementTextColor, &verticeData.font);
             }
         }
     }
