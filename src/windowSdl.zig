@@ -72,13 +72,16 @@ pub fn handleEvents(state: *main.GameState) !void {
         try handleGamePadEvents(event, state);
         try inputZig.handlePlayerInput(event, state);
         if (event.type == sdl.SDL_EVENT_MOUSE_MOTION) {
-            try settingsMenuVulkanZig.mouseMove(.{ .x = event.motion.x, .y = event.motion.y }, state);
+            state.vulkanMousePosition = mouseWindowPositionToVulkanSurfacePoisition(event.motion.x, event.motion.y);
+            try settingsMenuVulkanZig.mouseMove(state);
         }
         if (event.type == sdl.SDL_EVENT_MOUSE_BUTTON_DOWN) {
-            try settingsMenuVulkanZig.mouseDown(.{ .x = event.motion.x, .y = event.motion.y }, state);
+            state.vulkanMousePosition = mouseWindowPositionToVulkanSurfacePoisition(event.motion.x, event.motion.y);
+            try settingsMenuVulkanZig.mouseDown(state);
         }
         if (event.type == sdl.SDL_EVENT_MOUSE_BUTTON_UP) {
-            try settingsMenuVulkanZig.mouseUp(.{ .x = event.motion.x, .y = event.motion.y }, state);
+            state.vulkanMousePosition = mouseWindowPositionToVulkanSurfacePoisition(event.motion.x, event.motion.y);
+            try settingsMenuVulkanZig.mouseUp(state);
         }
     }
 }

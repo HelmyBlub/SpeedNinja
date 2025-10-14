@@ -269,7 +269,13 @@ fn verticesForLevelRoundNewGamePlus(state: *main.GameState) !void {
         textWidth += fontVulkanZig.paintText("Level ", .{ .x = levelPos.x, .y = levelPos.y }, fontSize, textColor, fontVertices);
     }
     textWidth += try fontVulkanZig.paintNumber(state.level, .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, fontVertices);
-    paintVulkanZig.verticesForRectangle(levelPos.x - paddingX, levelPos.y - paddingY, textWidth + paddingX * 3, fontSize * onePixelYInVulkan + paddingY * 2, white, &verticeData.lines, &verticeData.triangles);
+    const levelRec: main.Rectangle = .{
+        .pos = .{ .x = levelPos.x - paddingX, .y = levelPos.y - paddingY },
+        .width = textWidth + paddingX * 3,
+        .height = fontSize * onePixelYInVulkan + paddingY * 2,
+    };
+    state.uxData.levelInfoRec = levelRec;
+    paintVulkanZig.verticesForRectangle(levelRec.pos.x, levelRec.pos.y, levelRec.width, levelRec.height, white, &verticeData.lines, &verticeData.triangles);
 
     if (state.newGamePlus > 0) {
         textWidth += paddingX * 6;
@@ -280,7 +286,13 @@ fn verticesForLevelRoundNewGamePlus(state: *main.GameState) !void {
             textWidth += fontVulkanZig.paintText("NewGame+ ", .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, fontVertices);
         }
         textWidth += try fontVulkanZig.paintNumber(state.newGamePlus, .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, fontVertices);
-        paintVulkanZig.verticesForRectangle(levelPos.x + newGamePlusStartX - paddingX, levelPos.y - paddingY, textWidth - newGamePlusStartX + paddingX * 3, fontSize * onePixelYInVulkan + paddingY * 2, white, &verticeData.lines, &verticeData.triangles);
+        const newGamePlusRec: main.Rectangle = .{
+            .pos = .{ .x = levelPos.x + newGamePlusStartX - paddingX, .y = levelPos.y - paddingY },
+            .width = textWidth - newGamePlusStartX + paddingX * 3,
+            .height = fontSize * onePixelYInVulkan + paddingY * 2,
+        };
+        state.uxData.newGamePlusInfoRec = newGamePlusRec;
+        paintVulkanZig.verticesForRectangle(newGamePlusRec.pos.x, newGamePlusRec.pos.y, newGamePlusRec.width, newGamePlusRec.height, white, &verticeData.lines, &verticeData.triangles);
     }
 
     if (state.gamePhase != .boss and state.gamePhase != .finished) {
@@ -292,7 +304,38 @@ fn verticesForLevelRoundNewGamePlus(state: *main.GameState) !void {
             textWidth += fontVulkanZig.paintText("Round ", .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, fontVertices);
         }
         textWidth += try fontVulkanZig.paintNumber(state.round, .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, fontVertices);
-        paintVulkanZig.verticesForRectangle(levelPos.x + roundStartX - paddingX, levelPos.y - paddingY, textWidth - roundStartX + paddingX * 3, fontSize * onePixelYInVulkan + paddingY * 2, white, &verticeData.lines, &verticeData.triangles);
+        const roundRec: main.Rectangle = .{
+            .pos = .{ .x = levelPos.x + roundStartX - paddingX, .y = levelPos.y - paddingY },
+            .width = textWidth - roundStartX + paddingX * 3,
+            .height = fontSize * onePixelYInVulkan + paddingY * 2,
+        };
+        state.uxData.roundInfoRec = roundRec;
+        paintVulkanZig.verticesForRectangle(roundRec.pos.x, roundRec.pos.y, roundRec.width, roundRec.height, white, &verticeData.lines, &verticeData.triangles);
+    }
+}
+
+pub fn verticesForHoverInformation(state: *main.GameState) !void {
+    if (main.isPositionInRectangle(state.vulkanMousePosition, state.uxData.levelInfoRec)) {
+        fontVulkanZig.verticesForInfoBox(&[_][]const u8{
+            "Current Level",
+            "Higher level means higher difficulty",
+            "Every 5th level is a Boss",
+        }, .{ .x = state.uxData.levelInfoRec.pos.x, .y = state.uxData.levelInfoRec.pos.y + state.uxData.levelInfoRec.height }, true, state);
+    } else if (state.gamePhase != .boss and state.gamePhase != .finished and main.isPositionInRectangle(state.vulkanMousePosition, state.uxData.roundInfoRec)) {
+        fontVulkanZig.verticesForInfoBox(&[_][]const u8{
+            "Current Round",
+            "Round increases when all enemies on screen are destroyed",
+            "Finishing a round gives money",
+            "Gate opens reaching round 5",
+        }, .{ .x = state.uxData.roundInfoRec.pos.x, .y = state.uxData.roundInfoRec.pos.y + state.uxData.roundInfoRec.height }, true, state);
+    } else if (state.newGamePlus > 0 and main.isPositionInRectangle(state.vulkanMousePosition, state.uxData.newGamePlusInfoRec)) {
+        fontVulkanZig.verticesForInfoBox(&[_][]const u8{
+            "Higher number higher difficulty increase",
+            "NewGame+1 halves enemy action times",
+            "NewGame+2 divides enemy action times by 3",
+            "NewGame+3 divides enemy action times by 4",
+            "and so on",
+        }, .{ .x = state.uxData.newGamePlusInfoRec.pos.x, .y = state.uxData.newGamePlusInfoRec.pos.y + state.uxData.newGamePlusInfoRec.height }, true, state);
     }
 }
 

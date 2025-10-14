@@ -46,6 +46,7 @@ pub fn drawFrame(state: *main.GameState) !void {
     try gameInfoUxZig.setupVertices(state);
     try addDataVerticeDrawCut(&state.vkState.verticeData);
     try settingsMenuVulkanZig.setupVertices(state);
+    try gameInfoUxZig.verticesForHoverInformation(state);
     try setupVertexDataForGPU(vkState);
 
     if (!try initVulkanZig.createSwapChainRelatedStuffAndCheckWindowSize(state, state.allocator)) return;

@@ -314,8 +314,8 @@ fn settupUiLocationSingleTab(tab: *UiTabsData, baseFontSize: f32, uiSizeFactor: 
     }
 }
 
-pub fn mouseMove(mouseWindowPosition: main.Position, state: *main.GameState) !void {
-    const vulkanMousePos = windowSdlZig.mouseWindowPositionToVulkanSurfacePoisition(mouseWindowPosition.x, mouseWindowPosition.y);
+pub fn mouseMove(state: *main.GameState) !void {
+    const vulkanMousePos = state.vulkanMousePosition;
     const settingsMenuUx = &state.uxData.settingsMenuUx;
     if (main.isPositionInRectangle(vulkanMousePos, settingsMenuUx.settingsIcon)) {
         settingsMenuUx.settingsIconHovered = true;
@@ -384,7 +384,7 @@ pub fn mouseMove(mouseWindowPosition: main.Position, state: *main.GameState) !vo
     }
 }
 
-pub fn mouseUp(mouseWindowPosition: main.Position, state: *main.GameState) !void {
+pub fn mouseUp(state: *main.GameState) !void {
     const settingsMenuUx = &state.uxData.settingsMenuUx;
     const currentTab = &settingsMenuUx.uiTabs[settingsMenuUx.activeTabIndex];
     for (currentTab.uiElements) |*element| {
@@ -396,7 +396,7 @@ pub fn mouseUp(mouseWindowPosition: main.Position, state: *main.GameState) !void
             .checkbox => {},
             .slider => |*data| {
                 if (data.holding) {
-                    const vulkanMousePos = windowSdlZig.mouseWindowPositionToVulkanSurfacePoisition(mouseWindowPosition.x, mouseWindowPosition.y);
+                    const vulkanMousePos = state.vulkanMousePosition;
                     const valuePerCent = @min(@max(0, @as(f32, @floatCast(vulkanMousePos.x - data.recDragArea.pos.x)) / data.recDragArea.width), 1);
                     if (data.onChange) |onChange| try onChange(valuePerCent, element, state);
                     if (data.onStopHolding) |stopHold| try stopHold(valuePerCent, element, state);
@@ -407,8 +407,8 @@ pub fn mouseUp(mouseWindowPosition: main.Position, state: *main.GameState) !void
     }
 }
 
-pub fn mouseDown(mouseWindowPosition: main.Position, state: *main.GameState) !void {
-    const vulkanMousePos = windowSdlZig.mouseWindowPositionToVulkanSurfacePoisition(mouseWindowPosition.x, mouseWindowPosition.y);
+pub fn mouseDown(state: *main.GameState) !void {
+    const vulkanMousePos = state.vulkanMousePosition;
     const settingsMenuUx = &state.uxData.settingsMenuUx;
     if (main.isPositionInRectangle(vulkanMousePos, settingsMenuUx.settingsIcon)) {
         settingsMenuUx.menuOpen = !settingsMenuUx.menuOpen;
@@ -598,27 +598,7 @@ pub fn setupVertices(state: *main.GameState) !void {
             }
             if (element.active and element.information != null) {
                 if (element.informationHover) {
-                    var maxWidth: f32 = 0;
-                    const info = element.information.?;
-                    for (info) |line| {
-                        const lineWidth = fontVulkanZig.getTextVulkanWidth(line, tabFontSize);
-                        if (lineWidth > maxWidth) maxWidth = lineWidth;
-                    }
-                    paintVulkanZig.verticesForRectangle(
-                        menuRec.pos.x - maxWidth - vulkanSpacingX * 2,
-                        element.informationHoverRec.pos.y - vulkanSpacingY,
-                        maxWidth + vulkanSpacingX * 2,
-                        @as(f32, @floatFromInt(info.len)) * tabFontVulkanHeight + vulkanSpacingY * 2,
-                        color,
-                        &verticeData.lines,
-                        &verticeData.triangles,
-                    );
-                    for (info, 0..) |line, lineIndex| {
-                        _ = fontVulkanZig.paintText(line, .{
-                            .x = menuRec.pos.x - maxWidth - vulkanSpacingX,
-                            .y = element.informationHoverRec.pos.y + @as(f32, @floatFromInt(lineIndex)) * tabFontVulkanHeight,
-                        }, tabFontSize, elementTextColor, &verticeData.font);
-                    }
+                    fontVulkanZig.verticesForInfoBox(element.information.?, .{ .x = menuRec.pos.x, .y = element.informationHoverRec.pos.y }, false, state);
                 }
                 const infoRec = element.informationHoverRec;
                 const infoFillColor: [4]f32 = if (element.informationHover) .{ 0.2, 0.2, 1, 1 } else .{ 0.7, 0.7, 1.0, 1 };

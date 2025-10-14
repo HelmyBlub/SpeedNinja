@@ -1,7 +1,8 @@
 testruns:
-- try run newGame+2?
-- run with pirate foot
-- run with rollerblades
+- try run newGame+2? 
+- run with foot bonues damage
+    - can i beat bosses faster?
+
 - speed run normal mode
     - speedrun stategy(43:25, 3death)
 

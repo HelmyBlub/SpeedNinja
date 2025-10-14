@@ -87,6 +87,7 @@ pub const GameState = struct {
     lastAfkShootTime: ?i64 = null,
     timeFreezeStart: ?i64 = null,
     timeFreezeOnHit: bool = true,
+    vulkanMousePosition: Position = .{ .x = 0, .y = 0 },
 };
 
 pub const GameUxData = struct {
@@ -103,6 +104,9 @@ pub const GameUxData = struct {
     settingsMenuUx: settingsMenuVulkanZig.SettingsUx = .{},
     timeChangeVisualization: ?i64 = null,
     timeChange: TimeChangeUnion = .{ .refresh = false },
+    levelInfoRec: Rectangle = .{},
+    roundInfoRec: Rectangle = .{},
+    newGamePlusInfoRec: Rectangle = .{},
 };
 
 const TimeChangeUnion = union(enum) {
@@ -192,9 +196,9 @@ pub const TileRectangle = struct {
 };
 
 pub const Rectangle = struct {
-    pos: Position,
-    width: f32,
-    height: f32,
+    pos: Position = .{ .x = 0, .y = 0 },
+    width: f32 = 0,
+    height: f32 = 0,
 };
 
 pub fn main() !void {

@@ -202,6 +202,40 @@ fn paintNumberWithZeroPrefix(number: anytype, vulkanSurfacePosition: main.Positi
     return xOffset;
 }
 
+pub fn verticesForInfoBox(textLines: []const []const u8, position: main.Position, alignLeft: bool, state: *main.GameState) void {
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const vulkanSpacingX = 5 * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
+    const vulkanSpacingY = 5 * onePixelYInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
+    const fontSize = state.uxData.settingsMenuUx.baseFontSize * state.uxData.settingsMenuUx.uiSizeDelayed;
+    const tabFontVulkanHeight = fontSize * onePixelYInVulkan;
+    const verticeData = &state.vkState.verticeData;
+    var maxWidth: f32 = 0;
+    var topLeft = position;
+    for (textLines) |line| {
+        const lineWidth = getTextVulkanWidth(line, fontSize);
+        if (lineWidth > maxWidth) maxWidth = lineWidth;
+    }
+    if (!alignLeft) {
+        topLeft.x = position.x - maxWidth - vulkanSpacingX * 2;
+    }
+    paintVulkanZig.verticesForRectangle(
+        topLeft.x,
+        topLeft.y,
+        maxWidth + vulkanSpacingX * 2,
+        @as(f32, @floatFromInt(textLines.len)) * tabFontVulkanHeight + vulkanSpacingY * 2,
+        .{ 1, 1, 1, 1 },
+        &verticeData.lines,
+        &verticeData.triangles,
+    );
+    for (textLines, 0..) |line, lineIndex| {
+        _ = paintText(line, .{
+            .x = topLeft.x + vulkanSpacingX,
+            .y = topLeft.y + @as(f32, @floatFromInt(lineIndex)) * tabFontVulkanHeight + vulkanSpacingY,
+        }, fontSize, .{ 1, 1, 1, 1 }, &verticeData.font);
+    }
+}
+
 /// returns game width
 pub fn verticesForDisplayButton(topLeft: main.Position, action: inputZig.PlayerAction, fontSize: f32, player: *playerZig.Player, state: *main.GameState) f32 {
     const buttonInfo = inputZig.getDisplayInfoForPlayerAction(player, action, state);
