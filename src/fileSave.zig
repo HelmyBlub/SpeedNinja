@@ -143,6 +143,7 @@ pub fn loadCurrentRunFromFile(state: *main.GameState) !void {
         try readPlayerMovePieces(player, reader, state);
         try readEquipmentSlotData(player, reader, state);
     }
+    try readTimeStatsData(reader, state);
     try shopZig.startShoppingPhase(state);
     try readShopBuyOptions(reader, state);
 }
@@ -187,7 +188,42 @@ pub fn saveCurrentRunToFile(state: *main.GameState) !void {
         try writeEquipmentSlotData(player.equipment.equipmentSlotsData.feet, writer);
         try writeEquipmentSlotData(player.equipment.equipmentSlotsData.weapon, writer);
     }
+    try writeTimeStatsData(writer, state);
     try writeShopBuyOptions(writer, state);
+}
+
+fn writeTimeStatsData(writer: anytype, state: *main.GameState) !void {
+    _ = try writer.writeInt(u8, if (state.statistics.active) 1 else 0, .little);
+    const currentRunStats = state.statistics.currentRunStats;
+    _ = try writer.writeInt(u32, currentRunStats.playerCount, .little);
+    _ = try writer.writeInt(u32, currentRunStats.newGamePlus, .little);
+    _ = try writer.writeInt(usize, currentRunStats.levelDatas.items.len, .little);
+    for (currentRunStats.levelDatas.items) |levelData| {
+        _ = try writer.writeInt(i64, levelData.time, .little);
+        _ = try writer.writeInt(i64, levelData.totalTime, .little);
+        _ = try writer.writeInt(i64, levelData.shoppingTime, .little);
+        _ = try writer.writeInt(u32, levelData.round, .little);
+    }
+}
+
+fn readTimeStatsData(reader: anytype, state: *main.GameState) !void {
+    const active = try reader.readInt(u8, .little);
+    state.statistics.active = if (active != 0) true else false;
+
+    const currentRunStats = &state.statistics.currentRunStats;
+    currentRunStats.playerCount = try reader.readInt(u32, .little);
+    currentRunStats.newGamePlus = try reader.readInt(u32, .little);
+    currentRunStats.levelDatas.clearRetainingCapacity();
+    const levelDatasCount = try reader.readInt(usize, .little);
+
+    for (0..levelDatasCount) |_| {
+        try currentRunStats.levelDatas.append(.{
+            .time = try reader.readInt(i64, .little),
+            .totalTime = try reader.readInt(i64, .little),
+            .shoppingTime = try reader.readInt(i64, .little),
+            .round = try reader.readInt(u32, .little),
+        });
+    }
 }
 
 fn writeEquipmentSlotData(optEquipSlotData: ?equipmentZig.EquipmentSlotData, writer: anytype) !void {

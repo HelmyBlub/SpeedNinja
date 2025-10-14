@@ -127,6 +127,7 @@ fn handleGamePadEvents(event: sdl.SDL_Event, state: *main.GameState) !void {
 fn debugKeys(event: sdl.SDL_Event, state: *main.GameState) !void {
     if (event.key.scancode == sdl.SDL_SCANCODE_F1) {
         state.statistics.active = false;
+        if (state.gamePhase != .shopping) try shopZig.startShoppingPhase(state);
         try main.startNextLevel(state);
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F2) {
         if (state.gamePhase == .combat) {

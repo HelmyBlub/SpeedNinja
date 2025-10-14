@@ -8,13 +8,14 @@ testruns:
 
 
 Tasks:
-- bug: multiplayer afk air attack goes on each player? only for keyboard?
-- be able to choose new game plus on start
-    - available once game beaten on normal mode
 - speedrun stats:
     - mixed player count run
     - only disable when cheating
     - save stats even when quitting and returning later
+    - display in stats for which player count the stats are
+- achivements
+- be able to choose new game plus on start
+    - available once game beaten on normal mode
 - somehow scalue UI dependant on window size
     - some user have big screen/resoluation and default ui size is very small in this case
 - multiplayer
@@ -58,4 +59,5 @@ Next ideas:
         - more start pieces
         - round requirment for continue to next level
         - max start enemies
+- steam leaderboard?
 

@@ -685,6 +685,9 @@ pub fn restart(state: *GameState, newGamePlus: u32) anyerror!void {
     state.uxData.displayBossAcedUntilTime = null;
     state.uxData.displayReceivedFreeContinue = null;
     state.statistics.uxData.displayGoldRunValue = null;
+    state.statistics.currentRunStats.levelDatas.clearRetainingCapacity();
+    state.statistics.currentRunStats.newGamePlus = newGamePlus;
+    state.statistics.currentRunStats.playerCount = @intCast(state.players.items.len);
     try startNextLevel(state);
 }
 
@@ -816,9 +819,8 @@ pub fn executeContinue(state: *GameState) !void {
     }
     try shopZig.startShoppingPhase(state);
     if (state.statistics.active) {
-        const levelDatas = try statsZig.getLevelDatas(state);
-        const currentLevelData = &levelDatas[state.level - 1];
-        state.statistics.totalShoppingTime -= currentLevelData.currentShoppingTime;
+        const currentLevelData = &state.statistics.currentRunStats.levelDatas.items[state.level - 1];
+        state.statistics.totalShoppingTime -= currentLevelData.shoppingTime;
     }
     state.gameOver = false;
 }

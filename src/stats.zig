@@ -9,7 +9,8 @@ pub const Statistics = struct {
     runStartedTime: i64 = 0,
     runFinishedTime: i64 = 0,
     totalShoppingTime: i64 = 0,
-    levelDataWithPlayerCount: std.ArrayList(LevelStatiscticsWithPlayerCount),
+    bestRunStats: std.ArrayList(BestRunsStatistics),
+    currentRunStats: RunStatisctics,
     uxData: StatisticsUxData = .{},
 };
 
@@ -36,22 +37,31 @@ const ColumnData = struct {
     name: []const u8,
     display: bool,
     pixelWidth: f32,
-    setupVertices: *const fn (level: u32, levelDatas: []LevelStatistics, paintPos: main.Position, columnData: ColumnData, state: *main.GameState) anyerror!void,
+    setupVertices: *const fn (level: u32, levelDatas: []BestLevelStatistics, paintPos: main.Position, columnData: ColumnData, state: *main.GameState) anyerror!void,
 };
 
-const LevelStatiscticsWithPlayerCount = struct {
+const BestRunsStatistics = struct {
     playerCount: u32,
     newGamePlus: u32,
+    levelDatas: std.ArrayList(BestLevelStatistics),
+};
+
+const RunStatisctics = struct {
+    playerCount: u32 = 0,
+    newGamePlus: u32 = 0,
     levelDatas: std.ArrayList(LevelStatistics),
 };
 
+const BestLevelStatistics = struct {
+    time: ?i64 = null,
+    totalTime: ?i64 = null,
+};
+
 const LevelStatistics = struct {
-    fastestTime: ?i64 = null,
-    currentTime: i64 = 0,
-    fastestTotalTime: ?i64 = null,
-    currentTotalTime: i64 = 0,
-    currentRound: u32 = 0,
-    currentShoppingTime: i64 = 0,
+    time: i64 = 0,
+    totalTime: i64 = 0,
+    round: u32 = 0,
+    shoppingTime: i64 = 0,
 };
 
 const FILE_NAME_STATISTICS_DATA = "statistics.dat";
@@ -68,25 +78,26 @@ pub fn statsOnLevelFinished(state: *main.GameState) !void {
     const currentTime = std.time.milliTimestamp();
     if (state.level == main.LEVEL_COUNT and state.gamePhase == .finished) state.statistics.runFinishedTime = currentTime - state.statistics.runStartedTime;
     if (state.level == 0) return;
-    const levelDatas: []LevelStatistics = try getLevelDatas(state);
-    const currentLevelData = &levelDatas[state.level - 1];
-    currentLevelData.currentTotalTime = currentTime - state.statistics.runStartedTime;
-    currentLevelData.currentRound = state.round;
+    const levelDatas = &state.statistics.currentRunStats.levelDatas;
+    try levelDatas.append(.{});
+    const currentLevelData = &levelDatas.items[levelDatas.items.len - 1];
+    currentLevelData.totalTime = currentTime - state.statistics.runStartedTime;
+    currentLevelData.round = state.round;
     if (state.level == 1) {
-        currentLevelData.currentTime = currentLevelData.currentTotalTime;
+        currentLevelData.time = currentLevelData.totalTime;
     } else {
-        const lastLevelData = &levelDatas[state.level - 2];
-        currentLevelData.currentTime = currentLevelData.currentTotalTime - lastLevelData.currentTotalTime - lastLevelData.currentShoppingTime;
+        const lastLevelData = &levelDatas.items[state.level - 2];
+        currentLevelData.time = currentLevelData.totalTime - lastLevelData.totalTime - lastLevelData.shoppingTime;
     }
 }
 
 pub fn statsOnLevelShopFinishedAndNextLevelStart(state: *main.GameState) !void {
     if (state.level == 0) return;
-    const levelDatas: []LevelStatistics = try getLevelDatas(state);
-    const currentLevelData = &levelDatas[state.level - 1];
+    const levelDatas = &state.statistics.currentRunStats.levelDatas;
+    const currentLevelData = &levelDatas.items[state.level - 1];
     const currentTime = std.time.milliTimestamp();
-    currentLevelData.currentShoppingTime = currentTime - state.statistics.runStartedTime - currentLevelData.currentTotalTime;
-    state.statistics.totalShoppingTime += currentLevelData.currentShoppingTime;
+    currentLevelData.shoppingTime = currentTime - state.statistics.runStartedTime - currentLevelData.totalTime;
+    state.statistics.totalShoppingTime += currentLevelData.shoppingTime;
 }
 
 pub fn statsSaveOnRestart(state: *main.GameState) !void {
@@ -97,19 +108,21 @@ pub fn statsSaveOnRestart(state: *main.GameState) !void {
         return;
     }
     if (state.level == 0) return;
-    const levelDatas: []LevelStatistics = try getLevelDatas(state);
+    const bestRunStats: []BestLevelStatistics = try getBestRunStats(state);
+    const currentRunStats = &state.statistics.currentRunStats;
     var saveToFile = false;
-    const isNewBestTotalTime = checkIfIsNewBestTotalTime(levelDatas, state);
+    const isNewBestTotalTime = checkIfIsNewBestTotalTime(bestRunStats, state);
 
-    for (levelDatas, 0..) |*levelData, index| {
+    for (bestRunStats, 0..) |*bestRunLevelData, index| {
         const levelBeat: u8 = if (state.gamePhase == .shopping or state.gamePhase == .finished) 1 else 0;
         if (state.level - 1 + levelBeat <= index) break;
-        if (levelData.fastestTime == null or levelData.currentTime < levelData.fastestTime.?) {
-            levelData.fastestTime = levelData.currentTime;
+        const currentRunLevelData = currentRunStats.levelDatas.items[index];
+        if (bestRunLevelData.time == null or currentRunLevelData.time < bestRunLevelData.time.?) {
+            bestRunLevelData.time = currentRunLevelData.time;
             saveToFile = true;
         }
         if (isNewBestTotalTime) {
-            levelData.fastestTotalTime = levelData.currentTotalTime;
+            bestRunLevelData.totalTime = bestRunLevelData.totalTime;
             saveToFile = true;
         }
     }
@@ -119,31 +132,32 @@ pub fn statsSaveOnRestart(state: *main.GameState) !void {
     state.statistics.active = true;
 }
 
-fn checkIfIsNewBestTotalTime(levelDatas: []LevelStatistics, state: *main.GameState) bool {
+fn checkIfIsNewBestTotalTime(levelDatas: []BestLevelStatistics, state: *main.GameState) bool {
     var isNewBestTotal: bool = false;
+    const currentTotalTime = state.statistics.runFinishedTime - state.statistics.runStartedTime;
     if (state.gamePhase == .shopping or state.gamePhase == .finished) {
         var hasReachedHigherLevelBefore = false;
         if (levelDatas.len > state.level) {
             const nextLevelData = levelDatas[state.level];
-            if (nextLevelData.fastestTotalTime != null) {
+            if (nextLevelData.totalTime != null) {
                 hasReachedHigherLevelBefore = true;
             }
         }
         if (!hasReachedHigherLevelBefore) {
             const levelData = levelDatas[state.level - 1];
-            if (levelData.fastestTotalTime == null or levelData.currentTotalTime < levelData.fastestTotalTime.?) {
+            if (levelData.totalTime == null or currentTotalTime < levelData.totalTime.?) {
                 isNewBestTotal = true;
             }
         }
     } else {
         var hasReachedHigherLevelBefore = false;
         const currentLevelData = levelDatas[state.level - 1];
-        if (currentLevelData.fastestTotalTime != null) {
+        if (currentLevelData.totalTime != null) {
             hasReachedHigherLevelBefore = true;
         }
         if (!hasReachedHigherLevelBefore and state.level > 1) {
             const highestDefeatedLevelData = levelDatas[state.level - 2];
-            if (highestDefeatedLevelData.fastestTotalTime == null or highestDefeatedLevelData.currentTotalTime < highestDefeatedLevelData.fastestTotalTime.?) {
+            if (highestDefeatedLevelData.totalTime == null or currentTotalTime < highestDefeatedLevelData.totalTime.?) {
                 isNewBestTotal = true;
             }
         }
@@ -154,17 +168,19 @@ fn checkIfIsNewBestTotalTime(levelDatas: []LevelStatistics, state: *main.GameSta
 pub fn createStatistics(allocator: std.mem.Allocator) Statistics {
     return Statistics{
         .active = true,
-        .levelDataWithPlayerCount = std.ArrayList(LevelStatiscticsWithPlayerCount).init(allocator),
+        .bestRunStats = std.ArrayList(BestRunsStatistics).init(allocator),
+        .currentRunStats = .{ .levelDatas = std.ArrayList(LevelStatistics).init(allocator) },
     };
 }
 
 pub fn destroyAndSave(state: *main.GameState) !void {
     try statsSaveOnRestart(state);
 
-    for (state.statistics.levelDataWithPlayerCount.items) |*forPlayerCount| {
+    for (state.statistics.bestRunStats.items) |*forPlayerCount| {
         forPlayerCount.levelDatas.deinit();
     }
-    state.statistics.levelDataWithPlayerCount.deinit();
+    state.statistics.bestRunStats.deinit();
+    state.statistics.currentRunStats.levelDatas.deinit();
 }
 
 pub fn setupVertices(state: *main.GameState) !void {
@@ -176,7 +192,8 @@ pub fn setupVertices(state: *main.GameState) !void {
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const topLeft: main.Position = state.statistics.uxData.vulkanPosition;
-    const levelDatas: []LevelStatistics = try getLevelDatas(state);
+    const bestRunStats: []BestLevelStatistics = try getBestRunStats(state);
+    const currentRunStats = state.statistics.currentRunStats.levelDatas.items;
     state.statistics.uxData.fontSize = 16 * state.uxData.settingsMenuUx.uiSizeDelayed;
     const fontSize = state.statistics.uxData.fontSize;
     var columnOffsetX: f32 = 0;
@@ -213,7 +230,7 @@ pub fn setupVertices(state: *main.GameState) !void {
         columnOffsetX = 0;
         for (state.statistics.uxData.columnsData) |column| {
             if (!column.display) continue;
-            try column.setupVertices(@intCast(level), levelDatas, .{ .x = topLeft.x + columnOffsetX, .y = topLeft.y + row * fontSize * onePixelYInVulkan }, column, state);
+            try column.setupVertices(@intCast(level), bestRunStats, .{ .x = topLeft.x + columnOffsetX, .y = topLeft.y + row * fontSize * onePixelYInVulkan }, column, state);
             columnOffsetX += column.pixelWidth * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
         }
     }
@@ -221,7 +238,7 @@ pub fn setupVertices(state: *main.GameState) !void {
     if (state.statistics.uxData.displayTimeInShop) {
         var shopppingTime = state.statistics.totalShoppingTime;
         if (state.gamePhase == .shopping) {
-            shopppingTime += state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - levelDatas[state.level - 1].currentTotalTime;
+            shopppingTime += state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - currentRunStats[state.level - 1].totalTime;
         }
         const textWidth = fontVulkanZig.paintText("Shop: ", .{
             .x = topLeft.x,
@@ -240,18 +257,18 @@ pub fn setupVertices(state: *main.GameState) !void {
         }
         var pastTimePart: ?i64 = null;
         if (state.gamePhase == .shopping) {
-            if (levelDatas.len > state.level and levelDatas[state.level].fastestTime != null) {
-                const lastLevelFinishTime = levelDatas[state.level - 1].currentTotalTime;
-                const currentLevelEstimate = @max(levelDatas[state.level].fastestTime.?, state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - lastLevelFinishTime);
+            if (bestRunStats.len > state.level and bestRunStats[state.level].time != null) {
+                const lastLevelFinishTime = currentRunStats[state.level - 1].totalTime;
+                const currentLevelEstimate = @max(bestRunStats[state.level].time.?, state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - lastLevelFinishTime);
                 pastTimePart = lastLevelFinishTime + currentLevelEstimate;
             }
         } else if (state.level == 1) {
-            if (levelDatas[0].fastestTime) |fastestTime| {
+            if (bestRunStats[0].time) |fastestTime| {
                 pastTimePart = @max(fastestTime, state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime);
             }
         } else {
-            if (levelDatas[state.level - 1].fastestTime) |fastestTime| {
-                const lastLevelFinishTime = levelDatas[state.level - 2].currentTotalTime;
+            if (bestRunStats[state.level - 1].time) |fastestTime| {
+                const lastLevelFinishTime = currentRunStats[state.level - 2].totalTime;
                 const currentLevelEstimate = @max(fastestTime, state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - lastLevelFinishTime);
                 pastTimePart = lastLevelFinishTime + currentLevelEstimate;
             }
@@ -272,12 +289,12 @@ pub fn setupVertices(state: *main.GameState) !void {
     }
     if (state.statistics.uxData.displayBestRun) {
         var furthestDataIndex: usize = 0;
-        for (levelDatas, 0..) |level, index| {
-            if (level.fastestTotalTime != null) {
+        for (bestRunStats, 0..) |level, index| {
+            if (level.totalTime != null) {
                 furthestDataIndex = index;
             }
         }
-        if (levelDatas[furthestDataIndex].fastestTotalTime) |fastestTotalTime| {
+        if (bestRunStats[furthestDataIndex].totalTime) |fastestTotalTime| {
             try displayTextNumberTextTime(
                 "Best Run: Level ",
                 furthestDataIndex + 1,
@@ -331,8 +348,8 @@ fn displayTextNumberTextTime(text1: []const u8, number: anytype, text2: []const 
     }, fontSize, true, textColor, &state.vkState.verticeData.font);
 }
 
-fn setupVerticesLevel(level: u32, levelDatas: []LevelStatistics, paintPos: main.Position, columnData: ColumnData, state: *main.GameState) anyerror!void {
-    _ = levelDatas;
+fn setupVerticesLevel(level: u32, bestRunStats: []BestLevelStatistics, paintPos: main.Position, columnData: ColumnData, state: *main.GameState) anyerror!void {
+    _ = bestRunStats;
     const currentDisplayLevelOfPlayer = if (state.statistics.uxData.groupingLevelsInFive) @divFloor(state.level + 4, 5) * 5 else state.level;
     const alpha: f32 = if (level > currentDisplayLevelOfPlayer) 0.5 else 1;
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
@@ -344,21 +361,22 @@ fn setupVerticesLevel(level: u32, levelDatas: []LevelStatistics, paintPos: main.
     }, state.statistics.uxData.fontSize, .{ 1, 1, 1, alpha }, &state.vkState.verticeData.font);
 }
 
-fn setupVerticesTime(level: u32, levelDatas: []LevelStatistics, paintPos: main.Position, columnData: ColumnData, state: *main.GameState) anyerror!void {
+fn setupVerticesTime(level: u32, bestRunStats: []BestLevelStatistics, paintPos: main.Position, columnData: ColumnData, state: *main.GameState) anyerror!void {
     const currentDisplayLevelOfPlayer = if (state.statistics.uxData.groupingLevelsInFive) @divFloor(state.level + 4, 5) * 5 else state.level;
     const alpha: f32 = if (level > currentDisplayLevelOfPlayer) 0.5 else 1;
     const textColor: [4]f32 = .{ 1, 1, 1, alpha };
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const columnWidth = columnData.pixelWidth * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
-    if (level - 1 < levelDatas.len) {
-        const levelData = levelDatas[level - 1];
-        var displayTime = levelData.currentTotalTime;
+    if (level - 1 < bestRunStats.len) {
+        const bestLevelData = bestRunStats[level - 1];
+        const currentLevelData = state.statistics.currentRunStats.levelDatas.items;
+        var displayTime: i64 = if (currentLevelData.len >= level) currentLevelData[level - 1].totalTime else 0;
         if (state.statistics.uxData.groupingLevelsInFive and @divFloor(level, 5) == @divFloor(state.level + 4, 5) and (state.gamePhase != .shopping or @mod(state.level, 5) != 0)) {
             displayTime = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime;
         } else if (level == state.level and state.gamePhase != .shopping) {
             displayTime = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime;
         } else if (level > state.level) {
-            if (levelData.fastestTotalTime) |fastestTotalTime| {
+            if (bestLevelData.totalTime) |fastestTotalTime| {
                 displayTime = fastestTotalTime;
             } else {
                 const textWidht = fontVulkanZig.getTextVulkanWidth("--", state.statistics.uxData.fontSize);
@@ -377,14 +395,14 @@ fn setupVerticesTime(level: u32, levelDatas: []LevelStatistics, paintPos: main.P
     }
 }
 
-fn setupVerticesLevelDiff(level: u32, levelDatas: []LevelStatistics, paintPos: main.Position, columnData: ColumnData, state: *main.GameState) anyerror!void {
-    if (level - 1 >= levelDatas.len) return;
-    const levelData = levelDatas[level - 1];
-    if (levelData.fastestTime) |levelFastestTime| {
+fn setupVerticesLevelDiff(level: u32, bestRunStats: []BestLevelStatistics, paintPos: main.Position, columnData: ColumnData, state: *main.GameState) anyerror!void {
+    if (level - 1 >= bestRunStats.len) return;
+    const bestLevelData = bestRunStats[level - 1];
+    if (bestLevelData.time) |levelFastestTime| {
         var fastestTime = levelFastestTime;
         if (state.statistics.uxData.groupingLevelsInFive) {
             for (1..5) |i| {
-                fastestTime += levelDatas[level - i - 1].fastestTime.?;
+                fastestTime += bestRunStats[level - i - 1].time.?;
             }
         }
         const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
@@ -398,40 +416,44 @@ fn setupVerticesLevelDiff(level: u32, levelDatas: []LevelStatistics, paintPos: m
         } else {
             const red: [4]f32 = .{ 0.7, 0, 0, 1 };
             const green: [4]f32 = .{ 0.1, 1, 0.1, 1 };
-            var levelCurrentTime = levelData.currentTime;
+            var levelCurrentTime: i64 = 0;
             if (state.statistics.uxData.groupingLevelsInFive) {
                 if (currentDisplayLevelOfPlayer == level) {
                     if (state.level == 1) {
                         if (state.gamePhase != .shopping) {
                             levelCurrentTime = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime;
                         } else {
-                            levelCurrentTime = levelDatas[0].currentTime;
+                            levelCurrentTime = state.statistics.currentRunStats.levelDatas.items[0].time;
                         }
                     } else {
                         const levelItCount = @mod(state.level - 1, 5);
                         levelCurrentTime = 0;
                         for (0..levelItCount) |i| {
-                            levelCurrentTime += levelDatas[level - (4 - i) - 1].currentTime;
+                            levelCurrentTime += state.statistics.currentRunStats.levelDatas.items[level - (4 - i) - 1].time;
                         }
                         if (state.gamePhase != .shopping) {
-                            const lastLevelData = &levelDatas[state.level - 2];
-                            levelCurrentTime += state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - lastLevelData.currentTotalTime - lastLevelData.currentShoppingTime;
+                            const currentLastLevelData = &state.statistics.currentRunStats.levelDatas.items[state.level - 2];
+                            levelCurrentTime += state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - currentLastLevelData.totalTime - currentLastLevelData.shoppingTime;
                         } else {
-                            levelCurrentTime += levelDatas[state.level - 1].currentTime;
+                            if (state.statistics.currentRunStats.levelDatas.items.len >= level) {
+                                levelCurrentTime += state.statistics.currentRunStats.levelDatas.items[level - 1].time;
+                            }
                         }
                     }
                 } else {
-                    for (1..5) |i| {
-                        levelCurrentTime += levelDatas[level - i - 1].currentTime;
+                    for (0..5) |i| {
+                        levelCurrentTime += state.statistics.currentRunStats.levelDatas.items[level - i - 1].time;
                     }
                 }
             } else if (level == state.level and state.gamePhase != .shopping) {
                 if (level > 1) {
-                    const lastLevelData = &levelDatas[level - 2];
-                    levelCurrentTime = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - lastLevelData.currentTotalTime - lastLevelData.currentShoppingTime;
+                    const currentLastLevelData = &state.statistics.currentRunStats.levelDatas.items[level - 2];
+                    levelCurrentTime = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - currentLastLevelData.totalTime - currentLastLevelData.shoppingTime;
                 } else {
                     levelCurrentTime = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime;
                 }
+            } else {
+                levelCurrentTime = state.statistics.currentRunStats.levelDatas.items[level - 1].time;
             }
             const diff = levelCurrentTime - fastestTime;
             const color = if (diff > 0) red else green;
@@ -449,10 +471,10 @@ fn setupVerticesLevelDiff(level: u32, levelDatas: []LevelStatistics, paintPos: m
     }
 }
 
-fn setupVerticesTotalDiff(level: u32, levelDatas: []LevelStatistics, paintPos: main.Position, columnData: ColumnData, state: *main.GameState) anyerror!void {
-    if (level - 1 >= levelDatas.len) return;
-    const levelData = levelDatas[level - 1];
-    if (levelData.fastestTotalTime) |fastestTime| {
+fn setupVerticesTotalDiff(level: u32, bestRunStats: []BestLevelStatistics, paintPos: main.Position, columnData: ColumnData, state: *main.GameState) anyerror!void {
+    if (level - 1 >= bestRunStats.len) return;
+    const bestLevelData = bestRunStats[level - 1];
+    if (bestLevelData.totalTime) |fastestTime| {
         const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
         const columnWidth = columnData.pixelWidth * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
         const fontSize = state.statistics.uxData.fontSize;
@@ -464,7 +486,7 @@ fn setupVerticesTotalDiff(level: u32, levelDatas: []LevelStatistics, paintPos: m
             if (level > state.level or (level == state.level and state.gamePhase != .shopping)) {
                 diffTotal = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - fastestTime;
             } else {
-                diffTotal = levelData.currentTotalTime - fastestTime;
+                diffTotal = state.statistics.currentRunStats.levelDatas.items[level - 1].totalTime - fastestTime;
             }
 
             const color: [4]f32 = if (diffTotal > 0) red else green;
@@ -482,20 +504,20 @@ fn setupVerticesTotalDiff(level: u32, levelDatas: []LevelStatistics, paintPos: m
     }
 }
 
-pub fn getLevelDatas(state: *main.GameState) ![]LevelStatistics {
-    var optLevelDatas: ?*std.ArrayList(LevelStatistics) = null;
-    for (state.statistics.levelDataWithPlayerCount.items) |*levelDataForPlayerCount| {
+pub fn getBestRunStats(state: *main.GameState) ![]BestLevelStatistics {
+    var optLevelDatas: ?*std.ArrayList(BestLevelStatistics) = null;
+    for (state.statistics.bestRunStats.items) |*levelDataForPlayerCount| {
         if (state.players.items.len == levelDataForPlayerCount.playerCount and state.newGamePlus == levelDataForPlayerCount.newGamePlus) {
             optLevelDatas = &levelDataForPlayerCount.levelDatas;
         }
     }
     if (optLevelDatas == null) {
-        try state.statistics.levelDataWithPlayerCount.append(.{
-            .levelDatas = std.ArrayList(LevelStatistics).init(state.allocator),
+        try state.statistics.bestRunStats.append(.{
+            .levelDatas = std.ArrayList(BestLevelStatistics).init(state.allocator),
             .playerCount = @intCast(state.players.items.len),
             .newGamePlus = state.newGamePlus,
         });
-        optLevelDatas = &state.statistics.levelDataWithPlayerCount.items[state.statistics.levelDataWithPlayerCount.items.len - 1].levelDatas;
+        optLevelDatas = &state.statistics.bestRunStats.items[state.statistics.bestRunStats.items.len - 1].levelDatas;
     }
     if (optLevelDatas.?.items.len < state.level) {
         try optLevelDatas.?.append(.{});
@@ -528,19 +550,19 @@ fn loadFromFile(state: *main.GameState, filepath: []const u8) !void {
         const playerCount = try reader.readInt(u32, .little);
         const newGamePlus = try reader.readInt(u32, .little);
         const levelDataLength: usize = try reader.readInt(usize, .little);
-        try state.statistics.levelDataWithPlayerCount.append(.{
-            .levelDatas = std.ArrayList(LevelStatistics).init(state.allocator),
+        try state.statistics.bestRunStats.append(.{
+            .levelDatas = std.ArrayList(BestLevelStatistics).init(state.allocator),
             .playerCount = playerCount,
             .newGamePlus = newGamePlus,
         });
-        const levelDatas = &state.statistics.levelDataWithPlayerCount.items[state.statistics.levelDataWithPlayerCount.items.len - 1];
+        const levelDatas = &state.statistics.bestRunStats.items[state.statistics.bestRunStats.items.len - 1];
         for (0..levelDataLength) |levelDataIndex| {
             try levelDatas.levelDatas.append(.{});
-            const levelData: *LevelStatistics = &levelDatas.levelDatas.items[levelDataIndex];
-            levelData.fastestTime = try reader.readInt(i64, .little);
-            if (levelData.fastestTime.? < 0) levelData.fastestTime = null;
-            levelData.fastestTotalTime = try reader.readInt(i64, .little);
-            if (levelData.fastestTotalTime.? < 0) levelData.fastestTotalTime = null;
+            const levelData: *BestLevelStatistics = &levelDatas.levelDatas.items[levelDataIndex];
+            levelData.time = try reader.readInt(i64, .little);
+            if (levelData.time.? < 0) levelData.time = null;
+            levelData.totalTime = try reader.readInt(i64, .little);
+            if (levelData.totalTime.? < 0) levelData.totalTime = null;
         }
     }
 }
@@ -554,23 +576,23 @@ fn saveStatisticsDataToFile(state: *main.GameState) !void {
 
     const writer = file.writer();
     _ = try writer.writeByte(SAFE_FILE_VERSION);
-    _ = try writer.writeInt(usize, state.statistics.levelDataWithPlayerCount.items.len, .little);
-    for (state.statistics.levelDataWithPlayerCount.items) |statisticsForPlayerCount| {
+    _ = try writer.writeInt(usize, state.statistics.bestRunStats.items.len, .little);
+    for (state.statistics.bestRunStats.items) |statisticsForPlayerCount| {
         _ = try writer.writeInt(u32, statisticsForPlayerCount.playerCount, .little);
         _ = try writer.writeInt(u32, statisticsForPlayerCount.newGamePlus, .little);
         _ = try writer.writeInt(usize, statisticsForPlayerCount.levelDatas.items.len, .little);
         for (statisticsForPlayerCount.levelDatas.items) |levelStatistics| {
-            _ = try writer.writeInt(i64, if (levelStatistics.fastestTime) |ft| ft else -1, .little);
-            _ = try writer.writeInt(i64, if (levelStatistics.fastestTotalTime) |ftt| ftt else -1, .little);
+            _ = try writer.writeInt(i64, if (levelStatistics.time) |ft| ft else -1, .little);
+            _ = try writer.writeInt(i64, if (levelStatistics.totalTime) |ftt| ftt else -1, .little);
         }
     }
 }
 
 fn calculateSumOfGolds(state: *main.GameState) !void {
-    const levelDatas: []LevelStatistics = try getLevelDatas(state);
+    const levelDatas: []BestLevelStatistics = try getBestRunStats(state);
     var sumOfGold: i64 = 0;
     for (levelDatas, 0..) |level, index| {
-        if (level.fastestTime) |fastestTime| {
+        if (level.time) |fastestTime| {
             sumOfGold += fastestTime;
             state.statistics.uxData.displayGoldRunLevel = @intCast(index + 1);
         }
@@ -583,12 +605,12 @@ fn calculateSumOfGolds(state: *main.GameState) !void {
 }
 
 fn calculateSumOfGoldsOfRemainingLevels(state: *main.GameState) !void {
-    const levelDatas: []LevelStatistics = try getLevelDatas(state);
+    const levelDatas: []BestLevelStatistics = try getBestRunStats(state);
     var sumOfGoldRemaining: i64 = 0;
     const startLevel = if (state.gamePhase == .shopping) state.level + 1 else state.level;
     for (startLevel..levelDatas.len) |index| {
         const level = levelDatas[index];
-        if (level.fastestTime) |fastestTime| {
+        if (level.time) |fastestTime| {
             sumOfGoldRemaining += fastestTime;
             state.statistics.uxData.displayBestPossibleTimeLevel = @intCast(index + 1);
         }
