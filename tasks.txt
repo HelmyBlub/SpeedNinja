@@ -9,9 +9,6 @@ testruns:
 
 Tasks:
 - bug: multiplayer afk air attack goes on each player? only for keyboard?
-- more mouse hover information
-    - for player UX
-    - shop?
 - be able to choose new game plus on start
     - available once game beaten on normal mode
 - speedrun stats:
@@ -22,6 +19,8 @@ Tasks:
     - some user have big screen/resoluation and default ui size is very small in this case
 - multiplayer
     - change choosenMovePieceVisualization player paint order so everyones arrows can be on top for some frames
+- settings menu info section
+    - explain shop
 
 Next ideas:
 - settings

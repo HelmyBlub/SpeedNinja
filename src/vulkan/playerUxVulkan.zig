@@ -45,7 +45,7 @@ pub fn verticesForHoverInformation(state: *main.GameState) !void {
             const posX = if (player.uxData.infoRecMovePieceCount.pos.x < 0) player.uxData.infoRecMovePieceCount.pos.x + player.uxData.infoRecMovePieceCount.width else player.uxData.infoRecMovePieceCount.pos.x;
             fontVulkanZig.verticesForInfoBox(&[_][]const u8{
                 "Remaining Move Piece Count",
-                "Will take damage when reaching 0",
+                "Player takes damage when reaching 0",
                 "Refreshes on doing or taking damage",
             }, .{ .x = posX, .y = player.uxData.infoRecMovePieceCount.pos.y }, player.uxData.infoRecDamage.pos.x < 0, state);
         } else if (main.isPositionInRectangle(state.vulkanMousePosition, player.uxData.infoRecMovePieces)) {
