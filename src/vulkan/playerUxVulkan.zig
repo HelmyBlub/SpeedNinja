@@ -19,6 +19,19 @@ pub fn setupVertices(state: *main.GameState) !void {
     }
 }
 
+pub fn verticesForHoverInformation(state: *main.GameState) !void {
+    const maxPlayerInfo = @min(4, state.players.items.len);
+    for (0..maxPlayerInfo) |playerIndex| {
+        const player = &state.players.items[playerIndex];
+        if (main.isPositionInRectangle(state.vulkanMousePosition, player.uxData.infoRecDamage)) {
+            fontVulkanZig.verticesForInfoBox(&[_][]const u8{
+                "Damage",
+                "Only relevant for bosses",
+            }, .{ .x = player.uxData.infoRecDamage.pos.x + player.uxData.infoRecDamage.width, .y = player.uxData.infoRecDamage.pos.y }, true, state);
+        }
+    }
+}
+
 fn verticeForPlayerStateInfo(player: *playerZig.Player, state: *main.GameState) void {
     if (player.isDead) {
         const red: [4]f32 = .{ 1, 0, 0, 1 };
@@ -52,20 +65,24 @@ fn verticeForInfo(player: *playerZig.Player, text: *const [4]u8, textColor: [4]f
 }
 
 fn verticesForPlayerData(player: *playerZig.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) !void {
-    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-
     var vulkanPos: main.Position = player.uxData.vulkanTopLeft;
-    var width: f32 = 0;
     var height: f32 = 0;
     const spacingFactor = 1.1;
     height = player.uxData.vulkanScale / 4 / spacingFactor;
-    width = height / onePixelYInVulkan * onePixelXInVulkan;
     const fontSize = height / 4 / onePixelYInVulkan;
     const pieceYSpacing = height * spacingFactor;
     vulkanPos.y += pieceYSpacing * 3;
     try verticesForPlayerPieceCounter(vulkanPos, fontSize, player, verticeData, state);
+    try verticesForPlayerDamage(vulkanPos, fontSize, player, verticeData, state);
+    try verticesForPlayerHp(vulkanPos, fontSize, player, verticeData, state);
+    try verticesForPlayerMoney(vulkanPos, fontSize, player, verticeData, state);
+}
+
+fn verticesForPlayerDamage(vulkanPos: main.Position, fontSize: f32, player: *playerZig.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) !void {
+    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const damageDisplayTextPos: main.Position = .{
         .x = vulkanPos.x + fontSize * onePixelXInVulkan,
         .y = vulkanPos.y + fontSize * onePixelYInVulkan,
@@ -80,7 +97,7 @@ fn verticesForPlayerData(player: *playerZig.Player, verticeData: *dataVulkanZig.
             .x = damageDisplayTextPos.x + damageTextWidth,
             .y = damageDisplayTextPos.y,
         }, fontSize, textColor, &verticeData.font);
-        _ = try fontVulkanZig.paintNumber(bonusDamage, .{
+        damageTextWidth += try fontVulkanZig.paintNumber(bonusDamage, .{
             .x = damageDisplayTextPos.x + damageTextWidth,
             .y = damageDisplayTextPos.y,
         }, fontSize, textColor, &verticeData.font);
@@ -100,9 +117,10 @@ fn verticesForPlayerData(player: *playerZig.Player, verticeData: *dataVulkanZig.
         false,
         state,
     );
-
-    try verticesForPlayerHp(vulkanPos, fontSize, player, verticeData, state);
-    try verticesForPlayerMoney(vulkanPos, fontSize, player, verticeData, state);
+    player.uxData.infoRecDamage = .{ .pos = .{
+        .x = vulkanPos.x,
+        .y = damageDisplayTextPos.y + 5 * onePixelXInVulkan,
+    }, .width = damageTextWidth + fontSize * onePixelXInVulkan, .height = fontSize * onePixelYInVulkan };
 }
 
 fn verticesForPlayerHp(vulkanPos: main.Position, fontSize: f32, player: *playerZig.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) !void {

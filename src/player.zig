@@ -58,6 +58,11 @@ const PlayerUxData = struct {
     visualizeChoiceKeys: bool = true,
     visualizeMovementKeys: bool = true,
     visualizeChoosenMovePieceColor: [4]f32 = .{ 0, 0, 0, 1 },
+    infoRecMovePieces: main.Rectangle = .{},
+    infoRecMovePieceCount: main.Rectangle = .{},
+    infoRecDamage: main.Rectangle = .{},
+    infoRecHealth: main.Rectangle = .{},
+    infoRecMoney: main.Rectangle = .{},
 };
 
 pub const AfterImage = struct {

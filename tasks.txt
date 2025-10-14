@@ -10,7 +10,6 @@ testruns:
 Tasks:
 - more mouse hover information
     - for player UX
-    - topLeft info
     - shop?
 - be able to choose new game plus on start
     - available once game beaten on normal mode
@@ -20,6 +19,8 @@ Tasks:
     - save stats even when quitting and returning later
 - somehow scalue UI dependant on window size
     - some user have big screen/resoluation and default ui size is very small in this case
+- multiplayer
+    - change choosenMovePieceVisualization player paint order so everyones arrows can be on top for some frames
 
 Next ideas:
 - settings
