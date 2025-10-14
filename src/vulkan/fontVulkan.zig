@@ -219,6 +219,10 @@ pub fn verticesForInfoBox(textLines: []const []const u8, position: main.Position
     if (!alignLeft) {
         topLeft.x = position.x - maxWidth - vulkanSpacingX * 2;
     }
+    const bottomY = topLeft.y + @as(f32, @floatFromInt(textLines.len)) * tabFontVulkanHeight + vulkanSpacingY * 3;
+    if (bottomY > 1) {
+        topLeft.y -= (bottomY - 1);
+    }
     paintVulkanZig.verticesForRectangle(
         topLeft.x,
         topLeft.y,

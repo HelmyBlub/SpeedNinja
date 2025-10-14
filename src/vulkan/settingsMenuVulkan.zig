@@ -33,6 +33,10 @@ var UI_ELEMENTS_MAIN = [_]UiElementData{
     },
     .{ .typeData = .{ .slider = .{ .label = "Volume", .valuePerCent = 1, .onChange = onSliderChangeVolume } } },
     .{ .typeData = .{ .slider = .{ .label = "UI Size", .valuePerCent = 0.5, .onStopHolding = onSliderStopHoldingUxSize } } },
+    .{
+        .typeData = .{ .checkbox = .{ .label = "Mouse Hover Info", .onSetChecked = onCheckboxMouseHoverInfo, .checked = true } },
+        .information = &[_][]const u8{"Display info on mouse Hover for some UI elements"},
+    },
     .{ .typeData = .{ .holdButton = .{ .label = "Quit", .onHoldDurationFinished = onHoldButtonQuit } } },
 };
 
@@ -597,9 +601,6 @@ pub fn setupVertices(state: *main.GameState) !void {
                 },
             }
             if (element.active and element.information != null) {
-                if (element.informationHover) {
-                    fontVulkanZig.verticesForInfoBox(element.information.?, .{ .x = menuRec.pos.x, .y = element.informationHoverRec.pos.y }, false, state);
-                }
                 const infoRec = element.informationHoverRec;
                 const infoFillColor: [4]f32 = if (element.informationHover) .{ 0.2, 0.2, 1, 1 } else .{ 0.7, 0.7, 1.0, 1 };
                 paintVulkanZig.verticesForRectangle(infoRec.pos.x, infoRec.pos.y, infoRec.width, infoRec.height, infoFillColor, &verticeData.lines, &verticeData.triangles);
@@ -610,6 +611,21 @@ pub fn setupVertices(state: *main.GameState) !void {
             }
         }
     }
+}
+
+///returns true if mouse hovering menu
+pub fn verticesForHoverInformation(state: *main.GameState) !bool {
+    const currentTab = &state.uxData.settingsMenuUx.uiTabs[state.uxData.settingsMenuUx.activeTabIndex];
+    const menuRec = currentTab.contentRec;
+    for (currentTab.uiElements) |*element| {
+        if (element.active and element.information != null) {
+            if (element.informationHover) {
+                fontVulkanZig.verticesForInfoBox(element.information.?, .{ .x = menuRec.pos.x, .y = element.informationHoverRec.pos.y }, false, state);
+                break;
+            }
+        }
+    }
+    return state.uxData.settingsMenuUx.menuOpen and main.isPositionInRectangle(state.vulkanMousePosition, menuRec);
 }
 
 fn onHoldButtonRestart(state: *main.GameState) anyerror!void {
@@ -633,6 +649,10 @@ fn onCheckboxFullscreen(checked: bool, state: *main.GameState) anyerror!void {
 
 fn onCheckboxFreezeOnHit(checked: bool, state: *main.GameState) anyerror!void {
     state.timeFreezeOnHit = checked;
+}
+
+fn onCheckboxMouseHoverInfo(checked: bool, state: *main.GameState) anyerror!void {
+    state.uxData.enableInfoRectangles = checked;
 }
 
 fn onCheckboxSpeedrunStats(checked: bool, state: *main.GameState) anyerror!void {

@@ -107,6 +107,7 @@ pub const GameUxData = struct {
     levelInfoRec: Rectangle = .{},
     roundInfoRec: Rectangle = .{},
     newGamePlusInfoRec: Rectangle = .{},
+    enableInfoRectangles: bool = true,
 };
 
 const TimeChangeUnion = union(enum) {

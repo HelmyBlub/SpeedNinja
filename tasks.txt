@@ -8,6 +8,7 @@ testruns:
 
 
 Tasks:
+- bug: multiplayer afk air attack goes on each player? only for keyboard?
 - more mouse hover information
     - for player UX
     - shop?

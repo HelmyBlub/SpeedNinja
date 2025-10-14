@@ -314,13 +314,15 @@ fn verticesForLevelRoundNewGamePlus(state: *main.GameState) !void {
     }
 }
 
-pub fn verticesForHoverInformation(state: *main.GameState) !void {
+///returns true if hovering something
+pub fn verticesForHoverInformation(state: *main.GameState) !bool {
     if (main.isPositionInRectangle(state.vulkanMousePosition, state.uxData.levelInfoRec)) {
         fontVulkanZig.verticesForInfoBox(&[_][]const u8{
             "Current Level",
             "Higher level means higher difficulty",
             "Every 5th level is a Boss",
         }, .{ .x = state.uxData.levelInfoRec.pos.x, .y = state.uxData.levelInfoRec.pos.y + state.uxData.levelInfoRec.height }, true, state);
+        return true;
     } else if (state.gamePhase != .boss and state.gamePhase != .finished and main.isPositionInRectangle(state.vulkanMousePosition, state.uxData.roundInfoRec)) {
         fontVulkanZig.verticesForInfoBox(&[_][]const u8{
             "Current Round",
@@ -328,6 +330,7 @@ pub fn verticesForHoverInformation(state: *main.GameState) !void {
             "Finishing a round gives money",
             "Gate opens reaching round 5",
         }, .{ .x = state.uxData.roundInfoRec.pos.x, .y = state.uxData.roundInfoRec.pos.y + state.uxData.roundInfoRec.height }, true, state);
+        return true;
     } else if (state.newGamePlus > 0 and main.isPositionInRectangle(state.vulkanMousePosition, state.uxData.newGamePlusInfoRec)) {
         fontVulkanZig.verticesForInfoBox(&[_][]const u8{
             "Higher number higher difficulty increase",
@@ -336,7 +339,9 @@ pub fn verticesForHoverInformation(state: *main.GameState) !void {
             "NewGame+3 divides enemy action times by 4",
             "and so on",
         }, .{ .x = state.uxData.newGamePlusInfoRec.pos.x, .y = state.uxData.newGamePlusInfoRec.pos.y + state.uxData.newGamePlusInfoRec.height }, true, state);
+        return true;
     }
+    return false;
 }
 
 fn verticsForTutorial(state: *main.GameState) void {
