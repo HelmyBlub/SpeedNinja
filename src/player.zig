@@ -351,6 +351,11 @@ pub fn playerLeave(playerIndex: usize, state: *main.GameState) !void {
         }
         destroyPlayer(&removed, state);
         main.adjustZoom(state);
+        if (state.level <= 1 and state.round <= 1) {
+            state.statistics.currentRunStats.playerCount = @intCast(state.players.items.len);
+        } else {
+            state.statistics.currentRunStats.playerCount = 0;
+        }
     }
 }
 
@@ -397,6 +402,11 @@ pub fn playerJoin(playerInputData: inputZig.PlayerInputData, state: *main.GameSt
         }
     }
     player.inputData.lastInputTime = state.gameTime;
+    if (state.level <= 1 and state.round <= 1) {
+        state.statistics.currentRunStats.playerCount = @intCast(state.players.items.len);
+    } else {
+        state.statistics.currentRunStats.playerCount = 0;
+    }
     equipmentZig.equipStarterEquipment(player);
     try movePieceZig.setupMovePieces(player, state);
     state.statistics.active = false;

@@ -9,7 +9,6 @@ testruns:
 
 Tasks:
 - speedrun stats:
-    - show past level count incorrect
     - mixed player count run
     - display in stats for which player count the stats are
 - achivements

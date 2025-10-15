@@ -186,7 +186,6 @@ pub fn destroyAndSave(state: *main.GameState) !void {
 pub fn setupVertices(state: *main.GameState) !void {
     if (!state.statistics.uxData.display) return;
     if (state.level == 0) return;
-    if (state.players.items.len > 1 and state.gamePhase != .shopping and state.gamePhase != .finished) return;
     state.statistics.uxData.currentTimestamp = std.time.milliTimestamp();
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
@@ -196,7 +195,25 @@ pub fn setupVertices(state: *main.GameState) !void {
     const currentRunStats = state.statistics.currentRunStats.levelDatas.items;
     state.statistics.uxData.fontSize = 16 * state.uxData.settingsMenuUx.uiSizeDelayed;
     const fontSize = state.statistics.uxData.fontSize;
+    const vulkanFontSize = fontSize * onePixelYInVulkan;
     var columnOffsetX: f32 = 0;
+    if (state.statistics.currentRunStats.playerCount != 1) {
+        const playerCountWidth = fontVulkanZig.paintText("Stats for player count: ", .{
+            .x = topLeft.x,
+            .y = topLeft.y - vulkanFontSize,
+        }, fontSize, textColor, &state.vkState.verticeData.font);
+        if (state.statistics.currentRunStats.playerCount == 0) {
+            _ = fontVulkanZig.paintText("Mixed", .{
+                .x = topLeft.x + playerCountWidth,
+                .y = topLeft.y - vulkanFontSize,
+            }, fontSize, textColor, &state.vkState.verticeData.font);
+        } else {
+            _ = try fontVulkanZig.paintNumber(state.statistics.currentRunStats.playerCount, .{
+                .x = topLeft.x + playerCountWidth,
+                .y = topLeft.y - vulkanFontSize,
+            }, fontSize, textColor, &state.vkState.verticeData.font);
+        }
+    }
     for (state.statistics.uxData.columnsData) |column| {
         if (!column.display) continue;
         const columnWidth = column.pixelWidth * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
@@ -230,11 +247,11 @@ pub fn setupVertices(state: *main.GameState) !void {
         columnOffsetX = 0;
         for (state.statistics.uxData.columnsData) |column| {
             if (!column.display) continue;
-            try column.setupVertices(@intCast(level), bestRunStats, .{ .x = topLeft.x + columnOffsetX, .y = topLeft.y + row * fontSize * onePixelYInVulkan }, column, state);
+            try column.setupVertices(@intCast(level), bestRunStats, .{ .x = topLeft.x + columnOffsetX, .y = topLeft.y + row * vulkanFontSize }, column, state);
             columnOffsetX += column.pixelWidth * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
         }
     }
-    var currentY = topLeft.y + @as(f32, @floatFromInt(lastDisplayLevelWithoutMultPlusOne - firstDisplayLevelWithoutMult + 1)) * fontSize * onePixelYInVulkan;
+    var currentY = topLeft.y + @as(f32, @floatFromInt(lastDisplayLevelWithoutMultPlusOne - firstDisplayLevelWithoutMult + 1)) * vulkanFontSize;
     if (state.statistics.uxData.displayTimeInShop) {
         var shopppingTime = state.statistics.totalShoppingTime;
         if (state.gamePhase == .shopping) {
@@ -248,9 +265,9 @@ pub fn setupVertices(state: *main.GameState) !void {
             .x = topLeft.x + textWidth,
             .y = currentY,
         }, fontSize, true, textColor, &state.vkState.verticeData.font);
-        currentY += fontSize * onePixelYInVulkan;
+        currentY += vulkanFontSize;
     }
-    currentY += fontSize * onePixelYInVulkan;
+    currentY += vulkanFontSize;
     if (state.statistics.uxData.displayBestPossibleTime) {
         if (state.statistics.uxData.displayBestPossibleTimeValue == null) {
             try calculateSumOfGoldsOfRemainingLevels(state);
@@ -284,7 +301,7 @@ pub fn setupVertices(state: *main.GameState) !void {
                 textColor,
                 state,
             );
-            currentY += fontSize * onePixelYInVulkan;
+            currentY += vulkanFontSize;
         }
     }
     if (state.statistics.uxData.displayBestRun) {
@@ -305,7 +322,7 @@ pub fn setupVertices(state: *main.GameState) !void {
                 textColor,
                 state,
             );
-            currentY += fontSize * onePixelYInVulkan;
+            currentY += vulkanFontSize;
         }
     }
     if (state.statistics.uxData.displayGoldRun) {
@@ -323,7 +340,7 @@ pub fn setupVertices(state: *main.GameState) !void {
                 textColor,
                 state,
             );
-            currentY += fontSize * onePixelYInVulkan;
+            currentY += vulkanFontSize;
         }
     }
 }
@@ -367,32 +384,25 @@ fn setupVerticesTime(level: u32, bestRunStats: []BestLevelStatistics, paintPos: 
     const textColor: [4]f32 = .{ 1, 1, 1, alpha };
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const columnWidth = columnData.pixelWidth * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
-    if (level - 1 < bestRunStats.len) {
-        const bestLevelData = bestRunStats[level - 1];
-        const currentLevelData = state.statistics.currentRunStats.levelDatas.items;
-        var displayTime: i64 = if (currentLevelData.len >= level) currentLevelData[level - 1].totalTime else 0;
-        if (state.statistics.uxData.groupingLevelsInFive and @divFloor(level, 5) == @divFloor(state.level + 4, 5) and ((state.gamePhase != .shopping and state.gamePhase != .finished) or @mod(state.level, 5) != 0)) {
-            displayTime = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime;
-        } else if (level == state.level and state.gamePhase != .shopping and state.gamePhase != .finished) {
-            displayTime = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime;
-        } else if (level > state.level) {
-            if (bestLevelData.totalTime) |fastestTotalTime| {
-                displayTime = fastestTotalTime;
-            } else {
-                const textWidht = fontVulkanZig.getTextVulkanWidth("--", state.statistics.uxData.fontSize);
-                const paintX = paintPos.x + columnWidth - textWidht;
-                _ = fontVulkanZig.paintText("--", .{ .x = paintX, .y = paintPos.y }, state.statistics.uxData.fontSize, textColor, &state.vkState.verticeData.font);
-                return;
-            }
+    const currentLevelData = state.statistics.currentRunStats.levelDatas.items;
+    var displayTime: i64 = if (currentLevelData.len >= level) currentLevelData[level - 1].totalTime else 0;
+    if (state.statistics.uxData.groupingLevelsInFive and @divFloor(level, 5) == @divFloor(state.level + 4, 5) and ((state.gamePhase != .shopping and state.gamePhase != .finished) or @mod(state.level, 5) != 0)) {
+        displayTime = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime;
+    } else if (level == state.level and state.gamePhase != .shopping and state.gamePhase != .finished) {
+        displayTime = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime;
+    } else if (level > state.level) {
+        if (bestRunStats.len > level and bestRunStats[level - 1].totalTime != null) {
+            displayTime = bestRunStats[level - 1].totalTime.?;
+        } else {
+            const textWidht = fontVulkanZig.getTextVulkanWidth("--", state.statistics.uxData.fontSize);
+            const paintX = paintPos.x + columnWidth - textWidht;
+            _ = fontVulkanZig.paintText("--", .{ .x = paintX, .y = paintPos.y }, state.statistics.uxData.fontSize, textColor, &state.vkState.verticeData.font);
+            return;
         }
-        const textWidht = try fontVulkanZig.getTimeTextVulkanWidth(displayTime, state.statistics.uxData.fontSize, true);
-        const paintX = paintPos.x + columnWidth - textWidht;
-        _ = try fontVulkanZig.paintTime(displayTime, .{ .x = paintX, .y = paintPos.y }, state.statistics.uxData.fontSize, true, textColor, &state.vkState.verticeData.font);
-    } else {
-        const textWidht = fontVulkanZig.getTextVulkanWidth("--", state.statistics.uxData.fontSize);
-        const paintX = paintPos.x + columnWidth - textWidht;
-        _ = fontVulkanZig.paintText("--", .{ .x = paintX, .y = paintPos.y }, state.statistics.uxData.fontSize, textColor, &state.vkState.verticeData.font);
     }
+    const textWidht = try fontVulkanZig.getTimeTextVulkanWidth(displayTime, state.statistics.uxData.fontSize, true);
+    const paintX = paintPos.x + columnWidth - textWidht;
+    _ = try fontVulkanZig.paintTime(displayTime, .{ .x = paintX, .y = paintPos.y }, state.statistics.uxData.fontSize, true, textColor, &state.vkState.verticeData.font);
 }
 
 fn setupVerticesLevelDiff(level: u32, bestRunStats: []BestLevelStatistics, paintPos: main.Position, columnData: ColumnData, state: *main.GameState) anyerror!void {
@@ -504,16 +514,18 @@ fn setupVerticesTotalDiff(level: u32, bestRunStats: []BestLevelStatistics, paint
 
 pub fn getBestRunStats(state: *main.GameState) ![]BestLevelStatistics {
     var optLevelDatas: ?*std.ArrayList(BestLevelStatistics) = null;
+    const playerCount = state.statistics.currentRunStats.playerCount;
+    const newGamePlus = state.statistics.currentRunStats.newGamePlus;
     for (state.statistics.bestRunStats.items) |*levelDataForPlayerCount| {
-        if (state.players.items.len == levelDataForPlayerCount.playerCount and state.newGamePlus == levelDataForPlayerCount.newGamePlus) {
+        if (playerCount == levelDataForPlayerCount.playerCount and newGamePlus == levelDataForPlayerCount.newGamePlus) {
             optLevelDatas = &levelDataForPlayerCount.levelDatas;
         }
     }
     if (optLevelDatas == null) {
         try state.statistics.bestRunStats.append(.{
             .levelDatas = std.ArrayList(BestLevelStatistics).init(state.allocator),
-            .playerCount = @intCast(state.players.items.len),
-            .newGamePlus = state.newGamePlus,
+            .playerCount = @intCast(playerCount),
+            .newGamePlus = newGamePlus,
         });
         optLevelDatas = &state.statistics.bestRunStats.items[state.statistics.bestRunStats.items.len - 1].levelDatas;
     }
