@@ -9,9 +9,10 @@ testruns:
 
 Tasks:
 - speedrun stats:
+    - continue bug: grouped stats seem to be off
+    - timer does not stop on level 50
+    - show past level count incorrect
     - mixed player count run
-    - only disable when cheating
-    - save stats even when quitting and returning later
     - display in stats for which player count the stats are
 - achivements
 - be able to choose new game plus on start

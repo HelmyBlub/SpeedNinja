@@ -371,9 +371,9 @@ fn setupVerticesTime(level: u32, bestRunStats: []BestLevelStatistics, paintPos: 
         const bestLevelData = bestRunStats[level - 1];
         const currentLevelData = state.statistics.currentRunStats.levelDatas.items;
         var displayTime: i64 = if (currentLevelData.len >= level) currentLevelData[level - 1].totalTime else 0;
-        if (state.statistics.uxData.groupingLevelsInFive and @divFloor(level, 5) == @divFloor(state.level + 4, 5) and (state.gamePhase != .shopping or @mod(state.level, 5) != 0)) {
+        if (state.statistics.uxData.groupingLevelsInFive and @divFloor(level, 5) == @divFloor(state.level + 4, 5) and ((state.gamePhase != .shopping and state.gamePhase != .finished) or @mod(state.level, 5) != 0)) {
             displayTime = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime;
-        } else if (level == state.level and state.gamePhase != .shopping) {
+        } else if (level == state.level and state.gamePhase != .shopping and state.gamePhase != .finished) {
             displayTime = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime;
         } else if (level > state.level) {
             if (bestLevelData.totalTime) |fastestTotalTime| {
@@ -431,13 +431,11 @@ fn setupVerticesLevelDiff(level: u32, bestRunStats: []BestLevelStatistics, paint
                         for (0..levelItCount) |i| {
                             levelCurrentTime += state.statistics.currentRunStats.levelDatas.items[level - (4 - i) - 1].time;
                         }
-                        if (state.gamePhase != .shopping) {
+                        if (state.gamePhase != .shopping and state.gamePhase != .finished) {
                             const currentLastLevelData = &state.statistics.currentRunStats.levelDatas.items[state.level - 2];
                             levelCurrentTime += state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - currentLastLevelData.totalTime - currentLastLevelData.shoppingTime;
                         } else {
-                            if (state.statistics.currentRunStats.levelDatas.items.len >= level) {
-                                levelCurrentTime += state.statistics.currentRunStats.levelDatas.items[level - 1].time;
-                            }
+                            levelCurrentTime += state.statistics.currentRunStats.levelDatas.items[state.level - 1].time;
                         }
                     }
                 } else {
@@ -445,7 +443,7 @@ fn setupVerticesLevelDiff(level: u32, bestRunStats: []BestLevelStatistics, paint
                         levelCurrentTime += state.statistics.currentRunStats.levelDatas.items[level - i - 1].time;
                     }
                 }
-            } else if (level == state.level and state.gamePhase != .shopping) {
+            } else if (level == state.level and state.gamePhase != .shopping and state.gamePhase != .finished) {
                 if (level > 1) {
                     const currentLastLevelData = &state.statistics.currentRunStats.levelDatas.items[level - 2];
                     levelCurrentTime = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - currentLastLevelData.totalTime - currentLastLevelData.shoppingTime;
@@ -483,7 +481,7 @@ fn setupVerticesTotalDiff(level: u32, bestRunStats: []BestLevelStatistics, paint
             const red: [4]f32 = .{ 0.7, 0, 0, 1 };
             const green: [4]f32 = .{ 0.1, 1, 0.1, 1 };
             var diffTotal: i64 = 0;
-            if (level > state.level or (level == state.level and state.gamePhase != .shopping)) {
+            if (level > state.level or (level == state.level and state.gamePhase != .shopping and state.gamePhase != .finished)) {
                 diffTotal = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - fastestTime;
             } else {
                 diffTotal = state.statistics.currentRunStats.levelDatas.items[level - 1].totalTime - fastestTime;
