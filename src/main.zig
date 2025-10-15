@@ -235,7 +235,7 @@ fn mainLoop(state: *GameState) !void {
                     try playerZig.changePlayerMoneyBy(amount, player, true, state);
                 }
                 try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BOSS_DEFEATED, 0, 0.6);
-                achievementZig.awardBossDestroyed(state);
+                achievementZig.awardAchievementOnBossDefeated(state);
                 if (state.playerTookDamageOnLevel == false and state.level < LEVEL_COUNT) {
                     state.continueData.bossesAced += 1;
                     state.uxData.displayBossAcedUntilTime = state.gameTime + 3_500;
@@ -474,7 +474,7 @@ pub fn startNextRound(state: *GameState) !void {
     state.soundData.warningSoundPlayed = false;
     state.roundStartedTime = state.gameTime;
     if (state.level == 1 and state.round == 1) {
-        achievementZig.awardAchievement(.destroyFirstEnemy, state);
+        achievementZig.awardAchievement(.beatFirstEnemy, state);
     }
     state.round += 1;
     if (state.round >= state.roundToReachForNextLevel and state.gateOpenTime == null) state.gateOpenTime = state.gameTime;

@@ -1,5 +1,6 @@
 const std = @import("std");
 const main = @import("main.zig");
+const achievementZig = @import("achievement.zig");
 
 const ISteamUserStats = opaque {};
 pub extern fn SteamAPI_InitFlat(err: ?*[1024]u8) callconv(.C) u32;
@@ -13,27 +14,39 @@ pub extern fn SteamAPI_ISteamUserStats_GetAchievement(ptr: ?*ISteamUserStats, pc
 const ENABLED: bool = false;
 pub const SteamData = struct {
     earliestNextStoreStats: i64,
+    achievementToStore: bool = false,
+    preventStoreStats: bool = false,
 };
 const MIN_STORE_INTERVAL = 60;
 
-// pub fn setAchievement(popIndex: usize, state: *main.GameState) !void {
-//     if (state.steam != null) {
-// if (countryPopulationDataZig.WORLD_POPULATION[popIndex].hasAchievement) {
-//     var buf: [5]u8 = [_]u8{ 0, 0, 0, 0, 0 };
-//     _ = try std.fmt.bufPrint(&buf, "{d}", .{(popIndex + 1)});
-//     var achieved: bool = false;
-//     const success = SteamAPI_ISteamUserStats_GetAchievement(SteamAPI_SteamUserStats_v013(), &buf, &achieved);
-//     if (!achieved and success) {
-//         _ = SteamAPI_ISteamUserStats_SetAchievement(SteamAPI_SteamUserStats_v013(), &buf);
-//         const timestamp = std.time.timestamp();
-//         if (state.steam.?.earliestNextStoreStats < timestamp) {
-//             _ = SteamAPI_ISteamUserStats_StoreStats(SteamAPI_SteamUserStats_v013());
-//             state.steam.?.earliestNextStoreStats = timestamp + MIN_STORE_INTERVAL;
-//         }
-//     }
-// }
-//     }
-// }
+pub fn setAchievement(achievementEnum: achievementZig.AchievementsEnum, state: *main.GameState) void {
+    if (state.steam) |*steam| {
+        const achievement = state.achievements.getPtr(achievementEnum);
+        if (achievement.achieved) {
+            var achieved: bool = false;
+            const success = SteamAPI_ISteamUserStats_GetAchievement(SteamAPI_SteamUserStats_v013(), @ptrCast(achievement.steamName), &achieved);
+            if (!achieved and success) {
+                _ = SteamAPI_ISteamUserStats_SetAchievement(SteamAPI_SteamUserStats_v013(), @ptrCast(achievement.steamName));
+                steam.achievementToStore = true;
+                if (!steam.preventStoreStats) {
+                    storeAchievements(state);
+                }
+            }
+        }
+    }
+}
+
+pub fn storeAchievements(state: *main.GameState) void {
+    if (state.steam) |*steam| {
+        if (!steam.achievementToStore or steam.preventStoreStats) return;
+        const timestamp = std.time.timestamp();
+        if (steam.earliestNextStoreStats < timestamp) {
+            _ = SteamAPI_ISteamUserStats_StoreStats(SteamAPI_SteamUserStats_v013());
+            steam.earliestNextStoreStats = timestamp + MIN_STORE_INTERVAL;
+            steam.achievementToStore = false;
+        }
+    }
+}
 
 pub fn steamInit(state: *main.GameState) void {
     if (!ENABLED) {

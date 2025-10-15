@@ -1,5 +1,6 @@
 const std = @import("std");
 const main = @import("main.zig");
+const steamZig = @import("steam.zig");
 
 pub const AchievementData = struct {
     steamName: []const u8,
@@ -74,15 +75,24 @@ pub fn initAchievementsOnRestart(state: *main.GameState) void {
     if (!state.achievements.get(.beatGameWithoutTakingDamage).achieved) state.achievements.getPtr(.beatGameWithoutTakingDamage).trackingActive = true;
 }
 
+pub fn stopTrackingAchievmentForThisRun(state: *main.GameState) void {
+    var iter = state.achievements.iterator();
+    while (iter.next()) |*achieve| {
+        achieve.value.trackingActive = false;
+    }
+}
+
 pub fn awardAchievement(achievementEnum: AchievementsEnum, state: *main.GameState) void {
     const achievement = state.achievements.getPtr(achievementEnum);
     if (!achievement.achieved and achievement.trackingActive) {
         std.debug.print("gained achievement {}\n", .{achievementEnum});
         achievement.achieved = true;
+        steamZig.setAchievement(achievementEnum, state);
     }
 }
 
-pub fn awardBossbeated(state: *main.GameState) void {
+pub fn awardAchievementOnBossDefeated(state: *main.GameState) void {
+    if (state.steam) |*steam| steam.preventStoreStats = true;
     switch (state.level) {
         5 => awardAchievement(.beatBoss1, state),
         10 => awardAchievement(.beatBoss2, state),
@@ -108,4 +118,6 @@ pub fn awardBossbeated(state: *main.GameState) void {
         },
         else => {},
     }
+    if (state.steam) |*steam| steam.preventStoreStats = false;
+    steamZig.storeAchievements(state);
 }

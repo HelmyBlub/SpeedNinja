@@ -11,6 +11,7 @@ const shopZig = @import("shop.zig");
 const inputZig = @import("input.zig");
 const equipmentZig = @import("equipment.zig");
 const settingsMenuVulkanZig = @import("vulkan/settingsMenuVulkan.zig");
+const achievementZig = @import("achievement.zig");
 
 pub const WindowData = struct {
     window: *sdl.SDL_Window = undefined,
@@ -127,16 +128,19 @@ fn handleGamePadEvents(event: sdl.SDL_Event, state: *main.GameState) !void {
 fn debugKeys(event: sdl.SDL_Event, state: *main.GameState) !void {
     if (event.key.scancode == sdl.SDL_SCANCODE_F1) {
         state.statistics.active = false;
+        achievementZig.stopTrackingAchievmentForThisRun(state);
         if (state.gamePhase != .shopping) try shopZig.startShoppingPhase(state);
         try main.startNextLevel(state);
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F2) {
         if (state.gamePhase == .combat) {
+            achievementZig.stopTrackingAchievmentForThisRun(state);
             state.statistics.active = false;
             try main.startNextRound(state);
         }
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F3) {
         if (state.gamePhase != .shopping) {
             state.statistics.active = false;
+            achievementZig.stopTrackingAchievmentForThisRun(state);
             try shopZig.startShoppingPhase(state);
         }
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F4) {
@@ -144,12 +148,18 @@ fn debugKeys(event: sdl.SDL_Event, state: *main.GameState) !void {
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F5) {
         try main.restart(state, state.newGamePlus + 1);
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F6) {
+        state.statistics.active = false;
+        achievementZig.stopTrackingAchievmentForThisRun(state);
         state.continueData.freeContinues += 1;
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F7) {
         state.gameTime += 5000;
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F8) {
+        state.statistics.active = false;
+        achievementZig.stopTrackingAchievmentForThisRun(state);
         _ = equipmentZig.equip(equipmentZig.getEquipmentOptionByIndexScaledToLevel(7, state.level).equipment, true, &state.players.items[0]);
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F9) {
+        state.statistics.active = false;
+        achievementZig.stopTrackingAchievmentForThisRun(state);
         for (state.players.items) |*player| {
             player.money += 200;
         }
