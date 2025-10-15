@@ -10,7 +10,6 @@ testruns:
 Tasks:
 - steam achivements
     - dev steps:
-        - save in current run
         - steam side setup
             - images
         - link steam achievement with my game

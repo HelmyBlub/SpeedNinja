@@ -8,16 +8,16 @@ pub const AchievementData = struct {
 };
 
 pub const AchievementsEnum = enum {
-    destroyFirstEnemy,
-    destroyBoss1,
-    destroyBoss2,
-    destroyBoss3,
-    destroyBoss4,
-    destroyBoss5,
-    destroyBoss6,
-    destroyBoss7,
-    destroyBoss8,
-    destroyBoss9,
+    beatFirstEnemy,
+    beatBoss1,
+    beatBoss2,
+    beatBoss3,
+    beatBoss4,
+    beatBoss5,
+    beatBoss6,
+    beatBoss7,
+    beatBoss8,
+    beatBoss9,
     beatGame,
     beatGamePlus1,
     beatBoss5OnNewGamePlus1,
@@ -30,16 +30,16 @@ pub const AchievementsEnum = enum {
 };
 
 pub const ACHIEVEMENTS = std.EnumArray(AchievementsEnum, AchievementData).init(.{
-    .destroyFirstEnemy = .{ .steamName = "DestroyFirstEnemy" },
-    .destroyBoss1 = .{ .steamName = "DestroyBoss1" },
-    .destroyBoss2 = .{ .steamName = "DestroyBoss2" },
-    .destroyBoss3 = .{ .steamName = "DestroyBoss3" },
-    .destroyBoss4 = .{ .steamName = "DestroyBoss4" },
-    .destroyBoss5 = .{ .steamName = "DestroyBoss5" },
-    .destroyBoss6 = .{ .steamName = "DestroyBoss6" },
-    .destroyBoss7 = .{ .steamName = "DestroyBoss7" },
-    .destroyBoss8 = .{ .steamName = "DestroyBoss8" },
-    .destroyBoss9 = .{ .steamName = "DestroyBoss9" },
+    .beatFirstEnemy = .{ .steamName = "BeatFirstEnemy" },
+    .beatBoss1 = .{ .steamName = "BeatBoss1" },
+    .beatBoss2 = .{ .steamName = "BeatBoss2" },
+    .beatBoss3 = .{ .steamName = "BeatBoss3" },
+    .beatBoss4 = .{ .steamName = "BeatBoss4" },
+    .beatBoss5 = .{ .steamName = "BeatBoss5" },
+    .beatBoss6 = .{ .steamName = "BeatBoss6" },
+    .beatBoss7 = .{ .steamName = "BeatBoss7" },
+    .beatBoss8 = .{ .steamName = "BeatBoss8" },
+    .beatBoss9 = .{ .steamName = "BeatBoss9" },
     .beatGame = .{ .steamName = "BeatGame" },
     .beatGamePlus1 = .{ .steamName = "BeatNewGamePlus1" },
     .beatBoss5OnNewGamePlus1 = .{ .steamName = "BeatBoss5OnNewGamePlus1" },
@@ -52,16 +52,16 @@ pub const ACHIEVEMENTS = std.EnumArray(AchievementsEnum, AchievementData).init(.
 });
 
 pub fn initAchievementsOnRestart(state: *main.GameState) void {
-    if (!state.achievements.get(.destroyFirstEnemy).achieved) state.achievements.getPtr(.destroyFirstEnemy).trackingActive = true;
-    if (!state.achievements.get(.destroyBoss1).achieved) state.achievements.getPtr(.destroyBoss1).trackingActive = true;
-    if (!state.achievements.get(.destroyBoss2).achieved) state.achievements.getPtr(.destroyBoss2).trackingActive = true;
-    if (!state.achievements.get(.destroyBoss3).achieved) state.achievements.getPtr(.destroyBoss3).trackingActive = true;
-    if (!state.achievements.get(.destroyBoss4).achieved) state.achievements.getPtr(.destroyBoss4).trackingActive = true;
-    if (!state.achievements.get(.destroyBoss5).achieved) state.achievements.getPtr(.destroyBoss5).trackingActive = true;
-    if (!state.achievements.get(.destroyBoss6).achieved) state.achievements.getPtr(.destroyBoss6).trackingActive = true;
-    if (!state.achievements.get(.destroyBoss7).achieved) state.achievements.getPtr(.destroyBoss7).trackingActive = true;
-    if (!state.achievements.get(.destroyBoss8).achieved) state.achievements.getPtr(.destroyBoss8).trackingActive = true;
-    if (!state.achievements.get(.destroyBoss9).achieved) state.achievements.getPtr(.destroyBoss9).trackingActive = true;
+    if (!state.achievements.get(.beatFirstEnemy).achieved) state.achievements.getPtr(.beatFirstEnemy).trackingActive = true;
+    if (!state.achievements.get(.beatBoss1).achieved) state.achievements.getPtr(.beatBoss1).trackingActive = true;
+    if (!state.achievements.get(.beatBoss2).achieved) state.achievements.getPtr(.beatBoss2).trackingActive = true;
+    if (!state.achievements.get(.beatBoss3).achieved) state.achievements.getPtr(.beatBoss3).trackingActive = true;
+    if (!state.achievements.get(.beatBoss4).achieved) state.achievements.getPtr(.beatBoss4).trackingActive = true;
+    if (!state.achievements.get(.beatBoss5).achieved) state.achievements.getPtr(.beatBoss5).trackingActive = true;
+    if (!state.achievements.get(.beatBoss6).achieved) state.achievements.getPtr(.beatBoss6).trackingActive = true;
+    if (!state.achievements.get(.beatBoss7).achieved) state.achievements.getPtr(.beatBoss7).trackingActive = true;
+    if (!state.achievements.get(.beatBoss8).achieved) state.achievements.getPtr(.beatBoss8).trackingActive = true;
+    if (!state.achievements.get(.beatBoss9).achieved) state.achievements.getPtr(.beatBoss9).trackingActive = true;
     if (!state.achievements.get(.beatGame).achieved) state.achievements.getPtr(.beatGame).trackingActive = true;
 
     if (state.newGamePlus == 1 and !state.achievements.get(.beatGamePlus1).achieved) state.achievements.getPtr(.beatGamePlus1).trackingActive = true;
@@ -82,22 +82,22 @@ pub fn awardAchievement(achievementEnum: AchievementsEnum, state: *main.GameStat
     }
 }
 
-pub fn awardBossDestroyed(state: *main.GameState) void {
+pub fn awardBossbeated(state: *main.GameState) void {
     switch (state.level) {
-        5 => awardAchievement(.destroyBoss1, state),
-        10 => awardAchievement(.destroyBoss2, state),
-        15 => awardAchievement(.destroyBoss3, state),
-        20 => awardAchievement(.destroyBoss4, state),
+        5 => awardAchievement(.beatBoss1, state),
+        10 => awardAchievement(.beatBoss2, state),
+        15 => awardAchievement(.beatBoss3, state),
+        20 => awardAchievement(.beatBoss4, state),
         25 => {
-            awardAchievement(.destroyBoss5, state);
+            awardAchievement(.beatBoss5, state);
             if (state.newGamePlus == 1) awardAchievement(.beatBoss5OnNewGamePlus1, state);
             if (state.newGamePlus == 2) awardAchievement(.beatBoss5OnNewGamePlus2, state);
             awardAchievement(.beatBoss5WithoutSpendingMoney, state);
         },
-        30 => awardAchievement(.destroyBoss6, state),
-        35 => awardAchievement(.destroyBoss7, state),
-        40 => awardAchievement(.destroyBoss8, state),
-        45 => awardAchievement(.destroyBoss9, state),
+        30 => awardAchievement(.beatBoss6, state),
+        35 => awardAchievement(.beatBoss7, state),
+        40 => awardAchievement(.beatBoss8, state),
+        45 => awardAchievement(.beatBoss9, state),
         50 => {
             awardAchievement(.beatGame, state);
             if (state.newGamePlus == 1) awardAchievement(.beatGamePlus1, state);
