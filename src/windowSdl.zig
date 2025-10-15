@@ -154,7 +154,10 @@ fn debugKeys(event: sdl.SDL_Event, state: *main.GameState) !void {
             player.money += 200;
         }
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F10) {
-        std.debug.print("{}\n", .{state.uxData.settingsMenuUx.uiTabs[state.uxData.settingsMenuUx.activeTabIndex].contentRec});
+        var iter = state.achievements.iterator();
+        while (iter.next()) |achieve| {
+            std.debug.print("{s}: {}\n", .{ achieve.value.steamName, achieve.value.trackingActive });
+        }
     }
 }
 

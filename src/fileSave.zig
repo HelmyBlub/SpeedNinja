@@ -146,6 +146,7 @@ pub fn loadCurrentRunFromFile(state: *main.GameState) !void {
     try readTimeStatsData(reader, state);
     try shopZig.startShoppingPhase(state);
     try readShopBuyOptions(reader, state);
+    try readAchievementData(reader, state);
 }
 
 pub fn saveCurrentRunToFile(state: *main.GameState) !void {
@@ -190,6 +191,22 @@ pub fn saveCurrentRunToFile(state: *main.GameState) !void {
     }
     try writeTimeStatsData(writer, state);
     try writeShopBuyOptions(writer, state);
+    try writeAchievementData(writer, state);
+}
+
+fn writeAchievementData(writer: anytype, state: *main.GameState) !void {
+    var iter = state.achievements.iterator();
+    while (iter.next()) |achievement| {
+        _ = try writer.writeInt(u8, if (achievement.value.trackingActive) 1 else 0, .little);
+    }
+}
+
+fn readAchievementData(reader: anytype, state: *main.GameState) !void {
+    var iter = state.achievements.iterator();
+    while (iter.next()) |achievement| {
+        const active = try reader.readInt(u8, .little);
+        achievement.value.trackingActive = if (active != 0) true else false;
+    }
 }
 
 fn writeTimeStatsData(writer: anytype, state: *main.GameState) !void {

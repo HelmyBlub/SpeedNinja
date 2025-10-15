@@ -10,12 +10,10 @@ testruns:
 Tasks:
 - steam achivements
     - dev steps:
-        - code setup achievement
-            - start with consoles messages before sending to steam
+        - save in current run
         - steam side setup
             - images
         - link steam achievement with my game
-        - save in current run
     - destory first enemy
     - beat each boss (10 achievemnts)
     - beat newGame+1
