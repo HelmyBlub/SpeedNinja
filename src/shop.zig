@@ -482,6 +482,7 @@ pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
         .delete => |*data| {
             const cost = state.level;
             if (player.money >= cost and player.totalMovePieces.items.len > 1) {
+                state.achievements.getPtr(.beatGameWithStartingMovePieces).trackingActive = false;
                 try movePieceZig.removeMovePiece(player, data.selectedIndex, state.allocator);
                 try playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true, state);
                 if (player.uxData.visualizeMovePieceChangeFromShop == null) {
@@ -512,6 +513,7 @@ pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
                         player.uxData.visualizeMovePieceChangeFromShop.? += 1;
                     }
 
+                    state.achievements.getPtr(.beatGameWithStartingMovePieces).trackingActive = false;
                     try movePieceZig.addMovePiece(player, buyPiece);
                     var isDifferentPiece = false;
                     while (!isDifferentPiece) {
@@ -541,6 +543,7 @@ pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
             const cost = state.level;
             if (player.money >= cost and data.isOnMovePiece and data.gridCutOffset != null and player.shop.gridDisplayPiece != null) {
                 try playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true, state);
+                state.achievements.getPtr(.beatGameWithStartingMovePieces).trackingActive = false;
                 try movePieceZig.cutTilePositionOnMovePiece(player, data.gridCutOffset.?, player.shop.gridDisplayPieceOffset, data.selectedIndex, state);
                 data.gridCutOffset = null;
                 setGridDisplayPiece(player, player.totalMovePieces.items[data.selectedIndex]);
@@ -554,6 +557,7 @@ pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
                 try playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true, state);
                 player.uxData.visualizeMovePieceChangeFromShop = -1;
                 try movePieceZig.combineMovePieces(player, data.pieceIndex1, data.pieceIndex2.?, data.direction, state);
+                state.achievements.getPtr(.beatGameWithStartingMovePieces).trackingActive = false;
                 if (data.pieceIndex1 > data.pieceIndex2.?) {
                     data.pieceIndex1 -= 1;
                 }

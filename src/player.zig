@@ -188,6 +188,7 @@ pub fn changePlayerMoneyBy(amount: i32, player: *Player, visualize: bool, state:
     }
     if (amount < 0) {
         try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_PAY_MONEY, 0, 1);
+        state.achievements.getPtr(.beatBoss5WithoutSpendingMoney).trackingActive = false;
     }
 }
 
@@ -196,6 +197,7 @@ pub fn playerHit(player: *Player, state: *main.GameState) !void {
     if (player.isDead) return;
     if (player.phase == .shopping and state.gamePhase == .combat) return;
     if (state.players.items.len == 1 and state.timeFreezeOnHit) state.timeFreezeStart = std.time.milliTimestamp();
+    state.achievements.getPtr(.beatGameWithoutTakingDamage).trackingActive = false;
     if (!try equipmentZig.damageTakenByEquipment(player, state)) {
         player.isDead = true;
         state.gameOver = main.isGameOver(state);

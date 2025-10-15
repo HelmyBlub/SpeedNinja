@@ -21,6 +21,7 @@ const bossDragonZig = @import("boss/bossDragon.zig");
 const settingsMenuVulkanZig = @import("vulkan/settingsMenuVulkan.zig");
 const fileSaveZig = @import("fileSave.zig");
 const steamZig = @import("steam.zig");
+const achievementZig = @import("achievement.zig");
 
 pub const GamePhase = enum {
     combat,
@@ -90,6 +91,7 @@ pub const GameState = struct {
     timeFreezeOnHit: bool = true,
     vulkanMousePosition: Position = .{ .x = 0, .y = 0 },
     steam: ?steamZig.SteamData = null,
+    achievements: std.EnumArray(achievementZig.AchievementsEnum, achievementZig.AchievementData) = achievementZig.ACHIEVEMENTS,
 };
 
 pub const GameUxData = struct {
@@ -233,6 +235,7 @@ fn mainLoop(state: *GameState) !void {
                     try playerZig.changePlayerMoneyBy(amount, player, true, state);
                 }
                 try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BOSS_DEFEATED, 0, 0.6);
+                achievementZig.awardBossDestroyed(state);
                 if (state.playerTookDamageOnLevel == false and state.level < LEVEL_COUNT) {
                     state.continueData.bossesAced += 1;
                     state.uxData.displayBossAcedUntilTime = state.gameTime + 3_500;
@@ -470,6 +473,9 @@ pub fn startNextRound(state: *GameState) !void {
     state.soundData.tickSoundPlayedCounter = 0;
     state.soundData.warningSoundPlayed = false;
     state.roundStartedTime = state.gameTime;
+    if (state.level == 1 and state.round == 1) {
+        achievementZig.awardAchievement(.destroyFirstEnemy, state);
+    }
     state.round += 1;
     if (state.round >= state.roundToReachForNextLevel and state.gateOpenTime == null) state.gateOpenTime = state.gameTime;
 
@@ -692,6 +698,7 @@ pub fn restart(state: *GameState, newGamePlus: u32) anyerror!void {
     state.statistics.currentRunStats.newGamePlus = newGamePlus;
     state.statistics.currentRunStats.playerCount = @intCast(state.players.items.len);
     try startNextLevel(state);
+    achievementZig.initAchievementsOnRestart(state);
 }
 
 pub fn adjustZoom(state: *GameState) void {

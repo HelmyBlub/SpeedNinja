@@ -9,10 +9,19 @@ testruns:
 
 Tasks:
 - steam achivements
+    - dev steps:
+        - code setup achievement
+            - start with consoles messages before sending to steam
+        - steam side setup
+            - images
+        - link steam achievement with my game
+        - save in current run
     - destory first enemy
     - beat each boss (10 achievemnts)
     - beat newGame+1
+        - for 5th boss and endboss
     - beat newGame+2
+        - for 5th boss and endboss
     - beat game in under 45min
     - beat boss 5 without spending money
     - beat game with only starting move pieces
