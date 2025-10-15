@@ -209,9 +209,9 @@ pub fn setupVertices(state: *main.GameState) !void {
     }
     var firstDisplayLevelWithoutMult: usize = 0;
     const groupingMultiplay: usize = if (state.statistics.uxData.groupingLevelsInFive) 5 else 1;
-    if (state.level > state.statistics.uxData.displayLevelCount * groupingMultiplay) {
+    if (state.level > state.statistics.uxData.displayLevelCount) {
         if (state.statistics.uxData.groupingLevelsInFive) {
-            firstDisplayLevelWithoutMult = @divFloor(state.level + 4, groupingMultiplay) - state.statistics.uxData.displayLevelCount;
+            firstDisplayLevelWithoutMult = @divFloor(state.level + 4 - state.statistics.uxData.displayLevelCount, groupingMultiplay);
         } else {
             firstDisplayLevelWithoutMult = state.level - state.statistics.uxData.displayLevelCount;
         }
