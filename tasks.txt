@@ -8,10 +8,15 @@ testruns:
 
 
 Tasks:
-- speedrun stats:
-    - mixed player count run
-    - display in stats for which player count the stats are
-- achivements
+- steam achivements
+    - destory first enemy
+    - beat each boss (10 achievemnts)
+    - beat newGame+1
+    - beat newGame+2
+    - beat game in under 45min
+    - beat boss 5 without spending money
+    - beat game with only starting move pieces
+    - beat game without taking damage
 - be able to choose new game plus on start
     - available once game beaten on normal mode
 - somehow scalue UI dependant on window size
@@ -21,19 +26,7 @@ Tasks:
 - settings menu info section
     - explain shop
 
-Next ideas:
-- settings
-    - speedrun statistics options
-- steam achievements
-    - destory first tree
-    - beat each boss (10 achievemnts)
-    - beat newGame+1 
-    - beat game in under 45min
-    - beat boss 5 without spending money
-    - beat game with only starting move pieces
-    - beat game without taking damage
-    - ???beat newGame+2???
-    
+Next ideas:    
 - code performance
     - automated testing
     - check performance change when: onePiexelXVulkan calculation only once

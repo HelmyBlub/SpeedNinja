@@ -20,6 +20,7 @@ const playerZig = @import("player.zig");
 const bossDragonZig = @import("boss/bossDragon.zig");
 const settingsMenuVulkanZig = @import("vulkan/settingsMenuVulkan.zig");
 const fileSaveZig = @import("fileSave.zig");
+const steamZig = @import("steam.zig");
 
 pub const GamePhase = enum {
     combat,
@@ -88,6 +89,7 @@ pub const GameState = struct {
     timeFreezeStart: ?i64 = null,
     timeFreezeOnHit: bool = true,
     vulkanMousePosition: Position = .{ .x = 0, .y = 0 },
+    steam: ?steamZig.SteamData = null,
 };
 
 pub const GameUxData = struct {
@@ -213,6 +215,7 @@ fn startGame(allocator: std.mem.Allocator) !void {
     std.debug.print("game run start\n", .{});
     var state: GameState = undefined;
     try createGameState(&state, allocator);
+    steamZig.steamInit(&state);
     try mainLoop(&state);
     try destroyGameState(&state);
 }
