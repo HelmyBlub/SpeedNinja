@@ -122,7 +122,7 @@ pub fn statsSaveOnRestart(state: *main.GameState) !void {
             saveToFile = true;
         }
         if (isNewBestTotalTime) {
-            bestRunLevelData.totalTime = bestRunLevelData.totalTime;
+            bestRunLevelData.totalTime = currentRunLevelData.totalTime;
             saveToFile = true;
         }
     }

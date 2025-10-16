@@ -11,7 +11,7 @@ pub extern fn SteamAPI_ISteamUserStats_ClearAchievement(ptr: ?*ISteamUserStats, 
 pub extern fn SteamAPI_ISteamUserStats_SetAchievement(ptr: ?*ISteamUserStats, pchName: [*c]const u8) callconv(.C) bool;
 pub extern fn SteamAPI_ISteamUserStats_GetAchievement(ptr: ?*ISteamUserStats, pchName: [*c]const u8, pbAchieved: *bool) callconv(.C) bool;
 
-const ENABLED: bool = true;
+const ENABLED: bool = false;
 pub const SteamData = struct {
     earliestNextStoreStats: i64,
     achievementToStore: bool = false,
