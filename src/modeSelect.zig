@@ -29,25 +29,28 @@ const ModeStartRectangle = struct {
 
 pub fn initModeSelectData(state: *main.GameState) !void {
     state.modeSelect.modeStartRectangles = std.ArrayList(ModeStartRectangle).init(state.allocator);
+    try state.modeSelect.modeStartRectangles.append(.{ .displayName = "Normal Mode", .modeData = .normal, .rectangle = .{
+        .pos = .{ .x = 4, .y = -4 },
+        .height = 2,
+        .width = 2,
+    } });
     if (state.highestNewGameDifficultyBeaten > -1) {
-        try state.modeSelect.modeStartRectangles.append(.{ .displayName = "Normal Mode", .modeData = .normal, .rectangle = .{
-            .pos = .{ .x = 4, .y = -4 },
-            .height = 2,
-            .width = 2,
-        } });
-        if (state.highestNewGameDifficultyBeaten > 0) {
-            for (0..@intCast(state.highestNewGameDifficultyBeaten)) |i| {
-                const length = 10 + std.math.log10(i + 1);
-                const stringAlloc = try state.allocator.alloc(u8, length);
-                _ = try std.fmt.bufPrint(stringAlloc, "New Game+{d}", .{i + 1});
-                try state.modeSelect.modeStartRectangles.append(.{ .displayName = stringAlloc, .modeData = .{ .newGamePlus = @intCast(i + 1) }, .rectangle = .{
-                    .pos = .{ .x = 4, .y = @as(i32, @intCast(i)) * 3 - 1 },
-                    .height = 2,
-                    .width = 2,
-                } });
-            }
+        for (0..@intCast(state.highestNewGameDifficultyBeaten + 1)) |_| {
+            try addNextNewGamePlusMode(state);
         }
     }
+}
+
+pub fn addNextNewGamePlusMode(state: *main.GameState) !void {
+    const nextNGPlus = state.modeSelect.modeStartRectangles.items.len;
+    const length = 10 + std.math.log10(nextNGPlus);
+    const stringAlloc = try state.allocator.alloc(u8, length);
+    _ = try std.fmt.bufPrint(stringAlloc, "New Game+{d}", .{nextNGPlus});
+    try state.modeSelect.modeStartRectangles.append(.{ .displayName = stringAlloc, .modeData = .{ .newGamePlus = @intCast(nextNGPlus) }, .rectangle = .{
+        .pos = .{ .x = 4, .y = @as(i32, @intCast(nextNGPlus - 1)) * 3 - 1 },
+        .height = 2,
+        .width = 2,
+    } });
 }
 
 pub fn setupVertices(state: *main.GameState) !void {
@@ -99,6 +102,9 @@ pub fn startModeSelect(state: *main.GameState) !void {
     }
     state.mapData.tileRadiusHeight = 4;
     state.mapData.tileRadiusWidth = 4;
+    state.camera.position = .{ .x = 0, .y = 0 };
+    mapTileZig.setMapType(.default, state);
+    state.level = 0;
     main.adjustZoom(state);
 }
 

@@ -5,13 +5,8 @@ testruns:
 
 Tasks:
 - be able to choose new game plus on start
-    - dev steps:
-        - new game phase: level 0
-        - x stairs for new game plus x selections
-        - 
-    - available once game beaten on normal mode
-    - where player falls to on game finished
-    - info needs to be saved and loaded
+    - info needs to be saved
+    - there might be more backToStart reset issues
 
 - somehow scalue UI dependant on window size
     - some user have big screen/resoluation and default ui size is very small in this case

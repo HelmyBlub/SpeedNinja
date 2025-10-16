@@ -71,6 +71,7 @@ pub fn loadSettingsFromFile(state: *main.GameState) !void {
             }
         }
     }
+    state.highestNewGameDifficultyBeaten = @max(-1, @min(1000, try reader.readInt(i32, .little)));
 }
 
 pub fn saveSettingsToFile(state: *main.GameState) !void {
@@ -95,6 +96,7 @@ pub fn saveSettingsToFile(state: *main.GameState) !void {
             }
         }
     }
+    try writer.writeInt(i32, @bitCast(state.highestNewGameDifficultyBeaten), .little);
 }
 
 pub fn loadCurrentRunFromFile(state: *main.GameState) !void {

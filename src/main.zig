@@ -625,6 +625,10 @@ fn allPlayerOutOfMoveOptions(state: *GameState) bool {
 
 pub fn gameFinished(state: *GameState) !void {
     state.gamePhase = .finished;
+    if (state.highestNewGameDifficultyBeaten < state.newGamePlus) {
+        state.highestNewGameDifficultyBeaten = @intCast(state.newGamePlus);
+        try modeSelectZig.addNextNewGamePlusMode(state);
+    }
     try statsZig.statsOnLevelFinished(state);
     state.enemyData.enemies.clearRetainingCapacity();
     state.enemyData.enemyObjects.clearRetainingCapacity();
@@ -767,18 +771,18 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
     try initVulkanZig.initVulkan(state);
     try soundMixerZig.createSoundMixer(state, state.allocator);
     try enemyZig.initEnemy(state);
-    try modeSelectZig.initModeSelectData(state);
     state.spriteCutAnimations = std.ArrayList(CutSpriteAnimation).init(state.allocator);
     state.mapObjects = std.ArrayList(MapObject).init(state.allocator);
     try state.players.append(playerZig.createPlayer(allocator));
     statsZig.loadStatisticsDataFromFile(state);
+    fileSaveZig.loadSettingsFromFile(state) catch {};
+    try modeSelectZig.initModeSelectData(state);
     if (fileSaveZig.loadCurrentRunFromFile(state)) {
         std.debug.print("load last run successfull\n", .{});
     } else |err| {
         std.debug.print("err: {}\n", .{err});
         try backToStart(state);
     }
-    fileSaveZig.loadSettingsFromFile(state) catch {};
 }
 
 fn destroyGameState(state: *GameState) !void {
