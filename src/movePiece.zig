@@ -11,6 +11,7 @@ const enemyObjectFallDownZig = @import("enemy/enemyObjectFallDown.zig");
 const mapTileZig = @import("mapTile.zig");
 const playerZig = @import("player.zig");
 const windowSdlZig = @import("windowSdl.zig");
+const inputZig = @import("input.zig");
 
 pub const MovePiece = struct {
     steps: []MoveStep,
@@ -175,17 +176,17 @@ pub fn tickPlayerMovePiece(player: *playerZig.Player, state: *main.GameState) !v
             }
             if (player.moveOptions.items.len == 0) {
                 try enemyObjectFallDownZig.spawnFallDown(player.position, 2000, true, state);
-            } else if (player.moveOptions.items.len == 2 and state.gamePhase != .shopping and state.gamePhase != .finished) {
+            } else if (player.moveOptions.items.len == 2 and state.gamePhase != .shopping and state.gamePhase != .finished and state.gamePhase != .modeSelect) {
                 try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_MOVE_PIECE_WARNING, 0, 1);
             }
         }
         if (player.executeMovePiece == null) {
             ninjaDogVulkanZig.moveHandToCenter(player, state);
-            if (state.gamePhase == .shopping) {
-                try shopZig.executeShopActionForPlayer(player, state);
+            if (state.gamePhase == .shopping or state.gamePhase == .modeSelect) {
+                try inputZig.onPlayerMoveActionFinished(player, state);
             } else if (state.gamePhase == .finished) {
                 if (state.uxData.creditsScrollStart == null and shopZig.isPlayerInShopTrigger(player, state)) {
-                    try main.restart(state, state.newGamePlus + 1);
+                    try main.runStart(state, state.newGamePlus + 1);
                 }
             } else {
                 try bossZig.onPlayerMoved(player, state);
@@ -556,7 +557,7 @@ pub fn movePlayerByMovePiece(player: *playerZig.Player, movePieceIndex: usize, d
     }
     player.lastMoveDirection = directionInput;
     try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_NINJA_MOVE_INDICIES[0..], 0, 1);
-    if ((state.gamePhase == .shopping or state.gamePhase == .finished) and player.availableMovePieces.items.len == 0 and player.moveOptions.items.len == 0) {
+    if ((state.gamePhase == .shopping or state.gamePhase == .finished or state.gamePhase == .modeSelect) and player.availableMovePieces.items.len == 0 and player.moveOptions.items.len == 0) {
         try resetPieces(player, true, state);
     }
 }

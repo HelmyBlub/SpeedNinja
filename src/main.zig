@@ -22,8 +22,10 @@ const settingsMenuVulkanZig = @import("vulkan/settingsMenuVulkan.zig");
 const fileSaveZig = @import("fileSave.zig");
 const steamZig = @import("steam.zig");
 const achievementZig = @import("achievement.zig");
+const modeSelectZig = @import("modeSelect.zig");
 
 pub const GamePhase = enum {
+    modeSelect,
     combat,
     shopping,
     boss,
@@ -90,8 +92,10 @@ pub const GameState = struct {
     timeFreezeStart: ?i64 = null,
     timeFreezeOnHit: bool = true,
     vulkanMousePosition: Position = .{ .x = 0, .y = 0 },
+    highestNewGameDifficultyBeaten: i32 = -1,
     steam: ?steamZig.SteamData = null,
     achievements: std.EnumArray(achievementZig.AchievementsEnum, achievementZig.AchievementData) = achievementZig.ACHIEVEMENTS,
+    modeSelect: modeSelectZig.ModeSelectData = undefined,
 };
 
 pub const GameUxData = struct {
@@ -227,31 +231,35 @@ fn mainLoop(state: *GameState) !void {
     var currentTime = lastTime;
     var passedTime: i64 = 0;
     while (!state.gameQuit) {
-        if (shouldEndLevel(state)) {
-            if (state.gamePhase == .boss) {
-                state.lastBossDefeatedTime = state.gameTime;
-                for (state.players.items) |*player| {
-                    const amount = @as(i32, @intFromFloat(@as(f32, @floatFromInt(state.level)) * 10.0 * (1.0 + player.moneyBonusPerCent)));
-                    try playerZig.changePlayerMoneyBy(amount, player, true, state);
-                }
-                try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BOSS_DEFEATED, 0, 0.6);
-                achievementZig.awardAchievementOnBossDefeated(state);
-                if (state.playerTookDamageOnLevel == false and state.level < LEVEL_COUNT) {
-                    state.continueData.bossesAced += 1;
-                    state.uxData.displayBossAcedUntilTime = state.gameTime + 3_500;
-                    if (state.continueData.bossesAced >= state.continueData.nextBossAceFreeContinue) {
-                        state.continueData.freeContinues += 1;
-                        state.uxData.displayReceivedFreeContinue = state.gameTime + 3_500;
-                        state.continueData.nextBossAceFreeContinue += state.continueData.nextBossAceFreeContinueIncrease;
-                        state.continueData.nextBossAceFreeContinueIncrease += 1;
+        if (state.gamePhase != .modeSelect) {
+            if (shouldEndLevel(state)) {
+                if (state.gamePhase == .boss) {
+                    state.lastBossDefeatedTime = state.gameTime;
+                    for (state.players.items) |*player| {
+                        const amount = @as(i32, @intFromFloat(@as(f32, @floatFromInt(state.level)) * 10.0 * (1.0 + player.moneyBonusPerCent)));
+                        try playerZig.changePlayerMoneyBy(amount, player, true, state);
+                    }
+                    try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BOSS_DEFEATED, 0, 0.6);
+                    achievementZig.awardAchievementOnBossDefeated(state);
+                    if (state.playerTookDamageOnLevel == false and state.level < LEVEL_COUNT) {
+                        state.continueData.bossesAced += 1;
+                        state.uxData.displayBossAcedUntilTime = state.gameTime + 3_500;
+                        if (state.continueData.bossesAced >= state.continueData.nextBossAceFreeContinue) {
+                            state.continueData.freeContinues += 1;
+                            state.uxData.displayReceivedFreeContinue = state.gameTime + 3_500;
+                            state.continueData.nextBossAceFreeContinue += state.continueData.nextBossAceFreeContinueIncrease;
+                            state.continueData.nextBossAceFreeContinueIncrease += 1;
+                        }
                     }
                 }
+                try shopZig.startShoppingPhase(state);
+            } else if (state.enemyData.enemies.items.len == 0 and state.gamePhase == .combat) {
+                try startNextRound(state);
             }
-            try shopZig.startShoppingPhase(state);
-        } else if (state.enemyData.enemies.items.len == 0 and state.gamePhase == .combat) {
-            try startNextRound(state);
+            try suddenDeath(state);
+        } else {
+            //tickModeSelect
         }
-        try suddenDeath(state);
         try windowSdlZig.handleEvents(state);
         try playerZig.tickPlayers(state, passedTime);
         tickClouds(state, passedTime);
@@ -295,6 +303,7 @@ fn tickGameFinished(state: *GameState) void {
 
 fn multiplayerAfkCheck(state: *GameState) !void {
     if (state.players.items.len <= 1 or state.gameOver) return;
+    if (state.gamePhase == .modeSelect) return;
     const afkTime = 60_000;
     if (state.gamePhase != .shopping and state.gamePhase != .finished) {
         for (state.players.items) |player| {
@@ -335,7 +344,7 @@ fn tickGameOver(state: *GameState) !void {
         return;
     }
     if (state.uxData.restartButtonHoldStart != null and state.uxData.restartButtonHoldStart.? + state.uxData.holdDefaultDuration < timeStamp) {
-        try restart(state, 0);
+        try backToStart(state);
         state.uxData.restartButtonHoldStart = null;
         return;
     }
@@ -501,7 +510,7 @@ pub fn endShoppingPhase(state: *GameState) !void {
 
 pub fn startNextLevel(state: *GameState) !void {
     if (state.level >= LEVEL_COUNT) {
-        try restart(state, state.newGamePlus + 1);
+        try runStart(state, state.newGamePlus + 1);
         return;
     }
     mapTileZig.setMapType(.default, state);
@@ -637,7 +646,15 @@ pub fn gameFinished(state: *GameState) !void {
     }
 }
 
-pub fn restart(state: *GameState, newGamePlus: u32) anyerror!void {
+pub fn backToStart(state: *GameState) anyerror!void {
+    if (state.highestNewGameDifficultyBeaten > -1) {
+        try modeSelectZig.startModeSelect(state);
+    } else {
+        try runStart(state, 0);
+    }
+}
+
+pub fn runStart(state: *GameState, newGamePlus: u32) anyerror!void {
     try statsZig.statsSaveOnRestart(state);
     mapTileZig.setMapType(.default, state);
     state.timeFreezeStart = null;
@@ -750,6 +767,7 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
     try initVulkanZig.initVulkan(state);
     try soundMixerZig.createSoundMixer(state, state.allocator);
     try enemyZig.initEnemy(state);
+    try modeSelectZig.initModeSelectData(state);
     state.spriteCutAnimations = std.ArrayList(CutSpriteAnimation).init(state.allocator);
     state.mapObjects = std.ArrayList(MapObject).init(state.allocator);
     try state.players.append(playerZig.createPlayer(allocator));
@@ -758,7 +776,7 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
         std.debug.print("load last run successfull\n", .{});
     } else |err| {
         std.debug.print("err: {}\n", .{err});
-        try restart(state, 0);
+        try backToStart(state);
     }
     fileSaveZig.loadSettingsFromFile(state) catch {};
 }
@@ -789,6 +807,7 @@ fn destroyGameState(state: *GameState) !void {
     try statsZig.destroyAndSave(state);
     mapTileZig.deinit(state);
     enemyZig.destroyEnemyData(state);
+    modeSelectZig.destroyModeSelectData(state);
 }
 
 pub fn executeContinue(state: *GameState) !void {

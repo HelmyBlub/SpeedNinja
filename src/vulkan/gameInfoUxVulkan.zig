@@ -249,6 +249,7 @@ fn verticesForTimer(state: *main.GameState) !void {
 }
 
 fn verticesForLevelRoundNewGamePlus(state: *main.GameState) !void {
+    if (state.gamePhase == .modeSelect) return;
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     const white: [4]f32 = .{ 1, 1, 1, 1 };
     const fontSize = 30 * state.uxData.settingsMenuUx.uiSizeDelayed;

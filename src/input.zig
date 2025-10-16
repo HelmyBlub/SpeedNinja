@@ -5,6 +5,7 @@ const sdl = windowSdlZig.sdl;
 const movePieceZig = @import("movePiece.zig");
 const shopZig = @import("shop.zig");
 const playerZig = @import("player.zig");
+const modeSelectZig = @import("modeSelect.zig");
 
 pub const PlayerInputData = struct {
     inputDevice: ?InputDeviceData = null,
@@ -156,6 +157,14 @@ pub fn getDisplayInfoForPlayerAction(player: *playerZig.Player, action: PlayerAc
                 },
             }
         },
+    }
+}
+
+pub fn onPlayerMoveActionFinished(player: *playerZig.Player, state: *main.GameState) !void {
+    if (state.gamePhase == .shopping) {
+        try shopZig.executeShopActionForPlayer(player, state);
+    } else if (state.gamePhase == .modeSelect) {
+        try modeSelectZig.onPlayerMoveActionFinished(state);
     }
 }
 
@@ -334,33 +343,33 @@ fn handlePlayerAction(action: PlayerAction, player: *playerZig.Player, state: *m
         .moveLeft => {
             if (player.choosenMoveOptionIndex) |index| {
                 try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_LEFT, state);
-            } else if (state.gamePhase == .shopping) {
+            } else if (state.gamePhase == .shopping or state.gamePhase == .modeSelect) {
                 player.position.x -= main.TILESIZE;
-                try shopZig.executeShopActionForPlayer(player, state);
+                try onPlayerMoveActionFinished(player, state);
             }
         },
         .moveRight => {
             if (player.choosenMoveOptionIndex) |index| {
                 try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_RIGHT, state);
-            } else if (state.gamePhase == .shopping) {
+            } else if (state.gamePhase == .shopping or state.gamePhase == .modeSelect) {
                 player.position.x += main.TILESIZE;
-                try shopZig.executeShopActionForPlayer(player, state);
+                try onPlayerMoveActionFinished(player, state);
             }
         },
         .moveUp => {
             if (player.choosenMoveOptionIndex) |index| {
                 try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_UP, state);
-            } else if (state.gamePhase == .shopping) {
+            } else if (state.gamePhase == .shopping or state.gamePhase == .modeSelect) {
                 player.position.y -= main.TILESIZE;
-                try shopZig.executeShopActionForPlayer(player, state);
+                try onPlayerMoveActionFinished(player, state);
             }
         },
         .moveDown => {
             if (player.choosenMoveOptionIndex) |index| {
                 try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_DOWN, state);
-            } else if (state.gamePhase == .shopping) {
+            } else if (state.gamePhase == .shopping or state.gamePhase == .modeSelect) {
                 player.position.y += main.TILESIZE;
-                try shopZig.executeShopActionForPlayer(player, state);
+                try onPlayerMoveActionFinished(player, state);
             }
         },
         .pieceSelect1 => {

@@ -20,6 +20,7 @@ const statsZig = @import("../stats.zig");
 const shopZig = @import("../shop.zig");
 const settingsMenuVulkanZig = @import("settingsMenuVulkan.zig");
 const movePieceZig = @import("../movePiece.zig");
+const modeSelectZig = @import("../modeSelect.zig");
 
 pub fn drawFrame(state: *main.GameState) !void {
     const vkState = &state.vkState;
@@ -29,6 +30,7 @@ pub fn drawFrame(state: *main.GameState) !void {
     mapTileZig.setupVertices(state);
     try mapGridVulkanZig.setupVertices(state);
     try shopVulkanZig.setupVertices(state);
+    try modeSelectZig.setupVertices(state);
     try enemyVulkanZig.setupVerticesGround(state);
     verticesForSuddenDeathFire(state);
     verticesForMapObjects(state);
@@ -409,6 +411,80 @@ fn pointsToVerticesVulkan(
             };
             vkSpriteComplex.verticeCount += 1;
         }
+    }
+}
+
+pub fn verticesForStairsWithText(tileRectangle: main.TileRectangle, optText: ?[]const u8, playerCountCheck: u32, state: *main.GameState) !void {
+    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const stairsRecTopLeft: main.Position = .{
+        .x = @floatFromInt(tileRectangle.pos.x * main.TILESIZE),
+        .y = @floatFromInt(tileRectangle.pos.y * main.TILESIZE),
+    };
+    const vulkan: main.Position = .{
+        .x = (-state.camera.position.x + stairsRecTopLeft.x) * state.camera.zoom * onePixelXInVulkan,
+        .y = (-state.camera.position.y + stairsRecTopLeft.y) * state.camera.zoom * onePixelYInVulkan,
+    };
+    const halveVulkanTileSizeX = main.TILESIZE * onePixelXInVulkan * state.camera.zoom / 2;
+    const halveVulkanTileSizeY = main.TILESIZE * onePixelYInVulkan * state.camera.zoom / 2;
+    const width = main.TILESIZE * shopZig.EARLY_SHOP_GRID_SIZE * onePixelXInVulkan * state.camera.zoom;
+    const height = main.TILESIZE * shopZig.EARLY_SHOP_GRID_SIZE * onePixelYInVulkan * state.camera.zoom;
+    const left = vulkan.x - halveVulkanTileSizeX;
+    const top = vulkan.y - halveVulkanTileSizeY;
+
+    verticesForRectangle(left, top, width, height, .{ 1, 1, 1, 1 }, &state.vkState.verticeData.lines, null);
+    verticesForComplexSprite(
+        .{ .x = stairsRecTopLeft.x + main.TILESIZE / 2, .y = stairsRecTopLeft.y + main.TILESIZE },
+        imageZig.IMAGE_STAIRS,
+        4,
+        4,
+        1,
+        0,
+        false,
+        false,
+        state,
+    );
+
+    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
+    if (state.players.items.len > 1) {
+        const fontSize = 12;
+        const textPos: main.Position = .{
+            .x = stairsRecTopLeft.x - main.TILESIZE / 2,
+            .y = stairsRecTopLeft.y - main.TILESIZE / 2 - fontSize,
+        };
+        var textWidth: f32 = 0;
+        textWidth += try fontVulkanZig.paintNumberGameMap(playerCountCheck, textPos, fontSize, textColor, &state.vkState.verticeData.font, state);
+        textWidth += fontVulkanZig.paintTextGameMap("/", .{
+            .x = textPos.x + textWidth,
+            .y = textPos.y,
+        }, fontSize, textColor, &state.vkState.verticeData.font, state);
+        textWidth += try fontVulkanZig.paintNumberGameMap(state.players.items.len, .{
+            .x = textPos.x + textWidth,
+            .y = textPos.y,
+        }, fontSize, textColor, &state.vkState.verticeData.font, state);
+        verticesForComplexSprite(
+            .{ .x = textPos.x + textWidth + fontSize, .y = textPos.y + fontSize / 2 },
+            imageZig.IMAGE_CHECKMARK,
+            3,
+            3,
+            1,
+            0,
+            false,
+            false,
+            state,
+        );
+    }
+    if (optText) |text| {
+        const fontSize = 13;
+        const textPos: main.Position = .{
+            .x = stairsRecTopLeft.x - main.TILESIZE / 2,
+            .y = stairsRecTopLeft.y - main.TILESIZE / 2 + 2,
+        };
+
+        _ = fontVulkanZig.paintTextGameMap(text, .{
+            .x = textPos.x,
+            .y = textPos.y,
+        }, fontSize, textColor, &state.vkState.verticeData.font, state);
     }
 }
 

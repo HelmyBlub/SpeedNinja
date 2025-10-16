@@ -144,9 +144,9 @@ fn debugKeys(event: sdl.SDL_Event, state: *main.GameState) !void {
             try shopZig.startShoppingPhase(state);
         }
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F4) {
-        try main.restart(state, 0);
+        try main.runStart(state, 0);
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F5) {
-        try main.restart(state, state.newGamePlus + 1);
+        try main.runStart(state, state.newGamePlus + 1);
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F6) {
         state.statistics.active = false;
         achievementZig.stopTrackingAchievmentForThisRun(state);

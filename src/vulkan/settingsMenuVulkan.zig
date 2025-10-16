@@ -629,7 +629,7 @@ pub fn verticesForHoverInformation(state: *main.GameState) !bool {
 }
 
 fn onHoldButtonRestart(state: *main.GameState) anyerror!void {
-    try main.restart(state, state.newGamePlus);
+    try main.backToStart(state);
 }
 
 fn onHoldButtonKickPlayers(state: *main.GameState) anyerror!void {
