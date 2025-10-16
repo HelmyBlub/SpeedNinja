@@ -134,7 +134,15 @@ pub fn statsSaveOnRestart(state: *main.GameState) !void {
 
 fn checkIfIsNewBestTotalTime(levelDatas: []BestLevelStatistics, state: *main.GameState) bool {
     var isNewBestTotal: bool = false;
-    const currentTotalTime = state.statistics.runFinishedTime - state.statistics.runStartedTime;
+    if (state.level <= 1) return false;
+    var currentTotalTime: i64 = 0;
+    if (state.gamePhase == .finished) {
+        currentTotalTime = state.statistics.runFinishedTime - state.statistics.runStartedTime;
+    } else if (state.gamePhase == .shopping) {
+        currentTotalTime = state.statistics.currentRunStats.levelDatas.items[state.level - 1].totalTime;
+    } else {
+        currentTotalTime = state.statistics.currentRunStats.levelDatas.items[state.level - 2].totalTime;
+    }
     if (state.gamePhase == .shopping or state.gamePhase == .finished) {
         var hasReachedHigherLevelBefore = false;
         if (levelDatas.len > state.level) {
