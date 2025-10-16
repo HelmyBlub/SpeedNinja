@@ -6,8 +6,6 @@ testruns:
 Tasks:
 - bug best possible time not working?
     - showed "best run level 0 in <time>" while time still went on even though  run was over
-- bug: best run did not update
-    - test new best run for level x not being last level
 - steam achivements
     - test if it works with steam
         -remove std.debugs

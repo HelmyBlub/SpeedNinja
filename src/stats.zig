@@ -281,7 +281,9 @@ pub fn setupVertices(state: *main.GameState) !void {
             try calculateSumOfGoldsOfRemainingLevels(state);
         }
         var pastTimePart: ?i64 = null;
-        if (state.gamePhase == .shopping) {
+        if (state.gamePhase == .finished) {
+            pastTimePart = currentRunStats[state.level - 1].totalTime;
+        } else if (state.gamePhase == .shopping) {
             if (bestRunStats.len > state.level and bestRunStats[state.level].time != null) {
                 const lastLevelFinishTime = currentRunStats[state.level - 1].totalTime;
                 const currentLevelEstimate = @max(bestRunStats[state.level].time.?, state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - lastLevelFinishTime);

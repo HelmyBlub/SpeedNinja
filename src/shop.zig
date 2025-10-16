@@ -268,6 +268,7 @@ pub fn isPlayerInShopTrigger(player: *playerZig.Player, state: *main.GameState) 
 }
 
 pub fn startShoppingPhase(state: *main.GameState) !void {
+    state.statistics.uxData.displayBestPossibleTimeValue = null;
     if (state.level == main.LEVEL_COUNT) {
         try main.gameFinished(state);
         return;
@@ -283,7 +284,6 @@ pub fn startShoppingPhase(state: *main.GameState) !void {
     state.enemyData.enemies.clearRetainingCapacity();
     state.enemyData.enemyObjects.clearRetainingCapacity();
     state.enemyData.afterImages.clearRetainingCapacity();
-    state.statistics.uxData.displayBestPossibleTimeValue = null;
     mapTileZig.resetMapTiles(state.mapData.tiles);
     bossZig.clearBosses(state);
     try setupShopAreas(state);
