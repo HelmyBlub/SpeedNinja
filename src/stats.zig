@@ -391,7 +391,7 @@ fn setupVerticesTime(level: u32, bestRunStats: []BestLevelStatistics, paintPos: 
     } else if (level == state.level and state.gamePhase != .shopping and state.gamePhase != .finished) {
         displayTime = state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime;
     } else if (level > state.level) {
-        if (bestRunStats.len > level and bestRunStats[level - 1].totalTime != null) {
+        if (bestRunStats.len >= level and bestRunStats[level - 1].totalTime != null) {
             displayTime = bestRunStats[level - 1].totalTime.?;
         } else {
             const textWidht = fontVulkanZig.getTextVulkanWidth("--", state.statistics.uxData.fontSize);

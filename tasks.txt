@@ -1,16 +1,12 @@
 testruns:
-- try run newGame+2? 
-
-- speed run normal mode
-    - speedrun stategy(43:25, 3death)
+- gain all achievements on steam
 
 
 Tasks:
+- bug: level 50 time missing
 - steam achivements
-    - dev steps:
-        - steam side setup
-            - images
     - test if it works with steam
+        -remove std.debugs
 - be able to choose new game plus on start
     - available once game beaten on normal mode
     - info needs to be saved and loaded
