@@ -85,7 +85,6 @@ pub fn stopTrackingAchievmentForThisRun(state: *main.GameState) void {
 pub fn awardAchievement(achievementEnum: AchievementsEnum, state: *main.GameState) void {
     const achievement = state.achievements.getPtr(achievementEnum);
     if (!achievement.achieved and achievement.trackingActive) {
-        std.debug.print("gained achievement {}\n", .{achievementEnum});
         achievement.achieved = true;
         steamZig.setAchievement(achievementEnum, state);
     }
