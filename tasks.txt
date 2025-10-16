@@ -4,12 +4,17 @@ testruns:
 
 
 Tasks:
-- steam achivements
-    - test if it works with steam
-        -remove std.debugs
 - be able to choose new game plus on start
+    - dev steps:
+        - new game phase: level 0
+        - camera follows player?
+            - only one player here?
+        - x stairs for new game plus x selections
+        - 
     - available once game beaten on normal mode
+    - where player falls to on game finished
     - info needs to be saved and loaded
+
 - somehow scalue UI dependant on window size
     - some user have big screen/resoluation and default ui size is very small in this case
 - multiplayer

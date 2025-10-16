@@ -36,7 +36,7 @@ pub const LEVEL_COUNT = 50;
 const CREDITS_START_OFFSET_PLAYER_Y: comptime_int = -@as(comptime_int, @intCast(CREDITS_TEXTS.len)) * TILESIZE * 5;
 pub const CREDITS_TEXTS = [_][]const u8{
     "You Win",
-    "",
+    "", //total time displayed here
     "",
     "",
     "Credits:",
