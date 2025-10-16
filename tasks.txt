@@ -1,7 +1,5 @@
 testruns:
 - try run newGame+2? 
-- run with foot bonues damage
-    - can i beat bosses faster?
 
 - speed run normal mode
     - speedrun stategy(43:25, 3death)
@@ -12,8 +10,10 @@ Tasks:
     - dev steps:
         - steam side setup
             - images
+    - test if it works with steam
 - be able to choose new game plus on start
     - available once game beaten on normal mode
+    - info needs to be saved and loaded
 - somehow scalue UI dependant on window size
     - some user have big screen/resoluation and default ui size is very small in this case
 - multiplayer
