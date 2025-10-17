@@ -8,20 +8,12 @@ const mapTileZig = @import("../mapTile.zig");
 const imageZig = @import("../image.zig");
 const playerZig = @import("../player.zig");
 
-pub const VkChoosenMovePieceVisualization = struct {
-    triangles: dataVulkanZig.VkColoredVertexes = undefined,
-    lines: dataVulkanZig.VkColoredVertexes = undefined,
-};
-
-const UX_RECTANGLES = 200; //TODO size
-const MAX_VERTICES_TRIANGLES = 6 * UX_RECTANGLES;
-const MAX_VERTICES_LINES = 8 * UX_RECTANGLES;
-
 pub fn setupVertices(state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
-    for (state.players.items, 0..) |*player, index| {
-        const indexWithAlpha1: usize = @mod(@as(usize, @intCast(@divFloor(state.gameTime, 500))), state.players.items.len);
-        const alpha: f32 = if (indexWithAlpha1 == index) 1 else 0.5;
+    for (0..state.players.items.len) |index| {
+        const startIndex = @mod(@as(usize, @intCast(@divFloor(state.gameTime, 500))), state.players.items.len);
+        const player = &state.players.items[@mod(index + startIndex, state.players.items.len)];
+        const alpha: f32 = if (0 == index) 1 else 0.5;
         verticesForChoosenMoveOptionVisualization(player, &verticeData.lines, &verticeData.triangles, alpha, state);
     }
 }
