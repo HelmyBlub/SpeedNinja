@@ -13,9 +13,10 @@ pub const SettingsUx = struct {
     settingsIcon: main.Rectangle = undefined,
     uiSizeDelayed: f32 = 1,
     uiSizeSlider: f32 = 1,
-    uiTabs: [2]UiTabsData = [_]UiTabsData{
+    uiTabs: [3]UiTabsData = [_]UiTabsData{
         .{ .uiElements = &UI_ELEMENTS_MAIN, .label = "main" },
         .{ .uiElements = &UI_ELEMENTS_SPEEDRUN_STATS, .label = "stats" },
+        .{ .uiElements = &UI_ELEMENTS_INFO, .label = "info" },
     },
     activeTabIndex: usize = 0,
     hoverTabIndex: ?usize = null,
@@ -85,10 +86,79 @@ var UI_ELEMENTS_SPEEDRUN_STATS = [_]UiElementData{
     .{ .typeData = .{ .slider = .{ .label = "Past Level Count", .valuePerCent = 0.5, .onChange = onSliderStatsPastLevelCount } } },
 };
 
+var UI_ELEMENTS_INFO = [_]UiElementData{
+    .{
+        .typeData = .{ .text = .{ .label = "Multiplayer" } },
+        .information = &[_][]const u8{
+            "Player joins after holding a button for 5 seconds",
+            "Keyboard Player Controll Mappings:",
+            "    1: WASD 123",
+            "    2: IJKL 789",
+            "    3: Arrow Keys + Keypad 123",
+            "Player leaves after holding a button for 5 seconds",
+        },
+    },
+    .{
+        .typeData = .{ .text = .{ .label = "Shop" } },
+        .information = &[_][]const u8{
+            "After finishing a level you enter a shop when stepping onto the stairs",
+            "In the shop you can move without using move pieces",
+            "Leave the shop by stepping onto stairs",
+            "",
+            "Each player has an area for move piece changes in the shop",
+            "Tiles with icons are buttons",
+            "Move over them to press",
+            "Modes:",
+            "    Add: Choose and add a new piece to your collection",
+            "    Delete: Choose and delete a piece from your collection",
+            "    Cut: Choose a piece from your collection and set a marker to cut",
+            "    Combine: Choose two pieces from your collection to combine",
+            "Cost is based on level",
+        },
+    },
+    .{
+        .typeData = .{ .text = .{ .label = "Shop Mode: Combine" } },
+        .information = &[_][]const u8{
+            "The Move Piece Combine Mode has 3 steps",
+            "    1. Choose the first piece to combine with",
+            "    2. Choose the second piece to combine with",
+            "    3. Rotate Combine Direction",
+            "The extra button on the left side jumps through the steps",
+            "When the pay button is not transparent you can pay",
+        },
+    },
+    .{
+        .typeData = .{ .text = .{ .label = "Shop: Equipment" } },
+        .information = &[_][]const u8{
+            "You have 4 equipment slots: head, chest, feet and weapon",
+            "    You can only equip one item per slot",
+            "",
+            "You buy items by moving onto the tile with the price",
+            "    You can return an item by moving onto the tile again",
+            "    as long as you do not leave the shop",
+            "",
+            "Price of equipment is based on level",
+            "    For most equipments it is 10x Level",
+            "",
+            "Reasons for not being able to buy:",
+            "    - not enough money",
+            "    - items is not an upgrade",
+        },
+    },
+};
+
 const UiElement = enum {
     slider,
     checkbox,
     holdButton,
+    text,
+};
+
+const UiElementTypeData = union(UiElement) {
+    slider: UiElementSliderData,
+    checkbox: UiElementCheckboxData,
+    holdButton: UiElementHoldButtonData,
+    text: UiElementTextData,
 };
 
 const UiTabsData = struct {
@@ -107,14 +177,8 @@ const UiElementData = struct {
     informationHoverRec: main.Rectangle = .{ .pos = .{ .x = 0, .y = 0 }, .width = 0, .height = 0 },
 };
 
-const UiElementTypeData = union(UiElement) {
-    slider: UiElementSliderData,
-    checkbox: UiElementCheckboxData,
-    holdButton: UiElementHoldButtonData,
-};
-
 const UiElementHoldButtonData = struct {
-    rec: main.Rectangle = undefined,
+    rec: main.Rectangle = .{},
     holdStartTime: ?i64 = null,
     hovering: bool = false,
     label: []const u8,
@@ -122,8 +186,14 @@ const UiElementHoldButtonData = struct {
     onHoldDurationFinished: *const fn (state: *main.GameState) anyerror!void,
 };
 
+const UiElementTextData = struct {
+    rec: main.Rectangle = .{},
+    label: []const u8,
+    baseHeight: f32 = 80,
+};
+
 const UiElementCheckboxData = struct {
-    rec: main.Rectangle = undefined,
+    rec: main.Rectangle = .{},
     checked: bool = false,
     hovering: bool = false,
     label: []const u8,
@@ -292,6 +362,32 @@ fn settupUiLocationSingleTab(tab: *UiTabsData, baseFontSize: f32, uiSizeFactor: 
                 if (widthEstimate > maxTabWidth) maxTabWidth = widthEstimate;
                 offsetY = offsetY + vulkanSpacingLargerY + data.sliderHeight;
             },
+            .text => |*data| {
+                const textWidthEstimate = fontVulkanZig.getTextVulkanWidth(data.label, baseFontSize) * uiSizeFactor;
+                data.rec = main.Rectangle{
+                    .height = data.baseHeight / windowSdlZig.windowData.heightFloat * uiSizeFactor,
+                    .width = textWidthEstimate + vulkanSpacingX * 2,
+                    .pos = .{
+                        .x = tab.contentRec.pos.x + vulkanSpacingX,
+                        .y = offsetY + vulkanSpacingY,
+                    },
+                };
+                var widthEstimate = data.rec.width + vulkanSpacingX * 2;
+                if (element.information != null) {
+                    element.informationHoverRec = .{
+                        .pos = .{
+                            .x = data.rec.pos.x + data.rec.width + vulkanSpacingX,
+                            .y = data.rec.pos.y,
+                        },
+                        .width = infoWidth,
+                        .height = infoHeight,
+                    };
+                    widthEstimate += infoWidth + vulkanSpacingX;
+                }
+
+                if (widthEstimate > maxTabWidth) maxTabWidth = widthEstimate;
+                offsetY = data.rec.pos.y + data.rec.height;
+            },
         }
 
         tab.contentRec.height = offsetY - tab.contentRec.pos.y + vulkanSpacingY;
@@ -315,6 +411,11 @@ fn settupUiLocationSingleTab(tab: *UiTabsData, baseFontSize: f32, uiSizeFactor: 
                 const moveTo = tab.contentRec.pos.x + sliderWidth / 2 + vulkanSpacingX;
                 element.informationHoverRec.pos.x += moveTo - data.recDragArea.pos.x;
                 data.recDragArea.pos.x = moveTo;
+            },
+            .text => |*data| {
+                const moveTo = tab.contentRec.pos.x + vulkanSpacingX;
+                element.informationHoverRec.pos.x += moveTo - data.rec.pos.x;
+                data.rec.pos.x = moveTo;
             },
         }
     }
@@ -379,6 +480,7 @@ pub fn mouseMove(state: *main.GameState) !void {
                     setupUiLocations(state);
                 }
             },
+            .text => {},
         }
         if (element.information != null) {
             if (main.isPositionInRectangle(vulkanMousePos, element.informationHoverRec)) {
@@ -399,7 +501,7 @@ pub fn mouseUp(state: *main.GameState) !void {
             .holdButton => |*data| {
                 data.holdStartTime = null;
             },
-            .checkbox => {},
+            .checkbox, .text => {},
             .slider => |*data| {
                 if (data.holding) {
                     const vulkanMousePos = state.vulkanMousePosition;
@@ -457,6 +559,7 @@ pub fn mouseDown(state: *main.GameState) !void {
                     return;
                 }
             },
+            .text => {},
         }
     }
 }
@@ -601,6 +704,12 @@ pub fn setupVertices(state: *main.GameState) !void {
                         &verticeData.font,
                     );
                 },
+                .text => |*data| {
+                    _ = fontVulkanZig.paintText(data.label, .{
+                        .x = data.rec.pos.x,
+                        .y = data.rec.pos.y + (data.rec.height - tabFontVulkanHeight) / 2,
+                    }, tabFontSize, elementTextColor, &verticeData.font);
+                },
             }
             if (element.active and element.information != null) {
                 const infoRec = element.informationHoverRec;
@@ -627,7 +736,13 @@ pub fn verticesForHoverInformation(state: *main.GameState) !bool {
             }
         }
     }
-    return state.uxData.settingsMenuUx.menuOpen and main.isPositionInRectangle(state.vulkanMousePosition, menuRec);
+    if (state.uxData.settingsMenuUx.menuOpen) {
+        if (main.isPositionInRectangle(state.vulkanMousePosition, menuRec)) return true;
+        for (state.uxData.settingsMenuUx.uiTabs) |tab| {
+            if (main.isPositionInRectangle(state.vulkanMousePosition, tab.labelRec)) return true;
+        }
+    }
+    return false;
 }
 
 fn onHoldButtonRestart(state: *main.GameState) anyerror!void {

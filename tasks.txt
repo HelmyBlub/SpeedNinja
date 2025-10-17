@@ -8,9 +8,9 @@ testruns:
 
 
 Tasks:
-- multiplayer
-    - change choosenMovePieceVisualization player paint order so everyones arrows can be on top for some frames
 - settings menu info section
+    - some general info
+    - player join/leave
     - explain shop
 
 Next ideas:    

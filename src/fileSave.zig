@@ -53,7 +53,7 @@ pub fn loadSettingsFromFile(state: *main.GameState) !void {
     for (&state.uxData.settingsMenuUx.uiTabs) |*tab| {
         for (tab.uiElements) |*uiElement| {
             switch (uiElement.typeData) {
-                .holdButton => {},
+                .holdButton, .text => {},
                 .checkbox => |*data| {
                     const checked = try reader.readInt(u8, .little);
                     data.checked = if (checked != 0) true else false;
@@ -86,7 +86,7 @@ pub fn saveSettingsToFile(state: *main.GameState) !void {
     for (state.uxData.settingsMenuUx.uiTabs) |tab| {
         for (tab.uiElements) |uiElement| {
             switch (uiElement.typeData) {
-                .holdButton => {},
+                .holdButton, .text => {},
                 .checkbox => |data| {
                     try writer.writeInt(u8, if (data.checked) 1 else 0, .little);
                 },
