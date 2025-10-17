@@ -12,6 +12,7 @@ pub const SettingsUx = struct {
     menuOpen: bool = false,
     settingsIcon: main.Rectangle = undefined,
     uiSizeDelayed: f32 = 1,
+    uiSizeSlider: f32 = 1,
     uiTabs: [2]UiTabsData = [_]UiTabsData{
         .{ .uiElements = &UI_ELEMENTS_MAIN, .label = "main" },
         .{ .uiElements = &UI_ELEMENTS_SPEEDRUN_STATS, .label = "stats" },
@@ -148,6 +149,7 @@ pub fn setupUiLocations(state: *main.GameState) void {
     const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
     const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
     const settingsMenuUx = &state.uxData.settingsMenuUx;
+    settingsMenuUx.uiSizeDelayed = settingsMenuUx.uiSizeSlider * windowSdlZig.windowData.heightFloat / 800;
     const uiSizeFactor = settingsMenuUx.uiSizeDelayed;
     const vulkanSpacingX = SPACING_PIXELS * onePixelXInVulkan * uiSizeFactor;
     const vulkanSpacingY = SPACING_PIXELS * onePixelYInVulkan * uiSizeFactor;
@@ -722,7 +724,7 @@ fn onSliderChangeVolume(sliderPerCent: f32, uiElement: *UiElementData, state: *m
 
 fn onSliderStopHoldingUxSize(sliderPerCent: f32, uiElement: *UiElementData, state: *main.GameState) anyerror!void {
     uiElement.typeData.slider.valuePerCent = sliderPerCent;
-    state.uxData.settingsMenuUx.uiSizeDelayed = 0.5 + sliderPerCent;
+    state.uxData.settingsMenuUx.uiSizeSlider = 0.5 + sliderPerCent;
     setupUiLocations(state);
 }
 

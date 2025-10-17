@@ -8,12 +8,6 @@ testruns:
 
 
 Tasks:
-- beat boss and die on same frame. what should happen?
-- check: game can crash with some debug key combos. Should i care?
-    - when dead and pressing f3 for going to shop
-- be able to choose new game plus on start
-    - there might be more backToStart reset issues
-
 - somehow scalue UI dependant on window size
     - some user have big screen/resoluation and default ui size is very small in this case
 - multiplayer

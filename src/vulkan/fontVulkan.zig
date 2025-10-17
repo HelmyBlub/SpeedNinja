@@ -181,13 +181,13 @@ fn paintNumberWithZeroPrefix(number: anytype, vulkanSurfacePosition: main.Positi
 
     var texX: f32 = 0;
     var texWidth: f32 = 0;
-    var textWidth: f32 = 0;
+    var texCharSpacer: f32 = 0;
     var xOffset: f32 = 0;
-    const defaultWidht = 33 / windowSdlZig.windowData.widthFloat;
+    const texCharDefaultWidth = 33.0 / 1600.0;
     for (numberAsString) |char| {
         if (vkFont.verticeCount >= vkFont.vertices.len) break;
         charToTexCoords(char, &texX, &texWidth);
-        textWidth = if (forceFixedWidth) defaultWidht else texWidth;
+        texCharSpacer = if (forceFixedWidth) texCharDefaultWidth else texWidth;
 
         vkFont.vertices[vkFont.verticeCount] = .{
             .pos = .{ vulkanSurfacePosition.x + xOffset, vulkanSurfacePosition.y },
@@ -196,7 +196,7 @@ fn paintNumberWithZeroPrefix(number: anytype, vulkanSurfacePosition: main.Positi
             .texWidth = texWidth,
             .size = fontSize,
         };
-        xOffset += textWidth * 1600 / windowSdlZig.windowData.widthFloat * 2 / 40 * fontSize * 0.8;
+        xOffset += texCharSpacer * 1600 / windowSdlZig.windowData.widthFloat * 2 / 40 * fontSize * 0.8;
         vkFont.verticeCount += 1;
     }
     return xOffset;
