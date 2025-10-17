@@ -625,6 +625,12 @@ fn allPlayerOutOfMoveOptions(state: *GameState) bool {
 
 pub fn gameFinished(state: *GameState) !void {
     state.gamePhase = .finished;
+    if (state.gameOver) {
+        state.gameOver = false;
+    }
+    for (state.players.items) |*player| {
+        player.isDead = false;
+    }
     if (state.highestNewGameDifficultyBeaten < state.newGamePlus) {
         state.highestNewGameDifficultyBeaten = @intCast(state.newGamePlus);
         try modeSelectZig.addNextNewGamePlusMode(state);
@@ -839,7 +845,6 @@ pub fn executeContinue(state: *GameState) !void {
     } else {
         state.continueData.freeContinues -|= 1;
     }
-    state.level -= 1;
     for (state.players.items) |*player| {
         if (player.equipment.equipmentSlotsData.head == null) {
             _ = equipmentZig.equip(equipmentZig.getEquipmentOptionByIndexScaledToLevel(0, state.level).equipment, true, player);
@@ -850,10 +855,13 @@ pub fn executeContinue(state: *GameState) !void {
         player.isDead = false;
         player.animateData.ears.lastUpdateTime = state.gameTime;
     }
-    try shopZig.startShoppingPhase(state);
-    if (state.statistics.active) {
-        const currentLevelData = &state.statistics.currentRunStats.levelDatas.items[state.level - 1];
-        state.statistics.totalShoppingTime -= currentLevelData.shoppingTime;
+    if (state.gamePhase != .shopping) {
+        state.level -= 1;
+        try shopZig.startShoppingPhase(state);
+        if (state.statistics.active) {
+            const currentLevelData = &state.statistics.currentRunStats.levelDatas.items[state.level - 1];
+            state.statistics.totalShoppingTime -= currentLevelData.shoppingTime;
+        }
     }
     state.gameOver = false;
 }

@@ -8,7 +8,6 @@ testruns:
 
 
 Tasks:
-- Bug: saved worse run as new best
 - beat boss and die on same frame. what should happen?
 - check: game can crash with some debug key combos. Should i care?
     - when dead and pressing f3 for going to shop

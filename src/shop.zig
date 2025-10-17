@@ -273,7 +273,7 @@ pub fn startShoppingPhase(state: *main.GameState) !void {
         try main.gameFinished(state);
         return;
     }
-    if (!state.gameOver) try statsZig.statsOnLevelFinished(state);
+    try statsZig.statsOnLevelFinished(state);
     state.timeFreezeStart = null;
     state.suddenDeath = 0;
     state.camera.position = .{ .x = 0, .y = 0 };
