@@ -173,7 +173,7 @@ fn isBossHit(boss: *bossZig.Boss, player: *playerZig.Player, hitArea: main.TileR
                         .deathTime = state.gameTime,
                         .position = removed.position,
                         .cutAngle = cutAngle,
-                        .force = std.crypto.random.float(f32) + 0.2,
+                        .force = state.seededRandom.random().float(f32) + 0.2,
                         .colorOrImageIndex = .{ .imageIndex = boss.imageIndex },
                         .imageToGameScaleFactor = sizeFactor * defaultSizeFactor,
                     },
@@ -229,8 +229,8 @@ fn getRandomFlyToPosition(splitData: *BossSplitData, state: *main.GameState) mai
     searchPos: while (!validPosition) {
         const mapTileRadiusXI32 = @as(i32, @intCast(state.mapData.tileRadiusWidth));
         const mapTileRadiusYI32 = @as(i32, @intCast(state.mapData.tileRadiusHeight));
-        randomPos.x = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusXI32, mapTileRadiusXI32) * main.TILESIZE);
-        randomPos.y = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusYI32, mapTileRadiusYI32) * main.TILESIZE);
+        randomPos.x = @floatFromInt(state.seededRandom.random().intRangeAtMost(i32, -mapTileRadiusXI32, mapTileRadiusXI32) * main.TILESIZE);
+        randomPos.y = @floatFromInt(state.seededRandom.random().intRangeAtMost(i32, -mapTileRadiusYI32, mapTileRadiusYI32) * main.TILESIZE);
         for (splitData.splits.items) |bossSplit| {
             var splitPosition = bossSplit.position;
             if (bossSplit.inAir) {

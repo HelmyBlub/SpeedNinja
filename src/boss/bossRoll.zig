@@ -77,8 +77,8 @@ fn startBoss(state: *main.GameState) !void {
         .name = BOSS_NAME,
         .typeData = .{ .roll = .{
             .movePieces = .{
-                try movePieceZig.createRandomMovePiece(state.allocator),
-                try movePieceZig.createRandomMovePiece(state.allocator),
+                try movePieceZig.createRandomMovePiece(state.allocator, state),
+                try movePieceZig.createRandomMovePiece(state.allocator, state),
             },
             .moveAttackTiles = std.ArrayList(enemyZig.MoveAttackWarningTile).init(state.allocator),
             .attackTilePositions = std.ArrayList(AttackDelayed).init(state.allocator),
@@ -113,7 +113,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
 
     switch (rollData.state) {
         .chooseRandomMovePiece => {
-            rollData.movePieceIndex = std.crypto.random.intRangeLessThan(usize, 0, rollData.movePieces.len);
+            rollData.movePieceIndex = state.seededRandom.random().intRangeLessThan(usize, 0, rollData.movePieces.len);
             rollData.state = .executeMovePiece;
             rollData.nextStateTime = state.gameTime + rollData.moveChargeTime;
             const movePiece = rollData.movePieces[rollData.movePieceIndex];
@@ -122,7 +122,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
             var validMovePosition = false;
             while (!validMovePosition) {
                 var bossPositionAfterPiece = boss.position;
-                rollData.moveDirection = std.crypto.random.intRangeLessThan(u8, 0, 4);
+                rollData.moveDirection = state.seededRandom.random().intRangeLessThan(u8, 0, 4);
                 try movePieceZig.movePositionByPiece(&bossPositionAfterPiece, movePiece, rollData.moveDirection, state);
                 validMovePosition = bossPositionAfterPiece.x >= -gridBorderX and bossPositionAfterPiece.x <= gridBorderX and bossPositionAfterPiece.y >= -gridBorderY and bossPositionAfterPiece.y <= gridBorderY;
             }

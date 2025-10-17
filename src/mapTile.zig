@@ -43,8 +43,8 @@ pub fn setMapType(mapType: MapType, state: *main.GameState) void {
         .top => {
             state.mapData.paintData.backgroundColor = main.COLOR_SKY_BLUE;
             for (state.mapData.paintData.backClouds[0..]) |*backCloud| {
-                backCloud.position.x = -500 + std.crypto.random.float(f32) * 1000;
-                backCloud.position.y = -150 + std.crypto.random.float(f32) * 150;
+                backCloud.position.x = -500 + state.seededRandom.random().float(f32) * 1000;
+                backCloud.position.y = -150 + state.seededRandom.random().float(f32) * 150;
                 backCloud.sizeFactor = 5;
                 backCloud.speed = 0.02;
             }

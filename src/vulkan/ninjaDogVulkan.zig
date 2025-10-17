@@ -108,7 +108,7 @@ pub fn tickNinjaDogAnimation(player: *playerZig.Player, timePassed: i64, state: 
     try tickNinjaDogPawAnimation(player, timePassed, state);
     tickNinjaDogEyeAnimation(player, state);
     tickNinjaDogEarAnimation(player, state);
-    tickNinjaDogBandanaAnimation(player, timePassed);
+    tickNinjaDogBandanaAnimation(player, timePassed, state);
     tickNinjaDogTailAnimation(player, state);
 }
 
@@ -118,7 +118,7 @@ fn tickNinjaDogTailAnimation(player: *playerZig.Player, state: *main.GameState) 
 }
 
 fn tickNinjaDogEarAnimation(player: *playerZig.Player, state: *main.GameState) void {
-    const rand = std.crypto.random;
+    const rand = state.seededRandom.random();
     if (@abs(player.animateData.ears.leftVelocity) < 0.005 and @abs(player.paintData.leftEarRotation) < 0.05) {
         player.animateData.ears.leftVelocity = std.math.sign(player.animateData.ears.leftVelocity) * (rand.float(f32) * 0.005 + 0.010);
     }
@@ -149,8 +149,8 @@ fn tickNinjaDogEarAnimation(player: *playerZig.Player, state: *main.GameState) v
     }
 }
 
-fn tickNinjaDogBandanaAnimation(player: *playerZig.Player, timePassed: i64) void {
-    const rand = std.crypto.random;
+fn tickNinjaDogBandanaAnimation(player: *playerZig.Player, timePassed: i64, state: *main.GameState) void {
+    const rand = state.seededRandom.random();
     const paintData = &player.paintData;
 
     const timePassedFloatFactor = @as(f32, @floatFromInt(timePassed)) * 0.01;
@@ -188,7 +188,7 @@ fn tickNinjaDogEyeAnimation(player: *playerZig.Player, state: *main.GameState) v
             },
         }
     } else {
-        const rand = std.crypto.random;
+        const rand = state.seededRandom.random();
         if (rand.float(f32) < 0.6) {
             player.animateData.eyes = .{ .moveEyes = .{
                 .duration = 100,
@@ -527,11 +527,11 @@ pub fn bladeSlashAnimate(player: *playerZig.Player) void {
     setPawAndBladeAngle(player, pawAngle);
 }
 
-pub fn movedAnimate(player: *playerZig.Player, direction: u8) void {
+pub fn movedAnimate(player: *playerZig.Player, direction: u8, state: *main.GameState) void {
     const handDirection = direction + 2;
     const baseAngle: f32 = @as(f32, @floatFromInt(handDirection)) * std.math.pi * 0.5;
     if (player.animateData.paws != null) player.animateData.paws = null;
-    const rand = std.crypto.random;
+    const rand = state.seededRandom.random();
     const randomPawAngle = @mod(rand.float(f32) * std.math.pi / 2.0 - std.math.pi / 4.0 + baseAngle, std.math.pi * 2);
     setPawAndBladeAngle(player, randomPawAngle);
     setEyeLookDirection(player, direction);

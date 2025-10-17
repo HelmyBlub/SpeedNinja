@@ -31,13 +31,13 @@ fn scaleEnemyForNewGamePlus(enemy: *enemyZig.Enemy, newGamePlus: u32) void {
     data.attackMovementInterval = @divFloor(data.attackMovementInterval, @as(i32, @intCast(newGamePlus + 1)));
 }
 
-fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
+fn createSpawnEnemyEntryEnemy(state: *main.GameState) enemyZig.Enemy {
     return .{
         .imageIndex = imageZig.IMAGE_ENEMY_SNOWMAN,
         .position = .{ .x = 0, .y = 0 },
         .enemyTypeData = .{
             .ice = .{
-                .direction = std.crypto.random.int(u2),
+                .direction = state.seededRandom.random().int(u2),
             },
         },
     };

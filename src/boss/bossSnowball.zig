@@ -127,7 +127,7 @@ fn checkSpawnEnemy(boss: *bossZig.Boss, state: *main.GameState) !void {
         const enemySpawnPerCent: f32 = @as(f32, @floatFromInt(boss.maxHp)) / @as(f32, @floatFromInt(data.maxEnemyToSpawn + 1)) * @as(f32, @floatFromInt(data.enemyToSpawn));
         const spawnOnHp: u32 = @intFromFloat(enemySpawnPerCent);
         if (boss.hp <= spawnOnHp) {
-            var enemy = enemyZig.ENEMY_FUNCTIONS.get(.ice).createSpawnEnemyEntryEnemy();
+            var enemy = enemyZig.ENEMY_FUNCTIONS.get(.ice).createSpawnEnemyEntryEnemy(state);
             enemy.position = getRandomFreePosition(state);
             data.enemyToSpawn -|= 1;
             if (state.newGamePlus > 0) {
@@ -146,8 +146,8 @@ fn getRandomFreePosition(state: *main.GameState) main.Position {
     searchPos: while (!validPosition) {
         const mapTileRadiusXI32 = @as(i32, @intCast(state.mapData.tileRadiusWidth));
         const mapTileRadiusYI32 = @as(i32, @intCast(state.mapData.tileRadiusHeight));
-        randomPos.x = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusXI32, mapTileRadiusXI32) * main.TILESIZE);
-        randomPos.y = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusYI32, mapTileRadiusYI32) * main.TILESIZE);
+        randomPos.x = @floatFromInt(state.seededRandom.random().intRangeAtMost(i32, -mapTileRadiusXI32, mapTileRadiusXI32) * main.TILESIZE);
+        randomPos.y = @floatFromInt(state.seededRandom.random().intRangeAtMost(i32, -mapTileRadiusYI32, mapTileRadiusYI32) * main.TILESIZE);
         for (state.bosses.items) |boss| {
             if (main.calculateDistance(randomPos, boss.position) < main.TILESIZE * 3) {
                 continue :searchPos;

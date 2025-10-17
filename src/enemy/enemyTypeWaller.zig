@@ -22,7 +22,8 @@ pub fn create() enemyZig.EnemyFunctions {
     };
 }
 
-fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
+fn createSpawnEnemyEntryEnemy(state: *main.GameState) enemyZig.Enemy {
+    _ = state;
     return .{
         .imageIndex = imageZig.IMAGE_ENEMY_WALLER,
         .position = .{ .x = 0, .y = 0 },
@@ -78,7 +79,7 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
             validHitDirectionCount += 1;
         }
         if (validHitDirectionCount > 0) {
-            const randomDirectionIndex = std.crypto.random.intRangeLessThan(usize, 0, validHitDirectionCount);
+            const randomDirectionIndex = state.seededRandom.random().intRangeLessThan(usize, 0, validHitDirectionCount);
             data.direction = validHitDirections[randomDirectionIndex].?;
         }
         if (!data.placedWall and validHitDirectionCount <= 2) data.placedWall = true;
@@ -108,7 +109,7 @@ fn removeOneRandomAdjacentWall(tilePosition: main.TilePosition, state: *main.Gam
         invalidHitDirections[invalidHitDirectionCount] = movePieceZig.DIRECTION_DOWN;
         invalidHitDirectionCount += 1;
     }
-    const randomDirectionIndex = std.crypto.random.intRangeLessThan(usize, 0, invalidHitDirectionCount);
+    const randomDirectionIndex = state.seededRandom.random().intRangeLessThan(usize, 0, invalidHitDirectionCount);
     const direction = invalidHitDirections[randomDirectionIndex].?;
     const stepDirection = movePieceZig.getStepDirectionTile(direction);
     const hitTilePosition: main.TilePosition = .{

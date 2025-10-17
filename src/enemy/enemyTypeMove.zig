@@ -19,7 +19,8 @@ fn scaleEnemyForNewGamePlus(enemy: *enemyZig.Enemy, newGamePlus: u32) void {
     data.delay = @divFloor(data.delay, @as(i32, @intCast(newGamePlus + 1)));
 }
 
-fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
+fn createSpawnEnemyEntryEnemy(state: *main.GameState) enemyZig.Enemy {
+    _ = state;
     return .{
         .imageIndex = imageZig.IMAGE_ENEMY_MOVING,
         .position = .{ .x = 0, .y = 0 },
@@ -46,7 +47,7 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
             data.startTime = null;
         }
     } else {
-        data.direction = std.crypto.random.int(u2);
+        data.direction = state.seededRandom.random().int(u2);
         const stepDirection = movePieceZig.getStepDirection(data.direction);
         const borderX: f32 = @floatFromInt(state.mapData.tileRadiusWidth * main.TILESIZE);
         const borderY: f32 = @floatFromInt(state.mapData.tileRadiusHeight * main.TILESIZE);

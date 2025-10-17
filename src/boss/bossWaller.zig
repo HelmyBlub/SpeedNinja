@@ -126,8 +126,8 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
 
             const lengthX: f32 = @floatFromInt(tileRadiusX * 2 + 1);
             const lengthY: f32 = @floatFromInt(tileRadiusY * 2 + 1);
-            const randomTileX: i16 = @as(i16, @intFromFloat(std.crypto.random.float(f32) * lengthX - lengthX / 2));
-            const randomTileY: i16 = @as(i16, @intFromFloat(std.crypto.random.float(f32) * lengthY - lengthY / 2));
+            const randomTileX: i16 = @as(i16, @intFromFloat(state.seededRandom.random().float(f32) * lengthX - lengthX / 2));
+            const randomTileY: i16 = @as(i16, @intFromFloat(state.seededRandom.random().float(f32) * lengthY - lengthY / 2));
             const randomPos: main.Position = .{
                 .x = @floatFromInt(randomTileX * main.TILESIZE),
                 .y = @floatFromInt(randomTileY * main.TILESIZE),

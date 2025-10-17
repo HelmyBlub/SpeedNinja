@@ -22,13 +22,13 @@ pub fn create() enemyZig.EnemyFunctions {
     };
 }
 
-fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
+fn createSpawnEnemyEntryEnemy(state: *main.GameState) enemyZig.Enemy {
     return .{
         .imageIndex = imageZig.IMAGE_ENEMY_EYE,
         .position = .{ .x = 0, .y = 0 },
         .enemyTypeData = .{
             .moveWithPlayer = .{
-                .direction = std.crypto.random.int(u2),
+                .direction = state.seededRandom.random().int(u2),
             },
         },
     };
@@ -62,9 +62,9 @@ fn onPlayerMoved(enemy: *enemyZig.Enemy, player: *playerZig.Player, state: *main
     const borderX: f32 = @floatFromInt(state.mapData.tileRadiusWidth * main.TILESIZE);
     const borderY: f32 = @floatFromInt(state.mapData.tileRadiusHeight * main.TILESIZE);
     while (!validDirection) {
-        data.direction = std.crypto.random.int(u2);
+        data.direction = state.seededRandom.random().int(u2);
         const newStepDirection = movePieceZig.getStepDirection(data.direction);
-        data.moveDistance = std.crypto.random.intRangeAtMost(u8, 1, data.maxMoveDistance);
+        data.moveDistance = state.seededRandom.random().intRangeAtMost(u8, 1, data.maxMoveDistance);
         const fMoveDistance: f32 = @floatFromInt(data.moveDistance * main.TILESIZE);
         validDirection = newStepDirection.x < 0 and enemy.position.x - fMoveDistance > -borderX or
             newStepDirection.x > 0 and enemy.position.x + fMoveDistance < borderX or

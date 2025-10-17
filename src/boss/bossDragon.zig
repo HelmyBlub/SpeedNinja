@@ -267,7 +267,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
                     .width = @as(f32, @floatFromInt(damageTileRectangle.width)) * main.TILESIZE,
                     .height = @as(f32, @floatFromInt(damageTileRectangle.height)) * main.TILESIZE,
                 };
-                chooseNextAttack(boss);
+                chooseNextAttack(boss, state);
             }
         },
         .bodyStomp => |*stompData| {
@@ -353,7 +353,7 @@ fn tickTailAttackAction(tailAttackData: *TailAttackhData, boss: *bossZig.Boss, p
                 }
             }
             data.paint.tailUpPerCent = 0;
-            chooseNextAttack(boss);
+            chooseNextAttack(boss, state);
         }
     }
 }
@@ -426,7 +426,7 @@ fn tickFireBreathAction(fireBreathData: *FireBreathData, boss: *bossZig.Boss, pa
         if (fireBreathData.spitEndTime <= state.gameTime) {
             data.openMouth = false;
             data.fireAbilitiesSinceLastWingBlast += 1;
-            chooseNextAttack(boss);
+            chooseNextAttack(boss, state);
         }
     }
 }
@@ -435,7 +435,7 @@ fn tickWingBlastAction(wingBlastData: *WingBlastData, boss: *bossZig.Boss, passe
     const data = &boss.typeData.dragon;
     if (wingBlastData.nextMoveTickTime == null) {
         wingBlastData.nextMoveTickTime = state.gameTime + wingBlastData.firstMoveTickDelay;
-        wingBlastData.direction = std.crypto.random.intRangeLessThan(u8, 0, 4);
+        wingBlastData.direction = state.seededRandom.random().intRangeLessThan(u8, 0, 4);
         const bossDirection: f32 = @as(f32, @floatFromInt(wingBlastData.direction.?)) * std.math.pi / 2;
         setDirection(boss, bossDirection);
         data.paint.stopWings = false;
@@ -470,13 +470,13 @@ fn tickWingBlastAction(wingBlastData: *WingBlastData, boss: *bossZig.Boss, passe
                 data.paint.stopWings = true;
                 data.paint.wingFlapSpeedFactor = 1;
                 data.fireAbilitiesSinceLastWingBlast = 0;
-                chooseNextAttack(boss);
+                chooseNextAttack(boss, state);
             }
         }
     }
 }
 
-fn chooseNextAttack(boss: *bossZig.Boss) void {
+fn chooseNextAttack(boss: *bossZig.Boss, state: *main.GameState) void {
     const data = &boss.typeData.dragon;
     var allowedAttacks: [4]?DragonActionData = .{ .{ .bodyStomp = .{} }, null, null, null };
     var allowedAttacksCount: usize = 1;
@@ -502,7 +502,7 @@ fn chooseNextAttack(boss: *bossZig.Boss) void {
         allowedAttacks[allowedAttacksCount] = .{ .tailAttack = .{} };
         allowedAttacksCount += 1;
     }
-    const randomIndex = std.crypto.random.intRangeLessThan(usize, 0, allowedAttacksCount);
+    const randomIndex = state.seededRandom.random().intRangeLessThan(usize, 0, allowedAttacksCount);
     setAction(allowedAttacks[randomIndex].?, boss);
 }
 
@@ -786,7 +786,7 @@ fn tickBodyStomp(stompData: *BodyStompData, boss: *bossZig.Boss, passedTime: i64
                 data.phase = .phase3;
                 try cutTilesForGroundBreakingEffect(FLYING_TRANSITION_CAMERA_OFFSET_Y, state);
             } else {
-                chooseNextAttack(boss);
+                chooseNextAttack(boss, state);
             }
             try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_STOMP_INDICIES[0..], 0, 1);
             const attackTileCenter = main.gamePositionToTilePosition(.{ .x = boss.position.x, .y = boss.position.y });

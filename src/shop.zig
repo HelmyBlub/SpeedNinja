@@ -346,7 +346,7 @@ pub fn randomizeShop(state: *main.GameState) !void {
     for (state.players.items) |*player| {
         var pieceToBuyIndex: usize = 0;
         toBuy: while (pieceToBuyIndex < player.shop.piecesToBuy.len) {
-            const randomPiece = try movePieceZig.createRandomMovePiece(state.allocator);
+            const randomPiece = try movePieceZig.createRandomMovePiece(state.allocator, state);
             for (player.shop.piecesToBuy) |otherPiece| {
                 if (otherPiece != null and movePieceZig.areSameMovePieces(randomPiece, otherPiece.?)) {
                     state.allocator.free(randomPiece.steps);
@@ -408,7 +408,7 @@ fn getRandomEquipmentIndexForShop(blacklistedIndexes: []usize, mode: usize, stat
         const level = state.shop.equipOptionsLastLevelInShop[index];
         totalProbability += @max(1, state.level -| level);
     }
-    const random = std.crypto.random.intRangeLessThan(usize, 0, totalProbability);
+    const random = state.seededRandom.random().intRangeLessThan(usize, 0, totalProbability);
     totalProbability = 0;
     main: for (0..state.shop.equipOptionsLastLevelInShop.len) |index| {
         if (mode == 0 and equipmentZig.EQUIPMENT_SHOP_OPTIONS[index].equipment.slotTypeData != .weapon) continue;
@@ -484,7 +484,7 @@ pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
             const cost = state.level;
             if (player.money >= cost and player.totalMovePieces.items.len > 1) {
                 state.achievements.getPtr(.beatGameWithStartingMovePieces).trackingActive = false;
-                try movePieceZig.removeMovePiece(player, data.selectedIndex, state.allocator);
+                try movePieceZig.removeMovePiece(player, data.selectedIndex, state);
                 try playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true, state);
                 if (player.uxData.visualizeMovePieceChangeFromShop == null) {
                     player.uxData.visualizeMovePieceChangeFromShop = -1;
@@ -519,7 +519,7 @@ pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
                     var isDifferentPiece = false;
                     while (!isDifferentPiece) {
                         isDifferentPiece = true;
-                        const newBuyPiece = try movePieceZig.createRandomMovePiece(state.allocator);
+                        const newBuyPiece = try movePieceZig.createRandomMovePiece(state.allocator, state);
                         for (player.shop.piecesToBuy) |pieceToBuy| {
                             if (pieceToBuy) |piece| {
                                 if (movePieceZig.areSameMovePieces(piece, newBuyPiece)) {

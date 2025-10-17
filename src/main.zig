@@ -96,6 +96,7 @@ pub const GameState = struct {
     steam: ?steamZig.SteamData = null,
     achievements: std.EnumArray(achievementZig.AchievementsEnum, achievementZig.AchievementData) = achievementZig.ACHIEVEMENTS,
     modeSelect: modeSelectZig.ModeSelectData = undefined,
+    seededRandom: std.Random.Xoshiro256,
 };
 
 pub const GameUxData = struct {
@@ -442,16 +443,16 @@ fn tickClouds(state: *GameState, passedTime: i64) void {
     const fPassedTime: f32 = @floatFromInt(passedTime);
     for (state.mapData.paintData.backClouds[0..]) |*backCloud| {
         if (backCloud.position.x > 600 and state.gamePhase != .finished) {
-            backCloud.position.x = -600 + std.crypto.random.float(f32) * 200;
-            backCloud.position.y = -150 + std.crypto.random.float(f32) * 150;
+            backCloud.position.x = -600 + state.seededRandom.random().float(f32) * 200;
+            backCloud.position.y = -150 + state.seededRandom.random().float(f32) * 150;
             backCloud.sizeFactor = 5;
             backCloud.speed = 0.02;
         }
         backCloud.position.x += backCloud.speed * fPassedTime;
     }
     if (state.mapData.paintData.frontCloud.position.x > 1000 and state.gamePhase != .finished) {
-        state.mapData.paintData.frontCloud.position.x = -800 + std.crypto.random.float(f32) * 300;
-        state.mapData.paintData.frontCloud.position.y = -150 + std.crypto.random.float(f32) * 300;
+        state.mapData.paintData.frontCloud.position.x = -800 + state.seededRandom.random().float(f32) * 300;
+        state.mapData.paintData.frontCloud.position.y = -150 + state.seededRandom.random().float(f32) * 300;
         state.mapData.paintData.frontCloud.sizeFactor = 15;
         state.mapData.paintData.frontCloud.speed = 0.1;
     }
@@ -569,8 +570,8 @@ fn checkForEnemyAndPlayerOnSamePosition(state: *GameState) void {
                 const maxTries = 10;
                 while (!enemyMoved and tries < maxTries) {
                     tries += 1;
-                    const randomTileX: i16 = @as(i16, @intFromFloat(std.crypto.random.float(f32) * lengthX - lengthX / 2));
-                    const randomTileY: i16 = @as(i16, @intFromFloat(std.crypto.random.float(f32) * lengthY - lengthY / 2));
+                    const randomTileX: i16 = @as(i16, @intFromFloat(state.seededRandom.random().float(f32) * lengthX - lengthX / 2));
+                    const randomTileY: i16 = @as(i16, @intFromFloat(state.seededRandom.random().float(f32) * lengthY - lengthY / 2));
                     const randomPos: Position = .{
                         .x = @floatFromInt(randomTileX * TILESIZE),
                         .y = @floatFromInt(randomTileY * TILESIZE),
@@ -760,6 +761,7 @@ pub fn isGameOver(state: *GameState) bool {
 }
 
 fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
+    const seededRandom = std.Random.DefaultPrng.init(std.crypto.random.int(u64));
     state.* = .{
         .players = std.ArrayList(playerZig.Player).init(allocator),
         .bosses = std.ArrayList(bossZig.Boss).init(allocator),
@@ -771,6 +773,7 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
             .disconnectedGamepads = std.ArrayList(u32).init(allocator),
         },
         .tempStringBuffer = try allocator.alloc(u8, 20),
+        .seededRandom = seededRandom,
     };
     state.allocator = allocator;
     try windowSdlZig.initWindowSdl();

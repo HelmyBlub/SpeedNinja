@@ -149,7 +149,7 @@ fn removeBoss(bossIndex: usize, cutAngle: f32, state: *main.GameState) !void {
             .deathTime = state.gameTime,
             .position = deadBoss.position,
             .cutAngle = cutAngle,
-            .force = std.crypto.random.float(f32) + 0.2,
+            .force = state.seededRandom.random().float(f32) + 0.2,
             .colorOrImageIndex = .{ .imageIndex = deadBoss.imageIndex },
         },
     );

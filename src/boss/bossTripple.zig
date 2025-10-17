@@ -227,8 +227,8 @@ fn executeAttack(boss: *bossZig.Boss, player: *playerZig.Player, state: *main.Ga
         trippleData.airAttackRepeat += trippleData.attacksPerBeingHit;
     }
     if (trippleData.enabledFire) {
-        const randomOffsetX = std.crypto.random.intRangeLessThan(i32, -1, 2);
-        const randomOffsetY = std.crypto.random.intRangeLessThan(i32, -1, 2);
+        const randomOffsetX = state.seededRandom.random().intRangeLessThan(i32, -1, 2);
+        const randomOffsetY = state.seededRandom.random().intRangeLessThan(i32, -1, 2);
         const randomFloatX: f32 = @floatFromInt(randomOffsetX);
         var randomFloatY: f32 = @floatFromInt(randomOffsetY);
         if (randomFloatX == 0 and randomFloatY == 0) randomFloatY = 1;
@@ -255,8 +255,8 @@ fn getRandomFreePosition(state: *main.GameState) main.Position {
     searchPos: while (!validPosition) {
         const mapTileRadiusXI32 = @as(i32, @intCast(state.mapData.tileRadiusWidth));
         const mapTileRadiusYI32 = @as(i32, @intCast(state.mapData.tileRadiusHeight));
-        randomPos.x = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusXI32, mapTileRadiusXI32) * main.TILESIZE);
-        randomPos.y = @floatFromInt(std.crypto.random.intRangeAtMost(i32, -mapTileRadiusYI32, mapTileRadiusYI32) * main.TILESIZE);
+        randomPos.x = @floatFromInt(state.seededRandom.random().intRangeAtMost(i32, -mapTileRadiusXI32, mapTileRadiusXI32) * main.TILESIZE);
+        randomPos.y = @floatFromInt(state.seededRandom.random().intRangeAtMost(i32, -mapTileRadiusYI32, mapTileRadiusYI32) * main.TILESIZE);
         for (state.bosses.items) |bossSingle| {
             if (main.calculateDistance(randomPos, bossSingle.position) < main.TILESIZE * 3) {
                 continue :searchPos;

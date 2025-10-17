@@ -32,7 +32,7 @@ pub const EnemyAfterImage = struct {
 };
 
 pub const EnemyFunctions = struct {
-    createSpawnEnemyEntryEnemy: *const fn () Enemy,
+    createSpawnEnemyEntryEnemy: *const fn (state: *main.GameState) Enemy,
     tick: ?*const fn (enemy: *Enemy, passedTime: i64, state: *main.GameState) anyerror!void = null,
     onPlayerMoved: ?*const fn (enemy: *Enemy, player: *playerZig.Player, state: *main.GameState) anyerror!void = null,
     onPlayerMoveEachTile: ?*const fn (enemy: *Enemy, player: *playerZig.Player, state: *main.GameState) anyerror!void = null,
@@ -161,11 +161,12 @@ pub fn onPlayerMoveEachTile(player: *playerZig.Player, state: *main.GameState) !
     }
 }
 
-fn createSpawnEnemyEntryEnemy(enemyType: EnemyType) Enemy {
-    return ENEMY_FUNCTIONS.get(enemyType).createSpawnEnemyEntryEnemy();
+fn createSpawnEnemyEntryEnemy(enemyType: EnemyType, state: *main.GameState) Enemy {
+    return ENEMY_FUNCTIONS.get(enemyType).createSpawnEnemyEntryEnemy(state);
 }
 
-fn nothingEntryEnemy() Enemy {
+fn nothingEntryEnemy(state: *main.GameState) Enemy {
+    _ = state;
     return .{ .enemyTypeData = .nothing, .imageIndex = imageZig.IMAGE_EVIL_TREE, .position = .{ .x = 0, .y = 0 } };
 }
 
@@ -211,7 +212,7 @@ pub fn setupSpawnEnemiesOnLevelChange(state: *main.GameState) !void {
         var enemyType = data.enemyType;
         if (data.enemyType == .nothing and state.newGamePlus > 0) enemyType = .attack;
         if (data.startingLevel <= state.level and (data.leavingLevel == null or data.leavingLevel.? > state.level)) {
-            try enemySpawnData.enemyEntries.append(.{ .probability = 1, .enemy = createSpawnEnemyEntryEnemy(enemyType) });
+            try enemySpawnData.enemyEntries.append(.{ .probability = 1, .enemy = createSpawnEnemyEntryEnemy(enemyType, state) });
         }
     }
     scaleEnemiesProbabilityToLevel(state);
@@ -270,7 +271,7 @@ pub fn setupEnemies(state: *main.GameState) !void {
     const enemies = &state.enemyData.enemies;
     enemies.clearRetainingCapacity();
     if (state.enemyData.enemySpawnData.enemyEntries.items.len == 0) return;
-    const rand = std.crypto.random;
+    const rand = state.seededRandom.random();
     const enemyCountForLevel = @min(5, (@divFloor(state.level - 1, 2) + state.newGamePlus));
     const enemyCount = (state.round + enemyCountForLevel) * state.players.items.len;
     const mapTileRadiusWidth = mapTileZig.BASE_MAP_TILE_RADIUS + @as(u32, @intFromFloat(@sqrt(@as(f32, @floatFromInt(enemyCount)))));
@@ -286,7 +287,7 @@ pub fn setupEnemies(state: *main.GameState) !void {
             .y = @floatFromInt(randomTileY * main.TILESIZE),
         };
         if (main.isPositionEmpty(randomPos, state)) {
-            const randomFloat = std.crypto.random.float(f32);
+            const randomFloat = state.seededRandom.random().float(f32);
             if (enemies.items.len < state.enemyData.enemySpawnData.enemyEntries.items.len) {
                 var enemy = state.enemyData.enemySpawnData.enemyEntries.items[enemies.items.len].enemy;
                 enemy.position = randomPos;

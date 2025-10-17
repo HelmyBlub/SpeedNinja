@@ -91,8 +91,8 @@ fn startBoss(state: *main.GameState) !void {
         .name = BOSS_NAME,
         .typeData = .{ .fireRoll = .{
             .movePieces = .{
-                try movePieceZig.createRandomMovePiece(state.allocator),
-                try movePieceZig.createRandomMovePiece(state.allocator),
+                try movePieceZig.createRandomMovePiece(state.allocator, state),
+                try movePieceZig.createRandomMovePiece(state.allocator, state),
             },
         } },
     };
@@ -106,14 +106,14 @@ fn startBoss(state: *main.GameState) !void {
 
 fn chooseMovePiece(boss: *bossZig.Boss, state: *main.GameState) !void {
     const data = &boss.typeData.fireRoll;
-    data.movePieceIndex = std.crypto.random.intRangeLessThan(usize, 0, data.movePieces.len);
+    data.movePieceIndex = state.seededRandom.random().intRangeLessThan(usize, 0, data.movePieces.len);
     const movePiece = data.movePieces[data.movePieceIndex];
     const gridBorderX: f32 = @floatFromInt(state.mapData.tileRadiusWidth * main.TILESIZE);
     const gridBorderY: f32 = @floatFromInt(state.mapData.tileRadiusHeight * main.TILESIZE);
     var validMovePosition = false;
     while (!validMovePosition) {
         var bossPositionAfterPiece = boss.position;
-        data.moveDirection = std.crypto.random.intRangeLessThan(u8, 0, 4);
+        data.moveDirection = state.seededRandom.random().intRangeLessThan(u8, 0, 4);
         try movePieceZig.movePositionByPiece(&bossPositionAfterPiece, movePiece, data.moveDirection, state);
         validMovePosition = bossPositionAfterPiece.x >= -gridBorderX and bossPositionAfterPiece.x <= gridBorderX and bossPositionAfterPiece.y >= -gridBorderY and bossPositionAfterPiece.y <= gridBorderY;
     }

@@ -26,7 +26,8 @@ pub fn create() enemyZig.EnemyFunctions {
     };
 }
 
-fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
+fn createSpawnEnemyEntryEnemy(state: *main.GameState) enemyZig.Enemy {
+    _ = state;
     return .{
         .imageIndex = imageZig.IMAGE_ENEMY_MOVE_PIECE,
         .position = .{ .x = 0, .y = 0 },
@@ -108,14 +109,14 @@ fn setupVerticesGroundStepFunction(pos: main.TilePosition, visualizedDirection: 
 
 fn createRandomMovePiece(state: *main.GameState) !movePieceZig.MovePiece {
     const newGamePlusBonusLength = @min(state.newGamePlus, 2);
-    const stepsLength: usize = std.crypto.random.intRangeLessThan(usize, 0, 2) + 2 + newGamePlusBonusLength;
+    const stepsLength: usize = state.seededRandom.random().intRangeLessThan(usize, 0, 2) + 2 + newGamePlusBonusLength;
     const steps: []movePieceZig.MoveStep = try state.allocator.alloc(movePieceZig.MoveStep, stepsLength);
     const movePiece: movePieceZig.MovePiece = .{ .steps = steps };
     var currDirection: u8 = movePieceZig.DIRECTION_UP;
     for (movePiece.steps) |*step| {
         step.direction = currDirection;
-        step.stepCount = @as(u8, @intFromFloat(std.crypto.random.float(f32) * 2.0)) + 1;
-        currDirection = @mod(currDirection + (@as(u8, @intFromFloat(std.crypto.random.float(f32) * 2.0)) * 2 + 1), 4);
+        step.stepCount = @as(u8, @intFromFloat(state.seededRandom.random().float(f32) * 2.0)) + 1;
+        currDirection = @mod(currDirection + (@as(u8, @intFromFloat(state.seededRandom.random().float(f32) * 2.0)) * 2 + 1), 4);
     }
     return movePiece;
 }

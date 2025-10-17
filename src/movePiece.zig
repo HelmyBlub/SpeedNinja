@@ -32,8 +32,8 @@ pub const DIRECTION_DOWN = 1;
 pub const DIRECTION_LEFT = 2;
 pub const DIRECTION_UP = 3;
 
-pub fn setRandomMovePiece(player: *playerZig.Player, index: usize) !void {
-    const rand = std.crypto.random;
+fn setRandomMovePiece(player: *playerZig.Player, index: usize, state: *main.GameState) !void {
+    const rand = &state.seededRandom.random();
     if (player.availableMovePieces.items.len > 0) {
         const randomPieceIndex: usize = @intFromFloat(rand.float(f32) * @as(f32, @floatFromInt(player.availableMovePieces.items.len)));
         const randomPiece = player.availableMovePieces.swapRemove(randomPieceIndex);
@@ -59,7 +59,7 @@ pub fn getRandomValidMoveDirectionForMovePiece(position: main.Position, movePiec
     while (!validMovePosition) {
         if (directionOptionCount == 0) return null;
         var bossPositionAfterPiece = position;
-        const randomIndex = std.crypto.random.intRangeLessThan(usize, 0, directionOptionCount);
+        const randomIndex = state.seededRandom.random().intRangeLessThan(usize, 0, directionOptionCount);
         direction = directionOptions[randomIndex];
         directionOptionCount -|= 1;
         directionOptions[randomIndex] = directionOptions[directionOptionCount];
@@ -81,7 +81,7 @@ pub fn setupMovePieces(player: *playerZig.Player, state: *main.GameState) !void 
         player.availableMovePieces.clearRetainingCapacity();
         player.moveOptions.clearRetainingCapacity();
         total: while (player.totalMovePieces.items.len < 7) {
-            const randomPiece = try createRandomMovePiece(state.allocator);
+            const randomPiece = try createRandomMovePiece(state.allocator, state);
             for (player.totalMovePieces.items) |otherPiece| {
                 if (areSameMovePieces(randomPiece, otherPiece)) {
                     state.allocator.free(randomPiece.steps);
@@ -95,9 +95,9 @@ pub fn setupMovePieces(player: *playerZig.Player, state: *main.GameState) !void 
     }
 
     try player.availableMovePieces.appendSlice(player.totalMovePieces.items);
-    try setRandomMovePiece(player, 0);
-    try setRandomMovePiece(player, 1);
-    try setRandomMovePiece(player, 2);
+    try setRandomMovePiece(player, 0, state);
+    try setRandomMovePiece(player, 1, state);
+    try setRandomMovePiece(player, 2, state);
 }
 
 pub fn getStepDirection(direction: u8) main.Position {
@@ -158,7 +158,7 @@ pub fn tickPlayerMovePiece(player: *playerZig.Player, state: *main.GameState) !v
     if (player.executeMovePiece) |executeMovePiece| {
         const step = executeMovePiece.steps[0];
         const direction = @mod(step.direction + player.executeDirection + 1, 4);
-        if (!player.slashedLastMoveTile) ninjaDogVulkanZig.movedAnimate(player, direction);
+        if (!player.slashedLastMoveTile) ninjaDogVulkanZig.movedAnimate(player, direction, state);
         try stepAndCheckEnemyHitAndProjectileHitAndTiles(player, step.stepCount, direction, getStepDirection(direction), state);
         if (executeMovePiece.steps.len > 1) {
             player.executeMovePiece = .{ .steps = executeMovePiece.steps[1..] };
@@ -275,7 +275,7 @@ pub fn combineMovePieces(player: *playerZig.Player, movePieceIndex1: usize, move
         newPieceIndex += 1;
     }
     replaceMovePiece(movePieceIndex1, newMovePiece, player, state.allocator);
-    try removeMovePiece(player, movePieceIndex2, state.allocator);
+    try removeMovePiece(player, movePieceIndex2, state);
 }
 
 pub fn cutTilePositionOnMovePiece(player: *playerZig.Player, cutTile: main.TilePosition, movePieceStartTile: main.TilePosition, totalIndexOfMovePieceToCut: usize, state: *main.GameState) !void {
@@ -547,7 +547,7 @@ pub fn movePlayerByMovePiece(player: *playerZig.Player, movePieceIndex: usize, d
     player.executeMovePiece = player.moveOptions.items[movePieceIndex];
     player.executeDirection = directionInput;
 
-    try setRandomMovePiece(player, movePieceIndex);
+    try setRandomMovePiece(player, movePieceIndex, state);
     if (player.equipment.hasEyePatch and player.moveOptions.items.len > 0) {
         const newOption = player.moveOptions.items[0];
         for (0..player.moveOptions.items.len - 1) |index| {
@@ -591,7 +591,7 @@ pub fn resetPieces(player: *playerZig.Player, visualizeRefresh: bool, state: *ma
         }
     }
     while (player.moveOptions.items.len < 3 and player.availableMovePieces.items.len > 0) {
-        try setRandomMovePiece(player, 3);
+        try setRandomMovePiece(player, 3, state);
     }
     if (visualizeRefresh) player.uxData.piecesRefreshedVisualization = state.gameTime;
 }
@@ -605,12 +605,12 @@ pub fn areSameMovePieces(movePiece1: MovePiece, movePiece2: MovePiece) bool {
     return true;
 }
 
-pub fn removeMovePiece(player: *playerZig.Player, movePieceIndex: usize, allocator: std.mem.Allocator) !void {
+pub fn removeMovePiece(player: *playerZig.Player, movePieceIndex: usize, state: *main.GameState) !void {
     const removedPiece = player.totalMovePieces.orderedRemove(movePieceIndex);
     var removed = false;
     for (player.moveOptions.items, 0..) |option, index| {
         if (removedPiece.steps.ptr == option.steps.ptr) {
-            try setRandomMovePiece(player, index);
+            try setRandomMovePiece(player, index, state);
             removed = true;
         }
     }
@@ -622,7 +622,7 @@ pub fn removeMovePiece(player: *playerZig.Player, movePieceIndex: usize, allocat
             }
         }
     }
-    allocator.free(removedPiece.steps);
+    state.allocator.free(removedPiece.steps);
 }
 
 pub fn addMovePiece(player: *playerZig.Player, newMovePiece: MovePiece) !void {
@@ -654,15 +654,15 @@ pub fn replaceMovePiece(totalIndex: usize, newPiece: MovePiece, player: *playerZ
     allocator.free(removedPiece.steps);
 }
 
-pub fn createRandomMovePiece(allocator: std.mem.Allocator) !MovePiece {
-    const stepsLength: usize = @intFromFloat(std.crypto.random.float(f32) * 3.0 + 1);
+pub fn createRandomMovePiece(allocator: std.mem.Allocator, state: *main.GameState) !MovePiece {
+    const stepsLength: usize = @intFromFloat(state.seededRandom.random().float(f32) * 3.0 + 1);
     const steps: []MoveStep = try allocator.alloc(MoveStep, stepsLength);
     const movePiece: MovePiece = .{ .steps = steps };
     var currDirection: u8 = DIRECTION_UP;
     for (movePiece.steps) |*step| {
         step.direction = currDirection;
-        step.stepCount = @as(u8, @intFromFloat(std.crypto.random.float(f32) * 3.0)) + 1;
-        currDirection = @mod(currDirection + (@as(u8, @intFromFloat(std.crypto.random.float(f32) * 2.0)) * 2 + 1), 4);
+        step.stepCount = @as(u8, @intFromFloat(state.seededRandom.random().float(f32) * 3.0)) + 1;
+        currDirection = @mod(currDirection + (@as(u8, @intFromFloat(state.seededRandom.random().float(f32) * 2.0)) * 2 + 1), 4);
     }
     return movePiece;
 }
@@ -675,7 +675,7 @@ fn checkEnemyHitOnMoveStep(player: *playerZig.Player, hitDirection: u8, state: *
 }
 
 fn checkEnemyHitOnMoveStepWithHitArea(player: *playerZig.Player, hitDirection: u8, hitArea: main.TileRectangle, state: *main.GameState) !bool {
-    const rand = std.crypto.random;
+    const rand = &state.seededRandom.random();
     var hitSomething = false;
     var enemyIndex: usize = 0;
     while (enemyIndex < state.enemyData.enemies.items.len) {

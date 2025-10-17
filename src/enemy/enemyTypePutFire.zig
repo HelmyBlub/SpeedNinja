@@ -22,13 +22,13 @@ pub fn create() enemyZig.EnemyFunctions {
     };
 }
 
-fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
+fn createSpawnEnemyEntryEnemy(state: *main.GameState) enemyZig.Enemy {
     return .{
         .imageIndex = imageZig.IMAGE_ENEMY_FIRE,
         .position = .{ .x = 0, .y = 0 },
         .enemyTypeData = .{
             .putFire = .{
-                .moveDirection = std.crypto.random.int(u2),
+                .moveDirection = state.seededRandom.random().int(u2),
             },
         },
     };
@@ -55,7 +55,7 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
             data.nextMoveTime = null;
         }
     } else {
-        data.moveDirection = std.crypto.random.int(u2);
+        data.moveDirection = state.seededRandom.random().int(u2);
         const stepDirection = movePieceZig.getStepDirection(data.moveDirection);
         const borderX: f32 = @floatFromInt(state.mapData.tileRadiusWidth * main.TILESIZE);
         const borderY: f32 = @floatFromInt(state.mapData.tileRadiusHeight * main.TILESIZE);

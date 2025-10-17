@@ -227,7 +227,7 @@ pub fn getRandomAlivePlayerIndex(state: *main.GameState) ?usize {
         if (!player.isDead) alivePlayerCount += 1;
     }
     if (alivePlayerCount == 0) return null;
-    const randomCount = std.crypto.random.intRangeLessThan(usize, 0, alivePlayerCount);
+    const randomCount = state.seededRandom.random().intRangeLessThan(usize, 0, alivePlayerCount);
     alivePlayerCount = 0;
     for (state.players.items, 0..) |player, index| {
         if (alivePlayerCount == randomCount) return index;

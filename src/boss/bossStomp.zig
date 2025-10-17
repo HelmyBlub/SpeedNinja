@@ -66,7 +66,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
     switch (stompData.state) {
         .searchTarget => {
             stompData.inAir = true;
-            const randomPlayerIndex: usize = @intFromFloat(std.crypto.random.float(f32) * @as(f32, @floatFromInt(state.players.items.len)));
+            const randomPlayerIndex: usize = @intFromFloat(state.seededRandom.random().float(f32) * @as(f32, @floatFromInt(state.players.items.len)));
             const randomPlayer = &state.players.items[randomPlayerIndex];
             if (!randomPlayer.isDead) {
                 const playerTile = main.gamePositionToTilePosition(randomPlayer.position);

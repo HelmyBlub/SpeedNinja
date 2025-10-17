@@ -55,7 +55,7 @@ fn startBoss(state: *main.GameState) !void {
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
         .typeData = .{ .snake = .{
-            .nextMoveDirection = std.crypto.random.intRangeLessThan(u8, 0, 4),
+            .nextMoveDirection = state.seededRandom.random().intRangeLessThan(u8, 0, 4),
             .snakeBodyParts = std.ArrayList(BodyPart).init(state.allocator),
         } },
     };
@@ -103,7 +103,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
         const borderX: f32 = @floatFromInt(state.mapData.tileRadiusWidth * main.TILESIZE);
         const borderY: f32 = @floatFromInt(state.mapData.tileRadiusHeight * main.TILESIZE);
         while (!isNextDirectionValied) {
-            snakeData.nextMoveDirection = std.crypto.random.int(u2);
+            snakeData.nextMoveDirection = state.seededRandom.random().int(u2);
             if (lastDirection == @mod(snakeData.nextMoveDirection + 2, 4)) {
                 snakeData.nextMoveDirection = lastDirection; // double probablily for keeping direciton, but no 180 turns
             }

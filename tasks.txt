@@ -8,10 +8,14 @@ testruns:
 
 
 Tasks:
-- settings menu info section
-    - some general info
-    - player join/leave
-    - explain shop
+- automated testing
+    - get a sense of fps: 166 fps
+    - deterministic behavior
+        - random seed
+            - check if pointer with setRandomMovePiece matters
+        - fixed tick speed
+        - possible frame skips (deterministic for tests)
+        - replay run to measure performance
 
 Next ideas:    
 - code performance
@@ -21,11 +25,8 @@ Next ideas:
 
 - vulkan changes
     - fallback visualize when not supported
-- settings menu
-    - display how to mutliplayer
-        - display "hold button to join" if different input devices used
-            - only when on one player
 - disable debug keys
+
 - pratice mode
 - pvp
 - visualize achievments in game

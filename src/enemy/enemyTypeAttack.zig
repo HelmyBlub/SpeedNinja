@@ -24,7 +24,8 @@ pub fn create() enemyZig.EnemyFunctions {
     };
 }
 
-fn createSpawnEnemyEntryEnemy() enemyZig.Enemy {
+fn createSpawnEnemyEntryEnemy(state: *main.GameState) enemyZig.Enemy {
+    _ = state;
     return .{
         .imageIndex = imageZig.IMAGE_EVIL_TREE,
         .position = .{ .x = 0, .y = 0 },
@@ -54,7 +55,7 @@ fn tick(enemy: *enemyZig.Enemy, passedTime: i64, state: *main.GameState) !void {
         }
     } else {
         data.startTime = state.gameTime;
-        data.direction = std.crypto.random.int(u2);
+        data.direction = state.seededRandom.random().int(u2);
     }
 }
 
