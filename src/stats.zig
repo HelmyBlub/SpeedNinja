@@ -137,7 +137,7 @@ fn checkIfIsNewBestTotalTime(levelDatas: []BestLevelStatistics, state: *main.Gam
     if (state.level <= 1) return false;
     var currentTotalTime: i64 = 0;
     if (state.gamePhase == .finished) {
-        currentTotalTime = state.statistics.runFinishedTime - state.statistics.runStartedTime;
+        currentTotalTime = state.statistics.runFinishedTime;
     } else if (state.gamePhase == .shopping) {
         currentTotalTime = state.statistics.currentRunStats.levelDatas.items[state.level - 1].totalTime;
     } else {
