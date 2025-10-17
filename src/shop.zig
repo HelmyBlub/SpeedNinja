@@ -297,7 +297,7 @@ pub fn startShoppingPhase(state: *main.GameState) !void {
         if (player.equipment.equipmentSlotsData.body) |*body| body.returnMoney = 0;
         if (player.equipment.equipmentSlotsData.feet) |*feet| feet.returnMoney = 0;
         if (player.equipment.equipmentSlotsData.weapon) |*weapon| weapon.returnMoney = 0;
-        if (player.isDead) player.isDead = false;
+        if (!state.gameOver and player.isDead) player.isDead = false;
         movePlayerToHisShopPosition(player);
         try movePieceZig.resetPieces(player, true, state);
     }
