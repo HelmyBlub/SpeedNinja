@@ -15,7 +15,7 @@ pub const Statistics = struct {
 };
 
 pub const StatisticsUxData = struct {
-    display: bool = true,
+    display: bool = false,
     vulkanPosition: main.Position = .{ .x = 0, .y = 0 },
     fontSize: f32 = 16,
     columnsData: []ColumnData = &COLUMNS_DATA,
