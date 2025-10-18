@@ -8,12 +8,18 @@ testruns:
 
 
 Tasks:
+- bug: speedrun stats incorrect.
+    - showed 3h at the end but 1:3x:xx with speedrun stats
+    - 90min shooping time incorrect? should it be added to next level?
 - automated testing
     - get a sense of fps: 166 fps
     - deterministic behavior
-        - random seed
-            - check if pointer with setRandomMovePiece matters
         - fixed tick speed
+            - for test case can be unlimited
+            - decide for UpdatesPerSecond value: 200// currently was ~166
+            - should i make a limit fps value?
+            - game should not go below 30fps
+            - game 
         - possible frame skips (deterministic for tests)
         - replay run to measure performance
 
