@@ -253,7 +253,7 @@ fn mainLoop(state: *GameState) !void {
                         }
                     }
                 }
-                try shopZig.startShoppingPhase(state);
+                try shopZig.startShoppingPhase(state, false);
             } else if (state.enemyData.enemies.items.len == 0 and state.gamePhase == .combat) {
                 try startNextRound(state);
             }
@@ -498,15 +498,6 @@ pub fn startNextRound(state: *GameState) !void {
     }
     try enemyZig.setupEnemies(state);
     adjustZoom(state);
-}
-
-pub fn endShoppingPhase(state: *GameState) !void {
-    state.gamePhase = .combat;
-    try statsZig.statsOnLevelShopFinishedAndNextLevelStart(state);
-    for (state.players.items) |*player| {
-        player.moneyOnShopLeftForSave = player.money;
-    }
-    try startNextLevel(state);
 }
 
 pub fn startNextLevel(state: *GameState) !void {
@@ -860,11 +851,7 @@ pub fn executeContinue(state: *GameState) !void {
     }
     if (state.gamePhase != .shopping) {
         state.level -= 1;
-        try shopZig.startShoppingPhase(state);
-        if (state.statistics.active) {
-            const currentLevelData = &state.statistics.currentRunStats.levelDatas.items[state.level - 1];
-            state.statistics.totalShoppingTime -= currentLevelData.shoppingTime;
-        }
+        try shopZig.startShoppingPhase(state, true);
     }
     state.gameOver = false;
 }

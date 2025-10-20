@@ -88,6 +88,7 @@ pub const ShopData = struct {
     playersOnAfkKick: u32 = 0,
     kickStartTime: ?i64 = null,
     durationToKick: i32 = 5_000,
+    preventStatsUpdate: bool = false,
 };
 
 pub const SHOP_BUTTONS = [_]PlayerShopButton{
@@ -221,8 +222,17 @@ pub fn executeShopActionForPlayer(player: *playerZig.Player, state: *main.GameSt
         }
     }
     if (state.shop.playersOnExit == state.players.items.len) {
-        try main.endShoppingPhase(state);
+        try endShoppingPhase(state);
     }
+}
+
+fn endShoppingPhase(state: *main.GameState) !void {
+    state.gamePhase = .combat;
+    if (!state.shop.preventStatsUpdate) try statsZig.statsOnLevelShopFinishedAndNextLevelStart(state);
+    for (state.players.items) |*player| {
+        player.moneyOnShopLeftForSave = player.money;
+    }
+    try main.startNextLevel(state);
 }
 
 fn handlePlayerAfkKick(player: *playerZig.Player, state: *main.GameState) !void {
@@ -267,13 +277,14 @@ pub fn isPlayerInShopTrigger(player: *playerZig.Player, state: *main.GameState) 
     return main.isTilePositionInTileRectangle(playerTile, tileRectangle);
 }
 
-pub fn startShoppingPhase(state: *main.GameState) !void {
+pub fn startShoppingPhase(state: *main.GameState, preventStatsUpdate: bool) !void {
     state.statistics.uxData.displayBestPossibleTimeValue = null;
     if (state.level == main.LEVEL_COUNT) {
         try main.gameFinished(state);
         return;
     }
-    try statsZig.statsOnLevelFinished(state);
+    state.shop.preventStatsUpdate = preventStatsUpdate;
+    if (!preventStatsUpdate) try statsZig.statsOnLevelFinished(state);
     state.timeFreezeStart = null;
     state.suddenDeath = 0;
     state.camera.position = .{ .x = 0, .y = 0 };

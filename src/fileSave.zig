@@ -146,7 +146,7 @@ pub fn loadCurrentRunFromFile(state: *main.GameState) !void {
         try readEquipmentSlotData(player, reader, state);
     }
     try readTimeStatsData(reader, state);
-    try shopZig.startShoppingPhase(state);
+    try shopZig.startShoppingPhase(state, true);
     try readShopBuyOptions(reader, state);
     try readAchievementData(reader, state);
 }

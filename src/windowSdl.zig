@@ -129,7 +129,7 @@ fn debugKeys(event: sdl.SDL_Event, state: *main.GameState) !void {
     if (event.key.scancode == sdl.SDL_SCANCODE_F1) {
         state.statistics.active = false;
         achievementZig.stopTrackingAchievmentForThisRun(state);
-        if (state.gamePhase != .shopping) try shopZig.startShoppingPhase(state);
+        if (state.gamePhase != .shopping) try shopZig.startShoppingPhase(state, false);
         try main.startNextLevel(state);
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F2) {
         if (state.gamePhase == .combat) {
@@ -141,7 +141,7 @@ fn debugKeys(event: sdl.SDL_Event, state: *main.GameState) !void {
         if (state.gamePhase != .shopping) {
             state.statistics.active = false;
             achievementZig.stopTrackingAchievmentForThisRun(state);
-            try shopZig.startShoppingPhase(state);
+            try shopZig.startShoppingPhase(state, false);
         }
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F4) {
         try main.runStart(state, 0);

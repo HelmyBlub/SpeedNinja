@@ -411,7 +411,6 @@ pub fn playerJoin(playerInputData: inputZig.PlayerInputData, state: *main.GameSt
     }
     equipmentZig.equipStarterEquipment(player);
     try movePieceZig.setupMovePieces(player, state);
-    state.statistics.active = false;
     main.adjustZoom(state);
 }
 

@@ -7,7 +7,6 @@ testruns:
 
 
 Tasks:
-- bug: shop should not display round 0 for bosses
 - bug: speedrun stats incorrect.
     - something wrong with continue and timer
         - shop timer wrong
