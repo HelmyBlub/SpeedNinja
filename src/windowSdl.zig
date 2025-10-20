@@ -166,7 +166,7 @@ fn debugKeys(event: sdl.SDL_Event, state: *main.GameState) !void {
         }
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F10) {
         std.debug.print("Recording:\n", .{});
-        for (state.autoTest.recordRunInputsData.items) |data| {
+        for (state.autoTest.recordRunEventData.items) |data| {
             std.debug.print("  {}\n", .{data});
         }
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F11) {

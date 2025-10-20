@@ -7,6 +7,7 @@ const equipmentZig = @import("equipment.zig");
 const inputZig = @import("input.zig");
 const soundMixerZig = @import("soundMixer.zig");
 const windowSdlZig = @import("windowSdl.zig");
+const autoTestZig = @import("autoTest.zig");
 
 pub const Player = struct {
     position: main.Position = .{ .x = 0, .y = 0 },
@@ -196,7 +197,10 @@ pub fn playerHit(player: *Player, state: *main.GameState) !void {
     if (player.immunUntilTime >= state.gameTime) return;
     if (player.isDead) return;
     if (player.phase == .shopping and state.gamePhase == .combat) return;
-    if (state.players.items.len == 1 and state.timeFreezeOnHit) state.timeFreezeStart = std.time.milliTimestamp();
+    if (state.players.items.len == 1 and state.timeFreezeOnHit) {
+        state.timeFreezeStart = std.time.milliTimestamp();
+        try autoTestZig.recordFreezeTime(state);
+    }
     state.achievements.getPtr(.beatGameWithoutTakingDamage).trackingActive = false;
     if (!try equipmentZig.damageTakenByEquipment(player, state)) {
         player.isDead = true;

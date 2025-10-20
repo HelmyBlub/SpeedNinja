@@ -268,6 +268,7 @@ fn mainLoop(state: *GameState) !void {
             //tickModeSelect
         }
         try autoTestZig.tickReplayInputs(state);
+        try autoTestZig.tickRecordRun(state);
         try windowSdlZig.handleEvents(state);
         try playerZig.tickPlayers(state, tickIntervalMs);
         tickClouds(state, tickIntervalMs);
@@ -781,7 +782,7 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
         },
         .tempStringBuffer = try allocator.alloc(u8, 20),
         .seededRandom = seededRandom,
-        .autoTest = .{ .recordRunInputsData = std.ArrayList(autoTestZig.InputData).init(allocator) },
+        .autoTest = .{ .recordRunEventData = std.ArrayList(autoTestZig.GameEventData).init(allocator) },
     };
     state.allocator = allocator;
     try windowSdlZig.initWindowSdl();
@@ -825,7 +826,7 @@ fn destroyGameState(state: *GameState) !void {
     state.inputJoinData.inputDeviceDatas.deinit();
     state.inputJoinData.disconnectedGamepads.deinit();
     state.allocator.free(state.tempStringBuffer);
-    state.autoTest.recordRunInputsData.deinit();
+    state.autoTest.recordRunEventData.deinit();
     try statsZig.destroyAndSave(state);
     mapTileZig.deinit(state);
     enemyZig.destroyEnemyData(state);
