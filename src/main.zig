@@ -49,6 +49,8 @@ pub const CREDITS_TEXTS = [_][]const u8{
     "Thanks for playing",
 };
 
+pub const UPDATES_PER_SECOND = 200;
+pub const TICK_INTERVAL_MICRO_SECONDS = 1_000_000 / UPDATES_PER_SECOND;
 pub const TILESIZE = 20;
 pub const GameState = struct {
     vkState: initVulkanZig.VkState = .{},
@@ -228,9 +230,11 @@ fn startGame(allocator: std.mem.Allocator) !void {
 }
 
 fn mainLoop(state: *GameState) !void {
-    var lastTime = std.time.milliTimestamp();
+    var lastTime = std.time.microTimestamp();
     var currentTime = lastTime;
-    var passedTime: i64 = 0;
+    var tickTimeDiff: i64 = 0;
+    const tickIntervalMs = TICK_INTERVAL_MICRO_SECONDS / 1000;
+    var oneFrameSkipAllowed = true;
     while (!state.gameQuit) {
         if (state.gamePhase != .modeSelect) {
             if (shouldEndLevel(state)) {
@@ -262,26 +266,34 @@ fn mainLoop(state: *GameState) !void {
             //tickModeSelect
         }
         try windowSdlZig.handleEvents(state);
-        try playerZig.tickPlayers(state, passedTime);
-        tickClouds(state, passedTime);
-        try enemyZig.tickEnemies(passedTime, state);
-        try bossZig.tickBosses(state, passedTime);
-        tickMapObjects(state, passedTime);
+        try playerZig.tickPlayers(state, tickIntervalMs);
+        tickClouds(state, tickIntervalMs);
+        try enemyZig.tickEnemies(tickIntervalMs, state);
+        try bossZig.tickBosses(state, tickIntervalMs);
+        tickMapObjects(state, tickIntervalMs);
         try multiplayerAfkCheck(state);
         try tickGameOver(state);
         tickGameFinished(state);
         if (state.verifyMapData.checkReachable) try verifyMapZig.checkAndModifyMapIfNotEverythingReachable(state);
         try settingsMenuVulkanZig.tick(state);
-        try paintVulkanZig.drawFrame(state);
-        std.Thread.sleep(5_000_000);
-        lastTime = currentTime;
-        currentTime = std.time.milliTimestamp();
-        passedTime = currentTime - lastTime;
-        if (state.timeFreezeStart != null) passedTime = 0;
-        if (passedTime > 16) {
-            passedTime = 16;
+        if (tickTimeDiff < 100_000 or !oneFrameSkipAllowed) {
+            try paintVulkanZig.drawFrame(state);
+            oneFrameSkipAllowed = true;
+        } else {
+            oneFrameSkipAllowed = false;
         }
-        state.gameTime += passedTime;
+        lastTime = currentTime;
+        currentTime = std.time.microTimestamp();
+        const timeDiff = currentTime - lastTime;
+        tickTimeDiff += timeDiff - TICK_INTERVAL_MICRO_SECONDS;
+        if (tickTimeDiff > 250_000) tickTimeDiff = 250_000;
+        if (tickTimeDiff < -1_000) {
+            const sleepTimeNano: i64 = tickTimeDiff * -1000;
+            std.Thread.sleep(@intCast(sleepTimeNano));
+        }
+        if (state.timeFreezeStart == null) {
+            state.gameTime += tickIntervalMs;
+        }
     }
 }
 

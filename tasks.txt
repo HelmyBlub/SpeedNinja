@@ -7,21 +7,18 @@ testruns:
 
 
 Tasks:
-- bug: speedrun stats incorrect.
-    - something wrong with continue and timer
-        - shop timer wrong
-            
 - automated testing
     - get a sense of fps: 166 fps
     - deterministic behavior
         - fixed tick speed
             - for test case can be unlimited
             - decide for UpdatesPerSecond value: 200// currently was ~166
+                - test limits
             - should i make a limit fps value?
             - game should not go below 30fps
-            - game 
         - possible frame skips (deterministic for tests)
         - replay run to measure performance
+        - check timefreeze
 
 Next ideas:    
 - code performance
