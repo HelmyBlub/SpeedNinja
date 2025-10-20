@@ -23,6 +23,7 @@ const fileSaveZig = @import("fileSave.zig");
 const steamZig = @import("steam.zig");
 const achievementZig = @import("achievement.zig");
 const modeSelectZig = @import("modeSelect.zig");
+const autoTestZig = @import("autoTest.zig");
 
 pub const GamePhase = enum {
     modeSelect,
@@ -99,6 +100,7 @@ pub const GameState = struct {
     achievements: std.EnumArray(achievementZig.AchievementsEnum, achievementZig.AchievementData) = achievementZig.ACHIEVEMENTS,
     modeSelect: modeSelectZig.ModeSelectData = undefined,
     seededRandom: std.Random.Xoshiro256,
+    autoTest: autoTestZig.AutoTestData,
 };
 
 pub const GameUxData = struct {
@@ -265,6 +267,7 @@ fn mainLoop(state: *GameState) !void {
         } else {
             //tickModeSelect
         }
+        try autoTestZig.tickReplayInputs(state);
         try windowSdlZig.handleEvents(state);
         try playerZig.tickPlayers(state, tickIntervalMs);
         tickClouds(state, tickIntervalMs);
@@ -669,6 +672,7 @@ pub fn backToStart(state: *GameState) anyerror!void {
 }
 
 pub fn runStart(state: *GameState, newGamePlus: u32) anyerror!void {
+    autoTestZig.startRecordingRun(state);
     try statsZig.statsSaveOnRestart(state);
     mapTileZig.setMapType(.default, state);
     state.timeFreezeStart = null;
@@ -777,6 +781,7 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
         },
         .tempStringBuffer = try allocator.alloc(u8, 20),
         .seededRandom = seededRandom,
+        .autoTest = .{ .recordRunInputsData = std.ArrayList(autoTestZig.InputData).init(allocator) },
     };
     state.allocator = allocator;
     try windowSdlZig.initWindowSdl();
@@ -820,6 +825,7 @@ fn destroyGameState(state: *GameState) !void {
     state.inputJoinData.inputDeviceDatas.deinit();
     state.inputJoinData.disconnectedGamepads.deinit();
     state.allocator.free(state.tempStringBuffer);
+    state.autoTest.recordRunInputsData.deinit();
     try statsZig.destroyAndSave(state);
     mapTileZig.deinit(state);
     enemyZig.destroyEnemyData(state);

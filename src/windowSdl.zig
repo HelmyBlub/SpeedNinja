@@ -12,6 +12,7 @@ const inputZig = @import("input.zig");
 const equipmentZig = @import("equipment.zig");
 const settingsMenuVulkanZig = @import("vulkan/settingsMenuVulkan.zig");
 const achievementZig = @import("achievement.zig");
+const autoTestZig = @import("autoTest.zig");
 
 pub const WindowData = struct {
     window: *sdl.SDL_Window = undefined,
@@ -164,10 +165,12 @@ fn debugKeys(event: sdl.SDL_Event, state: *main.GameState) !void {
             player.money += 200;
         }
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F10) {
-        var iter = state.achievements.iterator();
-        while (iter.next()) |achieve| {
-            std.debug.print("{s}: {}\n", .{ achieve.value.steamName, achieve.value.trackingActive });
+        std.debug.print("Recording:\n", .{});
+        for (state.autoTest.recordRunInputsData.items) |data| {
+            std.debug.print("  {}\n", .{data});
         }
+    } else if (event.key.scancode == sdl.SDL_SCANCODE_F11) {
+        try autoTestZig.replayRecording(state);
     }
 }
 

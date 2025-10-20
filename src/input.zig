@@ -6,6 +6,7 @@ const movePieceZig = @import("movePiece.zig");
 const shopZig = @import("shop.zig");
 const playerZig = @import("player.zig");
 const modeSelectZig = @import("modeSelect.zig");
+const autoTestZig = @import("autoTest.zig");
 
 pub const PlayerInputData = struct {
     inputDevice: ?InputDeviceData = null,
@@ -337,7 +338,8 @@ fn handlePlayerGamepadInput(event: sdl.SDL_Event, player: *playerZig.Player, gam
     }
 }
 
-fn handlePlayerAction(action: PlayerAction, player: *playerZig.Player, state: *main.GameState) !void {
+pub fn handlePlayerAction(action: PlayerAction, player: *playerZig.Player, state: *main.GameState) !void {
+    try autoTestZig.recordPlayerInput(action, player, state);
     player.inputData.lastInputTime = state.gameTime;
     switch (action) {
         .moveLeft => {
