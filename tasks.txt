@@ -1,6 +1,5 @@
 testruns:
 - gain all achievements on steam
-    - newGame+1
     - no damage taken
     - newGame+2
 
@@ -8,9 +7,11 @@ testruns:
 
 
 Tasks:
+- bug: shop should not display round 0 for bosses
 - bug: speedrun stats incorrect.
-    - showed 3h at the end but 1:3x:xx with speedrun stats
-    - 90min shooping time incorrect? should it be added to next level?
+    - something wrong with continue and timer
+        - shop timer wrong
+        - total time wrong
 - automated testing
     - get a sense of fps: 166 fps
     - deterministic behavior

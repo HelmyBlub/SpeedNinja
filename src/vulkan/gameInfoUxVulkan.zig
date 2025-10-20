@@ -296,7 +296,7 @@ fn verticesForLevelRoundNewGamePlus(state: *main.GameState) !void {
         paintVulkanZig.verticesForRectangle(newGamePlusRec.pos.x, newGamePlusRec.pos.y, newGamePlusRec.width, newGamePlusRec.height, white, &verticeData.lines, &verticeData.triangles);
     }
 
-    if (state.gamePhase != .boss and state.gamePhase != .finished) {
+    if (state.gamePhase != .boss and state.gamePhase != .finished and state.round > 0) {
         textWidth += paddingX * 6;
         const roundStartX = textWidth;
         if (state.level > 4) {
