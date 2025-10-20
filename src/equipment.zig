@@ -103,6 +103,7 @@ pub const EquipmentShopOptions = struct {
     equipment: EquipmentSlotData,
 };
 
+pub const GOLD_WEAPON_BONUS = 1;
 pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
     .{
         .basePrice = 5,
@@ -289,7 +290,7 @@ pub fn setupVerticesForShopEquipmentSecondaryEffect(topLeft: main.Position, secE
             paintVulkanZig.verticesForComplexSprite(iconPos, imageZig.IMAGE_HAMMER_TILE_INDICATOR, 0.5, 0.5, 1, 0, false, false, state);
         },
         .gold => {
-            _ = fontVulkanZig.paintTextGameMap("$x1.5", .{ .x = topLeft.x, .y = topLeft.y }, fontSize, textColor, &state.vkState.verticeData.font, state);
+            _ = fontVulkanZig.paintTextGameMap("$x2", .{ .x = topLeft.x, .y = topLeft.y }, fontSize, textColor, &state.vkState.verticeData.font, state);
         },
         .noBackMovement => {
             paintVulkanZig.verticesForComplexSprite(iconPos, imageZig.IMAGE_ARROW_RIGHT, 0.5, 0.5, 1, std.math.pi / 2.0, false, false, state);
@@ -594,7 +595,7 @@ fn equipmentEffect(optNewEffectType: ?EquipmentEffectTypeData, optOldEffectType:
             switch (secEffect) {
                 .hammer => player.equipment.hasWeaponHammer = true,
                 .kunai => player.equipment.hasWeaponKunai = true,
-                .gold => player.moneyBonusPerCent = 0.5,
+                .gold => player.moneyBonusPerCent = GOLD_WEAPON_BONUS,
                 .blind => player.equipment.hasBlindfold = true,
                 .oneMovePieceChoice => player.equipment.hasEyePatch = true,
                 .noBackMovement => player.equipment.hasRollerblades = true,

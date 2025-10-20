@@ -9,8 +9,12 @@ testruns:
 Tasks:
 - automated testing
     - dev steps:
-        - record player inputs
-        - replay when pressing debug key
+        - freeze time not working
+            - is wait counter off?
+        - option: make replay run as fast as possible
+            - can be taken as performance measure
+        - save to file
+            - use as automated test
         
     - deterministic behavior
         - fixed tick speed
