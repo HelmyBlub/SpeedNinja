@@ -10,7 +10,7 @@ Tasks:
 - bug: speedrun stats incorrect.
     - something wrong with continue and timer
         - shop timer wrong
-        - total time wrong
+            
 - automated testing
     - get a sense of fps: 166 fps
     - deterministic behavior

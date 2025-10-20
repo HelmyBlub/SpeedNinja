@@ -88,7 +88,7 @@ pub const ShopData = struct {
     playersOnAfkKick: u32 = 0,
     kickStartTime: ?i64 = null,
     durationToKick: i32 = 5_000,
-    preventStatsUpdate: bool = false,
+    backwardsShopEnterTime: ?i64 = null,
 };
 
 pub const SHOP_BUTTONS = [_]PlayerShopButton{
@@ -228,7 +228,15 @@ pub fn executeShopActionForPlayer(player: *playerZig.Player, state: *main.GameSt
 
 fn endShoppingPhase(state: *main.GameState) !void {
     state.gamePhase = .combat;
-    if (!state.shop.preventStatsUpdate) try statsZig.statsOnLevelShopFinishedAndNextLevelStart(state);
+    if (state.shop.backwardsShopEnterTime) |time| {
+        const passedTime = std.time.milliTimestamp() - time;
+        state.statistics.currentRunStats.levelDatas.items[state.level - 1].shoppingTime += passedTime;
+        state.statistics.totalShoppingTime += passedTime;
+        state.shop.backwardsShopEnterTime = null;
+    } else {
+        try statsZig.statsOnLevelShopFinishedAndNextLevelStart(state);
+    }
+
     for (state.players.items) |*player| {
         player.moneyOnShopLeftForSave = player.money;
     }
@@ -277,14 +285,18 @@ pub fn isPlayerInShopTrigger(player: *playerZig.Player, state: *main.GameState) 
     return main.isTilePositionInTileRectangle(playerTile, tileRectangle);
 }
 
-pub fn startShoppingPhase(state: *main.GameState, preventStatsUpdate: bool) !void {
+pub fn startShoppingPhase(state: *main.GameState, wentBackwardsToShop: bool) !void {
     state.statistics.uxData.displayBestPossibleTimeValue = null;
     if (state.level == main.LEVEL_COUNT) {
         try main.gameFinished(state);
         return;
     }
-    state.shop.preventStatsUpdate = preventStatsUpdate;
-    if (!preventStatsUpdate) try statsZig.statsOnLevelFinished(state);
+    if (wentBackwardsToShop) {
+        state.shop.backwardsShopEnterTime = std.time.milliTimestamp();
+    } else {
+        state.shop.backwardsShopEnterTime = null;
+        try statsZig.statsOnLevelFinished(state);
+    }
     state.timeFreezeStart = null;
     state.suddenDeath = 0;
     state.camera.position = .{ .x = 0, .y = 0 };

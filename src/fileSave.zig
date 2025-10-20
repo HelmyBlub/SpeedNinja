@@ -212,6 +212,11 @@ fn readAchievementData(reader: anytype, state: *main.GameState) !void {
 }
 
 fn writeTimeStatsData(writer: anytype, state: *main.GameState) !void {
+    if (state.shop.backwardsShopEnterTime) |time| {
+        const passedTime = std.time.milliTimestamp() - time;
+        state.statistics.currentRunStats.levelDatas.items[state.level - 1].shoppingTime += passedTime;
+        state.shop.backwardsShopEnterTime = null;
+    }
     _ = try writer.writeInt(u8, if (state.statistics.active) 1 else 0, .little);
     const currentRunStats = state.statistics.currentRunStats;
     _ = try writer.writeInt(u32, currentRunStats.playerCount, .little);
@@ -242,6 +247,10 @@ fn readTimeStatsData(reader: anytype, state: *main.GameState) !void {
             .shoppingTime = try reader.readInt(i64, .little),
             .round = try reader.readInt(u32, .little),
         });
+    }
+    state.statistics.totalShoppingTime = 0;
+    for (currentRunStats.levelDatas.items) |level| {
+        state.statistics.totalShoppingTime += level.shoppingTime;
     }
 }
 

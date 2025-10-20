@@ -261,15 +261,19 @@ pub fn setupVertices(state: *main.GameState) !void {
     }
     var currentY = topLeft.y + @as(f32, @floatFromInt(lastDisplayLevelWithoutMultPlusOne - firstDisplayLevelWithoutMult + 1)) * vulkanFontSize;
     if (state.statistics.uxData.displayTimeInShop) {
-        var shopppingTime = state.statistics.totalShoppingTime;
+        var shoppingTime = state.statistics.totalShoppingTime;
         if (state.gamePhase == .shopping) {
-            shopppingTime += state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - currentRunStats[state.level - 1].totalTime;
+            if (state.shop.backwardsShopEnterTime) |time| {
+                shoppingTime += state.statistics.uxData.currentTimestamp - time;
+            } else {
+                shoppingTime += state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - currentRunStats[state.level - 1].totalTime;
+            }
         }
         const textWidth = fontVulkanZig.paintText("Shop: ", .{
             .x = topLeft.x,
             .y = currentY,
         }, fontSize, textColor, &state.vkState.verticeData.font);
-        _ = try fontVulkanZig.paintTime(shopppingTime, .{
+        _ = try fontVulkanZig.paintTime(shoppingTime, .{
             .x = topLeft.x + textWidth,
             .y = currentY,
         }, fontSize, true, textColor, &state.vkState.verticeData.font);
