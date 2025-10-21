@@ -8,11 +8,6 @@ testruns:
 Tasks:
 - automated testing
     - dev steps:
-        - create automated test
-            - test successful if not game over before last input
-            - find out why only in main.zig works
-            - find out why stderr message at the end of test
-        - check gameover in replay
         - check freeze time
         - check stats deactivated
         - check achievement deactivated

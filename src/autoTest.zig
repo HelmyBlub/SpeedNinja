@@ -2,6 +2,7 @@ const std = @import("std");
 const main = @import("main.zig");
 const playerZig = @import("player.zig");
 const inputZig = @import("input.zig");
+const achievementZig = @import("achievement.zig");
 
 pub const AutoTestData = struct {
     mode: TestMode = .record,
@@ -113,6 +114,8 @@ pub fn replayRecording(state: *main.GameState) !void {
     state.autoTest.replayRunInputsIndex = 0;
     state.seededRandom.seed(state.autoTest.recording.runStartSeed);
     state.timeFreezeOnHit = state.autoTest.recording.freezeTime;
+    state.statistics.active = false;
+    achievementZig.stopTrackingAchievmentForThisRun(state);
     try main.runStart(state, state.autoTest.recording.newGamePlus);
 }
 
