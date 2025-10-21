@@ -64,7 +64,7 @@ pub fn runTestReplays() !bool {
     const startTime = std.time.milliTimestamp();
     try main.mainLoop(&state);
     const duration = std.time.milliTimestamp() - startTime;
-    std.debug.print("test duration: {d}\n", .{duration});
+    std.debug.print("test duration: {d}, gameTime: {d}\n", .{ duration, state.gameTime });
     defer main.destroyGameState(&state);
     return !state.gameOver;
 }

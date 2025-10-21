@@ -7,9 +7,6 @@ testruns:
 
 Tasks:
 - automated testing
-    - dev steps:
-        - measure time
-        
     - deterministic behavior
         - replay run to measure performance
 
@@ -21,6 +18,7 @@ Next ideas:
 - vulkan changes
     - fallback visualize when not supported
 - disable debug keys
+- linux build
 
 - pratice mode
 - pvp
