@@ -25,8 +25,8 @@ fn verticesForChoosenMoveOptionVisualization(player: *playerZig.Player, lines: *
     if (player.choosenMoveOptionIndex == null or player.moveOptions.items.len == 0) return;
 
     const index = player.choosenMoveOptionIndex.?;
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
     const zoomedTileSize = main.TILESIZE * state.camera.zoom;
     const baseWidth = zoomedTileSize * onePixelXInVulkan;
     const baseHeight = zoomedTileSize * onePixelYInVulkan;
@@ -273,8 +273,8 @@ fn verticesForArrow(vulkanX: f32, vulkanY: f32, vulkanTileWidth: f32, vulkanTile
 }
 
 pub fn verticesForFilledArrowGame(gamePosition: main.Position, size: f32, arrowDirection: u8, fillColor: [4]f32, state: *main.GameState) void {
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
     const vulkan: main.Position = .{
         .x = (gamePosition.x - state.camera.position.x - main.TILESIZE / 2) * state.camera.zoom * onePixelXInVulkan,
         .y = (gamePosition.y - state.camera.position.y - main.TILESIZE / 2) * state.camera.zoom * onePixelYInVulkan,

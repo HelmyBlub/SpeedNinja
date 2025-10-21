@@ -216,10 +216,10 @@ const UiElementSliderData = struct {
 };
 
 pub fn setupUiLocations(state: *main.GameState) void {
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
     const settingsMenuUx = &state.uxData.settingsMenuUx;
-    settingsMenuUx.uiSizeDelayed = settingsMenuUx.uiSizeSlider * windowSdlZig.windowData.heightFloat / 800;
+    settingsMenuUx.uiSizeDelayed = settingsMenuUx.uiSizeSlider * state.windowData.heightFloat / 800;
     const uiSizeFactor = settingsMenuUx.uiSizeDelayed;
     const vulkanSpacingX = SPACING_PIXELS * onePixelXInVulkan * uiSizeFactor;
     const vulkanSpacingY = SPACING_PIXELS * onePixelYInVulkan * uiSizeFactor;
@@ -235,12 +235,12 @@ pub fn setupUiLocations(state: *main.GameState) void {
         },
     };
 
-    const tabsHeight = settingsMenuUx.baseFontSize * 2 / windowSdlZig.windowData.heightFloat * uiSizeFactor + vulkanSpacingY * 2;
+    const tabsHeight = settingsMenuUx.baseFontSize * 2 / state.windowData.heightFloat * uiSizeFactor + vulkanSpacingY * 2;
     var tabOffsetX: f32 = 0;
     for (0..settingsMenuUx.uiTabs.len) |tabCount| {
         const tabIndex = settingsMenuUx.uiTabs.len - 1 - tabCount;
         const tab = &settingsMenuUx.uiTabs[tabIndex];
-        const tabTextWidth = fontVulkanZig.getTextVulkanWidth(tab.label, settingsMenuUx.baseFontSize) * uiSizeFactor;
+        const tabTextWidth = fontVulkanZig.getTextVulkanWidth(tab.label, settingsMenuUx.baseFontSize, state) * uiSizeFactor;
         const tabWidth = tabTextWidth + vulkanSpacingX * 2;
         tab.labelRec = .{
             .pos = .{ .x = 0.99 - tabWidth + tabOffsetX, .y = -1 + vulkanSpacingY + iconHeight },
@@ -250,19 +250,19 @@ pub fn setupUiLocations(state: *main.GameState) void {
         tabOffsetX -= tab.labelRec.width;
     }
     for (&settingsMenuUx.uiTabs) |*tab| {
-        settupUiLocationSingleTab(tab, settingsMenuUx.baseFontSize, uiSizeFactor);
+        settupUiLocationSingleTab(tab, settingsMenuUx.baseFontSize, uiSizeFactor, state);
         if (tab.contentRec.pos.y + tab.contentRec.height > 0.99) {
             const overAmount = (tab.contentRec.pos.y + tab.contentRec.height - 0.99);
             const cutPerCent = (overAmount / (tab.contentRec.height - overAmount)) + 1;
             const reducedUiSizeFactor = uiSizeFactor / cutPerCent;
-            settupUiLocationSingleTab(tab, settingsMenuUx.baseFontSize, reducedUiSizeFactor);
+            settupUiLocationSingleTab(tab, settingsMenuUx.baseFontSize, reducedUiSizeFactor, state);
         }
     }
 }
 
-fn settupUiLocationSingleTab(tab: *UiTabsData, baseFontSize: f32, uiSizeFactor: f32) void {
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+fn settupUiLocationSingleTab(tab: *UiTabsData, baseFontSize: f32, uiSizeFactor: f32, state: *main.GameState) void {
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
     const vulkanSpacingX = SPACING_PIXELS * onePixelXInVulkan * uiSizeFactor;
     const vulkanSpacingY = SPACING_PIXELS * onePixelYInVulkan * uiSizeFactor;
     const vulkanSpacingLargerY = 20.0 * onePixelYInVulkan * uiSizeFactor;
@@ -281,9 +281,9 @@ fn settupUiLocationSingleTab(tab: *UiTabsData, baseFontSize: f32, uiSizeFactor: 
     for (tab.uiElements) |*element| {
         switch (element.typeData) {
             .holdButton => |*data| {
-                const textWidthEstimate = fontVulkanZig.getTextVulkanWidth(data.label, baseFontSize) * uiSizeFactor;
+                const textWidthEstimate = fontVulkanZig.getTextVulkanWidth(data.label, baseFontSize, state) * uiSizeFactor;
                 data.rec = main.Rectangle{
-                    .height = data.baseHeight / windowSdlZig.windowData.heightFloat * uiSizeFactor,
+                    .height = data.baseHeight / state.windowData.heightFloat * uiSizeFactor,
                     .width = textWidthEstimate + vulkanSpacingX * 2,
                     .pos = .{
                         .x = tab.contentRec.pos.x + vulkanSpacingX,
@@ -308,14 +308,14 @@ fn settupUiLocationSingleTab(tab: *UiTabsData, baseFontSize: f32, uiSizeFactor: 
             },
             .checkbox => |*data| {
                 data.rec = main.Rectangle{
-                    .height = data.baseSize / windowSdlZig.windowData.heightFloat * uiSizeFactor,
-                    .width = data.baseSize / windowSdlZig.windowData.widthFloat * uiSizeFactor,
+                    .height = data.baseSize / state.windowData.heightFloat * uiSizeFactor,
+                    .width = data.baseSize / state.windowData.widthFloat * uiSizeFactor,
                     .pos = .{
                         .x = tab.contentRec.pos.x + vulkanSpacingX,
                         .y = offsetY + vulkanSpacingLargerY,
                     },
                 };
-                const textWidthEstimate = fontVulkanZig.getTextVulkanWidth(data.label, baseFontSize) * uiSizeFactor;
+                const textWidthEstimate = fontVulkanZig.getTextVulkanWidth(data.label, baseFontSize, state) * uiSizeFactor;
                 var widthEstimate = textWidthEstimate + data.rec.width + vulkanSpacingX * 3;
                 if (element.information != null) {
                     element.informationHoverRec = .{
@@ -336,16 +336,16 @@ fn settupUiLocationSingleTab(tab: *UiTabsData, baseFontSize: f32, uiSizeFactor: 
                 const labelOffsetY = baseFontSize * onePixelYInVulkan * uiSizeFactor;
                 offsetY += labelOffsetY;
                 data.sliderWidth = sliderWidth;
-                data.sliderHeight = data.baseHeight / windowSdlZig.windowData.heightFloat * uiSizeFactor;
+                data.sliderHeight = data.baseHeight / state.windowData.heightFloat * uiSizeFactor;
                 data.recDragArea = main.Rectangle{
-                    .height = data.baseHeight / 4 / windowSdlZig.windowData.heightFloat * uiSizeFactor,
+                    .height = data.baseHeight / 4 / state.windowData.heightFloat * uiSizeFactor,
                     .width = dragAreaWidth,
                     .pos = .{
                         .x = tab.contentRec.pos.x + sliderWidth / 2 + vulkanSpacingX,
-                        .y = offsetY + vulkanSpacingLargerY + data.baseHeight / 8 * 3 / windowSdlZig.windowData.heightFloat * uiSizeFactor,
+                        .y = offsetY + vulkanSpacingLargerY + data.baseHeight / 8 * 3 / state.windowData.heightFloat * uiSizeFactor,
                     },
                 };
-                const textWidthEstimate = fontVulkanZig.getTextVulkanWidth(data.label, baseFontSize) * uiSizeFactor;
+                const textWidthEstimate = fontVulkanZig.getTextVulkanWidth(data.label, baseFontSize, state) * uiSizeFactor;
                 const numberWidthEstimate = baseFontSize * uiSizeFactor * 3 * onePixelXInVulkan + vulkanSpacingX * 2;
                 var widthEstimate = @max(dragAreaWidth + sliderWidth, textWidthEstimate + numberWidthEstimate) + vulkanSpacingX * 2;
                 if (element.information != null) {
@@ -363,9 +363,9 @@ fn settupUiLocationSingleTab(tab: *UiTabsData, baseFontSize: f32, uiSizeFactor: 
                 offsetY = offsetY + vulkanSpacingLargerY + data.sliderHeight;
             },
             .text => |*data| {
-                const textWidthEstimate = fontVulkanZig.getTextVulkanWidth(data.label, baseFontSize) * uiSizeFactor;
+                const textWidthEstimate = fontVulkanZig.getTextVulkanWidth(data.label, baseFontSize, state) * uiSizeFactor;
                 data.rec = main.Rectangle{
-                    .height = data.baseHeight / windowSdlZig.windowData.heightFloat * uiSizeFactor,
+                    .height = data.baseHeight / state.windowData.heightFloat * uiSizeFactor,
                     .width = textWidthEstimate + vulkanSpacingX * 2,
                     .pos = .{
                         .x = tab.contentRec.pos.x + vulkanSpacingX,
@@ -582,8 +582,8 @@ pub fn tick(state: *main.GameState) !void {
 }
 
 pub fn setupVertices(state: *main.GameState) !void {
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
     const verticeData = &state.vkState.verticeData;
     const buttonFillColor: [4]f32 = .{ 0.7, 0.7, 0.7, 1 };
     const hoverColor: [4]f32 = .{ 0.4, 0.4, 0.4, 1 };
@@ -613,7 +613,7 @@ pub fn setupVertices(state: *main.GameState) !void {
             const textWidth = fontVulkanZig.paintText(tab.label, .{
                 .x = tab.labelRec.pos.x + vulkanSpacingX,
                 .y = tab.labelRec.pos.y + vulkanSpacingY,
-            }, fontSize, .{ 1, 1, 1, tabsAlpha }, &verticeData.font);
+            }, fontSize, .{ 1, 1, 1, tabsAlpha }, state);
             if (tabIndex == settingsMenuUx.activeTabIndex) {
                 const lines = &verticeData.lines;
                 if (lines.verticeCount + 16 < lines.vertices.len) {
@@ -662,7 +662,7 @@ pub fn setupVertices(state: *main.GameState) !void {
                     _ = fontVulkanZig.paintText(data.label, .{
                         .x = data.rec.pos.x,
                         .y = data.rec.pos.y + (data.rec.height - tabFontVulkanHeight) / 2,
-                    }, tabFontSize, elementTextColor, &verticeData.font);
+                    }, tabFontSize, elementTextColor, state);
                 },
                 .checkbox => |*data| {
                     const checkboxFillColor = if (data.hovering and element.active) hoverColor else buttonFillColor;
@@ -670,7 +670,7 @@ pub fn setupVertices(state: *main.GameState) !void {
                     _ = fontVulkanZig.paintText(data.label, .{
                         .x = data.rec.pos.x + data.rec.width * 1.05,
                         .y = data.rec.pos.y - data.rec.height * 0.1,
-                    }, tabFontSize, elementTextColor, &verticeData.font);
+                    }, tabFontSize, elementTextColor, state);
                     if (data.checked) {
                         paintVulkanZig.verticesForComplexSpriteVulkan(.{
                             .x = data.rec.pos.x + data.rec.width / 2,
@@ -693,7 +693,7 @@ pub fn setupVertices(state: *main.GameState) !void {
                         .{ .x = data.recDragArea.pos.x, .y = recSlider.pos.y - tabFontVulkanHeight },
                         tabFontSize,
                         elementTextColor,
-                        &verticeData.font,
+                        state,
                     );
                     const displayValue = if (data.altDisplayValue) |alt| alt else @as(i32, @intFromFloat(data.valuePerCent * 100));
                     _ = try fontVulkanZig.paintNumber(
@@ -701,14 +701,14 @@ pub fn setupVertices(state: *main.GameState) !void {
                         .{ .x = data.recDragArea.pos.x + textWidthSlider + tabFontSize * onePixelXInVulkan, .y = recSlider.pos.y - tabFontVulkanHeight },
                         tabFontSize,
                         elementTextColor,
-                        &verticeData.font,
+                        state,
                     );
                 },
                 .text => |*data| {
                     _ = fontVulkanZig.paintText(data.label, .{
                         .x = data.rec.pos.x,
                         .y = data.rec.pos.y + (data.rec.height - tabFontVulkanHeight) / 2,
-                    }, tabFontSize, elementTextColor, &verticeData.font);
+                    }, tabFontSize, elementTextColor, state);
                 },
             }
             if (element.active and element.information != null) {
@@ -718,7 +718,7 @@ pub fn setupVertices(state: *main.GameState) !void {
                 _ = fontVulkanZig.paintText("I", .{
                     .x = infoRec.pos.x + infoRec.width / 2 - tabFontSize * onePixelXInVulkan / 4,
                     .y = infoRec.pos.y + vulkanSpacingY,
-                }, tabFontSize, elementTextColor, &verticeData.font);
+                }, tabFontSize, elementTextColor, state);
             }
         }
     }
@@ -760,8 +760,7 @@ fn onHoldButtonQuit(state: *main.GameState) anyerror!void {
 }
 
 fn onCheckboxFullscreen(checked: bool, state: *main.GameState) anyerror!void {
-    _ = state;
-    _ = windowSdlZig.setFullscreen(checked);
+    _ = windowSdlZig.setFullscreen(checked, state);
 }
 
 fn onCheckboxFreezeOnHit(checked: bool, state: *main.GameState) anyerror!void {

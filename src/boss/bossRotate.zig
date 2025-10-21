@@ -185,8 +185,8 @@ fn setupVerticesGround(boss: *bossZig.Boss, state: *main.GameState) !void {
 
     const lines = &state.vkState.verticeData.lines;
     const color: [4]f32 = .{ 0.0, 0.0, 0.0, 1 };
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
     const fromVulkan: main.Position = .{
         .x = (boss.position.x - state.camera.position.x) * state.camera.zoom * onePixelXInVulkan,
         .y = (boss.position.y - state.camera.position.y) * state.camera.zoom * onePixelYInVulkan,

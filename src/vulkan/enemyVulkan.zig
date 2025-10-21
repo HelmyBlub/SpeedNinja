@@ -47,8 +47,8 @@ pub fn addWarningTileSprites(gamePosition: main.Position, fillPerCent: f32, stat
 fn addWarningTileSpritesWithImageIndex(gamePosition: main.Position, fillPerCent: f32, imageIndex: u8, imageIndexFilled: u8, state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
     if (verticeData.spritesComplex.verticeCount + 12 >= verticeData.spritesComplex.vertices.len) return;
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
     const imageData = imageZig.IMAGE_DATA[imageZig.IMAGE_WARNING_TILE];
     const scaling = 2;
     const halfSizeWidth: f32 = @as(f32, @floatFromInt(imageData.width)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scaling;
@@ -109,8 +109,8 @@ fn setupVerticesGroundStepFunction(pos: main.TilePosition, visualizedDirection: 
 pub fn addRedArrowTileSprites(gamePosition: main.Position, fillPerCent: f32, rotation: f32, state: *main.GameState) void {
     const verticeData = &state.vkState.verticeData;
     if (verticeData.spritesComplex.verticeCount + 12 >= verticeData.spritesComplex.vertices.len) return;
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
     const imageData = imageZig.IMAGE_DATA[imageZig.IMAGE_WARNING_TILE];
     const scaling = 2;
     const halfSizeWidth: f32 = @as(f32, @floatFromInt(imageData.width)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scaling;

@@ -6,21 +6,20 @@ testruns:
 
 
 Tasks:
+- move windowData into state
 - automated testing
-    - deterministic behavior
-        - replay run to measure performance
-    - should not save times
+    - check performance change when: onePiexelXVulkan calculation only once
     - bug: on application restart seedrun timer incorrect
+        - could not reproduce
+- check why paintNumberSameWidth not used?
+- check if neeed to use mouseWindowPositionToGameMapPoisition somewhere
 
 Test Performance:
     test duration: 105812, gameTime: 2301390
     test duration: 107266, gameTime: 2301390
+    test duration: 108257, gameTime: 2301390 (with windowdata into state)
 
 Next ideas:    
-- code performance
-    - automated testing
-    - check performance change when: onePiexelXVulkan calculation only once
-
 - vulkan changes
     - fallback visualize when not supported
 - disable debug keys

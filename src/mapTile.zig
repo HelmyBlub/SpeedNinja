@@ -126,8 +126,8 @@ pub fn resetMapTiles(tiles: []MapTileType) void {
 }
 
 pub fn setupVertices(state: *main.GameState) void {
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
     const width = onePixelXInVulkan * main.TILESIZE * state.camera.zoom;
     const height = onePixelYInVulkan * main.TILESIZE * state.camera.zoom;
     for (0..state.mapData.tiles.len) |i| {
@@ -166,8 +166,8 @@ pub fn setupVertices(state: *main.GameState) void {
 }
 
 fn stoneWallVertices(state: *main.GameState) void {
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
     const iRadiusWidth: i32 = @intCast(state.mapData.tileRadiusWidth);
     const platformGameBottom: f32 = @floatFromInt((state.mapData.tileRadiusHeight + 1) * main.TILESIZE);
     const platformGameLeft: f32 = @floatFromInt(-iRadiusWidth * main.TILESIZE);

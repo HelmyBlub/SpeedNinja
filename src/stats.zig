@@ -196,8 +196,8 @@ pub fn setupVertices(state: *main.GameState) !void {
     if (state.level == 0) return;
     state.statistics.uxData.currentTimestamp = std.time.milliTimestamp();
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
     const topLeft: main.Position = state.statistics.uxData.vulkanPosition;
     const bestRunStats: []BestLevelStatistics = try getBestRunStats(state);
     const currentRunStats = state.statistics.currentRunStats.levelDatas.items;
@@ -209,27 +209,27 @@ pub fn setupVertices(state: *main.GameState) !void {
         const playerCountWidth = fontVulkanZig.paintText("Stats for player count: ", .{
             .x = topLeft.x,
             .y = topLeft.y - vulkanFontSize,
-        }, fontSize, textColor, &state.vkState.verticeData.font);
+        }, fontSize, textColor, state);
         if (state.statistics.currentRunStats.playerCount == 0) {
             _ = fontVulkanZig.paintText("Mixed", .{
                 .x = topLeft.x + playerCountWidth,
                 .y = topLeft.y - vulkanFontSize,
-            }, fontSize, textColor, &state.vkState.verticeData.font);
+            }, fontSize, textColor, state);
         } else {
             _ = try fontVulkanZig.paintNumber(state.statistics.currentRunStats.playerCount, .{
                 .x = topLeft.x + playerCountWidth,
                 .y = topLeft.y - vulkanFontSize,
-            }, fontSize, textColor, &state.vkState.verticeData.font);
+            }, fontSize, textColor, state);
         }
     }
     for (state.statistics.uxData.columnsData) |column| {
         if (!column.display) continue;
         const columnWidth = column.pixelWidth * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
-        const textWidht = fontVulkanZig.getTextVulkanWidth(column.name, fontSize);
+        const textWidht = fontVulkanZig.getTextVulkanWidth(column.name, fontSize, state);
         _ = fontVulkanZig.paintText(column.name, .{
             .x = topLeft.x + columnOffsetX + columnWidth - textWidht,
             .y = topLeft.y,
-        }, fontSize, textColor, &state.vkState.verticeData.font);
+        }, fontSize, textColor, state);
         columnOffsetX += columnWidth;
     }
     var firstDisplayLevelWithoutMult: usize = 0;
@@ -272,11 +272,11 @@ pub fn setupVertices(state: *main.GameState) !void {
         const textWidth = fontVulkanZig.paintText("Shop: ", .{
             .x = topLeft.x,
             .y = currentY,
-        }, fontSize, textColor, &state.vkState.verticeData.font);
+        }, fontSize, textColor, state);
         _ = try fontVulkanZig.paintTime(shoppingTime, .{
             .x = topLeft.x + textWidth,
             .y = currentY,
-        }, fontSize, true, textColor, &state.vkState.verticeData.font);
+        }, fontSize, true, textColor, state);
         currentY += vulkanFontSize;
     }
     currentY += vulkanFontSize;
@@ -364,39 +364,39 @@ fn displayTextNumberTextTime(text1: []const u8, number: anytype, text2: []const 
     textWidth += fontVulkanZig.paintText(text1, .{
         .x = topLeft.x + textWidth,
         .y = topLeft.y,
-    }, fontSize, textColor, &state.vkState.verticeData.font);
+    }, fontSize, textColor, state);
     textWidth += try fontVulkanZig.paintNumber(number, .{
         .x = topLeft.x + textWidth,
         .y = topLeft.y,
-    }, fontSize, textColor, &state.vkState.verticeData.font);
+    }, fontSize, textColor, state);
     textWidth += fontVulkanZig.paintText(text2, .{
         .x = topLeft.x + textWidth,
         .y = topLeft.y,
-    }, fontSize, textColor, &state.vkState.verticeData.font);
+    }, fontSize, textColor, state);
     _ = try fontVulkanZig.paintTime(time, .{
         .x = topLeft.x + textWidth,
         .y = topLeft.y,
-    }, fontSize, true, textColor, &state.vkState.verticeData.font);
+    }, fontSize, true, textColor, state);
 }
 
 fn setupVerticesLevel(level: u32, bestRunStats: []BestLevelStatistics, paintPos: main.Position, columnData: ColumnData, state: *main.GameState) anyerror!void {
     _ = bestRunStats;
     const currentDisplayLevelOfPlayer = if (state.statistics.uxData.groupingLevelsInFive) @divFloor(state.level + 4, 5) * 5 else state.level;
     const alpha: f32 = if (level > currentDisplayLevelOfPlayer) 0.5 else 1;
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
     const columnWidth = columnData.pixelWidth * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
-    const textWidth = fontVulkanZig.getTextVulkanWidth(columnData.name, state.statistics.uxData.fontSize);
+    const textWidth = fontVulkanZig.getTextVulkanWidth(columnData.name, state.statistics.uxData.fontSize, state);
     _ = try fontVulkanZig.paintNumber(level, .{
         .x = paintPos.x + columnWidth - textWidth,
         .y = paintPos.y,
-    }, state.statistics.uxData.fontSize, .{ 1, 1, 1, alpha }, &state.vkState.verticeData.font);
+    }, state.statistics.uxData.fontSize, .{ 1, 1, 1, alpha }, state);
 }
 
 fn setupVerticesTime(level: u32, bestRunStats: []BestLevelStatistics, paintPos: main.Position, columnData: ColumnData, state: *main.GameState) anyerror!void {
     const currentDisplayLevelOfPlayer = if (state.statistics.uxData.groupingLevelsInFive) @divFloor(state.level + 4, 5) * 5 else state.level;
     const alpha: f32 = if (level > currentDisplayLevelOfPlayer) 0.5 else 1;
     const textColor: [4]f32 = .{ 1, 1, 1, alpha };
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
     const columnWidth = columnData.pixelWidth * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
     const currentLevelData = state.statistics.currentRunStats.levelDatas.items;
     var displayTime: i64 = if (currentLevelData.len >= level) currentLevelData[level - 1].totalTime else 0;
@@ -408,15 +408,15 @@ fn setupVerticesTime(level: u32, bestRunStats: []BestLevelStatistics, paintPos: 
         if (bestRunStats.len >= level and bestRunStats[level - 1].totalTime != null) {
             displayTime = bestRunStats[level - 1].totalTime.?;
         } else {
-            const textWidht = fontVulkanZig.getTextVulkanWidth("--", state.statistics.uxData.fontSize);
+            const textWidht = fontVulkanZig.getTextVulkanWidth("--", state.statistics.uxData.fontSize, state);
             const paintX = paintPos.x + columnWidth - textWidht;
-            _ = fontVulkanZig.paintText("--", .{ .x = paintX, .y = paintPos.y }, state.statistics.uxData.fontSize, textColor, &state.vkState.verticeData.font);
+            _ = fontVulkanZig.paintText("--", .{ .x = paintX, .y = paintPos.y }, state.statistics.uxData.fontSize, textColor, state);
             return;
         }
     }
-    const textWidht = try fontVulkanZig.getTimeTextVulkanWidth(displayTime, state.statistics.uxData.fontSize, true);
+    const textWidht = try fontVulkanZig.getTimeTextVulkanWidth(displayTime, state.statistics.uxData.fontSize, true, state);
     const paintX = paintPos.x + columnWidth - textWidht;
-    _ = try fontVulkanZig.paintTime(displayTime, .{ .x = paintX, .y = paintPos.y }, state.statistics.uxData.fontSize, true, textColor, &state.vkState.verticeData.font);
+    _ = try fontVulkanZig.paintTime(displayTime, .{ .x = paintX, .y = paintPos.y }, state.statistics.uxData.fontSize, true, textColor, state);
 }
 
 fn setupVerticesLevelDiff(level: u32, bestRunStats: []BestLevelStatistics, paintPos: main.Position, columnData: ColumnData, state: *main.GameState) anyerror!void {
@@ -429,14 +429,14 @@ fn setupVerticesLevelDiff(level: u32, bestRunStats: []BestLevelStatistics, paint
                 fastestTime += bestRunStats[level - i - 1].time.?;
             }
         }
-        const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+        const onePixelXInVulkan = 2 / state.windowData.widthFloat;
         const columnWidth = columnData.pixelWidth * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
         const fontSize = state.statistics.uxData.fontSize;
         const currentDisplayLevelOfPlayer = if (state.statistics.uxData.groupingLevelsInFive) @divFloor(state.level - 1, 5) * 5 + 5 else state.level;
         if (level > currentDisplayLevelOfPlayer) {
-            const textWidht = try fontVulkanZig.getTimeTextVulkanWidth(fastestTime, fontSize, true);
+            const textWidht = try fontVulkanZig.getTimeTextVulkanWidth(fastestTime, fontSize, true, state);
             const paintX = paintPos.x + columnWidth - textWidht;
-            _ = try fontVulkanZig.paintTime(fastestTime, .{ .x = paintX, .y = paintPos.y }, fontSize, true, .{ 1, 1, 1, 0.5 }, &state.vkState.verticeData.font);
+            _ = try fontVulkanZig.paintTime(fastestTime, .{ .x = paintX, .y = paintPos.y }, fontSize, true, .{ 1, 1, 1, 0.5 }, state);
         } else {
             const red: [4]f32 = .{ 0.7, 0, 0, 1 };
             const green: [4]f32 = .{ 0.1, 1, 0.1, 1 };
@@ -479,15 +479,15 @@ fn setupVerticesLevelDiff(level: u32, bestRunStats: []BestLevelStatistics, paint
             }
             const diff = levelCurrentTime - fastestTime;
             const color = if (diff > 0) red else green;
-            const textWidht = try fontVulkanZig.getTimeTextVulkanWidth(diff, fontSize, true);
+            const textWidht = try fontVulkanZig.getTimeTextVulkanWidth(diff, fontSize, true, state);
             if (diff > 0) {
-                const textPlusWidht = fontVulkanZig.getTextVulkanWidth("+", fontSize);
+                const textPlusWidht = fontVulkanZig.getTextVulkanWidth("+", fontSize, state);
                 const paintX = paintPos.x + columnWidth - textWidht - textPlusWidht;
-                const plusWidth = fontVulkanZig.paintText("+", .{ .x = paintX, .y = paintPos.y }, fontSize, color, &state.vkState.verticeData.font);
-                _ = try fontVulkanZig.paintTime(diff, .{ .x = paintX + plusWidth, .y = paintPos.y }, fontSize, true, color, &state.vkState.verticeData.font);
+                const plusWidth = fontVulkanZig.paintText("+", .{ .x = paintX, .y = paintPos.y }, fontSize, color, state);
+                _ = try fontVulkanZig.paintTime(diff, .{ .x = paintX + plusWidth, .y = paintPos.y }, fontSize, true, color, state);
             } else {
                 const paintX = paintPos.x + columnWidth - textWidht;
-                _ = try fontVulkanZig.paintTime(diff, .{ .x = paintX, .y = paintPos.y }, fontSize, true, color, &state.vkState.verticeData.font);
+                _ = try fontVulkanZig.paintTime(diff, .{ .x = paintX, .y = paintPos.y }, fontSize, true, color, state);
             }
         }
     }
@@ -497,7 +497,7 @@ fn setupVerticesTotalDiff(level: u32, bestRunStats: []BestLevelStatistics, paint
     if (level - 1 >= bestRunStats.len) return;
     const bestLevelData = bestRunStats[level - 1];
     if (bestLevelData.totalTime) |fastestTime| {
-        const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
+        const onePixelXInVulkan = 2 / state.windowData.widthFloat;
         const columnWidth = columnData.pixelWidth * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
         const fontSize = state.statistics.uxData.fontSize;
         const currentDisplayLevelOfPlayer = if (state.statistics.uxData.groupingLevelsInFive) @divFloor(state.level - 1, 5) * 5 + 5 else state.level;
@@ -512,15 +512,15 @@ fn setupVerticesTotalDiff(level: u32, bestRunStats: []BestLevelStatistics, paint
             }
 
             const color: [4]f32 = if (diffTotal > 0) red else green;
-            const textWidht = try fontVulkanZig.getTimeTextVulkanWidth(diffTotal, fontSize, true);
+            const textWidht = try fontVulkanZig.getTimeTextVulkanWidth(diffTotal, fontSize, true, state);
             if (diffTotal > 0) {
-                const textPlusWidht = fontVulkanZig.getTextVulkanWidth("+", fontSize);
+                const textPlusWidht = fontVulkanZig.getTextVulkanWidth("+", fontSize, state);
                 const paintX = paintPos.x + columnWidth - textWidht - textPlusWidht;
-                const plusWidth = fontVulkanZig.paintText("+", .{ .x = paintX, .y = paintPos.y }, fontSize, color, &state.vkState.verticeData.font);
-                _ = try fontVulkanZig.paintTime(diffTotal, .{ .x = paintX + plusWidth, .y = paintPos.y }, fontSize, true, color, &state.vkState.verticeData.font);
+                const plusWidth = fontVulkanZig.paintText("+", .{ .x = paintX, .y = paintPos.y }, fontSize, color, state);
+                _ = try fontVulkanZig.paintTime(diffTotal, .{ .x = paintX + plusWidth, .y = paintPos.y }, fontSize, true, color, state);
             } else {
                 const paintX = paintPos.x + columnWidth - textWidht;
-                _ = try fontVulkanZig.paintTime(diffTotal, .{ .x = paintX, .y = paintPos.y }, fontSize, true, color, &state.vkState.verticeData.font);
+                _ = try fontVulkanZig.paintTime(diffTotal, .{ .x = paintX, .y = paintPos.y }, fontSize, true, color, state);
             }
         }
     }

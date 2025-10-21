@@ -225,8 +225,8 @@ pub fn verticesForComplexSprite(gamePosition: main.Position, imageIndex: u8, sca
 
 pub fn verticesForComplexSpriteVulkan(vulkanPosition: main.Position, imageIndex: u8, width: f32, height: f32, alpha: f32, rotation: f32, mirrorX: bool, mirrorY: bool, state: *main.GameState) void {
     if (state.vkState.verticeData.spritesComplex.verticeCount + 6 >= state.vkState.verticeData.spritesComplex.vertices.len) return;
-    const halfSizeWidth: f32 = width / windowSdlZig.windowData.widthFloat;
-    const halfSizeHeight: f32 = height / windowSdlZig.windowData.heightFloat;
+    const halfSizeWidth: f32 = width / state.windowData.widthFloat;
+    const halfSizeHeight: f32 = height / state.windowData.heightFloat;
     const points = [_]main.Position{
         main.Position{ .x = -halfSizeWidth, .y = halfSizeHeight },
         main.Position{ .x = -halfSizeWidth, .y = -halfSizeHeight },
@@ -270,8 +270,8 @@ pub fn verticesForComplexSpriteWithCut(gamePosition: main.Position, imageIndex: 
 pub fn verticesForComplexSpriteAnimated(gamePosition: main.Position, imageIndex: u8, animatePerCent: f32, scaling: f32, state: *main.GameState) void {
     const vkSpriteComplex = &state.vkState.verticeData.spritesComplex;
     if (vkSpriteComplex.verticeCount + 6 >= vkSpriteComplex.vertices.len) return;
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
     const imageData = imageZig.IMAGE_DATA[imageIndex];
     const imageToGameSizeFactor: f32 = imageData.scale / imageZig.IMAGE_TO_GAME_SIZE;
     const size: f32 = @as(f32, @floatFromInt(imageData.height)) * imageToGameSizeFactor;
@@ -324,8 +324,8 @@ fn pointsToVertices(
 ) void {
     const vkSpriteComplex = &state.vkState.verticeData.spritesComplex;
     if (vkSpriteComplex.verticeCount + (points.len - 2) * 3 >= vkSpriteComplex.vertices.len) return;
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
     const pivot: main.Position = .{ .x = 0, .y = 0 };
     for (0..points.len - 2) |i| {
         const pointsIndexes = [_]usize{ i, i + 1 + @mod(i, 2), i + 2 - @mod(i, 2) };
@@ -385,8 +385,8 @@ fn pointsToVerticesVulkan(
             };
             var rotatedOffset = scaledCornerPosOffset;
             if (rotation != 0) {
-                const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-                const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+                const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+                const onePixelYInVulkan = 2 / state.windowData.heightFloat;
                 rotatedOffset.x /= onePixelXInVulkan;
                 rotatedOffset.y /= onePixelYInVulkan;
                 rotatedOffset = main.rotateAroundPoint(rotatedOffset, pivot, rotation);
@@ -415,8 +415,8 @@ fn pointsToVerticesVulkan(
 }
 
 pub fn verticesForStairsWithText(tileRectangle: main.TileRectangle, optText: ?[]const u8, playerCountCheck: u32, state: *main.GameState) !void {
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
     const stairsRecTopLeft: main.Position = .{
         .x = @floatFromInt(tileRectangle.pos.x * main.TILESIZE),
         .y = @floatFromInt(tileRectangle.pos.y * main.TILESIZE),
@@ -453,15 +453,15 @@ pub fn verticesForStairsWithText(tileRectangle: main.TileRectangle, optText: ?[]
             .y = stairsRecTopLeft.y - main.TILESIZE / 2 - fontSize,
         };
         var textWidth: f32 = 0;
-        textWidth += try fontVulkanZig.paintNumberGameMap(playerCountCheck, textPos, fontSize, textColor, &state.vkState.verticeData.font, state);
+        textWidth += try fontVulkanZig.paintNumberGameMap(playerCountCheck, textPos, fontSize, textColor, state);
         textWidth += fontVulkanZig.paintTextGameMap("/", .{
             .x = textPos.x + textWidth,
             .y = textPos.y,
-        }, fontSize, textColor, &state.vkState.verticeData.font, state);
+        }, fontSize, textColor, state);
         textWidth += try fontVulkanZig.paintNumberGameMap(state.players.items.len, .{
             .x = textPos.x + textWidth,
             .y = textPos.y,
-        }, fontSize, textColor, &state.vkState.verticeData.font, state);
+        }, fontSize, textColor, state);
         verticesForComplexSprite(
             .{ .x = textPos.x + textWidth + fontSize, .y = textPos.y + fontSize / 2 },
             imageZig.IMAGE_CHECKMARK,
@@ -484,7 +484,7 @@ pub fn verticesForStairsWithText(tileRectangle: main.TileRectangle, optText: ?[]
         _ = fontVulkanZig.paintTextGameMap(text, .{
             .x = textPos.x,
             .y = textPos.y,
-        }, fontSize, textColor, &state.vkState.verticeData.font, state);
+        }, fontSize, textColor, state);
     }
 }
 
@@ -492,8 +492,8 @@ pub fn addTiranglesForSpriteWithBend(gamePosition: main.Position, imageAnkerPosi
     const scale: main.Position = if (optScale) |s| s else .{ .x = 1, .y = 1 };
     const verticeData = &state.vkState.verticeData;
     if (verticeData.spritesComplex.vertices.len <= verticeData.spritesComplex.verticeCount + 24) return;
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
     const imageData = imageZig.IMAGE_DATA[imageIndex];
     const halfSizeWidth: f32 = @as(f32, @floatFromInt(imageData.width)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scale.x;
     const halfSizeHeight: f32 = @as(f32, @floatFromInt(imageData.height)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scale.y;
@@ -787,8 +787,8 @@ pub fn setupVertexDataForGPU(vkState: *initVulkanZig.VkState) !void {
 fn updateUniformBuffer(state: *main.GameState) !void {
     var ubo: dataVulkanZig.VkCameraData = .{
         .transform = .{
-            .{ 2 / windowSdlZig.windowData.widthFloat, 0, 0.0, 0.0 },
-            .{ 0, 2 / windowSdlZig.windowData.heightFloat, 0.0, 0.0 },
+            .{ 2 / state.windowData.widthFloat, 0, 0.0, 0.0 },
+            .{ 0, 2 / state.windowData.heightFloat, 0.0, 0.0 },
             .{ 0.0, 0.0, 1.0, 0.0 },
             .{ 0.0, 0.0, 0.0, 1 / state.camera.zoom },
         },
@@ -803,8 +803,8 @@ fn updateUniformBuffer(state: *main.GameState) !void {
 }
 
 pub fn verticesForGameRectangle(gameRectangle: main.Rectangle, fillColor: [4]f32, state: *main.GameState) void {
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
     const width = onePixelXInVulkan * gameRectangle.width * state.camera.zoom;
     const height = onePixelYInVulkan * gameRectangle.height * state.camera.zoom;
     const vulkan: main.Position = .{

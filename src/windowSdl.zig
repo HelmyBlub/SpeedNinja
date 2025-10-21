@@ -20,40 +20,38 @@ pub const WindowData = struct {
     heightFloat: f32 = 800,
 };
 
-pub var windowData: WindowData = .{};
-
-pub fn initWindowSdl() !void {
+pub fn initWindowSdl(state: *main.GameState) !void {
     _ = sdl.SDL_Init(sdl.SDL_INIT_VIDEO | sdl.SDL_INIT_AUDIO | sdl.SDL_INIT_GAMEPAD);
     const flags = sdl.SDL_WINDOW_VULKAN | sdl.SDL_WINDOW_RESIZABLE;
-    windowData.window = try (sdl.SDL_CreateWindow("Speed Tactic Ninja", @intFromFloat(windowData.widthFloat), @intFromFloat(windowData.heightFloat), flags) orelse error.createWindow);
-    _ = sdl.SDL_ShowWindow(windowData.window);
+    state.windowData.window = try (sdl.SDL_CreateWindow("Speed Tactic Ninja", @intFromFloat(state.windowData.widthFloat), @intFromFloat(state.windowData.heightFloat), flags) orelse error.createWindow);
+    _ = sdl.SDL_ShowWindow(state.windowData.window);
 }
 
-pub fn destroyWindowSdl() void {
-    sdl.SDL_DestroyWindow(windowData.window);
+pub fn destroyWindowSdl(state: *main.GameState) void {
+    sdl.SDL_DestroyWindow(state.windowData.window);
     sdl.SDL_Quit();
 }
 
-pub fn getSurfaceForVulkan(instance: sdl.VkInstance) sdl.VkSurfaceKHR {
+pub fn getSurfaceForVulkan(instance: sdl.VkInstance, state: *main.GameState) sdl.VkSurfaceKHR {
     var surface: sdl.VkSurfaceKHR = undefined;
-    _ = sdl.SDL_Vulkan_CreateSurface(windowData.window, instance, null, &surface);
+    _ = sdl.SDL_Vulkan_CreateSurface(state.windowData.window, instance, null, &surface);
     return surface;
 }
 
-pub fn getWindowSize(width: *u32, height: *u32) void {
+pub fn getWindowSize(width: *u32, height: *u32, state: *main.GameState) void {
     var w: c_int = undefined;
     var h: c_int = undefined;
-    _ = sdl.SDL_GetWindowSize(windowData.window, &w, &h);
+    _ = sdl.SDL_GetWindowSize(state.windowData.window, &w, &h);
     width.* = @intCast(w);
     height.* = @intCast(h);
 }
 
-pub fn setFullscreen(fullscreen: bool) void {
-    const flags = sdl.SDL_GetWindowFlags(windowData.window);
+pub fn setFullscreen(fullscreen: bool, state: *main.GameState) void {
+    const flags = sdl.SDL_GetWindowFlags(state.windowData.window);
     if (fullscreen and (flags & sdl.SDL_WINDOW_FULLSCREEN) == 0) {
-        _ = sdl.SDL_SetWindowFullscreen(windowData.window, true);
+        _ = sdl.SDL_SetWindowFullscreen(state.windowData.window, true);
     } else if (!fullscreen and (flags & sdl.SDL_WINDOW_FULLSCREEN) != 0) {
-        _ = sdl.SDL_SetWindowFullscreen(windowData.window, false);
+        _ = sdl.SDL_SetWindowFullscreen(state.windowData.window, false);
     }
 }
 
@@ -74,15 +72,15 @@ pub fn handleEvents(state: *main.GameState) !void {
         try handleGamePadEvents(event, state);
         try inputZig.handlePlayerInput(event, state);
         if (event.type == sdl.SDL_EVENT_MOUSE_MOTION) {
-            state.vulkanMousePosition = mouseWindowPositionToVulkanSurfacePoisition(event.motion.x, event.motion.y);
+            state.vulkanMousePosition = mouseWindowPositionToVulkanSurfacePoisition(event.motion.x, event.motion.y, state);
             try settingsMenuVulkanZig.mouseMove(state);
         }
         if (event.type == sdl.SDL_EVENT_MOUSE_BUTTON_DOWN) {
-            state.vulkanMousePosition = mouseWindowPositionToVulkanSurfacePoisition(event.motion.x, event.motion.y);
+            state.vulkanMousePosition = mouseWindowPositionToVulkanSurfacePoisition(event.motion.x, event.motion.y, state);
             try settingsMenuVulkanZig.mouseDown(state);
         }
         if (event.type == sdl.SDL_EVENT_MOUSE_BUTTON_UP) {
-            state.vulkanMousePosition = mouseWindowPositionToVulkanSurfacePoisition(event.motion.x, event.motion.y);
+            state.vulkanMousePosition = mouseWindowPositionToVulkanSurfacePoisition(event.motion.x, event.motion.y, state);
             try settingsMenuVulkanZig.mouseUp(state);
         }
     }
@@ -171,15 +169,15 @@ fn debugKeys(event: sdl.SDL_Event, state: *main.GameState) !void {
     }
 }
 
-pub fn mouseWindowPositionToGameMapPoisition(x: f32, y: f32, camera: main.Camera) main.Position {
+pub fn mouseWindowPositionToGameMapPoisition(x: f32, y: f32, camera: main.Camera, state: *main.GameState) main.Position {
     var width: u32 = 0;
     var height: u32 = 0;
-    getWindowSize(&width, &height);
+    getWindowSize(&width, &height, state);
     const widthFloatWindow = @as(f64, @floatFromInt(width));
     const heightFloatWindow = @as(f64, @floatFromInt(height));
 
-    const scaleToPixelX = windowData.widthFloat / widthFloatWindow;
-    const scaleToPixelY = windowData.heightFloat / heightFloatWindow;
+    const scaleToPixelX = state.windowData.widthFloat / widthFloatWindow;
+    const scaleToPixelY = state.windowData.heightFloat / heightFloatWindow;
 
     return main.Position{
         .x = (x - widthFloatWindow / 2) * scaleToPixelX / camera.zoom + camera.position.x,
@@ -187,10 +185,10 @@ pub fn mouseWindowPositionToGameMapPoisition(x: f32, y: f32, camera: main.Camera
     };
 }
 
-pub fn mouseWindowPositionToVulkanSurfacePoisition(x: f32, y: f32) main.Position {
+pub fn mouseWindowPositionToVulkanSurfacePoisition(x: f32, y: f32, state: *main.GameState) main.Position {
     var width: u32 = 0;
     var height: u32 = 0;
-    getWindowSize(&width, &height);
+    getWindowSize(&width, &height, state);
     const widthFloat = @as(f32, @floatFromInt(width));
     const heightFloat = @as(f32, @floatFromInt(height));
 

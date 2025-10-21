@@ -101,6 +101,7 @@ pub const GameState = struct {
     modeSelect: modeSelectZig.ModeSelectData = undefined,
     seededRandom: std.Random.Xoshiro256,
     autoTest: autoTestZig.AutoTestData,
+    windowData: windowSdlZig.WindowData = .{},
 };
 
 pub const GameUxData = struct {
@@ -314,7 +315,7 @@ pub fn mainLoop(state: *GameState) !void {
 fn tickGameFinished(state: *GameState) void {
     if (state.gamePhase != .finished) return;
     const fontSize = state.uxData.creditsFontSize;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
     if (state.uxData.creditsScrollStart) |creditsTime| {
         const scrollOffset: f32 = -@as(f32, @floatFromInt(state.gameTime - creditsTime)) / state.uxData.creditsScrollSpeedSlowdown;
         const scrollFinishedOffset = @as(f32, @floatFromInt(CREDITS_TEXTS.len)) * fontSize * onePixelYInVulkan + 1;
@@ -751,8 +752,8 @@ pub fn adjustZoom(state: *GameState) void {
     const stairsAdditionTileWidth: u32 = if (state.gamePhase == .combat) 3 else 0;
     const mapSizeWidth: f32 = @floatFromInt((state.mapData.tileRadiusWidth * 2 + 1 + stairsAdditionTileWidth) * TILESIZE);
     const mapSizeHeight: f32 = @floatFromInt((state.mapData.tileRadiusHeight * 2 + 1) * TILESIZE);
-    const widthPerCent = mapSizeWidth / windowSdlZig.windowData.widthFloat;
-    const heightPerCent = mapSizeHeight / windowSdlZig.windowData.heightFloat;
+    const widthPerCent = mapSizeWidth / state.windowData.widthFloat;
+    const heightPerCent = mapSizeHeight / state.windowData.heightFloat;
     state.uxData.gameVulkanArea.width = 1.5;
     state.uxData.gameVulkanArea.height = 1.5;
     var targetMapScreenPerCent: f32 = state.uxData.gameVulkanArea.width / 2;
@@ -768,7 +769,7 @@ pub fn adjustZoom(state: *GameState) void {
         state.camera.position.x = @as(f32, @floatFromInt(stairsAdditionTileWidth)) * TILESIZE / 2;
     }
     playerZig.determinePlayerUxPositions(state);
-    state.uxData.creditsFontSize = windowSdlZig.windowData.heightFloat * 0.15;
+    state.uxData.creditsFontSize = state.windowData.heightFloat * 0.15;
 }
 
 pub fn isGameOver(state: *GameState) bool {
@@ -795,7 +796,7 @@ pub fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
         .autoTest = .{ .recording = .{ .runEventData = std.ArrayList(autoTestZig.GameEventData).init(allocator) } },
     };
     state.allocator = allocator;
-    try windowSdlZig.initWindowSdl();
+    try windowSdlZig.initWindowSdl(state);
     try initVulkanZig.initVulkan(state);
     try soundMixerZig.createSoundMixer(state, state.allocator);
     try enemyZig.initEnemy(state);
@@ -820,7 +821,7 @@ pub fn destroyGameState(state: *GameState) void {
         std.debug.print("failed to destroy window and vulkan\n", .{});
     };
     soundMixerZig.destroySoundMixer(state);
-    windowSdlZig.destroyWindowSdl();
+    windowSdlZig.destroyWindowSdl(state);
     for (state.players.items) |*player| {
         playerZig.destroyPlayer(player, state);
     }

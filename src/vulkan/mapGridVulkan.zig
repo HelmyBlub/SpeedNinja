@@ -14,8 +14,8 @@ pub fn setupVertices(state: *main.GameState) !void {
 
     const lines = &verticeData.lines;
     const color: [4]f32 = .{ 0.25, 0.25, 0.25, 1 };
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
     const zoomedTileSize = main.TILESIZE * state.camera.zoom;
     const mapRadiusWidth: f32 = @as(f32, @floatFromInt(state.mapData.tileRadiusWidth)) * zoomedTileSize;
     const mapRadiusHeight: f32 = @as(f32, @floatFromInt(state.mapData.tileRadiusHeight)) * zoomedTileSize;
@@ -49,8 +49,8 @@ fn verticesForNewGamePlusOnGameFinished(state: *main.GameState) !void {
     if (state.gamePhase != .finished) return;
     const verticeData = &state.vkState.verticeData;
     const tileRectangle = shopZig.getShopTriggerPosition(state);
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
     const gridEnterNewGamePlusTopLeft: main.Position = .{
         .x = @floatFromInt(tileRectangle.pos.x * main.TILESIZE),
         .y = @floatFromInt(tileRectangle.pos.y * main.TILESIZE),
@@ -83,19 +83,19 @@ fn verticesForNewGamePlusOnGameFinished(state: *main.GameState) !void {
     const textWidth = fontVulkanZig.paintTextGameMap("New Game +", .{
         .x = gridEnterNewGamePlusTopLeft.x - main.TILESIZE / 2,
         .y = gridEnterNewGamePlusTopLeft.y - main.TILESIZE / 2,
-    }, fontSize, textColor, &verticeData.font, state);
+    }, fontSize, textColor, state);
     _ = try fontVulkanZig.paintNumberGameMap(state.newGamePlus + 1, .{
         .x = gridEnterNewGamePlusTopLeft.x - main.TILESIZE / 2 + textWidth,
         .y = gridEnterNewGamePlusTopLeft.y - main.TILESIZE / 2,
-    }, fontSize, textColor, &verticeData.font, state);
+    }, fontSize, textColor, state);
 }
 
 fn verticesForEnterShop(state: *main.GameState) !void {
     if (state.gamePhase != .combat) return;
     const verticeData = &state.vkState.verticeData;
     const tileRectangle = shopZig.getShopTriggerPosition(state);
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
     const gridEnterShopTopLeft: main.Position = .{
         .x = @floatFromInt(tileRectangle.pos.x * main.TILESIZE),
         .y = @floatFromInt(tileRectangle.pos.y * main.TILESIZE),
@@ -139,7 +139,7 @@ fn verticesForEnterShop(state: *main.GameState) !void {
         _ = try fontVulkanZig.paintNumberGameMap(state.roundToReachForNextLevel - state.round, .{
             .x = gridEnterShopTopLeft.x,
             .y = gridEnterShopTopLeft.y,
-        }, fontSize, textColor, &verticeData.font, state);
+        }, fontSize, textColor, state);
     } else if (state.gateOpenTime != null and state.gateOpenTime.? + GATE_OPEN_DURATION > state.gameTime) {
         const timestamp = std.time.milliTimestamp();
         if (state.soundData.gateOpenTime == null or state.soundData.gateOpenTime.? + 300 < timestamp) {

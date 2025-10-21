@@ -277,7 +277,7 @@ pub fn setupVerticesForShopEquipmentSecondaryEffect(topLeft: main.Position, secE
     if (secEffect == .none) return;
     var textWidth: f32 = 0;
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
-    if (secEffect != .gold) textWidth = fontVulkanZig.paintTextGameMap("+", topLeft, fontSize, textColor, &state.vkState.verticeData.font, state);
+    if (secEffect != .gold) textWidth = fontVulkanZig.paintTextGameMap("+", topLeft, fontSize, textColor, state);
     const iconPos: main.Position = .{
         .x = topLeft.x + textWidth + 5,
         .y = topLeft.y + fontSize / 2,
@@ -290,7 +290,7 @@ pub fn setupVerticesForShopEquipmentSecondaryEffect(topLeft: main.Position, secE
             paintVulkanZig.verticesForComplexSprite(iconPos, imageZig.IMAGE_HAMMER_TILE_INDICATOR, 0.5, 0.5, 1, 0, false, false, state);
         },
         .gold => {
-            _ = fontVulkanZig.paintTextGameMap("$x2", .{ .x = topLeft.x, .y = topLeft.y }, fontSize, textColor, &state.vkState.verticeData.font, state);
+            _ = fontVulkanZig.paintTextGameMap("$x2", .{ .x = topLeft.x, .y = topLeft.y }, fontSize, textColor, state);
         },
         .noBackMovement => {
             paintVulkanZig.verticesForComplexSprite(iconPos, imageZig.IMAGE_ARROW_RIGHT, 0.5, 0.5, 1, std.math.pi / 2.0, false, false, state);

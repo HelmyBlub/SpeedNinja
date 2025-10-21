@@ -98,10 +98,10 @@ pub fn initVulkan(state: *main.GameState) !void {
 
     try createInstance(vkState, state.allocator);
     vk.volkLoadInstance(vkState.instance);
-    vkState.surface = @ptrCast(windowSdlZig.getSurfaceForVulkan(@ptrCast(vkState.instance)));
+    vkState.surface = @ptrCast(windowSdlZig.getSurfaceForVulkan(@ptrCast(vkState.instance), state));
     vkState.physicalDevice = try pickPhysicalDevice(vkState.instance, vkState, state.allocator);
     try createLogicalDevice(vkState.physicalDevice, vkState);
-    try createSwapChain(vkState, state.allocator);
+    try createSwapChain(vkState, state);
     try createImageViews(vkState, state.allocator);
     try createRenderPass(vkState, state.allocator);
     try createDescriptorSetLayout(vkState);
@@ -364,11 +364,11 @@ fn createLogicalDevice(physicalDevice: vk.VkPhysicalDevice, vkState: *VkState) !
     vk.vkGetDeviceQueue.?(vkState.logicalDevice, vkState.graphicsQueueFamilyIdx, 0, &vkState.queue);
 }
 
-fn createSwapChain(vkState: *VkState, allocator: std.mem.Allocator) !void {
-    vkState.swapchainInfo.support = try querySwapChainSupport(vkState, allocator);
+fn createSwapChain(vkState: *VkState, state: *main.GameState) !void {
+    vkState.swapchainInfo.support = try querySwapChainSupport(vkState, state.allocator);
     vkState.swapchainInfo.format = chooseSwapSurfaceFormat(vkState.swapchainInfo.support.formats);
     vkState.swapchainInfo.present = chooseSwapPresentMode(vkState.swapchainInfo.support.presentModes);
-    vkState.swapchainInfo.extent = chooseSwapExtent(vkState.swapchainInfo.support.capabilities);
+    vkState.swapchainInfo.extent = chooseSwapExtent(vkState.swapchainInfo.support.capabilities, state);
 
     var imageCount = vkState.swapchainInfo.support.capabilities.minImageCount + 1;
     if (vkState.swapchainInfo.support.capabilities.maxImageCount > 0 and imageCount > vkState.swapchainInfo.support.capabilities.maxImageCount) {
@@ -391,7 +391,7 @@ fn createSwapChain(vkState: *VkState, allocator: std.mem.Allocator) !void {
         .oldSwapchain = null,
     };
 
-    const indices = try findQueueFamilies(vkState.physicalDevice, vkState, allocator);
+    const indices = try findQueueFamilies(vkState.physicalDevice, vkState, state.allocator);
     const queueFamilyIndices = [_]u32{ indices.graphicsFamily.?, indices.presentFamily.? };
     if (indices.graphicsFamily != indices.presentFamily) {
         createInfo.imageSharingMode = vk.VK_SHARING_MODE_CONCURRENT;
@@ -404,7 +404,7 @@ fn createSwapChain(vkState: *VkState, allocator: std.mem.Allocator) !void {
     try vkcheck(vk.vkCreateSwapchainKHR.?(vkState.logicalDevice, &createInfo, null, &vkState.swapchain), "Failed to create swapchain KHR");
 
     try vkcheck(vk.vkGetSwapchainImagesKHR.?(vkState.logicalDevice, vkState.swapchain, &imageCount, null), "failed vkGetSwapchainImagesKHR");
-    vkState.swapchainInfo.images = try allocator.alloc(vk.VkImage, imageCount);
+    vkState.swapchainInfo.images = try state.allocator.alloc(vk.VkImage, imageCount);
     try vkcheck(vk.vkGetSwapchainImagesKHR.?(vkState.logicalDevice, vkState.swapchain, &imageCount, vkState.swapchainInfo.images.ptr), "failed vkGetSwapchainImagesKHR");
 }
 
@@ -979,13 +979,13 @@ fn chooseSwapPresentMode(present_modes: []const vk.VkPresentModeKHR) vk.VkPresen
     return vk.VK_PRESENT_MODE_FIFO_KHR;
 }
 
-fn chooseSwapExtent(capabilities: vk.VkSurfaceCapabilitiesKHR) vk.VkExtent2D {
+fn chooseSwapExtent(capabilities: vk.VkSurfaceCapabilitiesKHR, state: *main.GameState) vk.VkExtent2D {
     if (capabilities.currentExtent.width != std.math.maxInt(u32)) {
         return capabilities.currentExtent;
     } else {
         var width: u32 = 0;
         var height: u32 = 0;
-        windowSdlZig.getWindowSize(&width, &height);
+        windowSdlZig.getWindowSize(&width, &height, state);
         var actual_extent = vk.VkExtent2D{
             .width = width,
             .height = height,
@@ -1181,13 +1181,13 @@ pub fn createSwapChainRelatedStuffAndCheckWindowSize(state: *main.GameState, all
         }
 
         if (vk.vkDeviceWaitIdle.?(state.vkState.logicalDevice) != vk.VK_SUCCESS) return false;
-        try createSwapChain(vkState, allocator);
+        try createSwapChain(vkState, state);
         try createImageViews(vkState, allocator);
         try createColorResources(vkState);
         try createDepthResources(vkState, allocator);
         try createFramebuffers(vkState, allocator);
-        windowSdlZig.windowData.widthFloat = @floatFromInt(capabilities.currentExtent.width);
-        windowSdlZig.windowData.heightFloat = @floatFromInt(capabilities.currentExtent.height);
+        state.windowData.widthFloat = @floatFromInt(capabilities.currentExtent.width);
+        state.windowData.heightFloat = @floatFromInt(capabilities.currentExtent.height);
         main.adjustZoom(state);
         settingsMenuVulkanZig.setupUiLocations(state);
         return true;

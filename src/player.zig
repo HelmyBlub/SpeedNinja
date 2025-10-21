@@ -305,11 +305,11 @@ pub fn getPlayerTotalHp(player: *Player) u32 {
 
 pub fn determinePlayerUxPositions(state: *main.GameState) void {
     var scale: f32 = 1;
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
     var diffScale: f32 = 0;
     if (state.players.items.len <= 2) {
-        diffScale = windowSdlZig.windowData.widthFloat / windowSdlZig.windowData.heightFloat;
+        diffScale = state.windowData.widthFloat / state.windowData.heightFloat;
         if (diffScale > 1.2) {
             scale = @max(1.0, @min(2.0, 1 + (diffScale - 1.2) * 2.0));
         }

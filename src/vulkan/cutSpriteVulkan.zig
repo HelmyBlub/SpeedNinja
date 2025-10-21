@@ -126,8 +126,8 @@ fn addTriangle(points: [3]main.Position, cutSprite: main.CutSpriteAnimation, off
         width = main.TILESIZE * imageZig.IMAGE_TO_GAME_SIZE;
         height = main.TILESIZE * imageZig.IMAGE_TO_GAME_SIZE;
     }
-    const onePixelXInVulkan = 2 / windowSdlZig.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
+    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
 
     for (points) |point| {
         const rotatedPoint = main.rotateAroundPoint(point, rotateCenter, rotate);
