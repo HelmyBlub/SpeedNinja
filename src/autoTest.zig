@@ -54,7 +54,6 @@ const PlayerInputData = struct {
 };
 
 pub fn runTestReplays() !bool {
-    std.debug.print("test started\n", .{});
     var gpa = std.heap.GeneralPurposeAllocator(.{}).init;
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
@@ -62,7 +61,10 @@ pub fn runTestReplays() !bool {
     try main.createGameState(&state, allocator);
     state.autoTest.zigTest = true;
     try loadRecordingFromFileAndReplay(&state);
+    const startTime = std.time.milliTimestamp();
     try main.mainLoop(&state);
+    const duration = std.time.milliTimestamp() - startTime;
+    std.debug.print("test duration: {d}\n", .{duration});
     defer main.destroyGameState(&state);
     return !state.gameOver;
 }

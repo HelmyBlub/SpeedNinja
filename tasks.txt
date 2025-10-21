@@ -8,7 +8,6 @@ testruns:
 Tasks:
 - automated testing
     - dev steps:
-        - check freeze time
         - measure time
         
     - deterministic behavior
