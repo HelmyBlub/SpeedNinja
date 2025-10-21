@@ -9,8 +9,7 @@ Tasks:
 - automated testing
     - dev steps:
         - check freeze time
-        - check stats deactivated
-        - check achievement deactivated
+        - measure time
         
     - deterministic behavior
         - replay run to measure performance

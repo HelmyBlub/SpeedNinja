@@ -92,7 +92,7 @@ pub const GameState = struct {
     gateOpenTime: ?i64 = null,
     uxData: GameUxData = .{},
     lastAfkShootTime: ?i64 = null,
-    timeFreezeStart: ?i64 = null,
+    timeFreezed: ?i64 = null,
     timeFreezeOnHit: bool = true,
     vulkanMousePosition: Position = .{ .x = 0, .y = 0 },
     highestNewGameDifficultyBeaten: i32 = -1,
@@ -303,8 +303,10 @@ pub fn mainLoop(state: *GameState) !void {
                 std.Thread.sleep(@intCast(sleepTimeNano));
             }
         }
-        if (state.timeFreezeStart == null) {
+        if (state.timeFreezed == null) {
             state.gameTime += tickIntervalMs;
+        } else {
+            state.timeFreezed.? += tickIntervalMs;
         }
     }
 }
@@ -684,7 +686,7 @@ pub fn runStart(state: *GameState, newGamePlus: u32) anyerror!void {
     autoTestZig.startRecordingRun(state);
     try statsZig.statsSaveOnRestart(state);
     mapTileZig.setMapType(.default, state);
-    state.timeFreezeStart = null;
+    state.timeFreezed = null;
     state.gameOver = false;
     state.camera.position = .{ .x = 0, .y = 0 };
     state.level = 0;

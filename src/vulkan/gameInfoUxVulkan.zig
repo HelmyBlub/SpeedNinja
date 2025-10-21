@@ -105,7 +105,7 @@ fn verticesForBossHpBar(state: *main.GameState) !void {
 }
 
 fn verticesForTimeFreeze(state: *main.GameState) !void {
-    if (state.timeFreezeStart == null) return;
+    if (state.timeFreezed == null) return;
     const verticeData = &state.vkState.verticeData;
     const fontVertices = &verticeData.font;
     const textColor: [4]f32 = .{ 1, 1, 1, 0.8 };
@@ -117,7 +117,7 @@ fn verticesForTimeFreeze(state: *main.GameState) !void {
 }
 
 fn verticesForGameOver(state: *main.GameState) !void {
-    if (state.gameOver and state.timeFreezeStart == null) {
+    if (state.gameOver and state.timeFreezed == null) {
         const onePixelYInVulkan = 2 / windowSdlZig.windowData.heightFloat;
         const verticeData = &state.vkState.verticeData;
         const fontVertices = &verticeData.font;

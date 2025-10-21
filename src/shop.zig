@@ -297,7 +297,7 @@ pub fn startShoppingPhase(state: *main.GameState, wentBackwardsToShop: bool) !vo
         state.shop.backwardsShopEnterTime = null;
         try statsZig.statsOnLevelFinished(state);
     }
-    state.timeFreezeStart = null;
+    state.timeFreezed = null;
     state.suddenDeath = 0;
     state.camera.position = .{ .x = 0, .y = 0 };
     state.shop.playersOnExit = 0;

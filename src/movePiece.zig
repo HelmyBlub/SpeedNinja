@@ -142,7 +142,7 @@ pub fn getMovePieceTotalStepes(movePiece: MovePiece) usize {
 }
 
 pub fn setMoveOptionIndex(player: *playerZig.Player, index: usize, state: *main.GameState) void {
-    if (state.gameOver and state.timeFreezeStart != null and state.timeFreezeStart.? + 1500 < std.time.milliTimestamp()) state.timeFreezeStart = null;
+    if (state.gameOver and state.timeFreezed != null and state.timeFreezed.? >= 1500) state.timeFreezed = null;
     if (player.moveOptions.items.len > index) {
         if (state.tutorialData.active and state.tutorialData.playerFirstValidPieceSelection == null) {
             state.tutorialData.playerFirstValidPieceSelection = std.time.milliTimestamp();
@@ -524,15 +524,15 @@ pub fn executeMovePieceWithCallbackPerStep(
 pub fn movePlayerByMovePiece(player: *playerZig.Player, movePieceIndex: usize, directionInput: u8, state: *main.GameState) !void {
     if (player.executeMovePiece != null) return;
     if (player.isDead) {
-        if (state.timeFreezeStart != null and state.timeFreezeStart.? + 1500 < std.time.milliTimestamp()) state.timeFreezeStart = null;
+        if (state.timeFreezed != null and state.timeFreezed.? >= 1500) state.timeFreezed = null;
         return;
     }
     if (player.equipment.hasPirateLegRight and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(directionInput + 1, 4)) return;
     if (player.equipment.hasRollerblades and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(directionInput + 2, 4)) return;
     if (player.equipment.hasPirateLegLeft and player.lastMoveDirection != null and player.lastMoveDirection.? == @mod(directionInput + 3, 4)) return;
-    if (state.timeFreezeStart) |freezeTime| {
-        if (freezeTime + 1000 < std.time.milliTimestamp()) {
-            state.timeFreezeStart = null;
+    if (state.timeFreezed) |timeFreezed| {
+        if (timeFreezed > 1000) {
+            state.timeFreezed = null;
         } else {
             return;
         }

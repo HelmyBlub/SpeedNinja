@@ -91,7 +91,7 @@ pub fn tickRecordRun(state: *main.GameState) !void {
     if (state.autoTest.mode != .record) return;
     if (state.autoTest.recording.runEventData.items.len == 0) return;
 
-    if (state.timeFreezeStart != null) {
+    if (state.timeFreezed != null) {
         const last = &state.autoTest.recording.runEventData.items[state.autoTest.recording.runEventData.items.len - 1];
         if (last.eventData == .freezeTime) {
             last.eventData.freezeTime += 1;
@@ -103,7 +103,7 @@ pub fn tickRecordRun(state: *main.GameState) !void {
 
 pub fn recordFreezeTime(state: *main.GameState) !void {
     if (state.autoTest.mode != .record) return;
-    if (state.timeFreezeStart != null) {
+    if (state.timeFreezed != null) {
         try state.autoTest.recording.runEventData.append(.{ .gameTime = state.gameTime, .eventData = .{ .freezeTime = 0 } });
     }
 }
@@ -127,7 +127,7 @@ pub fn tickReplayInputs(state: *main.GameState) !void {
         }
     }
     if (state.autoTest.mode != .replay) return;
-    if (state.timeFreezeStart) |_| {
+    if (state.timeFreezed) |_| {
         if (state.autoTest.replayFreezeTickCounter > 1) {
             state.autoTest.replayFreezeTickCounter -= 1;
             return;
