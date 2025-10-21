@@ -98,6 +98,8 @@ pub fn startModeSelect(state: *main.GameState) !void {
     state.enemyData.enemyObjects.clearRetainingCapacity();
     for (state.players.items) |*player| {
         player.isDead = false;
+        player.position.x = 0;
+        player.position.y = 0;
         try movePieceZig.setupMovePieces(player, state);
     }
     state.mapData.tileRadiusHeight = 4;

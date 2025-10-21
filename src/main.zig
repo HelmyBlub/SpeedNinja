@@ -786,7 +786,7 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
         },
         .tempStringBuffer = try allocator.alloc(u8, 20),
         .seededRandom = seededRandom,
-        .autoTest = .{ .recordRunEventData = std.ArrayList(autoTestZig.GameEventData).init(allocator) },
+        .autoTest = .{ .recording = .{ .runEventData = std.ArrayList(autoTestZig.GameEventData).init(allocator) } },
     };
     state.allocator = allocator;
     try windowSdlZig.initWindowSdl();
@@ -830,7 +830,7 @@ fn destroyGameState(state: *GameState) !void {
     state.inputJoinData.inputDeviceDatas.deinit();
     state.inputJoinData.disconnectedGamepads.deinit();
     state.allocator.free(state.tempStringBuffer);
-    state.autoTest.recordRunEventData.deinit();
+    state.autoTest.recording.runEventData.deinit();
     try statsZig.destroyAndSave(state);
     mapTileZig.deinit(state);
     enemyZig.destroyEnemyData(state);

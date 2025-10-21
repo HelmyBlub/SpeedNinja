@@ -10,10 +10,6 @@ Tasks:
     - dev steps:
         - freeze time not working
             - is wait counter off?
-        - option: make replay run as fast as possible
-            - can be taken as performance measure
-             42 -> 3.4
-             42 -> 2.0
         - save to file
             - use as automated test
         

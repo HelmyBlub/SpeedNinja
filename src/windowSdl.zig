@@ -165,12 +165,11 @@ fn debugKeys(event: sdl.SDL_Event, state: *main.GameState) !void {
             player.money += 200;
         }
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F10) {
-        std.debug.print("Recording:\n", .{});
-        for (state.autoTest.recordRunEventData.items) |data| {
-            std.debug.print("  {}\n", .{data});
-        }
+        try autoTestZig.loadRecordingFromFileAndReplay(state);
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F11) {
         try autoTestZig.replayRecording(state);
+    } else if (event.key.scancode == sdl.SDL_SCANCODE_F12) {
+        try autoTestZig.saveRecordingToFile(state);
     }
 }
 
