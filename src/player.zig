@@ -199,7 +199,6 @@ pub fn playerHit(player: *Player, state: *main.GameState) !void {
     if (player.phase == .shopping and state.gamePhase == .combat) return;
     if (state.players.items.len == 1 and state.timeFreezeOnHit) {
         state.timeFreezeStart = std.time.milliTimestamp();
-        try autoTestZig.recordFreezeTime(state);
     }
     state.achievements.getPtr(.beatGameWithoutTakingDamage).trackingActive = false;
     if (!try equipmentZig.damageTakenByEquipment(player, state)) {

@@ -11,6 +11,7 @@ pub const AutoTestData = struct {
     recordFreezeTime: bool = false,
     replayRunInputsIndex: usize = 0,
     replayFreezeTickCounter: u32 = 0,
+    maxSpeed: bool = true,
 };
 
 pub const TestMode = enum {
@@ -62,9 +63,14 @@ pub fn recordPlayerInput(action: inputZig.PlayerAction, player: *playerZig.Playe
 pub fn tickRecordRun(state: *main.GameState) !void {
     if (state.autoTest.mode != .record) return;
     if (state.autoTest.recordRunEventData.items.len == 0) return;
-    const last = &state.autoTest.recordRunEventData.items[state.autoTest.recordRunEventData.items.len - 1];
-    if (last.eventData == .freezeTime) {
-        last.eventData.freezeTime += 1;
+
+    if (state.timeFreezeStart != null) {
+        const last = &state.autoTest.recordRunEventData.items[state.autoTest.recordRunEventData.items.len - 1];
+        if (last.eventData == .freezeTime) {
+            last.eventData.freezeTime += 1;
+        } else {
+            try state.autoTest.recordRunEventData.append(.{ .gameTime = state.gameTime, .eventData = .{ .freezeTime = 1 } });
+        }
     }
 }
 
@@ -87,11 +93,10 @@ pub fn replayRecording(state: *main.GameState) !void {
 pub fn tickReplayInputs(state: *main.GameState) !void {
     if (state.autoTest.mode != .replay) return;
     if (state.timeFreezeStart) |_| {
-        if (state.autoTest.replayFreezeTickCounter > 0) {
+        if (state.autoTest.replayFreezeTickCounter > 1) {
             state.autoTest.replayFreezeTickCounter -= 1;
             return;
         }
-        state.timeFreezeStart = null;
     }
     while (true) {
         const nextAction = state.autoTest.recordRunEventData.items[state.autoTest.replayRunInputsIndex];

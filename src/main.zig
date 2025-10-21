@@ -288,12 +288,16 @@ fn mainLoop(state: *GameState) !void {
         }
         lastTime = currentTime;
         currentTime = std.time.microTimestamp();
-        const timeDiff = currentTime - lastTime;
-        tickTimeDiff += timeDiff - TICK_INTERVAL_MICRO_SECONDS;
-        if (tickTimeDiff > 250_000) tickTimeDiff = 250_000;
-        if (tickTimeDiff < -1_000) {
-            const sleepTimeNano: i64 = tickTimeDiff * -1000;
-            std.Thread.sleep(@intCast(sleepTimeNano));
+        if (state.autoTest.mode == .replay and state.autoTest.maxSpeed) {
+            tickTimeDiff = 100_000;
+        } else {
+            const timeDiff = currentTime - lastTime;
+            tickTimeDiff += timeDiff - TICK_INTERVAL_MICRO_SECONDS;
+            if (tickTimeDiff > 250_000) tickTimeDiff = 250_000;
+            if (tickTimeDiff < -1_000) {
+                const sleepTimeNano: i64 = tickTimeDiff * -1000;
+                std.Thread.sleep(@intCast(sleepTimeNano));
+            }
         }
         if (state.timeFreezeStart == null) {
             state.gameTime += tickIntervalMs;

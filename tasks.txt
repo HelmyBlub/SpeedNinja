@@ -1,6 +1,5 @@
 testruns:
 - gain all achievements on steam
-    - no damage taken
     - newGame+2
 
     - remember to connect to steam
@@ -13,6 +12,8 @@ Tasks:
             - is wait counter off?
         - option: make replay run as fast as possible
             - can be taken as performance measure
+             42 -> 3.4
+             42 -> 2.0
         - save to file
             - use as automated test
         
