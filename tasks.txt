@@ -8,23 +8,22 @@ testruns:
 Tasks:
 - automated testing
     - dev steps:
-        - freeze time not working
-            - is wait counter off?
-        - save to file
-            - use as automated test
+        - create automated test
+            - test successful if not game over before last input
+            - find out why only in main.zig works
+            - find out why stderr message at the end of test
+        - check gameover in replay
+        - check freeze time
+        - check stats deactivated
+        - check achievement deactivated
         
     - deterministic behavior
-        - fixed tick speed
-            - for test case can be unlimited
-        - possible frame skips (deterministic for tests)
         - replay run to measure performance
-        - check time freeze
 
 Next ideas:    
 - code performance
     - automated testing
     - check performance change when: onePiexelXVulkan calculation only once
-- game ticking seperate from drawing
 
 - vulkan changes
     - fallback visualize when not supported

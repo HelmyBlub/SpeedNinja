@@ -9,6 +9,7 @@ pub const AutoTestData = struct {
     replayRunInputsIndex: usize = 0,
     replayFreezeTickCounter: u32 = 0,
     maxSpeed: bool = true,
+    zigTest: bool = false,
 };
 
 pub const Recording = struct {
@@ -50,6 +51,20 @@ const PlayerInputData = struct {
     playerIndex: usize,
     action: inputZig.PlayerAction,
 };
+
+pub fn runTestReplays() !bool {
+    std.debug.print("test started\n", .{});
+    var gpa = std.heap.GeneralPurposeAllocator(.{}).init;
+    defer _ = gpa.deinit();
+    const allocator = gpa.allocator();
+    var state: main.GameState = undefined;
+    try main.createGameState(&state, allocator);
+    state.autoTest.zigTest = true;
+    try loadRecordingFromFileAndReplay(&state);
+    try main.mainLoop(&state);
+    defer main.destroyGameState(&state);
+    return !state.gameOver;
+}
 
 pub fn startRecordingRun(state: *main.GameState) void {
     if (state.autoTest.mode != .record) return;
@@ -102,6 +117,12 @@ pub fn replayRecording(state: *main.GameState) !void {
 }
 
 pub fn tickReplayInputs(state: *main.GameState) !void {
+    if (state.autoTest.zigTest) {
+        if (state.gameOver or state.autoTest.mode != .replay) {
+            state.gameQuit = true;
+            return;
+        }
+    }
     if (state.autoTest.mode != .replay) return;
     if (state.timeFreezeStart) |_| {
         if (state.autoTest.replayFreezeTickCounter > 1) {

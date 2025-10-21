@@ -215,6 +215,10 @@ pub const Rectangle = struct {
     height: f32 = 0,
 };
 
+test "run automated tests" {
+    try std.testing.expect(autoTestZig.runTestReplays() catch false);
+}
+
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}).init;
     defer _ = gpa.deinit();
@@ -228,10 +232,10 @@ fn startGame(allocator: std.mem.Allocator) !void {
     try createGameState(&state, allocator);
     steamZig.steamInit(&state);
     try mainLoop(&state);
-    try destroyGameState(&state);
+    destroyGameState(&state);
 }
 
-fn mainLoop(state: *GameState) !void {
+pub fn mainLoop(state: *GameState) !void {
     var lastTime = std.time.microTimestamp();
     var currentTime = lastTime;
     var tickTimeDiff: i64 = 0;
@@ -772,7 +776,7 @@ pub fn isGameOver(state: *GameState) bool {
     return true;
 }
 
-fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
+pub fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
     const seededRandom = std.Random.DefaultPrng.init(std.crypto.random.int(u64));
     state.* = .{
         .players = std.ArrayList(playerZig.Player).init(allocator),
@@ -807,7 +811,7 @@ fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
     }
 }
 
-fn destroyGameState(state: *GameState) !void {
+pub fn destroyGameState(state: *GameState) void {
     fileSaveZig.saveCurrentRunToFile(state) catch std.debug.print("save current run failed\n", .{});
     fileSaveZig.saveSettingsToFile(state) catch std.debug.print("save settings failed\n", .{});
     initVulkanZig.destroyPaintVulkan(&state.vkState, state.allocator) catch {
@@ -831,7 +835,7 @@ fn destroyGameState(state: *GameState) !void {
     state.inputJoinData.disconnectedGamepads.deinit();
     state.allocator.free(state.tempStringBuffer);
     state.autoTest.recording.runEventData.deinit();
-    try statsZig.destroyAndSave(state);
+    statsZig.destroyAndSave(state) catch std.debug.print("save stats failed\n", .{});
     mapTileZig.deinit(state);
     enemyZig.destroyEnemyData(state);
     modeSelectZig.destroyModeSelectData(state);
