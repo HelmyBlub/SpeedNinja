@@ -9,7 +9,11 @@ Tasks:
 - automated testing
     - deterministic behavior
         - replay run to measure performance
+    - should not save times
 
+Test Performance:
+    test duration: 112860, gameTime: 2301390
+    test duration: 111987, gameTime: 2301390
 Next ideas:    
 - code performance
     - automated testing

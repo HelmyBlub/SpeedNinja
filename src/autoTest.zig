@@ -11,6 +11,7 @@ pub const AutoTestData = struct {
     replayFreezeTickCounter: u32 = 0,
     maxSpeed: bool = true,
     zigTest: bool = false,
+    tempSoundVolume: f32 = 0,
 };
 
 pub const Recording = struct {
@@ -60,7 +61,7 @@ pub fn runTestReplays() !bool {
     var state: main.GameState = undefined;
     try main.createGameState(&state, allocator);
     state.autoTest.zigTest = true;
-    try loadRecordingFromFileAndReplay(&state);
+    try loadRecordingFromFileAndReplay("tests/normalRunHammer.json", &state);
     const startTime = std.time.milliTimestamp();
     try main.mainLoop(&state);
     const duration = std.time.milliTimestamp() - startTime;
@@ -117,6 +118,10 @@ pub fn replayRecording(state: *main.GameState) !void {
     state.seededRandom.seed(state.autoTest.recording.runStartSeed);
     state.timeFreezeOnHit = state.autoTest.recording.freezeTime;
     state.statistics.active = false;
+    if (state.soundMixer) |*soundMixer| {
+        state.autoTest.tempSoundVolume = soundMixer.volume;
+        soundMixer.volume = 0;
+    }
     achievementZig.stopTrackingAchievmentForThisRun(state);
     try main.runStart(state, state.autoTest.recording.newGamePlus);
 }
@@ -144,6 +149,7 @@ pub fn tickReplayInputs(state: *main.GameState) !void {
                     state.autoTest.replayRunInputsIndex += 1;
                     if (state.autoTest.recording.runEventData.items.len <= state.autoTest.replayRunInputsIndex) {
                         state.autoTest.mode = .none;
+                        if (state.soundMixer) |*soundMixer| soundMixer.volume = state.autoTest.tempSoundVolume;
                         return;
                     }
                 },
@@ -175,13 +181,13 @@ pub fn saveRecordingToFile(state: *main.GameState) !void {
         },
     );
     defer state.allocator.free(json_bytes);
-    const file = try std.fs.cwd().createFile("output.json", .{ .truncate = true });
+    const file = try std.fs.cwd().createFile("savedRun.json", .{ .truncate = true });
     defer file.close();
     try file.writeAll(json_bytes);
 }
 
-pub fn loadRecordingFromFileAndReplay(state: *main.GameState) !void {
-    const file = try std.fs.cwd().openFile("output.json", .{});
+pub fn loadRecordingFromFileAndReplay(testFilePath: []const u8, state: *main.GameState) !void {
+    const file = try std.fs.cwd().openFile(testFilePath, .{});
     defer file.close();
 
     const file_data = try file.readToEndAlloc(state.allocator, std.math.maxInt(usize));
