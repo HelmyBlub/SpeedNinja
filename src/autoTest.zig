@@ -117,13 +117,13 @@ pub fn replayRecording(state: *main.GameState) !void {
     state.autoTest.replayRunInputsIndex = 0;
     state.seededRandom.seed(state.autoTest.recording.runStartSeed);
     state.timeFreezeOnHit = state.autoTest.recording.freezeTime;
-    state.statistics.active = false;
     if (state.soundMixer) |*soundMixer| {
         state.autoTest.tempSoundVolume = soundMixer.volume;
         soundMixer.volume = 0;
     }
-    achievementZig.stopTrackingAchievmentForThisRun(state);
     try main.runStart(state, state.autoTest.recording.newGamePlus);
+    state.statistics.active = false;
+    achievementZig.stopTrackingAchievmentForThisRun(state);
 }
 
 pub fn tickReplayInputs(state: *main.GameState) !void {
