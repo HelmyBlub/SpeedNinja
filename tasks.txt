@@ -14,6 +14,7 @@ Test Performance:
     test duration: 106183, gameTime: 2301390
     test duration: 104757, gameTime: 2301390 (one pixel calc change)
     test duration: 106613, gameTime: 2301390 (display start error backup)
+    test duration: 42453, gameTime: 2301390 (frame skip increased from 1 to 4)
 
 Next ideas:    
 - linux build

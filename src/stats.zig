@@ -632,11 +632,13 @@ fn calculateSumOfGoldsOfRemainingLevels(state: *main.GameState) !void {
     const levelDatas: []BestLevelStatistics = try getBestRunStats(state);
     var sumOfGoldRemaining: i64 = 0;
     const startLevel = if (state.gamePhase == .shopping) state.level + 1 else state.level;
-    for (startLevel..levelDatas.len) |index| {
-        const level = levelDatas[index];
-        if (level.time) |fastestTime| {
-            sumOfGoldRemaining += fastestTime;
-            state.statistics.uxData.displayBestPossibleTimeLevel = @intCast(index + 1);
+    if (startLevel < levelDatas.len) {
+        for (startLevel..levelDatas.len) |index| {
+            const level = levelDatas[index];
+            if (level.time) |fastestTime| {
+                sumOfGoldRemaining += fastestTime;
+                state.statistics.uxData.displayBestPossibleTimeLevel = @intCast(index + 1);
+            }
         }
     }
     state.statistics.uxData.displayBestPossibleTimeValue = sumOfGoldRemaining;

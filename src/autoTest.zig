@@ -3,9 +3,10 @@ const main = @import("main.zig");
 const playerZig = @import("player.zig");
 const inputZig = @import("input.zig");
 const achievementZig = @import("achievement.zig");
+const buildin = @import("builtin");
 
 pub const AutoTestData = struct {
-    mode: TestMode = .record,
+    mode: TestMode = if (buildin.mode == .Debug) .record else .none,
     recording: Recording,
     replayRunInputsIndex: usize = 0,
     replayFreezeTickCounter: u32 = 0,

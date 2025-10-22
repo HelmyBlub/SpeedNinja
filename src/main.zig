@@ -249,7 +249,8 @@ pub fn mainLoop(state: *GameState) !void {
     var currentTime = lastTime;
     var tickTimeDiff: i64 = 0;
     const tickIntervalMs = TICK_INTERVAL_MICRO_SECONDS / 1000;
-    var oneFrameSkipAllowed = true;
+    var currentFramesSkipped: u8 = 0;
+    const maxFrameSkips = 4;
     while (!state.gameQuit) {
         if (state.gamePhase != .modeSelect) {
             if (shouldEndLevel(state)) {
@@ -293,11 +294,11 @@ pub fn mainLoop(state: *GameState) !void {
         tickGameFinished(state);
         if (state.verifyMapData.checkReachable) try verifyMapZig.checkAndModifyMapIfNotEverythingReachable(state);
         try settingsMenuVulkanZig.tick(state);
-        if (tickTimeDiff < 100_000 or !oneFrameSkipAllowed) {
+        if (tickTimeDiff < 100_000 or currentFramesSkipped >= maxFrameSkips) {
             try paintVulkanZig.drawFrame(state);
-            oneFrameSkipAllowed = true;
+            currentFramesSkipped = 0;
         } else {
-            oneFrameSkipAllowed = false;
+            currentFramesSkipped += 1;
         }
         lastTime = currentTime;
         currentTime = std.time.microTimestamp();
