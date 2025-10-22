@@ -6,7 +6,6 @@ testruns:
 
 
 Tasks:
-- move windowData into state
 - automated testing
     - check performance change when: onePiexelXVulkan calculation only once
     - bug: on application restart seedrun timer incorrect
@@ -15,9 +14,8 @@ Tasks:
 - check if neeed to use mouseWindowPositionToGameMapPoisition somewhere
 
 Test Performance:
-    test duration: 105812, gameTime: 2301390
-    test duration: 107266, gameTime: 2301390
-    test duration: 108257, gameTime: 2301390 (with windowdata into state)
+    test duration: 108257, gameTime: 2301390
+    test duration: 106183, gameTime: 2301390
 
 Next ideas:    
 - vulkan changes

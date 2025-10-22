@@ -270,8 +270,8 @@ pub fn verticesForComplexSpriteWithCut(gamePosition: main.Position, imageIndex: 
 pub fn verticesForComplexSpriteAnimated(gamePosition: main.Position, imageIndex: u8, animatePerCent: f32, scaling: f32, state: *main.GameState) void {
     const vkSpriteComplex = &state.vkState.verticeData.spritesComplex;
     if (vkSpriteComplex.verticeCount + 6 >= vkSpriteComplex.vertices.len) return;
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const imageData = imageZig.IMAGE_DATA[imageIndex];
     const imageToGameSizeFactor: f32 = imageData.scale / imageZig.IMAGE_TO_GAME_SIZE;
     const size: f32 = @as(f32, @floatFromInt(imageData.height)) * imageToGameSizeFactor;
@@ -324,8 +324,8 @@ fn pointsToVertices(
 ) void {
     const vkSpriteComplex = &state.vkState.verticeData.spritesComplex;
     if (vkSpriteComplex.verticeCount + (points.len - 2) * 3 >= vkSpriteComplex.vertices.len) return;
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const pivot: main.Position = .{ .x = 0, .y = 0 };
     for (0..points.len - 2) |i| {
         const pointsIndexes = [_]usize{ i, i + 1 + @mod(i, 2), i + 2 - @mod(i, 2) };
@@ -385,8 +385,8 @@ fn pointsToVerticesVulkan(
             };
             var rotatedOffset = scaledCornerPosOffset;
             if (rotation != 0) {
-                const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-                const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+                const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+                const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
                 rotatedOffset.x /= onePixelXInVulkan;
                 rotatedOffset.y /= onePixelYInVulkan;
                 rotatedOffset = main.rotateAroundPoint(rotatedOffset, pivot, rotation);
@@ -415,8 +415,8 @@ fn pointsToVerticesVulkan(
 }
 
 pub fn verticesForStairsWithText(tileRectangle: main.TileRectangle, optText: ?[]const u8, playerCountCheck: u32, state: *main.GameState) !void {
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const stairsRecTopLeft: main.Position = .{
         .x = @floatFromInt(tileRectangle.pos.x * main.TILESIZE),
         .y = @floatFromInt(tileRectangle.pos.y * main.TILESIZE),
@@ -492,8 +492,8 @@ pub fn addTiranglesForSpriteWithBend(gamePosition: main.Position, imageAnkerPosi
     const scale: main.Position = if (optScale) |s| s else .{ .x = 1, .y = 1 };
     const verticeData = &state.vkState.verticeData;
     if (verticeData.spritesComplex.vertices.len <= verticeData.spritesComplex.verticeCount + 24) return;
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const imageData = imageZig.IMAGE_DATA[imageIndex];
     const halfSizeWidth: f32 = @as(f32, @floatFromInt(imageData.width)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scale.x;
     const halfSizeHeight: f32 = @as(f32, @floatFromInt(imageData.height)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scale.y;
@@ -803,8 +803,8 @@ fn updateUniformBuffer(state: *main.GameState) !void {
 }
 
 pub fn verticesForGameRectangle(gameRectangle: main.Rectangle, fillColor: [4]f32, state: *main.GameState) void {
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const width = onePixelXInVulkan * gameRectangle.width * state.camera.zoom;
     const height = onePixelYInVulkan * gameRectangle.height * state.camera.zoom;
     const vulkan: main.Position = .{

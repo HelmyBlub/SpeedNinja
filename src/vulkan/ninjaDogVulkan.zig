@@ -636,8 +636,8 @@ pub fn addTiranglesForSprite(gamePosition: main.Position, imageAnkerPosition: ma
     const scale: main.Position = if (optScale) |s| s else .{ .x = 1, .y = 1 };
     const verticeData = &state.vkState.verticeData;
     if (verticeData.spritesComplex.vertices.len <= verticeData.spritesComplex.verticeCount + 6) return;
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const imageData = imageZig.IMAGE_DATA[imageIndex];
     const halfSizeWidth: f32 = @as(f32, @floatFromInt(imageData.width)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scale.x;
     const halfSizeHeigh: f32 = @as(f32, @floatFromInt(imageData.height)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scale.y;
@@ -680,8 +680,8 @@ fn addTiranglesForSpriteWithWaveAnimation(gamePosition: main.Position, imageAnke
     const scale: main.Position = if (optScale) |s| s else .{ .x = 1, .y = 1 };
     const verticeData = &state.vkState.verticeData;
     if (verticeData.spritesComplex.vertices.len <= verticeData.spritesComplex.verticeCount + 24) return;
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const imageData = imageZig.IMAGE_DATA[imageIndex];
     const halfSizeWidth: f32 = @as(f32, @floatFromInt(imageData.width)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scale.x;
     const halfSizeHeigh: f32 = @as(f32, @floatFromInt(imageData.height)) / imageZig.IMAGE_TO_GAME_SIZE / 2 * scale.y;

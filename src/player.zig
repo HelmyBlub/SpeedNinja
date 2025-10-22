@@ -305,8 +305,8 @@ pub fn getPlayerTotalHp(player: *Player) u32 {
 
 pub fn determinePlayerUxPositions(state: *main.GameState) void {
     var scale: f32 = 1;
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     var diffScale: f32 = 0;
     if (state.players.items.len <= 2) {
         diffScale = state.windowData.widthFloat / state.windowData.heightFloat;

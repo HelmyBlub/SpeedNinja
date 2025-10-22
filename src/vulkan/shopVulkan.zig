@@ -37,8 +37,8 @@ fn verticesForAfk(state: *main.GameState) !void {
     }
     if (afkPlayerCount > 0) {
         const tileRectangle = state.shop.afkKickArea;
-        const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-        const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+        const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+        const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
         const kickAfkTopLeft: main.Position = .{
             .x = @floatFromInt(tileRectangle.pos.x * main.TILESIZE),
             .y = @floatFromInt(tileRectangle.pos.y * main.TILESIZE),
@@ -223,8 +223,8 @@ fn paintGrid(player: *playerZig.Player, state: *main.GameState) !void {
         .x = @floatFromInt((playerShopPos.x + shopZig.GRID_OFFSET.x) * main.TILESIZE),
         .y = @floatFromInt((playerShopPos.y + shopZig.GRID_OFFSET.y) * main.TILESIZE),
     };
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const size = main.TILESIZE * shopZig.GRID_SIZE;
 
     const vulkan: main.Position = .{
@@ -310,8 +310,8 @@ fn paintMovePieceInGrid(player: *playerZig.Player, gridGameTopLeft: main.Positio
     if (player.shop.gridDisplayPiece == null) return;
     const gridDisplayPiece = player.shop.gridDisplayPiece.?;
 
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     var factor: f32 = 1;
     var gamePosOffsetX = @as(f32, @floatFromInt(player.shop.gridDisplayPieceOffset.x)) * main.TILESIZE;
     var gamePosOffsetY = @as(f32, @floatFromInt(player.shop.gridDisplayPieceOffset.y)) * main.TILESIZE;
@@ -379,8 +379,8 @@ fn paintMovePieceInGrid(player: *playerZig.Player, gridGameTopLeft: main.Positio
 }
 
 fn rectangleForTile(gamePosition: main.Position, fillColor: [4]f32, verticeData: *dataVulkanZig.VkVerticeData, withOutline: bool, state: *main.GameState) void {
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const size = main.TILESIZE;
 
     const vulkan: main.Position = .{

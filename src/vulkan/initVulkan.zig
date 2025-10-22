@@ -1188,6 +1188,8 @@ pub fn createSwapChainRelatedStuffAndCheckWindowSize(state: *main.GameState, all
         try createFramebuffers(vkState, allocator);
         state.windowData.widthFloat = @floatFromInt(capabilities.currentExtent.width);
         state.windowData.heightFloat = @floatFromInt(capabilities.currentExtent.height);
+        state.windowData.onePixelXInVulkan = 2.0 / state.windowData.widthFloat;
+        state.windowData.onePixelYInVulkan = 2.0 / state.windowData.heightFloat;
         main.adjustZoom(state);
         settingsMenuVulkanZig.setupUiLocations(state);
         return true;

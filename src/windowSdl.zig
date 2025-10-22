@@ -18,6 +18,8 @@ pub const WindowData = struct {
     window: *sdl.SDL_Window = undefined,
     widthFloat: f32 = 1600,
     heightFloat: f32 = 800,
+    onePixelXInVulkan: f32 = 2.0 / 1600.0,
+    onePixelYInVulkan: f32 = 2.0 / 800.0,
 };
 
 pub fn initWindowSdl(state: *main.GameState) !void {

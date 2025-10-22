@@ -72,7 +72,7 @@ fn verticeForPlayerStateInfo(player: *playerZig.Player, state: *main.GameState) 
 }
 
 fn verticeForInfo(player: *playerZig.Player, text: *const [4]u8, textColor: [4]f32, state: *main.GameState) void {
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const fontSize = player.uxData.vulkanScale * state.windowData.heightFloat / 12;
     _ = fontVulkanZig.paintText(text[0..1], .{
         .x = player.uxData.vulkanTopLeft.x,
@@ -93,7 +93,7 @@ fn verticeForInfo(player: *playerZig.Player, text: *const [4]u8, textColor: [4]f
 }
 
 fn verticesForPlayerData(player: *playerZig.Player, state: *main.GameState) !void {
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     var vulkanPos: main.Position = player.uxData.vulkanTopLeft;
     var height: f32 = 0;
     const spacingFactor = 1.1;
@@ -109,8 +109,8 @@ fn verticesForPlayerData(player: *playerZig.Player, state: *main.GameState) !voi
 
 fn verticesForPlayerDamage(vulkanPos: main.Position, fontSize: f32, player: *playerZig.Player, state: *main.GameState) !void {
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const damageDisplayTextPos: main.Position = .{
         .x = vulkanPos.x + fontSize * onePixelXInVulkan,
         .y = vulkanPos.y + fontSize * onePixelYInVulkan,
@@ -153,8 +153,8 @@ fn verticesForPlayerDamage(vulkanPos: main.Position, fontSize: f32, player: *pla
 
 fn verticesForPlayerHp(vulkanPos: main.Position, fontSize: f32, player: *playerZig.Player, state: *main.GameState) !void {
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const hpDisplayTextPos: main.Position = .{
         .x = vulkanPos.x + onePixelXInVulkan * fontSize * 0.3,
         .y = vulkanPos.y + fontSize * onePixelYInVulkan * 2,
@@ -205,8 +205,8 @@ fn verticesForPlayerHp(vulkanPos: main.Position, fontSize: f32, player: *playerZ
 
 fn verticesForPlayerMoney(vulkanPos: main.Position, fontSize: f32, player: *playerZig.Player, state: *main.GameState) !void {
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const moneyDisplayTextPos: main.Position = .{
         .x = vulkanPos.x,
         .y = vulkanPos.y + fontSize * onePixelYInVulkan * 3,
@@ -245,8 +245,8 @@ fn verticesForPlayerMoney(vulkanPos: main.Position, fontSize: f32, player: *play
 
 fn verticesForPlayerPieceCounter(vulkanPos: main.Position, fontSize: f32, player: *playerZig.Player, state: *main.GameState) !void {
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const iconPos: main.Position = .{
         .x = vulkanPos.x + onePixelXInVulkan * fontSize / 2,
         .y = vulkanPos.y + onePixelYInVulkan * fontSize / 2,
@@ -312,8 +312,8 @@ fn verticesForPlayerPieceCounter(vulkanPos: main.Position, fontSize: f32, player
 }
 
 fn verticesForMoveOptions(player: *playerZig.Player, verticeData: *dataVulkanZig.VkVerticeData, state: *main.GameState) void {
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     var width: f32 = 0;
     var height: f32 = 0;
     const spacingFactor = 1.1;

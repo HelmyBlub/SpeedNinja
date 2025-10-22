@@ -216,8 +216,8 @@ const UiElementSliderData = struct {
 };
 
 pub fn setupUiLocations(state: *main.GameState) void {
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const settingsMenuUx = &state.uxData.settingsMenuUx;
     settingsMenuUx.uiSizeDelayed = settingsMenuUx.uiSizeSlider * state.windowData.heightFloat / 800;
     const uiSizeFactor = settingsMenuUx.uiSizeDelayed;
@@ -261,8 +261,8 @@ pub fn setupUiLocations(state: *main.GameState) void {
 }
 
 fn settupUiLocationSingleTab(tab: *UiTabsData, baseFontSize: f32, uiSizeFactor: f32, state: *main.GameState) void {
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const vulkanSpacingX = SPACING_PIXELS * onePixelXInVulkan * uiSizeFactor;
     const vulkanSpacingY = SPACING_PIXELS * onePixelYInVulkan * uiSizeFactor;
     const vulkanSpacingLargerY = 20.0 * onePixelYInVulkan * uiSizeFactor;
@@ -582,8 +582,8 @@ pub fn tick(state: *main.GameState) !void {
 }
 
 pub fn setupVertices(state: *main.GameState) !void {
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const verticeData = &state.vkState.verticeData;
     const buttonFillColor: [4]f32 = .{ 0.7, 0.7, 0.7, 1 };
     const hoverColor: [4]f32 = .{ 0.4, 0.4, 0.4, 1 };

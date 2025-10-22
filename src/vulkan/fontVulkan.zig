@@ -18,8 +18,8 @@ pub const VkFontData = struct {
 
 /// returns game width of text
 pub fn paintTextGameMap(chars: []const u8, gamePosition: main.Position, fontSize: f32, color: [4]f32, state: *main.GameState) f32 {
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const vulkanPos: main.Position = .{
         .x = (-state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
         .y = (-state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
@@ -64,8 +64,8 @@ pub fn getTextVulkanWidth(chars: []const u8, fontSize: f32, state: *main.GameSta
 
 /// returns game width of text
 pub fn paintNumberGameMap(number: anytype, gamePosition: main.Position, fontSize: f32, color: [4]f32, state: *main.GameState) !f32 {
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const vulkanPos: main.Position = .{
         .x = (-state.camera.position.x + gamePosition.x) * state.camera.zoom * onePixelXInVulkan,
         .y = (-state.camera.position.y + gamePosition.y) * state.camera.zoom * onePixelYInVulkan,
@@ -205,8 +205,8 @@ fn paintNumberWithZeroPrefix(number: anytype, vulkanSurfacePosition: main.Positi
 }
 
 pub fn verticesForInfoBox(textLines: []const []const u8, position: main.Position, alignLeft: bool, state: *main.GameState) void {
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const vulkanSpacingX = 5 * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
     const vulkanSpacingY = 5 * onePixelYInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
     const fontSize = state.uxData.settingsMenuUx.baseFontSize * state.uxData.settingsMenuUx.uiSizeDelayed;
@@ -246,8 +246,8 @@ pub fn verticesForInfoBox(textLines: []const []const u8, position: main.Position
 pub fn verticesForDisplayButton(topLeft: main.Position, action: inputZig.PlayerAction, fontSize: f32, player: *playerZig.Player, state: *main.GameState) f32 {
     const buttonInfo = inputZig.getDisplayInfoForPlayerAction(player, action, state);
     if (buttonInfo == null) return 0;
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const keyImagePos: main.Position = .{
         .x = topLeft.x + onePixelXInVulkan * fontSize / 2,
         .y = topLeft.y + onePixelYInVulkan * fontSize / 2,

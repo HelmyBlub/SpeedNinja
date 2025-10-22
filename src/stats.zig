@@ -196,8 +196,8 @@ pub fn setupVertices(state: *main.GameState) !void {
     if (state.level == 0) return;
     state.statistics.uxData.currentTimestamp = std.time.milliTimestamp();
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const topLeft: main.Position = state.statistics.uxData.vulkanPosition;
     const bestRunStats: []BestLevelStatistics = try getBestRunStats(state);
     const currentRunStats = state.statistics.currentRunStats.levelDatas.items;
@@ -383,7 +383,7 @@ fn setupVerticesLevel(level: u32, bestRunStats: []BestLevelStatistics, paintPos:
     _ = bestRunStats;
     const currentDisplayLevelOfPlayer = if (state.statistics.uxData.groupingLevelsInFive) @divFloor(state.level + 4, 5) * 5 else state.level;
     const alpha: f32 = if (level > currentDisplayLevelOfPlayer) 0.5 else 1;
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
     const columnWidth = columnData.pixelWidth * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
     const textWidth = fontVulkanZig.getTextVulkanWidth(columnData.name, state.statistics.uxData.fontSize, state);
     _ = try fontVulkanZig.paintNumber(level, .{
@@ -396,7 +396,7 @@ fn setupVerticesTime(level: u32, bestRunStats: []BestLevelStatistics, paintPos: 
     const currentDisplayLevelOfPlayer = if (state.statistics.uxData.groupingLevelsInFive) @divFloor(state.level + 4, 5) * 5 else state.level;
     const alpha: f32 = if (level > currentDisplayLevelOfPlayer) 0.5 else 1;
     const textColor: [4]f32 = .{ 1, 1, 1, alpha };
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
     const columnWidth = columnData.pixelWidth * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
     const currentLevelData = state.statistics.currentRunStats.levelDatas.items;
     var displayTime: i64 = if (currentLevelData.len >= level) currentLevelData[level - 1].totalTime else 0;
@@ -429,7 +429,7 @@ fn setupVerticesLevelDiff(level: u32, bestRunStats: []BestLevelStatistics, paint
                 fastestTime += bestRunStats[level - i - 1].time.?;
             }
         }
-        const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+        const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
         const columnWidth = columnData.pixelWidth * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
         const fontSize = state.statistics.uxData.fontSize;
         const currentDisplayLevelOfPlayer = if (state.statistics.uxData.groupingLevelsInFive) @divFloor(state.level - 1, 5) * 5 + 5 else state.level;
@@ -497,7 +497,7 @@ fn setupVerticesTotalDiff(level: u32, bestRunStats: []BestLevelStatistics, paint
     if (level - 1 >= bestRunStats.len) return;
     const bestLevelData = bestRunStats[level - 1];
     if (bestLevelData.totalTime) |fastestTime| {
-        const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+        const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
         const columnWidth = columnData.pixelWidth * onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
         const fontSize = state.statistics.uxData.fontSize;
         const currentDisplayLevelOfPlayer = if (state.statistics.uxData.groupingLevelsInFive) @divFloor(state.level - 1, 5) * 5 + 5 else state.level;

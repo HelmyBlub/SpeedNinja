@@ -14,8 +14,8 @@ pub fn setupVertices(state: *main.GameState) !void {
 
     const lines = &verticeData.lines;
     const color: [4]f32 = .{ 0.25, 0.25, 0.25, 1 };
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const zoomedTileSize = main.TILESIZE * state.camera.zoom;
     const mapRadiusWidth: f32 = @as(f32, @floatFromInt(state.mapData.tileRadiusWidth)) * zoomedTileSize;
     const mapRadiusHeight: f32 = @as(f32, @floatFromInt(state.mapData.tileRadiusHeight)) * zoomedTileSize;
@@ -49,8 +49,8 @@ fn verticesForNewGamePlusOnGameFinished(state: *main.GameState) !void {
     if (state.gamePhase != .finished) return;
     const verticeData = &state.vkState.verticeData;
     const tileRectangle = shopZig.getShopTriggerPosition(state);
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const gridEnterNewGamePlusTopLeft: main.Position = .{
         .x = @floatFromInt(tileRectangle.pos.x * main.TILESIZE),
         .y = @floatFromInt(tileRectangle.pos.y * main.TILESIZE),
@@ -94,8 +94,8 @@ fn verticesForEnterShop(state: *main.GameState) !void {
     if (state.gamePhase != .combat) return;
     const verticeData = &state.vkState.verticeData;
     const tileRectangle = shopZig.getShopTriggerPosition(state);
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const gridEnterShopTopLeft: main.Position = .{
         .x = @floatFromInt(tileRectangle.pos.x * main.TILESIZE),
         .y = @floatFromInt(tileRectangle.pos.y * main.TILESIZE),

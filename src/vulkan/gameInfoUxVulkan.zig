@@ -25,7 +25,7 @@ pub fn setupVertices(state: *main.GameState) !void {
 fn verticesForFinished(state: *main.GameState) !void {
     if (state.gamePhase != .finished) return;
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const fontSize = state.uxData.creditsFontSize;
     var finishTimeOffsetY: f32 = -0.99;
     if (state.uxData.creditsScrollStart) |creditsTime| {
@@ -59,7 +59,7 @@ fn verticesForFinished(state: *main.GameState) !void {
 
 fn verticesForBossAcedAndFreeContinue(state: *main.GameState) void {
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const fontSize = state.windowData.heightFloat * 0.15;
     if (state.uxData.displayBossAcedUntilTime) |time| {
         if (time > state.gameTime) {
@@ -85,8 +85,8 @@ fn verticesForBossAcedAndFreeContinue(state: *main.GameState) void {
 
 fn verticesForBossHpBar(state: *main.GameState) !void {
     if (state.gamePhase == .boss) {
-        const onePixelYInVulkan = 2 / state.windowData.heightFloat;
-        const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+        const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+        const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
         const fontSize = 30 * state.uxData.settingsMenuUx.uiSizeDelayed;
         if (state.bosses.items.len == 0) return;
         const spacingX = onePixelXInVulkan * 5;
@@ -114,7 +114,7 @@ fn verticesForTimeFreeze(state: *main.GameState) !void {
 
 fn verticesForGameOver(state: *main.GameState) !void {
     if (state.gameOver and state.timeFreezed == null) {
-        const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+        const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
         const verticeData = &state.vkState.verticeData;
         const textColor: [4]f32 = .{ 1, 1, 1, 1 };
         const gameOverText = "Game Over";
@@ -138,8 +138,7 @@ fn verticesForGameOver(state: *main.GameState) !void {
             if (hasEnoughMoney) {
                 textWidth += fontVulkanZig.verticesForDisplayButton(continuePos, .pieceSelect1, optionFontSize, &state.players.items[0], state);
             } else {
-                const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-                textWidth += onePixelXInVulkan * optionFontSize;
+                textWidth += state.windowData.onePixelXInVulkan * optionFontSize;
             }
             if (continueCosts > 0) {
                 textWidth += fontVulkanZig.paintText("Continue: $", .{
@@ -195,8 +194,8 @@ fn verticesForTimer(state: *main.GameState) !void {
     const isBossTimer = state.gamePhase == .boss and state.newGamePlus >= 2 and state.level != main.LEVEL_COUNT;
     if (state.round > 1 and state.gamePhase == .combat or isBossTimer) {
         const textColor: [4]f32 = .{ 1, 1, 1, 1 };
-        const onePixelYInVulkan = 2 / state.windowData.heightFloat;
-        const onePixelXInVulkan = 2 / state.windowData.widthFloat;
+        const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+        const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
         const fontSize = state.windowData.heightFloat / 14;
         var timePos: main.Position = .{
             .x = 0,
@@ -247,8 +246,8 @@ fn verticesForLevelRoundNewGamePlus(state: *main.GameState) !void {
     const white: [4]f32 = .{ 1, 1, 1, 1 };
     const fontSize = 30 * state.uxData.settingsMenuUx.uiSizeDelayed;
     const verticeData = &state.vkState.verticeData;
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     var textWidth: f32 = 0;
     const levelPos: main.Position = .{
         .x = -0.99,
@@ -339,7 +338,7 @@ pub fn verticesForHoverInformation(state: *main.GameState) !bool {
 
 fn verticsForTutorial(state: *main.GameState) void {
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     if (state.tutorialData.active and state.tutorialData.firstKeyDownInput != null) {
         if (state.tutorialData.playerFirstValidMove or state.players.items.len > 1) {
             state.tutorialData.active = false;
@@ -379,7 +378,7 @@ fn verticsForTutorial(state: *main.GameState) void {
 
 fn verticesForLeaveJoinInfo(state: *main.GameState) !void {
     if (state.gamePhase == .boss) return;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     var counter: usize = 0;
     const realTime = std.time.milliTimestamp();
     const fontSize = 60 * state.uxData.settingsMenuUx.uiSizeDelayed;
@@ -428,8 +427,8 @@ fn verticesForLeaveJoinInfo(state: *main.GameState) !void {
 fn setupVerticesBossHpBar(boss: *bossZig.Boss, top: f32, left: f32, height: f32, width: f32, state: *main.GameState) !void {
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     const red: [4]f32 = .{ 1, 0, 0, 1 };
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const fontSize = height / onePixelYInVulkan;
     const verticeData = &state.vkState.verticeData;
     var textWidthRound = left;

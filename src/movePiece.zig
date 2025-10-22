@@ -206,8 +206,8 @@ fn zoomIfPlayerOutsideOfScreen(player: *playerZig.Player, state: *main.GameState
     if (state.level > 4 or state.round > 4) return;
     if (state.gamePhase == .shopping) return;
     main.adjustZoom(state);
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const playerVulkanPosition: main.Position = .{
         .x = (player.position.x - state.camera.position.x) * state.camera.zoom * onePixelXInVulkan,
         .y = (player.position.y - state.camera.position.y) * state.camera.zoom * onePixelYInVulkan,

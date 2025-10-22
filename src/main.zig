@@ -315,7 +315,7 @@ pub fn mainLoop(state: *GameState) !void {
 fn tickGameFinished(state: *GameState) void {
     if (state.gamePhase != .finished) return;
     const fontSize = state.uxData.creditsFontSize;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     if (state.uxData.creditsScrollStart) |creditsTime| {
         const scrollOffset: f32 = -@as(f32, @floatFromInt(state.gameTime - creditsTime)) / state.uxData.creditsScrollSpeedSlowdown;
         const scrollFinishedOffset = @as(f32, @floatFromInt(CREDITS_TEXTS.len)) * fontSize * onePixelYInVulkan + 1;

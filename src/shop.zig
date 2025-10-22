@@ -205,8 +205,8 @@ pub fn executeShopActionForPlayer(player: *playerZig.Player, state: *main.GameSt
             return;
         }
     }
-    const onePixelXInVulkan = 2 / state.windowData.widthFloat;
-    const onePixelYInVulkan = 2 / state.windowData.heightFloat;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     const playerVulkanPosition: main.Position = .{
         .x = (player.position.x - state.camera.position.x) * state.camera.zoom * onePixelXInVulkan,
         .y = (player.position.y - state.camera.position.y) * state.camera.zoom * onePixelYInVulkan,
