@@ -24,6 +24,7 @@ const steamZig = @import("steam.zig");
 const achievementZig = @import("achievement.zig");
 const modeSelectZig = @import("modeSelect.zig");
 const autoTestZig = @import("autoTest.zig");
+const onStartErrorDisplayZig = @import("onStartErrorDisplay.zig");
 
 pub const GamePhase = enum {
     modeSelect,
@@ -102,6 +103,7 @@ pub const GameState = struct {
     seededRandom: std.Random.Xoshiro256,
     autoTest: autoTestZig.AutoTestData,
     windowData: windowSdlZig.WindowData = .{},
+    onStartError: onStartErrorDisplayZig.OnStartErrorDisplay,
 };
 
 pub const GameUxData = struct {
@@ -230,7 +232,13 @@ pub fn main() !void {
 fn startGame(allocator: std.mem.Allocator) !void {
     std.debug.print("game run start\n", .{});
     var state: GameState = undefined;
-    try createGameState(&state, allocator);
+    createGameState(&state, allocator) catch |err| {
+        const formatted = try std.fmt.allocPrint(state.allocator, "{s}", .{@errorName(err)});
+        try state.onStartError.displayStrings.append(.{ .string = formatted, .needDealloc = true });
+        try state.onStartError.displayStrings.insert(0, .{ .string = "Game Start Failed" });
+        try onStartErrorDisplayZig.displayLastErrorMessageInWindow(&state);
+        return;
+    };
     steamZig.steamInit(&state);
     try mainLoop(&state);
     destroyGameState(&state);
@@ -794,6 +802,7 @@ pub fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
         .tempStringBuffer = try allocator.alloc(u8, 20),
         .seededRandom = seededRandom,
         .autoTest = .{ .recording = .{ .runEventData = std.ArrayList(autoTestZig.GameEventData).init(allocator) } },
+        .onStartError = .{ .displayStrings = std.ArrayList(onStartErrorDisplayZig.StringAllocData).init(allocator) },
     };
     state.allocator = allocator;
     try windowSdlZig.initWindowSdl(state);
@@ -838,6 +847,10 @@ pub fn destroyGameState(state: *GameState) void {
     state.inputJoinData.disconnectedGamepads.deinit();
     state.allocator.free(state.tempStringBuffer);
     state.autoTest.recording.runEventData.deinit();
+    for (state.onStartError.displayStrings.items) |*item| {
+        if (item.needDealloc) state.allocator.free(item.string);
+    }
+    state.onStartError.displayStrings.deinit();
     statsZig.destroyAndSave(state) catch std.debug.print("save stats failed\n", .{});
     mapTileZig.deinit(state);
     enemyZig.destroyEnemyData(state);

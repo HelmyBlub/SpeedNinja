@@ -6,12 +6,9 @@ testruns:
 
 
 Tasks:
-- bug: stats shop time first time enter quit not working
-- automated testing
-    - bug: on application restart speedrun timer incorrect
-        - could not reproduce
-- check why paintNumberSameWidth not used?
-- check if neeed to use mouseWindowPositionToGameMapPoisition somewhere
+- vulkan changes
+    - fallback visualize when not supported
+
 
 Test Performance:
     test duration: 108257, gameTime: 2301390
@@ -19,8 +16,6 @@ Test Performance:
     test duration: 104757, gameTime: 2301390 (one pixel calc change)
 
 Next ideas:    
-- vulkan changes
-    - fallback visualize when not supported
 - disable debug keys
 - linux build
 - code review

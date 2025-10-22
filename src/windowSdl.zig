@@ -15,7 +15,7 @@ const achievementZig = @import("achievement.zig");
 const autoTestZig = @import("autoTest.zig");
 
 pub const WindowData = struct {
-    window: *sdl.SDL_Window = undefined,
+    window: ?*sdl.SDL_Window = null,
     widthFloat: f32 = 1600,
     heightFloat: f32 = 800,
     onePixelXInVulkan: f32 = 2.0 / 1600.0,
@@ -26,34 +26,35 @@ pub fn initWindowSdl(state: *main.GameState) !void {
     _ = sdl.SDL_Init(sdl.SDL_INIT_VIDEO | sdl.SDL_INIT_AUDIO | sdl.SDL_INIT_GAMEPAD);
     const flags = sdl.SDL_WINDOW_VULKAN | sdl.SDL_WINDOW_RESIZABLE;
     state.windowData.window = try (sdl.SDL_CreateWindow("Speed Tactic Ninja", @intFromFloat(state.windowData.widthFloat), @intFromFloat(state.windowData.heightFloat), flags) orelse error.createWindow);
-    _ = sdl.SDL_ShowWindow(state.windowData.window);
+    _ = sdl.SDL_ShowWindow(state.windowData.window.?);
 }
 
 pub fn destroyWindowSdl(state: *main.GameState) void {
-    sdl.SDL_DestroyWindow(state.windowData.window);
+    if (state.windowData.window) |window| sdl.SDL_DestroyWindow(window);
     sdl.SDL_Quit();
 }
 
 pub fn getSurfaceForVulkan(instance: sdl.VkInstance, state: *main.GameState) sdl.VkSurfaceKHR {
     var surface: sdl.VkSurfaceKHR = undefined;
-    _ = sdl.SDL_Vulkan_CreateSurface(state.windowData.window, instance, null, &surface);
+    _ = sdl.SDL_Vulkan_CreateSurface(state.windowData.window.?, instance, null, &surface);
     return surface;
 }
 
 pub fn getWindowSize(width: *u32, height: *u32, state: *main.GameState) void {
     var w: c_int = undefined;
     var h: c_int = undefined;
-    _ = sdl.SDL_GetWindowSize(state.windowData.window, &w, &h);
+    _ = sdl.SDL_GetWindowSize(state.windowData.window.?, &w, &h);
     width.* = @intCast(w);
     height.* = @intCast(h);
 }
 
 pub fn setFullscreen(fullscreen: bool, state: *main.GameState) void {
-    const flags = sdl.SDL_GetWindowFlags(state.windowData.window);
+    const window = state.windowData.window.?;
+    const flags = sdl.SDL_GetWindowFlags(window);
     if (fullscreen and (flags & sdl.SDL_WINDOW_FULLSCREEN) == 0) {
-        _ = sdl.SDL_SetWindowFullscreen(state.windowData.window, true);
+        _ = sdl.SDL_SetWindowFullscreen(window, true);
     } else if (!fullscreen and (flags & sdl.SDL_WINDOW_FULLSCREEN) != 0) {
-        _ = sdl.SDL_SetWindowFullscreen(state.windowData.window, false);
+        _ = sdl.SDL_SetWindowFullscreen(window, false);
     }
 }
 
