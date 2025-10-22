@@ -16,6 +16,7 @@ Tasks:
 Test Performance:
     test duration: 108257, gameTime: 2301390
     test duration: 106183, gameTime: 2301390
+    test duration: 104757, gameTime: 2301390 (one pixel calc change)
 
 Next ideas:    
 - vulkan changes
