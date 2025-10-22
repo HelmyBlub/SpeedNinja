@@ -70,7 +70,7 @@ pub fn handleEvents(state: *main.GameState) !void {
             if (state.tutorialData.active and state.tutorialData.firstKeyDownInput == null) {
                 state.tutorialData.firstKeyDownInput = std.time.milliTimestamp();
             }
-            try debugKeys(event, state);
+            if (buildin.mode == .Debug) try debugKeys(event, state);
         }
         try handleGamePadEvents(event, state);
         try inputZig.handlePlayerInput(event, state);

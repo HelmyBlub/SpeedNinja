@@ -6,17 +6,16 @@ testruns:
 
 
 Tasks:
-- vulkan changes
-    - fallback visualize when not supported
+- disable debug keys
 
 
 Test Performance:
     test duration: 108257, gameTime: 2301390
     test duration: 106183, gameTime: 2301390
     test duration: 104757, gameTime: 2301390 (one pixel calc change)
+    test duration: 106613, gameTime: 2301390 (display start error backup)
 
 Next ideas:    
-- disable debug keys
 - linux build
 - code review
     - timestamp only once per tick?
