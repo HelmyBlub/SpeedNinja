@@ -217,6 +217,10 @@ fn writeTimeStatsData(writer: anytype, state: *main.GameState) !void {
         const passedTime = std.time.milliTimestamp() - time;
         state.statistics.currentRunStats.levelDatas.items[state.level - 1].shoppingTime += passedTime;
         state.shop.backwardsShopEnterTime = null;
+    } else if (state.gamePhase == .shopping and state.level >= 2) {
+        const current = &state.statistics.currentRunStats.levelDatas.items[state.level - 1];
+        const passedTime = std.time.milliTimestamp() - state.statistics.runStartedTime - current.totalTime;
+        current.shoppingTime = passedTime;
     }
     _ = try writer.writeInt(u8, if (state.statistics.active) 1 else 0, .little);
     const currentRunStats = state.statistics.currentRunStats;
