@@ -1,13 +1,23 @@
 testruns:
 - gain all achievements on steam
-    - newGame+2
+    - newGame+2 end boss
 
     - remember to connect to steam
 
 
 Tasks:
-- code review
-
+- mode: pratice
+    - like debug keys. In pratics mode:
+        - unlimited continues
+        - refresh shop items button
+        - everything costs 0
+        - buttons to jump back/forward in level
+        - key to jump through new game plus
+- mode: pvp
+    - rules:
+        - move cooldown of 5-seconds
+        - resets when taking damage
+        - default start settings
 - linux build
     - setup on steam side
         - wait for review to finish
@@ -20,7 +30,6 @@ Test Performance:
     test duration: 42453, gameTime: 2301390 (frame skip increased from 1 to 4)
 
 Next ideas:    
-
 - pratice mode
 - pvp
 - visualize achievments in game
