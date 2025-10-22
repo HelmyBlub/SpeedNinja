@@ -6,20 +6,20 @@ testruns:
 
 
 Tasks:
-- disable debug keys
+- code review
+
+- linux build
+    - setup on steam side
+        - wait for review to finish
+- limit moving in modeSelect
 
 
 Test Performance:
-    test duration: 108257, gameTime: 2301390
-    test duration: 106183, gameTime: 2301390
     test duration: 104757, gameTime: 2301390 (one pixel calc change)
     test duration: 106613, gameTime: 2301390 (display start error backup)
     test duration: 42453, gameTime: 2301390 (frame skip increased from 1 to 4)
 
 Next ideas:    
-- linux build
-- code review
-    - timestamp only once per tick?
 
 - pratice mode
 - pvp
@@ -32,5 +32,6 @@ Next ideas:
         - more start pieces
         - round requirment for continue to next level
         - max start enemies
+        - maze mode: only waller enemy -> get max round
 - steam leaderboard?
-
+- more contoller support?

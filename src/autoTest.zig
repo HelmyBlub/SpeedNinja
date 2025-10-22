@@ -105,13 +105,6 @@ pub fn tickRecordRun(state: *main.GameState) !void {
     }
 }
 
-pub fn recordFreezeTime(state: *main.GameState) !void {
-    if (state.autoTest.mode != .record) return;
-    if (state.timeFreezed != null) {
-        try state.autoTest.recording.runEventData.append(.{ .gameTime = state.gameTime, .eventData = .{ .freezeTime = 0 } });
-    }
-}
-
 pub fn replayRecording(state: *main.GameState) !void {
     if (state.autoTest.recording.runEventData.items.len == 0) return;
     state.autoTest.mode = .replay;

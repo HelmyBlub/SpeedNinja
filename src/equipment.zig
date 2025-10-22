@@ -273,7 +273,7 @@ pub const EQUIPMENT_SHOP_OPTIONS = [_]EquipmentShopOptions{
     },
 };
 
-pub fn setupVerticesForShopEquipmentSecondaryEffect(topLeft: main.Position, secEffect: SecondaryEffect, fontSize: f32, state: *main.GameState) void {
+pub fn setupVerticesForShopEquipmentSecondaryEffect(topLeft: main.Position, secEffect: SecondaryEffect, fontSize: f32, state: *main.GameState) !void {
     if (secEffect == .none) return;
     var textWidth: f32 = 0;
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
@@ -290,7 +290,8 @@ pub fn setupVerticesForShopEquipmentSecondaryEffect(topLeft: main.Position, secE
             paintVulkanZig.verticesForComplexSprite(iconPos, imageZig.IMAGE_HAMMER_TILE_INDICATOR, 0.5, 0.5, 1, 0, false, false, state);
         },
         .gold => {
-            _ = fontVulkanZig.paintTextGameMap("$x2", .{ .x = topLeft.x, .y = topLeft.y }, fontSize, textColor, state);
+            const infoWidth = fontVulkanZig.paintTextGameMap("$x", .{ .x = topLeft.x, .y = topLeft.y }, fontSize, textColor, state);
+            _ = try fontVulkanZig.paintNumberGameMap(1 + GOLD_WEAPON_BONUS, .{ .x = topLeft.x + infoWidth, .y = topLeft.y }, fontSize, textColor, state);
         },
         .noBackMovement => {
             paintVulkanZig.verticesForComplexSprite(iconPos, imageZig.IMAGE_ARROW_RIGHT, 0.5, 0.5, 1, std.math.pi / 2.0, false, false, state);

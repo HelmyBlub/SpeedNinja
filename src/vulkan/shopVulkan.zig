@@ -208,7 +208,7 @@ fn verticesForBuyOptions(state: *main.GameState) !void {
                     .x = secondaryInfoPosition.x,
                     .y = secondaryInfoPosition.y + (fontSize + 1) * 2,
                 };
-                equipmentZig.setupVerticesForShopEquipmentSecondaryEffect(secEffectDisplayPos, secEffect, fontSize, state);
+                try equipmentZig.setupVerticesForShopEquipmentSecondaryEffect(secEffectDisplayPos, secEffect, fontSize, state);
             }
         }
     }

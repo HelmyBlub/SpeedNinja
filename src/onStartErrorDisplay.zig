@@ -15,7 +15,6 @@ pub const StringAllocData = struct {
 pub fn displayLastErrorMessageInWindow(state: *main.GameState) !void {
     if (state.windowData.window == null) return;
     const window = state.windowData.window.?;
-    // Create renderer
     const renderer = sdl.SDL_CreateRenderer(window, null);
     if (renderer == null) {
         std.debug.print("SDL_CreateRenderer Error: {s}\n", .{sdl.SDL_GetError()});
@@ -23,7 +22,6 @@ pub fn displayLastErrorMessageInWindow(state: *main.GameState) !void {
     }
     defer sdl.SDL_DestroyRenderer(renderer);
 
-    // Wait for quit event
     var event: sdl.SDL_Event = undefined;
     std.debug.print("started backup renderer\n", .{});
     while (true) {
