@@ -252,7 +252,7 @@ pub fn mainLoop(state: *GameState) !void {
     var currentFramesSkipped: u8 = 0;
     const maxFrameSkips = 4;
     while (!state.gameQuit) {
-        if (state.gamePhase != .modeSelect) {
+        if (state.modeSelect.selectedMode == .newGamePlus or state.modeSelect.selectedMode == .practice) {
             if (shouldEndLevel(state)) {
                 if (state.gamePhase == .boss) {
                     state.lastBossDefeatedTime = state.gameTime;
@@ -279,7 +279,7 @@ pub fn mainLoop(state: *GameState) !void {
             }
             try suddenDeath(state);
         } else {
-            //tickModeSelect
+            try modeSelectZig.tick(state);
         }
         try autoTestZig.tickReplayInputs(state);
         try autoTestZig.tickRecordRun(state);

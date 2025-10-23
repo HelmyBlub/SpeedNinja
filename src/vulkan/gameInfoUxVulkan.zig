@@ -14,6 +14,7 @@ pub fn setupVertices(state: *main.GameState) !void {
     try verticesForBossHpBar(state);
     try verticesForTimer(state);
     try verticesForLevelRoundNewGamePlus(state);
+    try verticesForPvP(state);
     try verticesForTimeFreeze(state);
     try verticesForGameOver(state);
     try verticesForLeaveJoinInfo(state);
@@ -247,7 +248,50 @@ fn verticesForTimer(state: *main.GameState) !void {
     }
 }
 
+fn verticesForPvP(state: *main.GameState) !void {
+    if (state.modeSelect.selectedMode != .pvp) return;
+    if (state.gamePhase == .modeSelect) return;
+    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
+    const white: [4]f32 = .{ 1, 1, 1, 1 };
+    const fontSize = 30 * state.uxData.settingsMenuUx.uiSizeDelayed;
+    const verticeData = &state.vkState.verticeData;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
+    var startPos: main.Position = .{
+        .x = -0.99,
+        .y = -0.99,
+    };
+    const paddingX = 2 * onePixelXInVulkan;
+    const paddingY = 2 * onePixelXInVulkan;
+    for (state.players.items, 0..) |*player, index| {
+        if (player.modeData != .pvp) continue;
+        var textWidth: f32 = 0;
+        textWidth += fontVulkanZig.paintText("P", .{ .x = startPos.x + textWidth, .y = startPos.y }, fontSize, textColor, state);
+        textWidth += try fontVulkanZig.paintNumber(index + 1, .{ .x = startPos.x + textWidth, .y = startPos.y }, fontSize, textColor, state);
+        textWidth += fontVulkanZig.paintText(": ", .{ .x = startPos.x + textWidth, .y = startPos.y }, fontSize, textColor, state);
+        textWidth += try fontVulkanZig.paintNumber(player.modeData.pvp.wins, .{ .x = startPos.x + textWidth, .y = startPos.y }, fontSize, textColor, state);
+        const playerRec: main.Rectangle = .{
+            .pos = .{ .x = startPos.x - paddingX, .y = startPos.y - paddingY },
+            .width = textWidth + paddingX * 3,
+            .height = fontSize * onePixelYInVulkan + paddingY * 2,
+        };
+        paintVulkanZig.verticesForRectangle(playerRec.pos.x, playerRec.pos.y, playerRec.width, playerRec.height, white, &verticeData.lines, &verticeData.triangles);
+        startPos.x += textWidth + paddingX * 2;
+    }
+    if (state.gameTime < 2000) {
+        if (state.modeSelect.selectedMode.pvp) |playerWonIndex| {
+            var textWidth: f32 = 0;
+            const winFontSize = fontSize * 2;
+            const displayPos: main.Position = .{ .x = -0.2, .y = 0 };
+            textWidth += fontVulkanZig.paintText("P", .{ .x = displayPos.x, .y = displayPos.y }, winFontSize, textColor, state);
+            textWidth += try fontVulkanZig.paintNumber(playerWonIndex + 1, .{ .x = displayPos.x + textWidth, .y = displayPos.y }, winFontSize, textColor, state);
+            textWidth += fontVulkanZig.paintText(" Win", .{ .x = displayPos.x + textWidth, .y = displayPos.y }, winFontSize, textColor, state);
+        }
+    }
+}
+
 fn verticesForLevelRoundNewGamePlus(state: *main.GameState) !void {
+    if (state.modeSelect.selectedMode != .newGamePlus and state.modeSelect.selectedMode != .practice) return;
     if (state.gamePhase == .modeSelect) return;
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     const white: [4]f32 = .{ 1, 1, 1, 1 };

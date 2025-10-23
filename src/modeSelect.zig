@@ -10,6 +10,8 @@ const imageZig = @import("image.zig");
 const windowSdlZig = @import("windowSdl.zig");
 const sdl = windowSdlZig.sdl;
 const shopZig = @import("shop.zig");
+const equipmentZig = @import("equipment.zig");
+const enemyObjectFallDownZig = @import("enemy/enemyObjectFallDown.zig");
 
 pub const ModeSelectData = struct {
     modeStartRectangles: std.ArrayList(ModeStartRectangle),
@@ -18,16 +20,29 @@ pub const ModeSelectData = struct {
 
 const ModeEnum = enum {
     none,
-    normal,
     newGamePlus,
     practice,
+    pvp,
 };
 
 const ModeData = union(enum) {
     none,
-    normal,
     newGamePlus: u32,
     practice,
+    pvp: ?usize, // last player index who won
+};
+
+pub const ModePlayerData = union(enum) {
+    none,
+    normal,
+    newGamePlus,
+    practice,
+    pvp: ModePlayerDataPvp,
+};
+
+const ModePlayerDataPvp = struct {
+    wins: u32 = 0,
+    lastMoveTime: i64 = 0,
 };
 
 const ModeStartRectangle = struct {
@@ -40,13 +55,18 @@ const ModeStartRectangle = struct {
 
 pub fn initModeSelectData(state: *main.GameState) !void {
     state.modeSelect.modeStartRectangles = std.ArrayList(ModeStartRectangle).init(state.allocator);
-    try state.modeSelect.modeStartRectangles.append(.{ .displayName = "Normal Mode", .modeData = .normal, .rectangle = .{
+    try state.modeSelect.modeStartRectangles.append(.{ .displayName = "Normal", .modeData = .{ .newGamePlus = 0 }, .rectangle = .{
         .pos = .{ .x = 4, .y = -4 },
         .height = 2,
         .width = 2,
     } });
-    try state.modeSelect.modeStartRectangles.append(.{ .displayName = "Practice Mode", .modeData = .practice, .rectangle = .{
+    try state.modeSelect.modeStartRectangles.append(.{ .displayName = "Practice", .modeData = .practice, .rectangle = .{
         .pos = .{ .x = -4, .y = -4 },
+        .height = 2,
+        .width = 2,
+    } });
+    try state.modeSelect.modeStartRectangles.append(.{ .displayName = "PvP", .modeData = .{ .pvp = null }, .rectangle = .{
+        .pos = .{ .x = -4, .y = -1 },
         .height = 2,
         .width = 2,
     } });
@@ -142,12 +162,84 @@ pub fn startModeSelect(state: *main.GameState) !void {
 
 fn onStartMode(modeData: ModeData, state: *main.GameState) !void {
     state.modeSelect.selectedMode = modeData;
+    for (state.players.items) |*player| {
+        player.modeData = .none;
+    }
     switch (modeData) {
         .none => {},
-        .normal => try main.runStart(state, 0),
         .newGamePlus => |data| try main.runStart(state, data),
         .practice => try main.runStart(state, 0),
+        .pvp => try onStartModePvp(state),
     }
+}
+
+fn onStartModePvp(state: *main.GameState) !void {
+    for (state.players.items) |*player| {
+        player.modeData = .{ .pvp = .{ .wins = 0 } };
+    }
+    try startModePvp(state);
+}
+
+pub fn tick(state: *main.GameState) !void {
+    if (state.modeSelect.selectedMode == .pvp) {
+        if (state.players.items.len <= 1) return;
+        for (state.players.items) |*player| {
+            if (player.modeData != .pvp) {
+                player.modeData = .{ .pvp = .{ .wins = 0 } };
+                try startModePvp(state);
+                return;
+            }
+            if (player.modeData.pvp.lastMoveTime + 5_000 < state.gameTime) {
+                player.modeData.pvp.lastMoveTime += 5_000;
+                try enemyObjectFallDownZig.spawnFallDown(player.position, 5000, true, state);
+            }
+        }
+        var aliveCount: u32 = 0;
+        for (state.players.items) |player| {
+            if (!player.isDead) aliveCount += 1;
+        }
+        if (aliveCount <= 1) {
+            state.modeSelect.selectedMode.pvp = null;
+            for (state.players.items, 0..) |*player, playerIndex| {
+                if (!player.isDead) {
+                    state.modeSelect.selectedMode.pvp = playerIndex;
+                    player.modeData.pvp.wins += 1;
+                }
+            }
+            try startModePvp(state);
+        }
+    }
+}
+
+fn startModePvp(state: *main.GameState) !void {
+    state.gamePhase = .combat;
+    state.gameTime = 0;
+    state.gameOver = false;
+    for (state.players.items) |*player| {
+        player.isDead = false;
+        player.animateData = .{};
+        player.paintData = .{};
+        player.executeMovePiece = null;
+        player.immunUntilTime = 0;
+        player.choosenMoveOptionIndex = null;
+        player.lastMoveDirection = null;
+        player.afterImages.clearRetainingCapacity();
+        equipmentZig.equipStarterEquipment(player);
+        try movePieceZig.setupMovePieces(player, state);
+        player.uxData.visualizeHpChangeUntil = null;
+        player.uxData.visualizeMoneyUntil = null;
+        player.uxData.visualizeMovePieceChangeFromShop = null;
+        player.uxData.piecesRefreshedVisualization = null;
+        player.uxData.visualizeHpChange = null;
+        player.uxData.visualizeMoney = null;
+        player.inputData.lastInputTime = 0;
+        player.modeData.pvp.lastMoveTime = 0;
+    }
+    state.mapObjects.clearAndFree();
+    state.enemyData.enemyObjects.clearRetainingCapacity();
+    state.spriteCutAnimations.clearRetainingCapacity();
+    try mapTileZig.setMapRadius(4, 4, state);
+    playerZig.movePlayerToLevelSpawnPosition(state);
 }
 
 fn verticesForPracticeMode(state: *main.GameState) void {

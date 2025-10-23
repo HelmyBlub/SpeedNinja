@@ -91,6 +91,7 @@ fn verticesForNewGamePlusOnGameFinished(state: *main.GameState) !void {
 }
 
 fn verticesForEnterShop(state: *main.GameState) !void {
+    if (state.modeSelect.selectedMode != .newGamePlus and state.modeSelect.selectedMode != .practice) return;
     if (state.gamePhase != .combat) return;
     const verticeData = &state.vkState.verticeData;
     const tileRectangle = shopZig.getShopTriggerPosition(state);

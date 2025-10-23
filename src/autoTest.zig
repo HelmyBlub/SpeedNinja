@@ -115,6 +115,7 @@ pub fn replayRecording(state: *main.GameState) !void {
         state.autoTest.tempSoundVolume = soundMixer.volume;
         soundMixer.volume = 0;
     }
+    state.modeSelect.selectedMode = .{ .newGamePlus = state.autoTest.recording.newGamePlus };
     try main.runStart(state, state.autoTest.recording.newGamePlus);
     state.statistics.active = false;
     achievementZig.stopTrackingAchievmentForThisRun(state);

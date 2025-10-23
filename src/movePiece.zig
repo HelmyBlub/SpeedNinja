@@ -398,7 +398,22 @@ fn stepAndCheckEnemyHitAndProjectileHitAndTiles(player: *playerZig.Player, stepC
         const tileType = mapTileZig.getMapTilePositionType(tilePosition, &state.mapData);
         if (tileType != .wall) {
             player.position = movedPosition;
-            if (try checkEnemyHitOnMoveStep(player, direction, state)) {
+            var somethingHit = false;
+            if (state.modeSelect.selectedMode == .pvp) {
+                player.modeData.pvp.lastMoveTime = state.gameTime;
+                for (state.players.items) |*otherPlayer| {
+                    if (player == otherPlayer) continue;
+                    const hitArea: main.TileRectangle = .{ .pos = tilePosition, .height = 1, .width = 1 };
+                    const tileOtherPlayer = main.gamePositionToTilePosition(otherPlayer.position);
+                    if (main.isTilePositionInTileRectangle(tileOtherPlayer, hitArea)) {
+                        try playerZig.playerHit(otherPlayer, state);
+                        somethingHit = true;
+                    }
+                }
+            } else {
+                somethingHit = try checkEnemyHitOnMoveStep(player, direction, state);
+            }
+            if (somethingHit) {
                 ninjaDogVulkanZig.bladeSlashAnimate(player);
                 try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_BLADE_CUT_INDICIES[0..], currIndex * 25, 1);
                 try resetPieces(player, true, state);

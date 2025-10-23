@@ -10,8 +10,6 @@ testruns:
 
 
 Tasks:
-- mode select new game plus
-    - improve code to not guess new game plus count
 - mode: pvp
     - rules:
         - move cooldown of 5-seconds
@@ -24,9 +22,8 @@ Tasks:
 
 
 Test Performance:
-    test duration: 104757, gameTime: 2301390 (one pixel calc change)
-    test duration: 106613, gameTime: 2301390 (display start error backup)
     test duration: 42453, gameTime: 2301390 (frame skip increased from 1 to 4)
+    test duration: 42161, gameTime: 2301390 (new modes: practice and pvp)
 
 Next ideas:    
 - pratice mode

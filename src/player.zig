@@ -8,6 +8,7 @@ const inputZig = @import("input.zig");
 const soundMixerZig = @import("soundMixer.zig");
 const windowSdlZig = @import("windowSdl.zig");
 const autoTestZig = @import("autoTest.zig");
+const modeSelectZig = @import("modeSelect.zig");
 
 pub const Player = struct {
     position: main.Position = .{ .x = 0, .y = 0 },
@@ -39,6 +40,7 @@ pub const Player = struct {
     lastMoveDirection: ?u8 = null,
     uxData: PlayerUxData = .{},
     inputData: inputZig.PlayerInputData = .{},
+    modeData: modeSelectZig.ModePlayerData = .none,
 };
 
 const PlayePhase = enum {
