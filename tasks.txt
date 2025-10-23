@@ -1,6 +1,7 @@
 testruns:
 - gain all achievements on steam
-    - train end boss
+    - train end boss ng+2
+        - beat 3 times in a row
     - newGame+2 end boss
         - boss 5 -> 2 long move pieces. destroy after
         - boss 7 -> edge strategy
@@ -10,7 +11,9 @@ testruns:
 - test pvp
 
 Tasks:
-- bug: boss dragon moves body in time freeze
+- mode: achievements
+    - visualize achieved and open once
+    - save in file
 - linux build
     - setup on steam side
         - wait for review to finish
