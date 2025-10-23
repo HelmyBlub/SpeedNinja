@@ -252,6 +252,7 @@ pub fn mainLoop(state: *GameState) !void {
     var currentFramesSkipped: u8 = 0;
     const maxFrameSkips = 4;
     while (!state.gameQuit) {
+        const passedTime: i64 = if (state.timeFreezed == null) tickIntervalMs else 0;
         if (state.modeSelect.selectedMode == .newGamePlus or state.modeSelect.selectedMode == .practice) {
             if (shouldEndLevel(state)) {
                 if (state.gamePhase == .boss) {
@@ -284,11 +285,11 @@ pub fn mainLoop(state: *GameState) !void {
         try autoTestZig.tickReplayInputs(state);
         try autoTestZig.tickRecordRun(state);
         try windowSdlZig.handleEvents(state);
-        try playerZig.tickPlayers(state, tickIntervalMs);
-        tickClouds(state, tickIntervalMs);
-        try enemyZig.tickEnemies(tickIntervalMs, state);
-        try bossZig.tickBosses(state, tickIntervalMs);
-        tickMapObjects(state, tickIntervalMs);
+        try playerZig.tickPlayers(state, passedTime);
+        tickClouds(state, passedTime);
+        try enemyZig.tickEnemies(passedTime, state);
+        try bossZig.tickBosses(state, passedTime);
+        tickMapObjects(state, passedTime);
         try multiplayerAfkCheck(state);
         try tickGameOver(state);
         tickGameFinished(state);
@@ -659,7 +660,7 @@ pub fn gameFinished(state: *GameState) !void {
     for (state.players.items) |*player| {
         player.isDead = false;
     }
-    if (state.highestNewGameDifficultyBeaten < state.newGamePlus) {
+    if (state.highestNewGameDifficultyBeaten < state.newGamePlus and state.modeSelect.selectedMode != .practice) {
         state.highestNewGameDifficultyBeaten = @intCast(state.newGamePlus);
         try modeSelectZig.addNextNewGamePlusMode(state);
     }

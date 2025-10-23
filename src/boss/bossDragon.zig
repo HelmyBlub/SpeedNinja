@@ -74,7 +74,7 @@ const LandingStompData = struct {
 const BodyStompData = struct {
     stompTime: ?i64 = null,
     standUpMaxPerCent: f32 = 0,
-    delay: i32 = 1500,
+    delay: i32 = 1750,
     latestStompStartTime: ?i64 = null,
 };
 
@@ -314,7 +314,7 @@ fn tickBoss(boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void 
 fn tickTailAttackAction(tailAttackData: *TailAttackhData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
     const data = &boss.typeData.dragon;
     const tailRange = 100;
-    standUpOrDownTick(boss, false, passedTime);
+    standUpOrDownTick(boss, false, passedTime, state);
     if (tailAttackData.tailAttackHitTime == null) {
         if (data.paint.standingPerCent < 0.1) {
             const closest = playerZig.getClosestPlayer(boss.position, state);
@@ -400,7 +400,7 @@ fn determineTailAttackTiles(boss: *bossZig.Boss) !void {
 
 fn tickFireBreathAction(fireBreathData: *FireBreathData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
     const data = &boss.typeData.dragon;
-    standUpOrDownTick(boss, true, passedTime);
+    standUpOrDownTick(boss, true, passedTime, state);
     if (fireBreathData.nextFireSpitTickTime == null) {
         if (data.paint.standingPerCent > 0.5) {
             try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BREATH_IN, 0, 1);
@@ -442,7 +442,7 @@ fn tickWingBlastAction(wingBlastData: *WingBlastData, boss: *bossZig.Boss, passe
         data.paint.wingsFlapStarted = state.gameTime;
         data.paint.wingFlapSpeedFactor = 1;
     } else {
-        standUpOrDownTick(boss, true, passedTime);
+        standUpOrDownTick(boss, true, passedTime, state);
         data.paint.wingFlapSpeedFactor = @min(data.paint.wingFlapSpeedFactor + 0.002, 3);
         const nextMoveTickTime = wingBlastData.nextMoveTickTime.?;
         if (nextMoveTickTime <= state.gameTime) {
@@ -734,9 +734,10 @@ fn getFootToCurrentTileOffset(index: usize, boss: *bossZig.Boss) main.Position {
     return .{ .x = unrotatedToTileOffset.x - DEFAULT_FEET_OFFSET[index].x, .y = unrotatedToTileOffset.y - DEFAULT_FEET_OFFSET[index].y };
 }
 
-fn standUpOrDownTick(boss: *bossZig.Boss, up: bool, passedTime: i64) void {
+fn standUpOrDownTick(boss: *bossZig.Boss, up: bool, passedTime: i64, state: *main.GameState) void {
     const data = &boss.typeData.dragon;
-    const distanceUp: f32 = STAND_UP_SPEED * @as(f32, @floatFromInt(passedTime));
+    const ngpFactor: f32 = 1 + @as(f32, @floatFromInt(state.newGamePlus)) / 3.0;
+    const distanceUp: f32 = STAND_UP_SPEED * @as(f32, @floatFromInt(passedTime)) * ngpFactor;
     if (up) {
         data.paint.standingPerCent = @min(1, data.paint.standingPerCent + distanceUp);
     } else {
@@ -747,7 +748,7 @@ fn standUpOrDownTick(boss: *bossZig.Boss, up: bool, passedTime: i64) void {
 fn tickBodyStomp(stompData: *BodyStompData, boss: *bossZig.Boss, passedTime: i64, state: *main.GameState) !void {
     const data = &boss.typeData.dragon;
     if (stompData.stompTime == null and data.paint.standingPerCent < 1) {
-        standUpOrDownTick(boss, true, passedTime);
+        standUpOrDownTick(boss, true, passedTime, state);
     } else if (stompData.stompTime == null) {
         if (playerZig.getClosestPlayer(boss.position, state).player) |targetPlayer| {
             if (stompData.latestStompStartTime == null) {
@@ -772,7 +773,7 @@ fn tickBodyStomp(stompData: *BodyStompData, boss: *bossZig.Boss, passedTime: i64
         const stompPerCent: f32 = 1 - @max(0, @as(f32, @floatFromInt(stompTime - state.gameTime)) / @as(f32, @floatFromInt(stompData.delay)));
 
         const stompStartPerCent = 0.5;
-        if (stompPerCent > stompStartPerCent) {
+        if (stompPerCent > stompStartPerCent and passedTime > 0) {
             data.paint.standingPerCent = @sqrt((1 - stompPerCent) / (1 - stompStartPerCent));
         }
         if (stompTime <= state.gameTime) {

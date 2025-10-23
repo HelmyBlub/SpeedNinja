@@ -7,14 +7,10 @@ testruns:
         - boss 9 -> 3 long move pieces.
 
     - remember to connect to steam
-
+- test pvp
 
 Tasks:
-- mode: pvp
-    - rules:
-        - move cooldown of 5-seconds
-        - resets when taking damage
-        - default start settings
+- bug: boss dragon moves body in time freeze
 - linux build
     - setup on steam side
         - wait for review to finish
@@ -26,8 +22,6 @@ Test Performance:
     test duration: 42161, gameTime: 2301390 (new modes: practice and pvp)
 
 Next ideas:    
-- pratice mode
-- pvp
 - visualize achievments in game
 - modifiers
     - before game start set modifiers to make game easier or harder
