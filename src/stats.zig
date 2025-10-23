@@ -182,7 +182,7 @@ pub fn createStatistics(allocator: std.mem.Allocator) Statistics {
 }
 
 pub fn destroyAndSave(state: *main.GameState) !void {
-    try statsSaveOnRestart(state);
+    if (!state.autoTest.zigTest and (state.gameOver or state.gamePhase == .finished)) try statsSaveOnRestart(state); // else saved in current run
 
     for (state.statistics.bestRunStats.items) |*forPlayerCount| {
         forPlayerCount.levelDatas.deinit();

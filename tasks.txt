@@ -1,11 +1,16 @@
 testruns:
 - gain all achievements on steam
+    - train end boss
     - newGame+2 end boss
+        - boss 5 -> 2 long move pieces. destroy after
+        - boss 7 -> edge strategy
+        - boss 9 -> 3 long move pieces.
 
     - remember to connect to steam
 
 
 Tasks:
+- check on run save should not save new best times yet?
 - mode: pratice
     - like debug keys. In pratics mode:
         - unlimited continues

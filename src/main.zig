@@ -827,6 +827,7 @@ pub fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
 pub fn destroyGameState(state: *GameState) void {
     fileSaveZig.saveCurrentRunToFile(state) catch std.debug.print("save current run failed\n", .{});
     fileSaveZig.saveSettingsToFile(state) catch std.debug.print("save settings failed\n", .{});
+    statsZig.destroyAndSave(state) catch std.debug.print("save stats failed\n", .{});
     initVulkanZig.destroyPaintVulkan(&state.vkState, state.allocator) catch {
         std.debug.print("failed to destroy window and vulkan\n", .{});
     };
@@ -852,7 +853,6 @@ pub fn destroyGameState(state: *GameState) void {
         if (item.needDealloc) state.allocator.free(item.string);
     }
     state.onStartError.displayStrings.deinit();
-    statsZig.destroyAndSave(state) catch std.debug.print("save stats failed\n", .{});
     mapTileZig.deinit(state);
     enemyZig.destroyEnemyData(state);
     modeSelectZig.destroyModeSelectData(state);
