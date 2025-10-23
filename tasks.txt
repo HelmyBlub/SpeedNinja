@@ -10,13 +10,9 @@ testruns:
 
 
 Tasks:
-- mode: pratice
-    - like debug keys. In pratics mode:
-        - unlimited continues
-        - everything costs 0
-        - refresh shop items button
-        - buttons to jump to next level
-        - key to jump through new game plus
+- bug: boss dragon fire spit into phase change -> fire on random locations
+- mode select new game plus
+    - improve code to not guess new game plus count
 - mode: pvp
     - rules:
         - move cooldown of 5-seconds

@@ -568,7 +568,7 @@ fn tickTransitionFlyingPhase(flyingData: *TransitionFlyingData, boss: *bossZig.B
                 }
                 for (state.enemyData.enemyObjects.items) |*object| {
                     if (object.typeData == .fire) {
-                        object.typeData.fire.flyToPosition = object.position;
+                        if (object.typeData.fire.flyToPosition == null) object.typeData.fire.flyToPosition = object.position;
                         object.typeData.fire.inAirHeight -= FLYING_TRANSITION_CAMERA_OFFSET_Y;
                     }
                 }
