@@ -417,7 +417,7 @@ fn rectangleForTile(gamePosition: main.Position, fillColor: [4]f32, verticeData:
     }
 }
 
-pub fn payMoreVerticeSetups(player: *playerZig.Player, shopButton: shopZig.PlayerShopButton, state: *main.GameState) anyerror!void {
+pub fn payVerticeSetups(player: *playerZig.Player, shopButton: shopZig.PlayerShopButton, state: *main.GameState) anyerror!void {
     if (player.shop.pieceShopTopLeft == null) return;
     const shopPos = player.shop.pieceShopTopLeft.?;
     const shopButtonGamePosition: main.Position = .{
@@ -432,7 +432,8 @@ pub fn payMoreVerticeSetups(player: *playerZig.Player, shopButton: shopZig.Playe
     const fontSize: f32 = @as(f32, @floatFromInt(main.TILESIZE)) / 2.2;
     const textColor: [4]f32 = .{ 1, 1, 1, alpha };
     const width = fontVulkanZig.paintTextGameMap("$", pricePosition, fontSize, textColor, state);
-    _ = try fontVulkanZig.paintNumberGameMap(state.level, .{
+    const costs = shopZig.getMovePiecesModificationCost(state);
+    _ = try fontVulkanZig.paintNumberGameMap(costs, .{
         .x = pricePosition.x + width,
         .y = pricePosition.y,
     }, fontSize, textColor, state);

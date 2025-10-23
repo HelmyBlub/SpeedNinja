@@ -755,6 +755,10 @@ pub fn runStart(state: *GameState, newGamePlus: u32) anyerror!void {
     state.statistics.currentRunStats.playerCount = @intCast(state.players.items.len);
     try startNextLevel(state);
     achievementZig.initAchievementsOnRestart(state);
+    if (state.modeSelect.selectedMode == .practice) {
+        achievementZig.stopTrackingAchievmentForThisRun(state);
+        state.statistics.active = false;
+    }
 }
 
 pub fn adjustZoom(state: *GameState) void {
@@ -901,6 +905,9 @@ pub fn executeContinue(state: *GameState) !void {
 }
 
 pub fn getMoneyCostsForContinue(state: *GameState) u32 {
+    if (state.modeSelect.selectedMode == .practice) {
+        return 0;
+    }
     if (state.continueData.freeContinues > 0) {
         return 0;
     }

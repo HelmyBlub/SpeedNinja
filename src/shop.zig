@@ -133,7 +133,7 @@ pub const SHOP_BUTTONS = [_]PlayerShopButton{
         .execute = executePay,
         .imageIndex = imageZig.IMAGE_BORDER_TILE,
         .tileOffset = .{ .x = 0, .y = 5 },
-        .moreVerticeSetups = shopVulkanZig.payMoreVerticeSetups,
+        .moreVerticeSetups = shopVulkanZig.payVerticeSetups,
         .getAlpha = payButtonAlpha,
     },
     .{
@@ -405,8 +405,9 @@ fn randomizeBuyableEquipment(maxShopOptions: usize, state: *main.GameState) !voi
         } else {
             offsetX = -@as(i32, @intCast((shopOptionsCount + 1) * 2));
         }
+        const price = if (state.modeSelect.selectedMode == .practice) 0 else state.level * randomEquip.basePrice;
         try state.shop.buyOptions.append(.{
-            .price = state.level * randomEquip.basePrice,
+            .price = price,
             .tilePosition = .{ .x = exitShopX + offsetX, .y = posY },
             .imageIndex = randomEquip.shopDisplayImage,
             .imageScale = randomEquip.imageScale,
@@ -501,10 +502,14 @@ pub fn executeNextStep(player: *playerZig.Player, state: *main.GameState) !void 
     }
 }
 
+pub fn getMovePiecesModificationCost(state: *main.GameState) u32 {
+    return if (state.modeSelect.selectedMode == .practice) 0 else state.level;
+}
+
 pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
+    const cost = getMovePiecesModificationCost(state);
     switch (player.shop.selectedOption) {
         .delete => |*data| {
-            const cost = state.level;
             if (player.money >= cost and player.totalMovePieces.items.len > 1) {
                 state.achievements.getPtr(.beatGameWithStartingMovePieces).trackingActive = false;
                 try movePieceZig.removeMovePiece(player, data.selectedIndex, state);
@@ -527,7 +532,6 @@ pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
             }
         },
         .add => |*data| {
-            const cost = state.level;
             if (player.money >= cost) {
                 if (player.shop.piecesToBuy[data.selectedIndex]) |buyPiece| {
                     try playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true, state);
@@ -564,7 +568,6 @@ pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
             }
         },
         .cut => |*data| {
-            const cost = state.level;
             if (player.money >= cost and data.isOnMovePiece and data.gridCutOffset != null and player.shop.gridDisplayPiece != null) {
                 try playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true, state);
                 state.achievements.getPtr(.beatGameWithStartingMovePieces).trackingActive = false;
@@ -576,7 +579,6 @@ pub fn executePay(player: *playerZig.Player, state: *main.GameState) !void {
             }
         },
         .combine => |*data| {
-            const cost = state.level;
             if (player.money >= cost and data.pieceIndex2 != null and (data.combineStep == .selectDirection or data.combineStep == .reset)) {
                 try playerZig.changePlayerMoneyBy(-@as(i32, @intCast(cost)), player, true, state);
                 player.uxData.visualizeMovePieceChangeFromShop = -1;

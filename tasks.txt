@@ -10,13 +10,12 @@ testruns:
 
 
 Tasks:
-- check on run save should not save new best times yet?
 - mode: pratice
     - like debug keys. In pratics mode:
         - unlimited continues
-        - refresh shop items button
         - everything costs 0
-        - buttons to jump back/forward in level
+        - refresh shop items button
+        - buttons to jump to next level
         - key to jump through new game plus
 - mode: pvp
     - rules:

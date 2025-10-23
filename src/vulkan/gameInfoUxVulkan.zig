@@ -154,10 +154,17 @@ fn verticesForGameOver(state: *main.GameState) !void {
                     .x = continuePos.x + textWidth,
                     .y = continuePos.y,
                 }, optionFontSize, moneyTextColor, state);
-                textWidth += try fontVulkanZig.paintNumber(state.continueData.freeContinues, .{
-                    .x = continuePos.x + textWidth,
-                    .y = continuePos.y,
-                }, optionFontSize, moneyTextColor, state);
+                if (state.modeSelect.selectedMode == .practice) {
+                    textWidth += fontVulkanZig.paintText("Practice", .{
+                        .x = continuePos.x + textWidth,
+                        .y = continuePos.y,
+                    }, optionFontSize, moneyTextColor, state);
+                } else {
+                    textWidth += try fontVulkanZig.paintNumber(state.continueData.freeContinues, .{
+                        .x = continuePos.x + textWidth,
+                        .y = continuePos.y,
+                    }, optionFontSize, moneyTextColor, state);
+                }
                 textWidth += fontVulkanZig.paintText(")", .{
                     .x = continuePos.x + textWidth,
                     .y = continuePos.y,

@@ -13,6 +13,7 @@ const equipmentZig = @import("equipment.zig");
 const settingsMenuVulkanZig = @import("vulkan/settingsMenuVulkan.zig");
 const achievementZig = @import("achievement.zig");
 const autoTestZig = @import("autoTest.zig");
+const modeSelectZig = @import("modeSelect.zig");
 
 pub const WindowData = struct {
     window: ?*sdl.SDL_Window = null,
@@ -71,6 +72,7 @@ pub fn handleEvents(state: *main.GameState) !void {
                 state.tutorialData.firstKeyDownInput = std.time.milliTimestamp();
             }
             if (buildin.mode == .Debug) try debugKeys(event, state);
+            if (state.modeSelect.selectedMode == .practice) try modeSelectZig.handlePracticeModeKeys(event, state);
         }
         try handleGamePadEvents(event, state);
         try inputZig.handlePlayerInput(event, state);
@@ -128,33 +130,14 @@ fn handleGamePadEvents(event: sdl.SDL_Event, state: *main.GameState) !void {
 }
 
 fn debugKeys(event: sdl.SDL_Event, state: *main.GameState) !void {
-    if (event.key.scancode == sdl.SDL_SCANCODE_F1) {
-        state.statistics.active = false;
-        achievementZig.stopTrackingAchievmentForThisRun(state);
-        if (state.gamePhase != .shopping) try shopZig.startShoppingPhase(state, false);
-        try main.startNextLevel(state);
-    } else if (event.key.scancode == sdl.SDL_SCANCODE_F2) {
-        if (state.gamePhase == .combat) {
-            achievementZig.stopTrackingAchievmentForThisRun(state);
-            state.statistics.active = false;
-            try main.startNextRound(state);
-        }
-    } else if (event.key.scancode == sdl.SDL_SCANCODE_F3) {
-        if (state.gamePhase != .shopping) {
-            state.statistics.active = false;
-            achievementZig.stopTrackingAchievmentForThisRun(state);
-            try shopZig.startShoppingPhase(state, false);
-        }
-    } else if (event.key.scancode == sdl.SDL_SCANCODE_F4) {
-        try main.runStart(state, 0);
-    } else if (event.key.scancode == sdl.SDL_SCANCODE_F5) {
+    if (event.key.scancode == sdl.SDL_SCANCODE_F5) {
         try main.runStart(state, state.newGamePlus + 1);
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F6) {
         state.statistics.active = false;
         achievementZig.stopTrackingAchievmentForThisRun(state);
         state.continueData.freeContinues += 1;
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F7) {
-        state.gameTime += 5000;
+        state.highestNewGameDifficultyBeaten += 1;
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F8) {
         state.statistics.active = false;
         achievementZig.stopTrackingAchievmentForThisRun(state);
