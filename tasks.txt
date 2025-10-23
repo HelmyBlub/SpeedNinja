@@ -10,7 +10,6 @@ testruns:
 
 
 Tasks:
-- bug: boss dragon fire spit into phase change -> fire on random locations
 - mode select new game plus
     - improve code to not guess new game plus count
 - mode: pvp

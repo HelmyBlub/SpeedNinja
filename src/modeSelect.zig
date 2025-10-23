@@ -58,7 +58,12 @@ pub fn initModeSelectData(state: *main.GameState) !void {
 }
 
 pub fn addNextNewGamePlusMode(state: *main.GameState) !void {
-    const nextNGPlus = state.modeSelect.modeStartRectangles.items.len - 1;
+    var nextNGPlus: u32 = 0;
+    for (state.modeSelect.modeStartRectangles.items) |modeRec| {
+        if (modeRec.modeData == .newGamePlus and modeRec.modeData.newGamePlus > nextNGPlus) nextNGPlus = modeRec.modeData.newGamePlus;
+    }
+    nextNGPlus += 1;
+    if (nextNGPlus > state.highestNewGameDifficultyBeaten + 1) return;
     const length = 10 + std.math.log10(nextNGPlus);
     const stringAlloc = try state.allocator.alloc(u8, length);
     _ = try std.fmt.bufPrint(stringAlloc, "New Game+{d}", .{nextNGPlus});
