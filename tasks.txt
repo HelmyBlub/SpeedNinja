@@ -2,6 +2,8 @@ testruns:
 - gain all achievements on steam
     - train end boss ng+2
         - beat 3 times in a row
+    - train boss 8
+        - beat 3 times in a row
     - newGame+2 end boss
         - boss 5 -> 2 long move pieces. destroy after
         - boss 7 -> edge strategy
@@ -11,6 +13,9 @@ testruns:
 - test pvp
 
 Tasks:
+- bug: on mode select sudden death happend
+    - reproduce: practice mode -> shop -> wait -> restart
+- bug: last run not deleted on restart
 - mode: achievements
     - visualize achieved and open once
     - save in file
@@ -18,7 +23,7 @@ Tasks:
     - setup on steam side
         - wait for review to finish
 - limit moving in modeSelect
-
+- check controller steam requirements
 
 Test Performance:
     test duration: 42453, gameTime: 2301390 (frame skip increased from 1 to 4)
