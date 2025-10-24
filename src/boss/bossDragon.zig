@@ -161,6 +161,7 @@ pub fn createBoss() bossZig.LevelBossData {
         .setupVerticesGround = setupVerticesGround,
         .onPlayerMoveEachTile = onPlayerMoveEachTile,
         .deinit = deinit,
+        .imageIndex = imageZig.IMAGE_BOSS_DRAGON_HEAD,
     };
 }
 

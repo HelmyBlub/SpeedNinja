@@ -5,6 +5,7 @@ const playerZig = @import("player.zig");
 const inputZig = @import("input.zig");
 const equipmentZig = @import("equipment.zig");
 const movePieceZig = @import("movePiece.zig");
+const achievementZig = @import("achievement.zig");
 
 const FILE_VERSION_SAVE_RUN: u8 = 0;
 const FILE_NAME_SAVE_RUN = "currenRun.dat";
@@ -72,6 +73,13 @@ pub fn loadSettingsFromFile(state: *main.GameState) !void {
         }
     }
     state.highestNewGameDifficultyBeaten = @max(-1, @min(1000, try reader.readInt(i32, .little)));
+    state.highestLevelBeaten = @min(main.LEVEL_COUNT, try reader.readInt(u32, .little));
+    for (state.achievements.values, 0..) |value, achievementIndex| {
+        if (value.displayInAchievementsMode) {
+            const checked = try reader.readInt(u8, .little);
+            state.achievements.values[achievementIndex].achieved = if (checked != 0) true else false;
+        }
+    }
 }
 
 pub fn saveSettingsToFile(state: *main.GameState) !void {
@@ -97,6 +105,12 @@ pub fn saveSettingsToFile(state: *main.GameState) !void {
         }
     }
     try writer.writeInt(i32, @bitCast(state.highestNewGameDifficultyBeaten), .little);
+    try writer.writeInt(u32, @bitCast(state.highestLevelBeaten), .little);
+    for (state.achievements.values) |value| {
+        if (value.displayInAchievementsMode) {
+            try writer.writeInt(u8, if (value.achieved) 1 else 0, .little);
+        }
+    }
 }
 
 pub fn loadCurrentRunFromFile(state: *main.GameState) !void {

@@ -46,6 +46,7 @@ pub fn createBoss() bossZig.LevelBossData {
         .setupVertices = setupVertices,
         .setupVerticesGround = setupVerticesGround,
         .deinit = deinit,
+        .imageIndex = imageZig.IMAGE_BOSS_TRIPPLE,
     };
 }
 
@@ -63,7 +64,7 @@ fn startBoss(state: *main.GameState) !void {
     var boss1: bossZig.Boss = .{
         .hp = bossHp,
         .maxHp = bossHp,
-        .imageIndex = imageZig.IMAGE_BOSS_TRIPPLE,
+        .imageIndex = bossZig.LEVEL_BOSS_DATA.get(.tripple).imageIndex,
         .position = .{ .x = -1 * main.TILESIZE, .y = -1 * main.TILESIZE },
         .name = "Trip",
         .typeData = .{ .tripple = .{
@@ -77,7 +78,7 @@ fn startBoss(state: *main.GameState) !void {
     var boss2: bossZig.Boss = .{
         .hp = bossHp,
         .maxHp = bossHp,
-        .imageIndex = imageZig.IMAGE_BOSS_TRIPPLE,
+        .imageIndex = bossZig.LEVEL_BOSS_DATA.get(.tripple).imageIndex,
         .position = .{ .x = 3 * main.TILESIZE, .y = 0 },
         .name = "Ripp",
         .typeData = .{ .tripple = .{
@@ -91,7 +92,7 @@ fn startBoss(state: *main.GameState) !void {
     var boss3: bossZig.Boss = .{
         .hp = bossHp,
         .maxHp = bossHp,
-        .imageIndex = imageZig.IMAGE_BOSS_TRIPPLE,
+        .imageIndex = bossZig.LEVEL_BOSS_DATA.get(.tripple).imageIndex,
         .position = .{ .x = 0, .y = 3 * main.TILESIZE },
         .name = "Ipple",
         .typeData = .{ .tripple = .{

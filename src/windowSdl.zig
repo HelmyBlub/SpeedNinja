@@ -137,7 +137,10 @@ fn debugKeys(event: sdl.SDL_Event, state: *main.GameState) !void {
         achievementZig.stopTrackingAchievmentForThisRun(state);
         state.continueData.freeContinues += 1;
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F7) {
-        state.highestNewGameDifficultyBeaten = 1;
+        if (state.highestNewGameDifficultyBeaten < 1) {
+            state.highestNewGameDifficultyBeaten = 1;
+            state.highestLevelBeaten = 0;
+        }
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F8) {
         state.statistics.active = false;
         achievementZig.stopTrackingAchievmentForThisRun(state);

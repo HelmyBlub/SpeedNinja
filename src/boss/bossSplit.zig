@@ -44,6 +44,7 @@ pub fn createBoss() bossZig.LevelBossData {
         .setupVertices = setupVertices,
         .setupVerticesGround = setupVerticesGround,
         .deinit = deinit,
+        .imageIndex = imageZig.IMAGE_BOSS_SLIME,
     };
 }
 
@@ -67,7 +68,7 @@ fn startBoss(state: *main.GameState) !void {
     var boss: bossZig.Boss = .{
         .hp = bossHp,
         .maxHp = bossHp,
-        .imageIndex = imageZig.IMAGE_BOSS_SLIME,
+        .imageIndex = bossZig.LEVEL_BOSS_DATA.get(.split).imageIndex,
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
         .typeData = .{ .split = bossTypeData },

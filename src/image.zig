@@ -99,6 +99,7 @@ pub const IMAGE_CHECKMARK = 91;
 pub const IMAGE_SHOP_PODEST = 92;
 pub const IMAGE_SETTINGS_ICON = 93;
 pub const IMAGE_SHOP_DELETE = 94;
+pub const IMAGE_BOSS_DRAGON_HEAD = 95;
 
 pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/ninjaFeet.png" },
@@ -196,6 +197,7 @@ pub var IMAGE_DATA = [_]ImageData{
     .{ .path = "images/shopPodest.png", .scale = 3.33 },
     .{ .path = "images/settingsIcon.png" },
     .{ .path = "images/shopDelete.png", .scale = 2 },
+    .{ .path = "images/bossDragonHead.png" },
 };
 pub const IMAGE_DOG__CENTER: main.Position = .{ .x = 100, .y = 100 };
 pub const IMAGE_DOG__CENTER_BODY: main.Position = .{ .x = 99, .y = 128 };

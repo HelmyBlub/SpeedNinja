@@ -13,9 +13,8 @@ testruns:
 - test pvp
 
 Tasks:
-- bug: on mode select sudden death happend
-    - reproduce: practice mode -> shop -> wait -> restart
 - mode: achievements
+    - save highest reached level
     - visualize achieved and open once
     - save in file
 - linux build
@@ -23,6 +22,11 @@ Tasks:
         - wait for review to finish
 - limit moving in modeSelect
 - check controller steam requirements
+- pause the game?
+    - pause the game when controller disconnects
+- hide mouse when using controller
+- fullscreen default mode?
+
 
 Test Performance:
     test duration: 42453, gameTime: 2301390 (frame skip increased from 1 to 4)

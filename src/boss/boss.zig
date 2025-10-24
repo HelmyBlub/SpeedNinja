@@ -25,6 +25,7 @@ pub const LevelBossData = struct {
     onPlayerMoved: ?*const fn (boss: *Boss, player: *playerZig.Player, state: *main.GameState) anyerror!void = null,
     onPlayerMoveEachTile: ?*const fn (boss: *Boss, player: *playerZig.Player, state: *main.GameState) anyerror!void = null,
     deinit: ?*const fn (boss: *Boss, allocator: std.mem.Allocator) void = null,
+    imageIndex: u8,
 };
 
 const BossTypes = enum {

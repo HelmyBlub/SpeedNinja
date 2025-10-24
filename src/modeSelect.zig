@@ -14,8 +14,8 @@ const equipmentZig = @import("equipment.zig");
 const enemyObjectFallDownZig = @import("enemy/enemyObjectFallDown.zig");
 
 pub const ModeSelectData = struct {
-    modeStartRectangles: std.ArrayList(ModeStartRectangle),
-    selectedMode: ModeData,
+    modeStartRectangles: std.ArrayList(ModeStartRectangle) = undefined,
+    selectedMode: ModeData = .none,
 };
 
 const ModeEnum = enum {
@@ -23,21 +23,23 @@ const ModeEnum = enum {
     newGamePlus,
     practice,
     pvp,
+    achievements,
 };
 
-const ModeData = union(enum) {
+const ModeData = union(ModeEnum) {
     none,
     newGamePlus: u32,
     practice,
     pvp: ?usize, // last player index who won
+    achievements: struct { rec: main.TileRectangle, playerCount: u32 = 0 }, // back to modeSelect rectangle
 };
 
-pub const ModePlayerData = union(enum) {
+pub const ModePlayerData = union(ModeEnum) {
     none,
-    normal,
     newGamePlus,
     practice,
     pvp: ModePlayerDataPvp,
+    achievements,
 };
 
 const ModePlayerDataPvp = struct {
@@ -70,6 +72,15 @@ pub fn initModeSelectData(state: *main.GameState) !void {
         .height = 2,
         .width = 2,
     } });
+    try state.modeSelect.modeStartRectangles.append(.{
+        .displayName = "Achievements",
+        .modeData = .{ .achievements = .{ .rec = .{ .pos = .{ .x = 3, .y = -5 }, .width = 2, .height = 2 } } },
+        .rectangle = .{
+            .pos = .{ .x = -4, .y = 2 },
+            .height = 2,
+            .width = 2,
+        },
+    });
     if (state.highestNewGameDifficultyBeaten > -1) {
         for (0..@intCast(state.highestNewGameDifficultyBeaten + 1)) |_| {
             try addNextNewGamePlusMode(state);
@@ -102,8 +113,14 @@ pub fn addNextNewGamePlusMode(state: *main.GameState) !void {
 pub fn setupVertices(state: *main.GameState) !void {
     if (state.gamePhase == .modeSelect) {
         const modeSelect = &state.modeSelect;
-        for (modeSelect.modeStartRectangles.items) |mode| {
-            try paintVulkanZig.verticesForStairsWithText(mode.rectangle, mode.displayName, mode.playerOnRectangleCounter, state);
+        switch (modeSelect.selectedMode) {
+            .none => {
+                for (modeSelect.modeStartRectangles.items) |mode| {
+                    try paintVulkanZig.verticesForStairsWithText(mode.rectangle, mode.displayName, mode.playerOnRectangleCounter, state);
+                }
+            },
+            .achievements => try verticesForAchievementMode(state),
+            else => {},
         }
     } else {
         switch (state.modeSelect.selectedMode) {
@@ -123,23 +140,42 @@ pub fn destroyModeSelectData(state: *main.GameState) void {
 
 pub fn onPlayerMoveActionFinished(state: *main.GameState) !void {
     if (state.gamePhase != .modeSelect) return;
-    for (state.modeSelect.modeStartRectangles.items) |*mode| {
-        mode.playerOnRectangleCounter = 0;
-        for (state.players.items) |*player| {
-            const playerTile = main.gamePositionToTilePosition(player.position);
-            if (main.isTilePositionInTileRectangle(playerTile, mode.rectangle)) {
-                mode.playerOnRectangleCounter += 1;
+    switch (state.modeSelect.selectedMode) {
+        .none => {
+            for (state.modeSelect.modeStartRectangles.items) |*mode| {
+                mode.playerOnRectangleCounter = 0;
+                for (state.players.items) |*player| {
+                    const playerTile = main.gamePositionToTilePosition(player.position);
+                    if (main.isTilePositionInTileRectangle(playerTile, mode.rectangle)) {
+                        mode.playerOnRectangleCounter += 1;
+                    }
+                }
+                if (mode.playerOnRectangleCounter == state.players.items.len) {
+                    try onStartMode(mode.modeData, state);
+                    return;
+                }
             }
-        }
-        if (mode.playerOnRectangleCounter == state.players.items.len) {
-            try onStartMode(mode.modeData, state);
-            return;
-        }
+        },
+        .achievements => {
+            state.modeSelect.selectedMode.achievements.playerCount = 0;
+            for (state.players.items) |*player| {
+                const playerTile = main.gamePositionToTilePosition(player.position);
+                if (main.isTilePositionInTileRectangle(playerTile, state.modeSelect.selectedMode.achievements.rec)) {
+                    state.modeSelect.selectedMode.achievements.playerCount += 1;
+                }
+            }
+            if (state.modeSelect.selectedMode.achievements.playerCount == state.players.items.len) {
+                try startModeSelect(state);
+                return;
+            }
+        },
+        else => {},
     }
 }
 
 pub fn startModeSelect(state: *main.GameState) !void {
     state.gamePhase = .modeSelect;
+    state.modeSelect.selectedMode = .none;
     state.gameOver = false;
     mapTileZig.resetMapTiles(state.mapData.tiles);
     state.mapObjects.clearAndFree();
@@ -170,6 +206,10 @@ fn onStartMode(modeData: ModeData, state: *main.GameState) !void {
         .newGamePlus => |data| try main.runStart(state, data),
         .practice => try main.runStart(state, 0),
         .pvp => try onStartModePvp(state),
+        .achievements => {
+            try mapTileZig.setMapRadius(9, 5, state);
+            main.adjustZoom(state);
+        },
     }
 }
 
@@ -240,6 +280,78 @@ fn startModePvp(state: *main.GameState) !void {
     state.spriteCutAnimations.clearRetainingCapacity();
     try mapTileZig.setMapRadius(4, 4, state);
     playerZig.movePlayerToLevelSpawnPosition(state);
+}
+
+fn verticesForAchievementMode(state: *main.GameState) !void {
+    try paintVulkanZig.verticesForStairsWithText(
+        state.modeSelect.selectedMode.achievements.rec,
+        "Back",
+        state.modeSelect.selectedMode.achievements.playerCount,
+        state,
+    );
+    const startTopLeft: main.Position = .{
+        .x = @floatFromInt(-9 * main.TILESIZE),
+        .y = @floatFromInt(-4 * main.TILESIZE),
+    };
+    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
+    const fontSize = 7;
+    const bossArray = bossZig.LEVEL_BOSS_DATA.values;
+    const maxNewGamePlus: usize = @intCast(state.highestNewGameDifficultyBeaten + 2);
+    var displayCount: f32 = 0;
+    for (state.achievements.values) |achievement| {
+        if (achievement.displayInAchievementsMode) {
+            const displayPos: main.Position = .{
+                .x = startTopLeft.x + displayCount * main.TILESIZE * 2,
+                .y = startTopLeft.y,
+            };
+            var textDisplayPos: main.Position = .{
+                .x = displayPos.x - main.TILESIZE / 2,
+                .y = displayPos.y - main.TILESIZE / 4,
+            };
+            const alpha: f32 = if (achievement.achieved) 1 else 0.3;
+            paintVulkanZig.verticesForComplexSprite(displayPos, imageZig.IMAGE_SHOP_PODEST, 1.5, 1.5, alpha, 0, false, false, state);
+            if (achievement.displayImageIndex != null and achievement.achieved) {
+                paintVulkanZig.verticesForComplexSprite(.{
+                    .x = displayPos.x,
+                    .y = displayPos.y - main.TILESIZE,
+                }, achievement.displayImageIndex.?, 4, 4, alpha, 0, false, false, state);
+                if (achievement.displayCharOnImage) |char| {
+                    _ = fontVulkanZig.paintTextGameMap(char, .{
+                        .x = displayPos.x - fontSize,
+                        .y = displayPos.y - main.TILESIZE - fontSize,
+                    }, fontSize * 2, textColor, state);
+                }
+            }
+            if (achievement.displayName) |display| textDisplayPos.x += fontVulkanZig.paintTextGameMap(display, textDisplayPos, fontSize, textColor, state);
+            displayCount += 1;
+        }
+    }
+    for (0..maxNewGamePlus) |ngpIndex| {
+        for (0..bossArray.len) |bossIndex| {
+            var achieved = true;
+            if (maxNewGamePlus - 1 == ngpIndex and @divFloor(state.highestLevelBeaten, 5) < bossIndex + 1) achieved = false;
+            const alpha: f32 = if (achieved) 1 else 0.3;
+            const displayPos: main.Position = .{
+                .x = startTopLeft.x + @as(f32, @floatFromInt(bossIndex)) * main.TILESIZE * 2,
+                .y = startTopLeft.y + @as(f32, @floatFromInt(ngpIndex + 1)) * main.TILESIZE * 3,
+            };
+            var textDisplayPos: main.Position = .{
+                .x = displayPos.x - main.TILESIZE / 2,
+                .y = displayPos.y - main.TILESIZE / 4,
+            };
+            paintVulkanZig.verticesForComplexSprite(displayPos, imageZig.IMAGE_SHOP_PODEST, 1.5, 1.5, alpha, 0, false, false, state);
+            const offsetY: f32 = if (bossIndex == 9) main.TILESIZE / 2 else 0;
+            if (achieved) {
+                paintVulkanZig.verticesForComplexSprite(.{
+                    .x = displayPos.x,
+                    .y = displayPos.y - main.TILESIZE - offsetY,
+                }, bossArray[bossIndex].imageIndex, 1, 1, alpha, 0, false, false, state);
+            }
+            textDisplayPos.x += fontVulkanZig.paintTextGameMap("NG+", textDisplayPos, fontSize, textColor, state);
+            _ = try fontVulkanZig.paintNumberGameMap(ngpIndex, textDisplayPos, fontSize, textColor, state);
+            if (!achieved) break;
+        }
+    }
 }
 
 fn verticesForPracticeMode(state: *main.GameState) void {

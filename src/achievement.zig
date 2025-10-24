@@ -1,11 +1,16 @@
 const std = @import("std");
 const main = @import("main.zig");
 const steamZig = @import("steam.zig");
+const imageZig = @import("image.zig");
 
 pub const AchievementData = struct {
     steamName: []const u8,
     trackingActive: bool = false,
     achieved: bool = false,
+    displayName: ?[]const u8 = null,
+    displayInAchievementsMode: bool = false,
+    displayImageIndex: ?u8 = null,
+    displayCharOnImage: ?[]const u8 = null,
 };
 
 pub const AchievementsEnum = enum {
@@ -46,10 +51,10 @@ pub const ACHIEVEMENTS = std.EnumArray(AchievementsEnum, AchievementData).init(.
     .beatBoss5OnNewGamePlus1 = .{ .steamName = "BeatBoss5OnNewGamePlus1" },
     .beatGamePlus2 = .{ .steamName = "BeatNewGamePlus2" },
     .beatBoss5OnNewGamePlus2 = .{ .steamName = "BeatBoss5OnNewGamePlus2" },
-    .beatGameUnder45min = .{ .steamName = "BeatUnder45Min" },
-    .beatBoss5WithoutSpendingMoney = .{ .steamName = "BeatBoss5WithoutSpendingAnyMoney" },
-    .beatGameWithStartingMovePieces = .{ .steamName = "BeatGameWithStartingMovePieces" },
-    .beatGameWithoutTakingDamage = .{ .steamName = "BeatGameWithoutTakingDamage" },
+    .beatGameUnder45min = .{ .steamName = "BeatUnder45Min", .displayInAchievementsMode = true, .displayImageIndex = imageZig.IMAGE_CLOCK, .displayName = "speed" },
+    .beatBoss5WithoutSpendingMoney = .{ .steamName = "BeatBoss5WithoutSpendingAnyMoney", .displayInAchievementsMode = true, .displayImageIndex = imageZig.IMAGE_BOSS_SNAKE_HEAD, .displayName = "saving", .displayCharOnImage = "$" },
+    .beatGameWithStartingMovePieces = .{ .steamName = "BeatGameWithStartingMovePieces", .displayInAchievementsMode = true, .displayImageIndex = imageZig.IMAGE_ICON_MOVE_PIECE, .displayName = "only 7" },
+    .beatGameWithoutTakingDamage = .{ .steamName = "BeatGameWithoutTakingDamage", .displayInAchievementsMode = true, .displayImageIndex = imageZig.IMAGE_ICON_HP, .displayName = "perfect" },
 });
 
 pub fn initAchievementsOnRestart(state: *main.GameState) void {

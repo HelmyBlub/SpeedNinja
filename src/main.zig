@@ -97,9 +97,10 @@ pub const GameState = struct {
     timeFreezeOnHit: bool = true,
     vulkanMousePosition: Position = .{ .x = 0, .y = 0 },
     highestNewGameDifficultyBeaten: i32 = -1,
+    highestLevelBeaten: u32 = 0,
     steam: ?steamZig.SteamData = null,
     achievements: std.EnumArray(achievementZig.AchievementsEnum, achievementZig.AchievementData) = achievementZig.ACHIEVEMENTS,
-    modeSelect: modeSelectZig.ModeSelectData = undefined,
+    modeSelect: modeSelectZig.ModeSelectData = .{},
     seededRandom: std.Random.Xoshiro256,
     autoTest: autoTestZig.AutoTestData,
     windowData: windowSdlZig.WindowData = .{},
@@ -662,6 +663,7 @@ pub fn gameFinished(state: *GameState) !void {
     }
     if (state.highestNewGameDifficultyBeaten < state.newGamePlus and state.modeSelect.selectedMode != .practice) {
         state.highestNewGameDifficultyBeaten = @intCast(state.newGamePlus);
+        state.highestLevelBeaten = 0;
         try modeSelectZig.addNextNewGamePlusMode(state);
     }
     try statsZig.statsOnLevelFinished(state);

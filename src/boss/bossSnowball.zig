@@ -36,6 +36,7 @@ pub fn createBoss() bossZig.LevelBossData {
         .isBossHit = isBossHit,
         .setupVertices = setupVertices,
         .setupVerticesGround = setupVerticesGround,
+        .imageIndex = imageZig.IMAGE_BOSS_SNOWBALL,
     };
 }
 
@@ -45,7 +46,7 @@ fn startBoss(state: *main.GameState) !void {
     var snowball: bossZig.Boss = .{
         .hp = scaledHp,
         .maxHp = scaledHp,
-        .imageIndex = imageZig.IMAGE_BOSS_SNOWBALL,
+        .imageIndex = bossZig.LEVEL_BOSS_DATA.get(.snowball).imageIndex,
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
         .typeData = .{ .snowball = .{} },

@@ -36,6 +36,7 @@ pub fn createBoss() bossZig.LevelBossData {
         .setupVertices = setupVertices,
         .setupVerticesGround = setupVerticesGround,
         .deinit = deinit,
+        .imageIndex = imageZig.IMAGE_BOSS_SNAKE_HEAD,
     };
 }
 
@@ -51,7 +52,7 @@ fn startBoss(state: *main.GameState) !void {
     var snakeBoss: bossZig.Boss = .{
         .hp = scaledHp,
         .maxHp = scaledHp,
-        .imageIndex = imageZig.IMAGE_BOSS_SNAKE_HEAD,
+        .imageIndex = bossZig.LEVEL_BOSS_DATA.get(.snake).imageIndex,
         .position = .{ .x = 0, .y = 0 },
         .name = BOSS_NAME,
         .typeData = .{ .snake = .{
