@@ -431,7 +431,6 @@ fn getRandomEquipmentIndexForShop(blacklistedIndexes: []usize, mode: usize, stat
         }
         const level = state.shop.equipOptionsLastLevelInShop[index];
         totalProbability += @max(1, state.level -| level);
-        std.debug.print("p: {}", .{totalProbability});
     }
     const random = state.seededRandom.random().intRangeLessThan(usize, 0, totalProbability);
     totalProbability = 0;
@@ -444,7 +443,6 @@ fn getRandomEquipmentIndexForShop(blacklistedIndexes: []usize, mode: usize, stat
         const level = state.shop.equipOptionsLastLevelInShop[index];
         totalProbability += @max(1, state.level -| level);
         if (random < totalProbability) {
-            std.debug.print(" r:{} i:{}\n", .{ random, index });
             return index;
         }
     }

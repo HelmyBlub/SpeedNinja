@@ -15,7 +15,6 @@ testruns:
 Tasks:
 - bug: on mode select sudden death happend
     - reproduce: practice mode -> shop -> wait -> restart
-- bug: last run not deleted on restart
 - mode: achievements
     - visualize achieved and open once
     - save in file
