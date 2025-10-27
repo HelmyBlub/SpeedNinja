@@ -6,12 +6,10 @@ testruns:
 
 Tasks:
 - pause the game?
-    - should not be abusable
-    - bug: replay somethime broken
+    - bug: replay sometimes broken
     - pause the game when controller disconnects
-    - steam overlay pause
-- check controller steam requirements
 - limit moving in modeSelect
+    - pause key resets player location
 - fullscreen default mode?
 - achievement popup ingame
 - hold button move
