@@ -5,15 +5,19 @@ testruns:
 - new test run
 
 Tasks:
-- hide mouse when not moving
-    - hide ui helper text is mouse hidden
 - pause the game?
+    - escape key => pause after 1sec
+        - hold any key to unpause
+    - should not be abusable
     - pause the game when controller disconnects
+    - steam overlay pause
 - check controller steam requirements
 - limit moving in modeSelect
 - fullscreen default mode?
 - achievement popup ingame
 - hold button move
+- pause menu can be overlapping with tutorial
+- gate opening sound forever when paused or timefreeze
 
 
 Test Performance:

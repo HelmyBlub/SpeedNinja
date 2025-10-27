@@ -47,6 +47,7 @@ pub const PlayerAction = enum {
     moveDown,
     moveLeft,
     moveRight,
+    pauseGame,
 };
 
 const KeyboardKeyBind = struct {
@@ -67,6 +68,7 @@ const KEYBOARD_MAPPING_1 = [_]KeyboardKeyBind{
     .{ .action = .pieceSelect1, .sdlKeyCode = sdl.SDL_SCANCODE_1 },
     .{ .action = .pieceSelect2, .sdlKeyCode = sdl.SDL_SCANCODE_2 },
     .{ .action = .pieceSelect3, .sdlKeyCode = sdl.SDL_SCANCODE_3 },
+    .{ .action = .pauseGame, .sdlKeyCode = sdl.SDL_SCANCODE_ESCAPE },
 };
 const KEYBOARD_MAPPING_2 = [_]KeyboardKeyBind{
     .{ .action = .moveDown, .sdlKeyCode = sdl.SDL_SCANCODE_DOWN },
@@ -250,7 +252,7 @@ fn handlePlayerKeyboardInput(event: sdl.SDL_Event, player: *playerZig.Player, ke
                     try handlePlayerAction(mapping.action, player, state);
                 } else {
                     player.inputData.holdingKeySinceForLeave = null;
-                    if (state.gameOver) {
+                    if (state.gameOver or state.paused) {
                         if (mapping.action == .pieceSelect1) state.uxData.continueButtonHoldStart = null;
                         if (mapping.action == .pieceSelect2) state.uxData.restartButtonHoldStart = null;
                         if (mapping.action == .pieceSelect3) state.uxData.quitButtonHoldStart = null;
@@ -266,7 +268,7 @@ fn handlePlayerKeyboardInput(event: sdl.SDL_Event, player: *playerZig.Player, ke
                     if (event.type == sdl.SDL_EVENT_KEY_DOWN) {
                         try handlePlayerAction(mapping.action, player, state);
                     } else {
-                        if (state.gameOver) {
+                        if (state.gameOver or state.paused) {
                             if (mapping.action == .pieceSelect1) state.uxData.continueButtonHoldStart = null;
                             if (mapping.action == .pieceSelect2) state.uxData.restartButtonHoldStart = null;
                             if (mapping.action == .pieceSelect3) state.uxData.quitButtonHoldStart = null;
@@ -280,20 +282,21 @@ fn handlePlayerKeyboardInput(event: sdl.SDL_Event, player: *playerZig.Player, ke
 
 fn handlePlayerGamepadInput(event: sdl.SDL_Event, player: *playerZig.Player, gamepadId: ?u32, state: *main.GameState) !void {
     if (gamepadId != null and event.gdevice.which != gamepadId) return;
-    const deadzone = 15000;
+    const deadzoneLimit = 15000;
     switch (event.type) {
         sdl.SDL_EVENT_GAMEPAD_AXIS_MOTION => {
-            if (gamepadId == null) player.inputData.lastInputDevice = .{ .gamepad = event.gdevice.which };
-            const deadZone = player.inputData.axis0DeadZone and player.inputData.axis1DeadZone;
+            const isInDeadZone = player.inputData.axis0DeadZone and player.inputData.axis1DeadZone;
             if (@mod(event.gaxis.axis, 2) == 1) {
-                if (event.gaxis.value > deadzone) {
-                    if (deadZone) {
+                if (event.gaxis.value > deadzoneLimit) {
+                    if (gamepadId == null) player.inputData.lastInputDevice = .{ .gamepad = event.gdevice.which };
+                    if (isInDeadZone) {
                         try handlePlayerAction(.moveDown, player, state);
                     }
                     player.inputData.axis1Id = event.gaxis.axis;
                     player.inputData.axis1DeadZone = false;
-                } else if (event.gaxis.value < -deadzone) {
-                    if (deadZone) {
+                } else if (event.gaxis.value < -deadzoneLimit) {
+                    if (gamepadId == null) player.inputData.lastInputDevice = .{ .gamepad = event.gdevice.which };
+                    if (isInDeadZone) {
                         try handlePlayerAction(.moveUp, player, state);
                     }
                     player.inputData.axis1Id = event.gaxis.axis;
@@ -302,14 +305,16 @@ fn handlePlayerGamepadInput(event: sdl.SDL_Event, player: *playerZig.Player, gam
                     player.inputData.axis1DeadZone = true;
                 }
             } else {
-                if (event.gaxis.value > deadzone) {
-                    if (deadZone) {
+                if (event.gaxis.value > deadzoneLimit) {
+                    if (gamepadId == null) player.inputData.lastInputDevice = .{ .gamepad = event.gdevice.which };
+                    if (isInDeadZone) {
                         try handlePlayerAction(.moveRight, player, state);
                     }
                     player.inputData.axis0Id = event.gaxis.axis;
                     player.inputData.axis0DeadZone = false;
-                } else if (event.gaxis.value < -deadzone) {
-                    if (deadZone) {
+                } else if (event.gaxis.value < -deadzoneLimit) {
+                    if (gamepadId == null) player.inputData.lastInputDevice = .{ .gamepad = event.gdevice.which };
+                    if (isInDeadZone) {
                         try handlePlayerAction(.moveLeft, player, state);
                     }
                     player.inputData.axis0Id = event.gaxis.axis;
@@ -321,14 +326,24 @@ fn handlePlayerGamepadInput(event: sdl.SDL_Event, player: *playerZig.Player, gam
         },
         sdl.SDL_EVENT_GAMEPAD_BUTTON_DOWN => {
             if (gamepadId == null) player.inputData.lastInputDevice = .{ .gamepad = event.gdevice.which };
-            if (event.gbutton.button == 0) try handlePlayerAction(.pieceSelect1, player, state);
-            if (event.gbutton.button == 1) try handlePlayerAction(.pieceSelect2, player, state);
-            if (event.gbutton.button == 2) try handlePlayerAction(.pieceSelect3, player, state);
-            if (gamepadId != null) player.inputData.holdingKeySinceForLeave = std.time.milliTimestamp();
+            if (event.gbutton.button == 0) {
+                try handlePlayerAction(.pieceSelect1, player, state);
+            } else if (event.gbutton.button == 1) {
+                try handlePlayerAction(.pieceSelect2, player, state);
+            } else if (event.gbutton.button == 2) {
+                try handlePlayerAction(.pieceSelect3, player, state);
+            } else if (event.gbutton.button == 6) {
+                try handlePlayerAction(.pauseGame, player, state);
+            } else {
+                std.debug.print("gamepadeButtonPress: {}\n", .{event.gbutton.button});
+            }
+            if (gamepadId != null) {
+                player.inputData.holdingKeySinceForLeave = std.time.milliTimestamp();
+            }
         },
         sdl.SDL_EVENT_GAMEPAD_BUTTON_UP => {
             player.inputData.holdingKeySinceForLeave = null;
-            if (state.gameOver) {
+            if (state.gameOver or state.paused) {
                 if (event.gbutton.button == 0) state.uxData.continueButtonHoldStart = null;
                 if (event.gbutton.button == 1) state.uxData.restartButtonHoldStart = null;
                 if (event.gbutton.button == 2) state.uxData.quitButtonHoldStart = null;
@@ -343,48 +358,68 @@ pub fn handlePlayerAction(action: PlayerAction, player: *playerZig.Player, state
     player.inputData.lastInputTime = state.gameTime;
     switch (action) {
         .moveLeft => {
-            if (player.choosenMoveOptionIndex) |index| {
-                try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_LEFT, state);
-            } else if (state.gamePhase == .shopping or state.gamePhase == .modeSelect) {
-                player.position.x -= main.TILESIZE;
-                try onPlayerMoveActionFinished(player, state);
+            if (!state.paused and !state.gameOver) {
+                if (player.choosenMoveOptionIndex) |index| {
+                    try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_LEFT, state);
+                } else if (state.gamePhase == .shopping or state.gamePhase == .modeSelect) {
+                    player.position.x -= main.TILESIZE;
+                    try onPlayerMoveActionFinished(player, state);
+                }
             }
         },
         .moveRight => {
-            if (player.choosenMoveOptionIndex) |index| {
-                try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_RIGHT, state);
-            } else if (state.gamePhase == .shopping or state.gamePhase == .modeSelect) {
-                player.position.x += main.TILESIZE;
-                try onPlayerMoveActionFinished(player, state);
+            if (!state.paused and !state.gameOver) {
+                if (player.choosenMoveOptionIndex) |index| {
+                    try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_RIGHT, state);
+                } else if (state.gamePhase == .shopping or state.gamePhase == .modeSelect) {
+                    player.position.x += main.TILESIZE;
+                    try onPlayerMoveActionFinished(player, state);
+                }
             }
         },
         .moveUp => {
-            if (player.choosenMoveOptionIndex) |index| {
-                try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_UP, state);
-            } else if (state.gamePhase == .shopping or state.gamePhase == .modeSelect) {
-                player.position.y -= main.TILESIZE;
-                try onPlayerMoveActionFinished(player, state);
+            if (!state.paused and !state.gameOver) {
+                if (player.choosenMoveOptionIndex) |index| {
+                    try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_UP, state);
+                } else if (state.gamePhase == .shopping or state.gamePhase == .modeSelect) {
+                    player.position.y -= main.TILESIZE;
+                    try onPlayerMoveActionFinished(player, state);
+                }
             }
         },
         .moveDown => {
-            if (player.choosenMoveOptionIndex) |index| {
-                try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_DOWN, state);
-            } else if (state.gamePhase == .shopping or state.gamePhase == .modeSelect) {
-                player.position.y += main.TILESIZE;
-                try onPlayerMoveActionFinished(player, state);
+            if (!state.paused and !state.gameOver) {
+                if (player.choosenMoveOptionIndex) |index| {
+                    try movePieceZig.movePlayerByMovePiece(player, index, movePieceZig.DIRECTION_DOWN, state);
+                } else if (state.gamePhase == .shopping or state.gamePhase == .modeSelect) {
+                    player.position.y += main.TILESIZE;
+                    try onPlayerMoveActionFinished(player, state);
+                }
             }
         },
         .pieceSelect1 => {
-            movePieceZig.setMoveOptionIndex(player, 0, state);
-            if (state.gameOver and state.level > 1 and state.uxData.continueButtonHoldStart == null) state.uxData.continueButtonHoldStart = std.time.milliTimestamp();
+            if (state.paused or state.gameOver) {
+                if (state.uxData.continueButtonHoldStart == null) state.uxData.continueButtonHoldStart = std.time.milliTimestamp();
+            } else {
+                movePieceZig.setMoveOptionIndex(player, 0, state);
+            }
         },
         .pieceSelect2 => {
-            if (state.gameOver and state.uxData.restartButtonHoldStart == null) state.uxData.restartButtonHoldStart = std.time.milliTimestamp();
-            movePieceZig.setMoveOptionIndex(player, 1, state);
+            if (state.paused or state.gameOver) {
+                if (state.uxData.restartButtonHoldStart == null) state.uxData.restartButtonHoldStart = std.time.milliTimestamp();
+            } else {
+                movePieceZig.setMoveOptionIndex(player, 1, state);
+            }
         },
         .pieceSelect3 => {
-            if (state.gameOver and state.uxData.quitButtonHoldStart == null) state.uxData.quitButtonHoldStart = std.time.milliTimestamp();
-            movePieceZig.setMoveOptionIndex(player, 2, state);
+            if (state.paused or state.gameOver) {
+                if (state.uxData.quitButtonHoldStart == null) state.uxData.quitButtonHoldStart = std.time.milliTimestamp();
+            } else {
+                movePieceZig.setMoveOptionIndex(player, 2, state);
+            }
+        },
+        .pauseGame => {
+            if (!state.gameOver and (state.paused or state.gamePhase == .combat or state.gamePhase == .boss)) state.paused = !state.paused;
         },
     }
 }

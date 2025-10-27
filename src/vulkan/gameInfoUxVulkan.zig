@@ -16,7 +16,7 @@ pub fn setupVertices(state: *main.GameState) !void {
     try verticesForLevelRoundNewGamePlus(state);
     try verticesForPvP(state);
     try verticesForTimeFreeze(state);
-    try verticesForGameOver(state);
+    try verticesForGameOverOrPaused(state);
     try verticesForLeaveJoinInfo(state);
     verticesForBossAcedAndFreeContinue(state);
     verticsForTutorial(state);
@@ -113,17 +113,17 @@ fn verticesForTimeFreeze(state: *main.GameState) !void {
     _ = fontVulkanZig.paintText(text, textPosition, fontSize, textColor, state);
 }
 
-fn verticesForGameOver(state: *main.GameState) !void {
-    if (state.gameOver and state.timeFreezed == null) {
+fn verticesForGameOverOrPaused(state: *main.GameState) !void {
+    if ((state.gameOver or state.paused) and state.timeFreezed == null) {
         const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
         const verticeData = &state.vkState.verticeData;
         const textColor: [4]f32 = .{ 1, 1, 1, 1 };
-        const gameOverText = "Game Over";
+        const displayText = if (state.gameOver) "Game Over" else "Paused";
         const textSizePerCent = 0.15;
         const fontSize = state.windowData.heightFloat * textSizePerCent;
-        const displayTextWidthEstimate = fontVulkanZig.getTextVulkanWidth(gameOverText, fontSize, state);
+        const displayTextWidthEstimate = fontVulkanZig.getTextVulkanWidth(displayText, fontSize, state);
         const gameOverPos: main.Position = .{ .x = -displayTextWidthEstimate / 2, .y = -textSizePerCent * 3 };
-        _ = fontVulkanZig.paintText(gameOverText, gameOverPos, fontSize, textColor, state);
+        _ = fontVulkanZig.paintText(displayText, gameOverPos, fontSize, textColor, state);
         const continueCosts = main.getMoneyCostsForContinue(state);
         const timestamp = std.time.milliTimestamp();
         const optionFontSize = state.windowData.heightFloat * textSizePerCent / 2;
@@ -131,51 +131,66 @@ fn verticesForGameOver(state: *main.GameState) !void {
         const spacing = onePixelYInVulkan * 5;
         const black: [4]f32 = .{ 0.0, 0.0, 0.0, 1 };
         const lightGray: [4]f32 = .{ 0.9, 0.9, 0.9, 1 };
-        if (state.level > 1) {
-            const hasEnoughMoney = main.hasEnoughMoney(continueCosts, state);
-            const moneyTextColor: [4]f32 = if (hasEnoughMoney) .{ 0.1, 1, 0.1, 1 } else .{ 0.8, 0, 0, 1 };
-            const continuePos: main.Position = .{ .x = gameOverPos.x, .y = gameOverPos.y + fontSize * onePixelYInVulkan };
-            var textWidth: f32 = 0;
-            if (hasEnoughMoney) {
-                textWidth += fontVulkanZig.verticesForDisplayButton(continuePos, .pieceSelect1, optionFontSize, &state.players.items[0], state);
-            } else {
-                textWidth += state.windowData.onePixelXInVulkan * optionFontSize;
-            }
-            if (continueCosts > 0) {
-                textWidth += fontVulkanZig.paintText("Continue: $", .{
-                    .x = continuePos.x + textWidth,
-                    .y = continuePos.y,
-                }, optionFontSize, moneyTextColor, state);
-                textWidth += try fontVulkanZig.paintNumber(continueCosts, .{
-                    .x = continuePos.x + textWidth,
-                    .y = continuePos.y,
-                }, optionFontSize, moneyTextColor, state);
-            } else {
-                textWidth += fontVulkanZig.paintText("Continue: Free(", .{
-                    .x = continuePos.x + textWidth,
-                    .y = continuePos.y,
-                }, optionFontSize, moneyTextColor, state);
-                if (state.modeSelect.selectedMode == .practice) {
-                    textWidth += fontVulkanZig.paintText("Practice", .{
-                        .x = continuePos.x + textWidth,
-                        .y = continuePos.y,
+        var firstTextWidth: f32 = 0;
+        const firstOption: main.Position = .{ .x = gameOverPos.x, .y = gameOverPos.y + fontSize * onePixelYInVulkan };
+        var displayFirstOption: bool = true;
+        var displayFirstOptionHold: bool = true;
+        if (state.gameOver) {
+            if (state.level > 1) {
+                const hasEnoughMoney = main.hasEnoughMoney(continueCosts, state);
+                displayFirstOptionHold = hasEnoughMoney;
+                const moneyTextColor: [4]f32 = if (hasEnoughMoney) .{ 0.1, 1, 0.1, 1 } else .{ 0.8, 0, 0, 1 };
+                if (hasEnoughMoney) {
+                    firstTextWidth += fontVulkanZig.verticesForDisplayButton(firstOption, .pieceSelect1, optionFontSize, &state.players.items[0], state);
+                } else {
+                    firstTextWidth += state.windowData.onePixelXInVulkan * optionFontSize;
+                }
+                if (continueCosts > 0) {
+                    firstTextWidth += fontVulkanZig.paintText("Continue: $", .{
+                        .x = firstOption.x + firstTextWidth,
+                        .y = firstOption.y,
+                    }, optionFontSize, moneyTextColor, state);
+                    firstTextWidth += try fontVulkanZig.paintNumber(continueCosts, .{
+                        .x = firstOption.x + firstTextWidth,
+                        .y = firstOption.y,
                     }, optionFontSize, moneyTextColor, state);
                 } else {
-                    textWidth += try fontVulkanZig.paintNumber(state.continueData.freeContinues, .{
-                        .x = continuePos.x + textWidth,
-                        .y = continuePos.y,
+                    firstTextWidth += fontVulkanZig.paintText("Continue: Free(", .{
+                        .x = firstOption.x + firstTextWidth,
+                        .y = firstOption.y,
+                    }, optionFontSize, moneyTextColor, state);
+                    if (state.modeSelect.selectedMode == .practice) {
+                        firstTextWidth += fontVulkanZig.paintText("Practice", .{
+                            .x = firstOption.x + firstTextWidth,
+                            .y = firstOption.y,
+                        }, optionFontSize, moneyTextColor, state);
+                    } else {
+                        firstTextWidth += try fontVulkanZig.paintNumber(state.continueData.freeContinues, .{
+                            .x = firstOption.x + firstTextWidth,
+                            .y = firstOption.y,
+                        }, optionFontSize, moneyTextColor, state);
+                    }
+                    firstTextWidth += fontVulkanZig.paintText(")", .{
+                        .x = firstOption.x + firstTextWidth,
+                        .y = firstOption.y,
                     }, optionFontSize, moneyTextColor, state);
                 }
-                textWidth += fontVulkanZig.paintText(")", .{
-                    .x = continuePos.x + textWidth,
-                    .y = continuePos.y,
-                }, optionFontSize, moneyTextColor, state);
+            } else {
+                displayFirstOption = false;
             }
-            paintVulkanZig.verticesForRectangle(continuePos.x, continuePos.y, textWidth, optionHeight, black, &verticeData.lines, null);
-            if (hasEnoughMoney and state.uxData.continueButtonHoldStart != null) {
+        } else {
+            firstTextWidth += fontVulkanZig.verticesForDisplayButton(firstOption, .pieceSelect1, optionFontSize, &state.players.items[0], state);
+            firstTextWidth += fontVulkanZig.paintText("Unpause", .{
+                .x = firstOption.x + firstTextWidth,
+                .y = firstOption.y,
+            }, optionFontSize, textColor, state);
+        }
+        if (displayFirstOption) {
+            paintVulkanZig.verticesForRectangle(firstOption.x, firstOption.y, firstTextWidth, optionHeight, black, &verticeData.lines, null);
+            if (state.uxData.continueButtonHoldStart != null and displayFirstOptionHold) {
                 const time = state.uxData.continueButtonHoldStart.?;
                 const fillPerCent = @as(f32, @floatFromInt(timestamp - time)) / @as(f32, @floatFromInt(state.uxData.holdDefaultDuration));
-                paintVulkanZig.verticesForRectangle(continuePos.x, continuePos.y, textWidth * fillPerCent, optionHeight, lightGray, null, &verticeData.triangles);
+                paintVulkanZig.verticesForRectangle(firstOption.x, firstOption.y, firstTextWidth * fillPerCent, optionHeight, lightGray, null, &verticeData.triangles);
             }
         }
         const restartPos: main.Position = .{ .x = gameOverPos.x, .y = gameOverPos.y + (fontSize + optionFontSize) * onePixelYInVulkan + spacing };
@@ -388,6 +403,7 @@ pub fn verticesForHoverInformation(state: *main.GameState) !bool {
 }
 
 fn verticsForTutorial(state: *main.GameState) void {
+    if (state.paused) return;
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
     if (state.tutorialData.active and state.tutorialData.firstKeyDownInput != null) {

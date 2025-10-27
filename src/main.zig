@@ -95,6 +95,7 @@ pub const GameState = struct {
     lastAfkShootTime: ?i64 = null,
     timeFreezed: ?i64 = null,
     timeFreezeOnHit: bool = true,
+    paused: bool = false,
     vulkanMousePosition: ?Position = null,
     highestNewGameDifficultyBeaten: i32 = -1,
     highestLevelBeaten: u32 = 0,
@@ -254,7 +255,7 @@ pub fn mainLoop(state: *GameState) !void {
     var currentFramesSkipped: u8 = 0;
     const maxFrameSkips = 4;
     while (!state.gameQuit) {
-        const passedTime: i64 = if (state.timeFreezed == null) tickIntervalMs else 0;
+        const passedTime: i64 = if (state.timeFreezed == null and !state.paused) tickIntervalMs else 0;
         if (state.gamePhase != .modeSelect and (state.modeSelect.selectedMode == .newGamePlus or state.modeSelect.selectedMode == .practice)) {
             if (shouldEndLevel(state)) {
                 if (state.gamePhase == .boss) {
@@ -287,12 +288,14 @@ pub fn mainLoop(state: *GameState) !void {
         try autoTestZig.tickReplayInputs(state);
         try autoTestZig.tickRecordRun(state);
         try windowSdlZig.handleEvents(state);
-        try playerZig.tickPlayers(state, passedTime);
-        tickClouds(state, passedTime);
-        try enemyZig.tickEnemies(passedTime, state);
-        try bossZig.tickBosses(state, passedTime);
-        tickMapObjects(state, passedTime);
-        try multiplayerAfkCheck(state);
+        if (!state.paused) {
+            try playerZig.tickPlayers(state, passedTime);
+            tickClouds(state, passedTime);
+            try enemyZig.tickEnemies(passedTime, state);
+            try bossZig.tickBosses(state, passedTime);
+            tickMapObjects(state, passedTime);
+            try multiplayerAfkCheck(state);
+        }
         try tickGameOver(state);
         tickGameFinished(state);
         if (state.verifyMapData.checkReachable) try verifyMapZig.checkAndModifyMapIfNotEverythingReachable(state);
@@ -317,7 +320,7 @@ pub fn mainLoop(state: *GameState) !void {
             }
         }
         if (state.timeFreezed == null) {
-            state.gameTime += tickIntervalMs;
+            if (!state.paused) state.gameTime += tickIntervalMs;
         } else {
             state.timeFreezed.? += tickIntervalMs;
         }
@@ -376,11 +379,16 @@ fn multiplayerAfkCheck(state: *GameState) !void {
 }
 
 fn tickGameOver(state: *GameState) !void {
-    if (!state.gameOver) return;
+    if (!state.gameOver and !state.paused) return;
     const timeStamp = std.time.milliTimestamp();
     if (state.uxData.continueButtonHoldStart != null and state.uxData.continueButtonHoldStart.? + state.uxData.holdDefaultDuration < timeStamp) {
-        try executeContinue(state);
-        state.uxData.continueButtonHoldStart = null;
+        if (state.level > 1 and state.gameOver) {
+            try executeContinue(state);
+            state.uxData.continueButtonHoldStart = null;
+        } else if (state.paused) {
+            state.paused = false;
+            state.uxData.continueButtonHoldStart = null;
+        }
         return;
     }
     if (state.uxData.restartButtonHoldStart != null and state.uxData.restartButtonHoldStart.? + state.uxData.holdDefaultDuration < timeStamp) {
@@ -700,6 +708,7 @@ pub fn runStart(state: *GameState, newGamePlus: u32) anyerror!void {
     autoTestZig.startRecordingRun(state);
     try statsZig.statsSaveOnRestart(state);
     mapTileZig.setMapType(.default, state);
+    state.paused = false;
     state.timeFreezed = null;
     state.gameOver = false;
     state.camera.position = .{ .x = 0, .y = 0 };

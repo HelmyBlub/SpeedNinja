@@ -145,7 +145,7 @@ fn verticesForEnterShop(state: *main.GameState) !void {
         const timestamp = std.time.milliTimestamp();
         if (state.soundData.gateOpenTime == null or state.soundData.gateOpenTime.? + 300 < timestamp) {
             state.soundData.gateOpenTime = timestamp;
-            try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_GATE_OPEN, 0, 1);
+            if (!state.paused) try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_GATE_OPEN, 0, 1);
         }
         const timePerCent = 1 - @as(f32, @floatFromInt(state.gateOpenTime.? + GATE_OPEN_DURATION - state.gameTime)) / GATE_OPEN_DURATION;
         paintVulkanZig.verticesForComplexSprite(
