@@ -422,7 +422,8 @@ fn settupUiLocationSingleTab(tab: *UiTabsData, baseFontSize: f32, uiSizeFactor: 
 }
 
 pub fn mouseMove(state: *main.GameState) !void {
-    const vulkanMousePos = state.vulkanMousePosition;
+    if (state.vulkanMousePosition == null) return;
+    const vulkanMousePos = state.vulkanMousePosition.?;
     const settingsMenuUx = &state.uxData.settingsMenuUx;
     if (main.isPositionInRectangle(vulkanMousePos, settingsMenuUx.settingsIcon)) {
         settingsMenuUx.settingsIconHovered = true;
@@ -504,10 +505,11 @@ pub fn mouseUp(state: *main.GameState) !void {
             .checkbox, .text => {},
             .slider => |*data| {
                 if (data.holding) {
-                    const vulkanMousePos = state.vulkanMousePosition;
-                    const valuePerCent = @min(@max(0, @as(f32, @floatCast(vulkanMousePos.x - data.recDragArea.pos.x)) / data.recDragArea.width), 1);
-                    if (data.onChange) |onChange| try onChange(valuePerCent, element, state);
-                    if (data.onStopHolding) |stopHold| try stopHold(valuePerCent, element, state);
+                    if (state.vulkanMousePosition) |vulkanMousePos| {
+                        const valuePerCent = @min(@max(0, @as(f32, @floatCast(vulkanMousePos.x - data.recDragArea.pos.x)) / data.recDragArea.width), 1);
+                        if (data.onChange) |onChange| try onChange(valuePerCent, element, state);
+                        if (data.onStopHolding) |stopHold| try stopHold(valuePerCent, element, state);
+                    }
                 }
                 data.holding = false;
             },
@@ -516,7 +518,8 @@ pub fn mouseUp(state: *main.GameState) !void {
 }
 
 pub fn mouseDown(state: *main.GameState) !void {
-    const vulkanMousePos = state.vulkanMousePosition;
+    if (state.vulkanMousePosition == null) return;
+    const vulkanMousePos = state.vulkanMousePosition.?;
     const settingsMenuUx = &state.uxData.settingsMenuUx;
     if (main.isPositionInRectangle(vulkanMousePos, settingsMenuUx.settingsIcon)) {
         settingsMenuUx.menuOpen = !settingsMenuUx.menuOpen;

@@ -78,23 +78,26 @@ pub fn handleEvents(state: *main.GameState) !void {
         try handleGamePadEvents(event, state);
         try inputZig.handlePlayerInput(event, state);
         if (event.type == sdl.SDL_EVENT_MOUSE_MOTION) {
-            state.uxData.lastMouseMove = timeStamp;
+            state.uxData.lastMouseInput = timeStamp;
             state.vulkanMousePosition = mouseWindowPositionToVulkanSurfacePoisition(event.motion.x, event.motion.y, state);
             try settingsMenuVulkanZig.mouseMove(state);
         }
         if (event.type == sdl.SDL_EVENT_MOUSE_BUTTON_DOWN) {
-            state.uxData.lastMouseMove = timeStamp;
+            state.uxData.lastMouseInput = timeStamp;
             state.vulkanMousePosition = mouseWindowPositionToVulkanSurfacePoisition(event.motion.x, event.motion.y, state);
             try settingsMenuVulkanZig.mouseDown(state);
         }
         if (event.type == sdl.SDL_EVENT_MOUSE_BUTTON_UP) {
-            state.uxData.lastMouseMove = timeStamp;
+            state.uxData.lastMouseInput = timeStamp;
             state.vulkanMousePosition = mouseWindowPositionToVulkanSurfacePoisition(event.motion.x, event.motion.y, state);
             try settingsMenuVulkanZig.mouseUp(state);
         }
     }
-    if (timeStamp > state.uxData.lastMouseMove + 5_000) {
-        if (sdl.SDL_CursorVisible()) _ = sdl.SDL_HideCursor();
+    if (timeStamp > state.uxData.lastMouseInput + 5_000) {
+        if (sdl.SDL_CursorVisible()) {
+            _ = sdl.SDL_HideCursor();
+            state.vulkanMousePosition = null;
+        }
     } else if (!sdl.SDL_CursorVisible()) {
         _ = sdl.SDL_ShowCursor();
     }

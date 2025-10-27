@@ -95,7 +95,7 @@ pub const GameState = struct {
     lastAfkShootTime: ?i64 = null,
     timeFreezed: ?i64 = null,
     timeFreezeOnHit: bool = true,
-    vulkanMousePosition: Position = .{ .x = 0, .y = 0 },
+    vulkanMousePosition: ?Position = null,
     highestNewGameDifficultyBeaten: i32 = -1,
     highestLevelBeaten: u32 = 0,
     steam: ?steamZig.SteamData = null,
@@ -125,7 +125,7 @@ pub const GameUxData = struct {
     roundInfoRec: Rectangle = .{},
     newGamePlusInfoRec: Rectangle = .{},
     enableInfoRectangles: bool = true,
-    lastMouseMove: i64 = 0,
+    lastMouseInput: i64 = 0,
 };
 
 const TimeChangeUnion = union(enum) {
@@ -1022,9 +1022,12 @@ pub fn isTilePositionInTileRectangle(tilePosition: TilePosition, tileRectangle: 
         tileRectangle.pos.y <= tilePosition.y and tileRectangle.pos.y + tileRectangle.height > tilePosition.y;
 }
 
-pub fn isPositionInRectangle(position: Position, rectangle: Rectangle) bool {
-    return rectangle.pos.x <= position.x and rectangle.pos.x + rectangle.width > position.x and
-        rectangle.pos.y <= position.y and rectangle.pos.y + rectangle.height > position.y;
+pub fn isPositionInRectangle(optPosition: ?Position, rectangle: Rectangle) bool {
+    if (optPosition) |position| {
+        return rectangle.pos.x <= position.x and rectangle.pos.x + rectangle.width > position.x and
+            rectangle.pos.y <= position.y and rectangle.pos.y + rectangle.height > position.y;
+    }
+    return false;
 }
 
 pub fn gamePositionToTilePosition(position: Position) TilePosition {

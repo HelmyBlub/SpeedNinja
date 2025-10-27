@@ -1,8 +1,8 @@
 testruns:
 - gain all achievements on steam
-
     - remember to connect to steam
 - test pvp
+- new test run
 
 Tasks:
 - hide mouse when not moving
