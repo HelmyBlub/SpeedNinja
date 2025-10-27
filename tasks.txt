@@ -6,9 +6,8 @@ testruns:
 
 Tasks:
 - pause the game?
-    - escape key => pause after 1sec
-        - hold any key to unpause
     - should not be abusable
+    - bug: replay somethime broken
     - pause the game when controller disconnects
     - steam overlay pause
 - check controller steam requirements

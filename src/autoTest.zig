@@ -129,6 +129,9 @@ pub fn tickReplayInputs(state: *main.GameState) !void {
         }
     }
     if (state.autoTest.mode != .replay) return;
+    if (state.paused) {
+        state.paused = false;
+    }
     if (state.timeFreezed) |_| {
         if (state.autoTest.replayFreezeTickCounter > 1) {
             state.autoTest.replayFreezeTickCounter -= 1;

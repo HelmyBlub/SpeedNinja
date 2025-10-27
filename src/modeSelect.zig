@@ -175,6 +175,7 @@ pub fn onPlayerMoveActionFinished(state: *main.GameState) !void {
 
 pub fn startModeSelect(state: *main.GameState) !void {
     state.paused = false;
+    state.pauseInputTime = null;
     state.gamePhase = .modeSelect;
     state.modeSelect.selectedMode = .none;
     state.gameOver = false;

@@ -95,6 +95,7 @@ pub const GameState = struct {
     lastAfkShootTime: ?i64 = null,
     timeFreezed: ?i64 = null,
     timeFreezeOnHit: bool = true,
+    pauseInputTime: ?i64 = null,
     paused: bool = false,
     vulkanMousePosition: ?Position = null,
     highestNewGameDifficultyBeaten: i32 = -1,
@@ -379,6 +380,21 @@ fn multiplayerAfkCheck(state: *GameState) !void {
 }
 
 fn tickGameOver(state: *GameState) !void {
+    if (state.pauseInputTime) |time| {
+        if (time + 250 < state.gameTime) {
+            var canPause = true;
+            for (state.players.items) |player| {
+                if (player.executeMovePiece != null) {
+                    canPause = false;
+                    break;
+                }
+            }
+            if (canPause) {
+                state.paused = true;
+                state.pauseInputTime = null;
+            }
+        }
+    }
     if (!state.gameOver and !state.paused) return;
     const timeStamp = std.time.milliTimestamp();
     if (state.uxData.continueButtonHoldStart != null and state.uxData.continueButtonHoldStart.? + state.uxData.holdDefaultDuration < timeStamp) {
@@ -709,6 +725,7 @@ pub fn runStart(state: *GameState, newGamePlus: u32) anyerror!void {
     try statsZig.statsSaveOnRestart(state);
     mapTileZig.setMapType(.default, state);
     state.paused = false;
+    state.pauseInputTime = null;
     state.timeFreezed = null;
     state.gameOver = false;
     state.camera.position = .{ .x = 0, .y = 0 };
