@@ -129,8 +129,17 @@ fn handleGamePadEvents(event: sdl.SDL_Event, state: *main.GameState) !void {
             const gamepad: ?*sdl.SDL_Gamepad = sdl.SDL_GetGamepadFromID(which);
             for (state.players.items) |*player| {
                 if (player.inputData.inputDevice != null and player.inputData.inputDevice.? == .gamepad and player.inputData.inputDevice.?.gamepad == which) {
+                    if (state.gamePhase == .combat or state.gamePhase == .boss) {
+                        try autoTestZig.recordPlayerInput(.pauseGame, player, state);
+                        state.pauseInputTime = state.gameTime;
+                    }
                     try state.inputJoinData.disconnectedGamepads.append(which);
                     break;
+                } else if (player.inputData.lastInputDevice != null and player.inputData.lastInputDevice.? == .gamepad and player.inputData.lastInputDevice.?.gamepad == which) {
+                    if (state.gamePhase == .combat or state.gamePhase == .boss) {
+                        try autoTestZig.recordPlayerInput(.pauseGame, &state.players.items[0], state);
+                        state.pauseInputTime = state.gameTime;
+                    }
                 }
             }
             if (gamepad != null) {
