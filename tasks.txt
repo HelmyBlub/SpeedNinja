@@ -7,14 +7,12 @@ testruns:
 Tasks:
 - pause the game?
     - bug: replay sometimes broken
-    - pause the game when controller disconnects
+        - had a case where replay had two different outcomes
 - limit moving in modeSelect
     - pause key resets player location
 - fullscreen default mode?
 - achievement popup ingame
 - hold button move
-- pause menu can be overlapping with tutorial
-- gate opening sound forever when paused or timefreeze
 
 
 Test Performance:

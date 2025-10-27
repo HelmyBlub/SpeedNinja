@@ -848,7 +848,9 @@ pub fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
     state.mapObjects = std.ArrayList(MapObject).init(state.allocator);
     try state.players.append(playerZig.createPlayer(allocator));
     statsZig.loadStatisticsDataFromFile(state);
-    fileSaveZig.loadSettingsFromFile(state) catch {};
+    fileSaveZig.loadSettingsFromFile(state) catch {
+        windowSdlZig.setFullscreen(true, state);
+    };
     try modeSelectZig.initModeSelectData(state);
     if (fileSaveZig.loadCurrentRunFromFile(state)) {
         std.debug.print("load last run successfull\n", .{});

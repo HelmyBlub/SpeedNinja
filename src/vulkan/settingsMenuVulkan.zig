@@ -28,7 +28,7 @@ const SPACING_PIXELS = 5.0;
 var UI_ELEMENTS_MAIN = [_]UiElementData{
     .{ .typeData = .{ .holdButton = .{ .label = "Restart", .onHoldDurationFinished = onHoldButtonRestart } }, .information = &[_][]const u8{"hold to restart"} },
     .{ .typeData = .{ .holdButton = .{ .label = "Kick Players", .onHoldDurationFinished = onHoldButtonKickPlayers } }, .information = &[_][]const u8{"hold to kick players but one"} },
-    .{ .typeData = .{ .checkbox = .{ .label = "Fullscreen", .onSetChecked = onCheckboxFullscreen } } },
+    .{ .typeData = .{ .checkbox = .{ .label = "Fullscreen", .onSetChecked = onCheckboxFullscreen, .checked = true } } },
     .{
         .typeData = .{ .checkbox = .{ .label = "Time Freeze", .onSetChecked = onCheckboxFreezeOnHit, .checked = false } },
         .information = &[_][]const u8{ "freeze time when taking damage in singleplayer", "Can use this freeze time to determine from what you took damage" },
