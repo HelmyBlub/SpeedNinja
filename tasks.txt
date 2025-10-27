@@ -1,31 +1,19 @@
 testruns:
 - gain all achievements on steam
-    - train end boss ng+2
-        - beat 3 times in a row
-    - train boss 8
-        - beat 3 times in a row
-    - newGame+2 end boss
-        - boss 5 -> 2 long move pieces. destroy after
-        - boss 7 -> edge strategy
-        - boss 9 -> 3 long move pieces.
 
     - remember to connect to steam
 - test pvp
 
 Tasks:
-- mode: achievements
-    - save highest reached level
-    - visualize achieved and open once
-    - save in file
-- linux build
-    - setup on steam side
-        - wait for review to finish
-- limit moving in modeSelect
-- check controller steam requirements
+- hide mouse when not moving
+    - hide ui helper text is mouse hidden
 - pause the game?
     - pause the game when controller disconnects
-- hide mouse when using controller
+- check controller steam requirements
+- limit moving in modeSelect
 - fullscreen default mode?
+- achievement popup ingame
+- hold button move
 
 
 Test Performance:
@@ -33,7 +21,6 @@ Test Performance:
     test duration: 42161, gameTime: 2301390 (new modes: practice and pvp)
 
 Next ideas:    
-- visualize achievments in game
 - modifiers
     - before game start set modifiers to make game easier or harder
         - gain more/less money

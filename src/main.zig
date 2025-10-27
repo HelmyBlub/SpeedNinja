@@ -125,6 +125,7 @@ pub const GameUxData = struct {
     roundInfoRec: Rectangle = .{},
     newGamePlusInfoRec: Rectangle = .{},
     enableInfoRectangles: bool = true,
+    lastMouseMove: i64 = 0,
 };
 
 const TimeChangeUnion = union(enum) {

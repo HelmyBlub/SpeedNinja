@@ -61,6 +61,7 @@ pub fn setFullscreen(fullscreen: bool, state: *main.GameState) void {
 
 pub fn handleEvents(state: *main.GameState) !void {
     var event: sdl.SDL_Event = undefined;
+    const timeStamp = std.time.milliTimestamp();
     while (sdl.SDL_PollEvent(&event)) {
         if (event.type == sdl.SDL_EVENT_QUIT) {
             std.debug.print("clicked window X \n", .{});
@@ -69,7 +70,7 @@ pub fn handleEvents(state: *main.GameState) !void {
         }
         if (event.type == sdl.SDL_EVENT_KEY_DOWN) {
             if (state.tutorialData.active and state.tutorialData.firstKeyDownInput == null) {
-                state.tutorialData.firstKeyDownInput = std.time.milliTimestamp();
+                state.tutorialData.firstKeyDownInput = timeStamp;
             }
             if (buildin.mode == .Debug) try debugKeys(event, state);
             if (state.modeSelect.selectedMode == .practice) try modeSelectZig.handlePracticeModeKeys(event, state);
@@ -77,17 +78,25 @@ pub fn handleEvents(state: *main.GameState) !void {
         try handleGamePadEvents(event, state);
         try inputZig.handlePlayerInput(event, state);
         if (event.type == sdl.SDL_EVENT_MOUSE_MOTION) {
+            state.uxData.lastMouseMove = timeStamp;
             state.vulkanMousePosition = mouseWindowPositionToVulkanSurfacePoisition(event.motion.x, event.motion.y, state);
             try settingsMenuVulkanZig.mouseMove(state);
         }
         if (event.type == sdl.SDL_EVENT_MOUSE_BUTTON_DOWN) {
+            state.uxData.lastMouseMove = timeStamp;
             state.vulkanMousePosition = mouseWindowPositionToVulkanSurfacePoisition(event.motion.x, event.motion.y, state);
             try settingsMenuVulkanZig.mouseDown(state);
         }
         if (event.type == sdl.SDL_EVENT_MOUSE_BUTTON_UP) {
+            state.uxData.lastMouseMove = timeStamp;
             state.vulkanMousePosition = mouseWindowPositionToVulkanSurfacePoisition(event.motion.x, event.motion.y, state);
             try settingsMenuVulkanZig.mouseUp(state);
         }
+    }
+    if (timeStamp > state.uxData.lastMouseMove + 5_000) {
+        if (sdl.SDL_CursorVisible()) _ = sdl.SDL_HideCursor();
+    } else if (!sdl.SDL_CursorVisible()) {
+        _ = sdl.SDL_ShowCursor();
     }
 }
 
