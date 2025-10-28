@@ -7,6 +7,7 @@ testruns:
     - remember to connect to steam
 
 Tasks:
+- bug: gained speed achievement with 46min
 - stuck: on game over time freeze but shouldnot be time freeze
 - new steam build as current buid broken without save
 - controller support
