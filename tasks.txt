@@ -1,16 +1,17 @@
 testruns:
+- new test run
+    - speed
 - gain all achievements on steam
     - remember to connect to steam
 - test pvp
-- new test run
 
 Tasks:
+- reset character on restart to mode select
 - pause the game?
     - bug: replay sometimes broken
         - had a case where replay had two different outcomes
 - limit moving in modeSelect
     - pause key resets player location
-- fullscreen default mode?
 - achievement popup ingame
 - hold button move
 

@@ -130,7 +130,7 @@ fn verticesForGameOverOrPaused(state: *main.GameState) !void {
         const optionHeight = optionFontSize * onePixelYInVulkan;
         const spacing = onePixelYInVulkan * 5;
         const black: [4]f32 = .{ 0.0, 0.0, 0.0, 1 };
-        const lightGray: [4]f32 = .{ 0.9, 0.9, 0.9, 1 };
+        const lightGray: [4]f32 = .{ 0.6, 0.6, 0.6, 1 };
         var firstTextWidth: f32 = 0;
         const firstOption: main.Position = .{ .x = gameOverPos.x, .y = gameOverPos.y + fontSize * onePixelYInVulkan };
         var displayFirstOption: bool = true;

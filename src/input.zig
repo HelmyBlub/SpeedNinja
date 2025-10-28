@@ -422,7 +422,7 @@ pub fn handlePlayerAction(action: PlayerAction, player: *playerZig.Player, state
             if (state.paused) {
                 state.paused = false;
                 state.pauseInputTime = null;
-            } else if (!state.gameOver and (state.gamePhase == .combat or state.gamePhase == .boss)) {
+            } else if (!state.gameOver) {
                 if (state.pauseInputTime == null) state.pauseInputTime = state.gameTime;
             }
         },

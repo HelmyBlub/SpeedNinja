@@ -188,6 +188,7 @@ pub fn startModeSelect(state: *main.GameState) !void {
         player.isDead = false;
         player.position.x = 0;
         player.position.y = 0;
+        equipmentZig.equipStarterEquipment(player);
         try movePieceZig.setupMovePieces(player, state);
     }
     state.mapData.tileRadiusHeight = 4;
