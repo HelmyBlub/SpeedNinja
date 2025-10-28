@@ -7,9 +7,7 @@ testruns:
     - remember to connect to steam
 
 Tasks:
-- pause the game?
-    - bug: replay sometimes broken
-        - had a case where replay had two different outcomes
+- new steam build as current buid broken without save
 - controller support
     - steam disables controller if not flagged as supported
 

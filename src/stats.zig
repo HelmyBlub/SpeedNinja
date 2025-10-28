@@ -159,9 +159,11 @@ fn checkIfIsNewBestTotalTime(levelDatas: []BestLevelStatistics, state: *main.Gam
         }
     } else {
         var hasReachedHigherLevelBefore = false;
-        const currentLevelData = levelDatas[state.level - 1];
-        if (currentLevelData.totalTime != null) {
-            hasReachedHigherLevelBefore = true;
+        if (levelDatas.len > state.level) {
+            const currentLevelData = levelDatas[state.level - 1];
+            if (currentLevelData.totalTime != null) {
+                hasReachedHigherLevelBefore = true;
+            }
         }
         if (!hasReachedHigherLevelBefore and state.level > 1) {
             const highestDefeatedLevelData = levelDatas[state.level - 2];
@@ -298,7 +300,8 @@ pub fn setupVertices(state: *main.GameState) !void {
                 pastTimePart = @max(fastestTime, state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime);
             }
         } else {
-            if (bestRunStats[state.level - 1].time) |fastestTime| {
+            if (bestRunStats.len >= state.level and bestRunStats[state.level - 1].time != null) {
+                const fastestTime = bestRunStats[state.level - 1].time.?;
                 const lastLevelFinishTime = currentRunStats[state.level - 2].totalTime;
                 const currentLevelEstimate = @max(fastestTime, state.statistics.uxData.currentTimestamp - state.statistics.runStartedTime - lastLevelFinishTime);
                 pastTimePart = lastLevelFinishTime + currentLevelEstimate;

@@ -55,7 +55,7 @@ var UI_ELEMENTS_SPEEDRUN_STATS = [_]UiElementData{
         .information = &[_][]const u8{"Displays time difference to best run."},
     },
     .{
-        .typeData = .{ .checkbox = .{ .label = "Column Gold", .onSetChecked = onCheckboxStatsColumnGold, .checked = false } },
+        .typeData = .{ .checkbox = .{ .label = "Column Gold", .onSetChecked = onCheckboxStatsColumnGold, .checked = true } },
         .active = false,
         .information = &[_][]const u8{"Displays time difference to fastest level time."},
     },

@@ -722,6 +722,7 @@ pub fn backToStart(state: *GameState) anyerror!void {
     if (state.highestNewGameDifficultyBeaten > -1) {
         try modeSelectZig.startModeSelect(state);
     } else {
+        state.modeSelect.selectedMode = .{ .newGamePlus = 0 };
         try runStart(state, 0);
     }
 }
