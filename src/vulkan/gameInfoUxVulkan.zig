@@ -21,6 +21,75 @@ pub fn setupVertices(state: *main.GameState) !void {
     verticesForBossAcedAndFreeContinue(state);
     verticsForTutorial(state);
     try verticesForFinished(state);
+    try verticesForAchievementGained(state);
+}
+
+fn verticesForAchievementGained(state: *main.GameState) !void {
+    if (state.uxData.achievementGained.items.len == 0) return;
+    const initialPosition: main.Position = .{
+        .x = 0,
+        .y = 1,
+    };
+    const verticeData = &state.vkState.verticeData;
+    const fontSize = 50 * state.uxData.settingsMenuUx.uiSizeDelayed;
+    const spacingX = 5 * state.windowData.onePixelXInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
+    const spacingY = 5 * state.windowData.onePixelYInVulkan * state.uxData.settingsMenuUx.uiSizeDelayed;
+    const rectangleHeight = fontSize * state.windowData.onePixelYInVulkan + spacingY * 2;
+    const appearDuration = 500;
+    const fadeAwayDuration = 1000;
+    const totalDuration = 5000;
+    var offsetY: f32 = 0;
+    var currentIndex = state.uxData.achievementGained.items.len;
+    while (currentIndex > 0) {
+        currentIndex -= 1;
+        const achievementGained = state.uxData.achievementGained.items[currentIndex];
+        if (achievementGained.displayStartTime + totalDuration < state.gameTime) {
+            _ = state.uxData.achievementGained.orderedRemove(currentIndex);
+        } else {
+            const currentDuration = state.gameTime - achievementGained.displayStartTime;
+            var alpha: f32 = 1;
+            if (currentDuration > totalDuration - fadeAwayDuration) {
+                const durationLeft = totalDuration - currentDuration;
+                alpha = @as(f32, @floatFromInt(durationLeft)) / @as(f32, @floatFromInt(fadeAwayDuration));
+            }
+            if (offsetY == 0 and currentDuration < appearDuration) {
+                const appearPerCent: f32 = @as(f32, @floatFromInt(appearDuration - currentDuration)) / @as(f32, @floatFromInt(appearDuration));
+                offsetY -= rectangleHeight * appearPerCent;
+            }
+            offsetY += rectangleHeight + spacingY;
+            const textWidth = fontVulkanZig.getTextVulkanWidth(achievementGained.name, fontSize, state);
+            const rectangleWidth = fontSize * state.windowData.onePixelXInVulkan + textWidth + spacingX * 4;
+            const displayTopLeft: main.Position = .{
+                .x = initialPosition.x - rectangleWidth / 2,
+                .y = initialPosition.y - offsetY,
+            };
+            _ = fontVulkanZig.paintText(achievementGained.name, .{
+                .x = displayTopLeft.x + fontSize * state.windowData.onePixelXInVulkan + spacingX * 2,
+                .y = displayTopLeft.y + spacingY,
+            }, fontSize, .{ 1, 1, 1, alpha }, state);
+            if (achievementGained.imageIndex) |imageIndex| {
+                paintVulkanZig.verticesForComplexSpriteVulkan(.{
+                    .x = displayTopLeft.x + fontSize * state.windowData.onePixelXInVulkan / 2 + spacingX,
+                    .y = displayTopLeft.y + rectangleHeight / 2,
+                }, imageIndex, fontSize, fontSize, 1, 0, false, false, state);
+            }
+            if (achievementGained.displayCharOnImage) |displayChar| {
+                const displayCharFontSize = fontSize * 0.8;
+                const charTextWidth = fontVulkanZig.getTextVulkanWidth(displayChar, displayCharFontSize, state);
+                _ = fontVulkanZig.paintText(displayChar, .{
+                    .x = displayTopLeft.x + fontSize * state.windowData.onePixelXInVulkan / 2 + spacingX - charTextWidth / 2,
+                    .y = displayTopLeft.y + spacingY + fontSize * state.windowData.onePixelYInVulkan / 2 - displayCharFontSize * state.windowData.onePixelYInVulkan / 2,
+                }, displayCharFontSize, .{ 1, 1, 1, alpha }, state);
+            } else if (achievementGained.displayNewGamePlus > 0) {
+                const displayCharFontSize = fontSize * 0.8;
+                _ = try fontVulkanZig.paintNumber(achievementGained.displayNewGamePlus, .{
+                    .x = displayTopLeft.x + fontSize * state.windowData.onePixelXInVulkan / 2 + spacingX - displayCharFontSize * state.windowData.onePixelXInVulkan / 2,
+                    .y = displayTopLeft.y + spacingY + fontSize * state.windowData.onePixelYInVulkan / 2 - displayCharFontSize * state.windowData.onePixelYInVulkan / 2,
+                }, displayCharFontSize, .{ 1, 1, 1, alpha }, state);
+            }
+            paintVulkanZig.verticesForRectangle(displayTopLeft.x, displayTopLeft.y, rectangleWidth, rectangleHeight, .{ 1, 1, 1, alpha }, &verticeData.lines, &verticeData.triangles);
+        }
+    }
 }
 
 fn verticesForFinished(state: *main.GameState) !void {

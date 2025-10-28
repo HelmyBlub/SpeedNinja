@@ -6,14 +6,12 @@ testruns:
 - test pvp
 
 Tasks:
-- reset character on restart to mode select
+- achievement popup ingame
 - pause the game?
     - bug: replay sometimes broken
         - had a case where replay had two different outcomes
-- limit moving in modeSelect
-    - pause key resets player location
-- achievement popup ingame
-- hold button move
+- controller support
+    - steam disables controller if not flagged as supported
 
 
 Test Performance:

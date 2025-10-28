@@ -152,7 +152,7 @@ fn handleGamePadEvents(event: sdl.SDL_Event, state: *main.GameState) !void {
 
 fn debugKeys(event: sdl.SDL_Event, state: *main.GameState) !void {
     if (event.key.scancode == sdl.SDL_SCANCODE_F5) {
-        try main.runStart(state, state.newGamePlus + 1);
+        try state.uxData.achievementGained.append(.{ .imageIndex = 0, .name = "test", .displayStartTime = state.gameTime });
     } else if (event.key.scancode == sdl.SDL_SCANCODE_F6) {
         state.statistics.active = false;
         achievementZig.stopTrackingAchievmentForThisRun(state);

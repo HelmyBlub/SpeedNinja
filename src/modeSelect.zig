@@ -174,6 +174,7 @@ pub fn onPlayerMoveActionFinished(state: *main.GameState) !void {
 }
 
 pub fn startModeSelect(state: *main.GameState) !void {
+    state.uxData.achievementGained.clearRetainingCapacity();
     state.paused = false;
     state.pauseInputTime = null;
     state.gamePhase = .modeSelect;
@@ -317,7 +318,7 @@ fn verticesForAchievementMode(state: *main.GameState) !void {
                 paintVulkanZig.verticesForComplexSprite(.{
                     .x = displayPos.x,
                     .y = displayPos.y - main.TILESIZE,
-                }, achievement.displayImageIndex.?, 4, 4, alpha, 0, false, false, state);
+                }, achievement.displayImageIndex.?, achievement.displayScale, achievement.displayScale, alpha, 0, false, false, state);
                 if (achievement.displayCharOnImage) |char| {
                     _ = fontVulkanZig.paintTextGameMap(char, .{
                         .x = displayPos.x - fontSize,

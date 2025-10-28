@@ -91,7 +91,7 @@ pub const GameState = struct {
     tempStringBuffer: []u8,
     tutorialData: TutorialData = .{},
     gateOpenTime: ?i64 = null,
-    uxData: GameUxData = .{},
+    uxData: GameUxData,
     lastAfkShootTime: ?i64 = null,
     timeFreezed: ?i64 = null,
     timeFreezeOnHit: bool = true,
@@ -128,6 +128,8 @@ pub const GameUxData = struct {
     newGamePlusInfoRec: Rectangle = .{},
     enableInfoRectangles: bool = true,
     lastMouseInput: i64 = 0,
+    achievementGained: std.ArrayList(achievementZig.AchievementGainedDisplayData),
+    achievementGainedLastSoundTime: i64 = 0,
 };
 
 const TimeChangeUnion = union(enum) {
@@ -265,8 +267,12 @@ pub fn mainLoop(state: *GameState) !void {
                         const amount = @as(i32, @intFromFloat(@as(f32, @floatFromInt(state.level)) * 10.0 * (1.0 + player.moneyBonusPerCent)));
                         try playerZig.changePlayerMoneyBy(amount, player, true, state);
                     }
-                    try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BOSS_DEFEATED, 0, 0.6);
-                    achievementZig.awardAchievementOnBossDefeated(state);
+                    if (state.uxData.achievementGainedLastSoundTime + 100 < state.gameTime) {
+                        try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_BOSS_DEFEATED, 0, 0.6);
+                        state.uxData.achievementGainedLastSoundTime = state.gameTime;
+                    }
+
+                    try achievementZig.awardAchievementOnBossDefeated(state);
                     if (state.playerTookDamageOnLevel == false and state.level < LEVEL_COUNT) {
                         state.continueData.bossesAced += 1;
                         state.uxData.displayBossAcedUntilTime = state.gameTime + 3_500;
@@ -547,7 +553,7 @@ pub fn startNextRound(state: *GameState) !void {
     state.soundData.warningSoundPlayed = false;
     state.roundStartedTime = state.gameTime;
     if (state.level == 1 and state.round == 1) {
-        achievementZig.awardAchievement(.beatFirstEnemy, state);
+        try achievementZig.awardAchievement(.beatFirstEnemy, state);
     }
     state.round += 1;
     if (state.round >= state.roundToReachForNextLevel and state.gateOpenTime == null) state.gateOpenTime = state.gameTime;
@@ -737,6 +743,8 @@ pub fn runStart(state: *GameState, newGamePlus: u32) anyerror!void {
     state.roundStartedTime = 0;
     state.lastBossDefeatedTime = 0;
     state.continueData = .{};
+    state.uxData.achievementGained.clearRetainingCapacity();
+    state.uxData.achievementGainedLastSoundTime = 0;
     if (newGamePlus == 0) state.continueData.freeContinues = 2;
     if (state.enemyData.movePieceEnemyMovePiece) |movePiece| {
         state.allocator.free(movePiece.steps);
@@ -838,6 +846,7 @@ pub fn createGameState(state: *GameState, allocator: std.mem.Allocator) !void {
         .seededRandom = seededRandom,
         .autoTest = .{ .recording = .{ .runEventData = std.ArrayList(autoTestZig.GameEventData).init(allocator) } },
         .onStartError = .{ .displayStrings = std.ArrayList(onStartErrorDisplayZig.StringAllocData).init(allocator) },
+        .uxData = .{ .achievementGained = std.ArrayList(achievementZig.AchievementGainedDisplayData).init(allocator) },
     };
     state.allocator = allocator;
     try windowSdlZig.initWindowSdl(state);
@@ -889,6 +898,7 @@ pub fn destroyGameState(state: *GameState) void {
         if (item.needDealloc) state.allocator.free(item.string);
     }
     state.onStartError.displayStrings.deinit();
+    state.uxData.achievementGained.deinit();
     mapTileZig.deinit(state);
     enemyZig.destroyEnemyData(state);
     modeSelectZig.destroyModeSelectData(state);
