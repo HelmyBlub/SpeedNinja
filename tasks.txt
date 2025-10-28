@@ -7,10 +7,9 @@ testruns:
     - remember to connect to steam
 
 Tasks:
-- stuck: on game over time freeze but shouldnot be time freeze
-- new steam build as current buid broken without save
 - controller support
     - steam disables controller if not flagged as supported
+- mode select enabled sooner
 
 
 Test Performance:
@@ -29,3 +28,4 @@ Next ideas:
         - maze mode: only waller enemy -> get max round
 - steam leaderboard?
 - more contoller support?
+- can i make game start without steamapi dll?
