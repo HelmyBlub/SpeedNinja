@@ -137,6 +137,7 @@ pub fn loadCurrentRunFromFile(state: *main.GameState) !void {
         const continueDataNextBossAceFreeContinue = try reader.readInt(u32, .little);
         const continueDataNextBossAceFreeContinueIncrease = try reader.readInt(u32, .little);
         try main.runStart(state, newGamePlus);
+        state.modeSelect.selectedMode = .{ .newGamePlus = state.newGamePlus };
         state.statistics.active = false;
         state.statistics.runStartedTime = timestamp - timePlayed;
         state.level = level - 1;
