@@ -1,12 +1,12 @@
 testruns:
+- delete all data and start fresh
 - new test run
     - speed
 - gain all achievements on steam
+    - newGame+2
     - remember to connect to steam
-- test pvp
 
 Tasks:
-- achievement popup ingame
 - pause the game?
     - bug: replay sometimes broken
         - had a case where replay had two different outcomes

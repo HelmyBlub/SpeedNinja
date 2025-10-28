@@ -776,6 +776,7 @@ pub fn runStart(state: *GameState, newGamePlus: u32) anyerror!void {
         player.uxData.visualizeHpChange = null;
         player.uxData.visualizeMoney = null;
         player.inputData.lastInputTime = 0;
+        player.slashedLastMoveTile = false;
     }
     for (0..state.shop.equipOptionsLastLevelInShop.len) |i| {
         state.shop.equipOptionsLastLevelInShop[i] = 0;

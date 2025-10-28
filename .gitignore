@@ -7,6 +7,7 @@
 zig-out/*
 *.o
 temp*.txt
+savedRun.json
 
 # required for build. Not committed in repo. Used version steam sdk version 162.
 *steam_api64.dll
