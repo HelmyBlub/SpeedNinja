@@ -94,7 +94,7 @@ pub const GameState = struct {
     uxData: GameUxData,
     lastAfkShootTime: ?i64 = null,
     timeFreezed: ?i64 = null,
-    timeFreezeOnHit: bool = true,
+    timeFreezeOnHit: bool = false,
     pauseInputTime: ?i64 = null,
     paused: bool = false,
     vulkanMousePosition: ?Position = null,

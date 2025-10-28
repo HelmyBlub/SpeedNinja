@@ -356,6 +356,7 @@ fn handlePlayerGamepadInput(event: sdl.SDL_Event, player: *playerZig.Player, gam
 pub fn handlePlayerAction(action: PlayerAction, player: *playerZig.Player, state: *main.GameState) !void {
     try autoTestZig.recordPlayerInput(action, player, state);
     player.inputData.lastInputTime = state.gameTime;
+    if (state.gameOver and state.timeFreezed != null and state.timeFreezed.? >= 1500) state.timeFreezed = null;
     switch (action) {
         .moveLeft => {
             if (!state.paused and !state.gameOver) {
