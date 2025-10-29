@@ -139,7 +139,7 @@ pub fn awardAchievementOnBossDefeated(state: *main.GameState) !void {
             try awardAchievement(.beatGame, state);
             if (state.newGamePlus == 1) try awardAchievement(.beatGamePlus1, state);
             if (state.newGamePlus == 2) try awardAchievement(.beatGamePlus2, state);
-            if (std.time.microTimestamp() - state.statistics.runStartedTime < 45_000 * 60) try awardAchievement(.beatGameUnder45min, state);
+            if (std.time.milliTimestamp() - state.statistics.runStartedTime < 45_000 * 60) try awardAchievement(.beatGameUnder45min, state);
             try awardAchievement(.beatGameWithoutTakingDamage, state);
             try awardAchievement(.beatGameWithStartingMovePieces, state);
         },

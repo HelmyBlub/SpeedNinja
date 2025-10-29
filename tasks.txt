@@ -1,17 +1,20 @@
 testruns:
 - delete all data and start fresh
-- new test run
+- gain all achievements in game
     - speed
-- play one time with controller
 
-- gain all achievements on steam
+- gain achievements on steam
     - newGame+2
     - remember to connect to steam
 
 Tasks:
+- bug: speedrun stats missing
 - controller support
     - need to be able to controll menu
     - steam disables controller if not flagged as supported
+    - deploy to steam
+- check display level on new game
+- script to prepare steam upload folder
 
 Test Performance:
     test duration: 56180, gameTime: 2759470 ~ 59,7 (new test run)
@@ -21,6 +24,7 @@ Next ideas:
     - before game start set modifiers to make game easier or harder
         - gain more/less money
         - more time/less
+
         - newGamePlus
         - more start pieces
         - round requirment for continue to next level
