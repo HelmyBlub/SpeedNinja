@@ -2,19 +2,19 @@ testruns:
 - delete all data and start fresh
 - new test run
     - speed
+- play one time with controller
+
 - gain all achievements on steam
     - newGame+2
     - remember to connect to steam
 
 Tasks:
 - controller support
+    - need to be able to controll menu
     - steam disables controller if not flagged as supported
-- mode select enabled sooner
-
 
 Test Performance:
-    test duration: 42453, gameTime: 2301390 (frame skip increased from 1 to 4)
-    test duration: 42161, gameTime: 2301390 (new modes: practice and pvp)
+    test duration: 56180, gameTime: 2759470 ~ 59,7 (new test run)
 
 Next ideas:    
 - modifiers
@@ -27,5 +27,4 @@ Next ideas:
         - max start enemies
         - maze mode: only waller enemy -> get max round
 - steam leaderboard?
-- more contoller support?
 - can i make game start without steamapi dll?

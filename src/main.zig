@@ -716,6 +716,7 @@ pub fn gameFinished(state: *GameState) !void {
             player.startedFallingState = null;
         }
     }
+    if (!state.autoTest.zigTest and state.modeSelect.selectedMode == .newGamePlus) try autoTestZig.saveRecordingToFile(state);
 }
 
 pub fn backToStart(state: *GameState) anyerror!void {
