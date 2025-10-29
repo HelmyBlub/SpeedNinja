@@ -6,6 +6,7 @@ const fontVulkanZig = @import("fontVulkan.zig");
 const imageZig = @import("../image.zig");
 const inputZig = @import("../input.zig");
 const windowSdlZig = @import("../windowSdl.zig");
+const sdl = windowSdlZig.sdl;
 const playerZig = @import("../player.zig");
 
 pub const SettingsUx = struct {
@@ -20,6 +21,7 @@ pub const SettingsUx = struct {
     },
     activeTabIndex: usize = 0,
     hoverTabIndex: ?usize = null,
+    gamePadSelectIndex: ?usize = null, // 0 => tab selected. > 0 -> UIElement + 1 index
     baseFontSize: f32 = 26,
     settingsIconHovered: bool = false,
 };
@@ -172,6 +174,7 @@ const UiTabsData = struct {
 const UiElementData = struct {
     typeData: UiElementTypeData,
     active: bool = true,
+    hovering: bool = false,
     information: ?[]const []const u8 = null,
     informationHover: bool = false,
     informationHoverRec: main.Rectangle = .{ .pos = .{ .x = 0, .y = 0 }, .width = 0, .height = 0 },
@@ -180,7 +183,6 @@ const UiElementData = struct {
 const UiElementHoldButtonData = struct {
     rec: main.Rectangle = .{},
     holdStartTime: ?i64 = null,
-    hovering: bool = false,
     label: []const u8,
     baseHeight: f32 = 80,
     onHoldDurationFinished: *const fn (state: *main.GameState) anyerror!void,
@@ -448,9 +450,9 @@ pub fn mouseMove(state: *main.GameState) !void {
         switch (element.typeData) {
             .holdButton => |*data| {
                 if (main.isPositionInRectangle(vulkanMousePos, data.rec)) {
-                    data.hovering = true;
+                    element.hovering = true;
                 } else {
-                    data.hovering = false;
+                    element.hovering = false;
                     if (data.holdStartTime != null) {
                         data.holdStartTime = null;
                     }
@@ -458,9 +460,9 @@ pub fn mouseMove(state: *main.GameState) !void {
             },
             .checkbox => |*data| {
                 if (main.isPositionInRectangle(vulkanMousePos, data.rec)) {
-                    data.hovering = true;
+                    element.hovering = true;
                 } else {
-                    data.hovering = false;
+                    element.hovering = false;
                 }
             },
             .slider => |*data| {
@@ -470,9 +472,9 @@ pub fn mouseMove(state: *main.GameState) !void {
                 }, .width = data.sliderWidth, .height = data.sliderHeight };
 
                 if (main.isPositionInRectangle(vulkanMousePos, recSlider)) {
-                    data.hovering = true;
+                    element.hovering = true;
                 } else {
-                    data.hovering = false;
+                    element.hovering = false;
                 }
                 if (data.holding) {
                     const valuePerCent = @min(@max(0, @as(f32, @floatCast(vulkanMousePos.x - data.recDragArea.pos.x)) / data.recDragArea.width), 1);
@@ -567,6 +569,116 @@ pub fn mouseDown(state: *main.GameState) !void {
     }
 }
 
+pub fn handleGamepadSettingsMenuInput(event: sdl.SDL_Event, player: *playerZig.Player, state: *main.GameState) !void {
+    if (!state.gameOver and !state.paused) return;
+    const settingsMenuUx = &state.uxData.settingsMenuUx;
+    const chooseTab = 0;
+    const deadzoneLimit = 15000;
+    const playerInputIsInDeadZone = player.inputData.axis0DeadZone and player.inputData.axis1DeadZone;
+    if (settingsMenuUx.gamePadSelectIndex) |gamePadSelectIndex| {
+        const isCloseMenuInput = event.type == sdl.SDL_EVENT_GAMEPAD_BUTTON_DOWN and event.gbutton.button == 3;
+        if (isCloseMenuInput) {
+            settingsMenuUx.gamePadSelectIndex = null;
+            if (settingsMenuUx.menuOpen) settingsMenuUx.menuOpen = false;
+            return;
+        }
+        if (settingsMenuUx.gamePadSelectIndex == chooseTab) {
+            const isSwitchTabInputLeft = (event.type == sdl.SDL_EVENT_GAMEPAD_AXIS_MOTION and playerInputIsInDeadZone and @mod(event.gaxis.axis, 2) == 0 and event.gaxis.value < -deadzoneLimit) or
+                (event.type == sdl.SDL_EVENT_GAMEPAD_BUTTON_DOWN and event.gbutton.button == 13);
+            if (isSwitchTabInputLeft) {
+                settingsMenuUx.activeTabIndex = @mod(settingsMenuUx.activeTabIndex + settingsMenuUx.uiTabs.len - 1, settingsMenuUx.uiTabs.len);
+                settingsMenuUx.hoverTabIndex = settingsMenuUx.activeTabIndex;
+                return;
+            }
+            const isSwitchTabInputRight = (event.type == sdl.SDL_EVENT_GAMEPAD_AXIS_MOTION and playerInputIsInDeadZone and @mod(event.gaxis.axis, 2) == 0 and event.gaxis.value > deadzoneLimit) or
+                (event.type == sdl.SDL_EVENT_GAMEPAD_BUTTON_DOWN and event.gbutton.button == 14);
+            if (isSwitchTabInputRight) {
+                settingsMenuUx.activeTabIndex = @mod(settingsMenuUx.activeTabIndex + 1, settingsMenuUx.uiTabs.len);
+                settingsMenuUx.hoverTabIndex = settingsMenuUx.activeTabIndex;
+                return;
+            }
+        }
+        const isSwitchUiElementInputDown = (event.type == sdl.SDL_EVENT_GAMEPAD_AXIS_MOTION and playerInputIsInDeadZone and @mod(event.gaxis.axis, 2) == 1 and event.gaxis.value > deadzoneLimit) or
+            (event.type == sdl.SDL_EVENT_GAMEPAD_BUTTON_DOWN and event.gbutton.button == 12);
+        const isSwitchUiElementInputUp = (event.type == sdl.SDL_EVENT_GAMEPAD_AXIS_MOTION and playerInputIsInDeadZone and @mod(event.gaxis.axis, 2) == 1 and event.gaxis.value < -deadzoneLimit) or
+            (event.type == sdl.SDL_EVENT_GAMEPAD_BUTTON_DOWN and event.gbutton.button == 11);
+        if (isSwitchUiElementInputDown or isSwitchUiElementInputUp) {
+            const activeTab = &settingsMenuUx.uiTabs[settingsMenuUx.activeTabIndex];
+            if (gamePadSelectIndex > 0) {
+                activeTab.uiElements[gamePadSelectIndex - 1].hovering = false;
+                activeTab.uiElements[gamePadSelectIndex - 1].informationHover = false;
+            } else {
+                settingsMenuUx.hoverTabIndex = null;
+            }
+            const indexLength = activeTab.uiElements.len + 1;
+            if (isSwitchUiElementInputDown) {
+                settingsMenuUx.gamePadSelectIndex = @mod(gamePadSelectIndex + 1, indexLength);
+                while (settingsMenuUx.gamePadSelectIndex.? != 0 and activeTab.uiElements[settingsMenuUx.gamePadSelectIndex.? - 1].active == false) {
+                    settingsMenuUx.gamePadSelectIndex = @mod(settingsMenuUx.gamePadSelectIndex.? + 1, indexLength);
+                }
+            } else {
+                settingsMenuUx.gamePadSelectIndex = @mod(gamePadSelectIndex + indexLength - 1, indexLength);
+                while (settingsMenuUx.gamePadSelectIndex.? != 0 and activeTab.uiElements[settingsMenuUx.gamePadSelectIndex.? - 1].active == false) {
+                    settingsMenuUx.gamePadSelectIndex = @mod(settingsMenuUx.gamePadSelectIndex.? + indexLength - 1, indexLength);
+                }
+            }
+            if (settingsMenuUx.gamePadSelectIndex.? > 0) {
+                activeTab.uiElements[settingsMenuUx.gamePadSelectIndex.? - 1].hovering = true;
+                activeTab.uiElements[settingsMenuUx.gamePadSelectIndex.? - 1].informationHover = true;
+            } else {
+                settingsMenuUx.hoverTabIndex = settingsMenuUx.activeTabIndex;
+            }
+            return;
+        }
+        if (settingsMenuUx.gamePadSelectIndex != chooseTab) {
+            const activeTab = &settingsMenuUx.uiTabs[settingsMenuUx.activeTabIndex];
+            const selectedUi = &activeTab.uiElements[gamePadSelectIndex - 1];
+            switch (selectedUi.typeData) {
+                .holdButton => |*data| {
+                    const startHold = (event.type == sdl.SDL_EVENT_GAMEPAD_AXIS_MOTION and playerInputIsInDeadZone and @mod(event.gaxis.axis, 2) == 0 and @abs(event.gaxis.value) > deadzoneLimit) or
+                        (event.type == sdl.SDL_EVENT_GAMEPAD_BUTTON_DOWN and (event.gbutton.button == 13 or event.gbutton.button == 14));
+                    const stopHold = (event.type == sdl.SDL_EVENT_GAMEPAD_AXIS_MOTION and @mod(event.gaxis.axis, 2) == 0 and @abs(event.gaxis.value) < deadzoneLimit) or
+                        (event.type == sdl.SDL_EVENT_GAMEPAD_BUTTON_UP and (event.gbutton.button == 13 or event.gbutton.button == 14));
+                    if (startHold) data.holdStartTime = std.time.milliTimestamp();
+                    if (stopHold) data.holdStartTime = null;
+                },
+                .checkbox => |*data| {
+                    const toogleCheckboxInput = (event.type == sdl.SDL_EVENT_GAMEPAD_AXIS_MOTION and playerInputIsInDeadZone and @mod(event.gaxis.axis, 2) == 0 and @abs(event.gaxis.value) > deadzoneLimit) or
+                        (event.type == sdl.SDL_EVENT_GAMEPAD_BUTTON_DOWN and (event.gbutton.button == 13 or event.gbutton.button == 14));
+                    if (toogleCheckboxInput) {
+                        data.checked = !data.checked;
+                        try data.onSetChecked(data.checked, state);
+                    }
+                    return;
+                },
+                .slider => |*data| {
+                    const slideLeftInput = (event.type == sdl.SDL_EVENT_GAMEPAD_AXIS_MOTION and playerInputIsInDeadZone and @mod(event.gaxis.axis, 2) == 0 and event.gaxis.value < -deadzoneLimit) or
+                        (event.type == sdl.SDL_EVENT_GAMEPAD_BUTTON_DOWN and event.gbutton.button == 13);
+                    const slideRightInput = (event.type == sdl.SDL_EVENT_GAMEPAD_AXIS_MOTION and playerInputIsInDeadZone and @mod(event.gaxis.axis, 2) == 0 and event.gaxis.value > deadzoneLimit) or
+                        (event.type == sdl.SDL_EVENT_GAMEPAD_BUTTON_DOWN and event.gbutton.button == 14);
+                    if (slideLeftInput or slideRightInput) {
+                        if (slideRightInput) {
+                            data.valuePerCent = @min(@max(0, data.valuePerCent + 0.05), 1);
+                        } else {
+                            data.valuePerCent = @min(@max(0, data.valuePerCent - 0.05), 1);
+                        }
+                        if (data.onChange) |onChange| try onChange(data.valuePerCent, selectedUi, state);
+                        if (data.onStopHolding) |stopHold| try stopHold(data.valuePerCent, selectedUi, state);
+                        return;
+                    }
+                },
+                .text => {},
+            }
+        }
+    } else {
+        if (event.type == sdl.SDL_EVENT_GAMEPAD_BUTTON_DOWN and event.gbutton.button == 3) {
+            settingsMenuUx.gamePadSelectIndex = 0;
+            settingsMenuUx.hoverTabIndex = 0;
+            if (!settingsMenuUx.menuOpen) settingsMenuUx.menuOpen = true;
+        }
+    }
+}
+
 pub fn tick(state: *main.GameState) !void {
     const settingsMenuUx = &state.uxData.settingsMenuUx;
     const timestamp = std.time.milliTimestamp();
@@ -594,9 +706,23 @@ pub fn setupVertices(state: *main.GameState) !void {
     const settingsMenuUx = &state.uxData.settingsMenuUx;
     const uiSizeFactor = settingsMenuUx.uiSizeDelayed;
     const icon = settingsMenuUx.settingsIcon;
+    const fontSize: f32 = settingsMenuUx.baseFontSize * uiSizeFactor;
 
     if (settingsMenuUx.settingsIconHovered) {
         paintVulkanZig.verticesForRectangle(icon.pos.x, icon.pos.y, icon.width, icon.height, color, &verticeData.lines, &verticeData.triangles);
+    }
+    if (state.gameOver or state.paused) {
+        const playerInputDeveice = inputZig.getPlayerInputDevice(&state.players.items[0]);
+        if (playerInputDeveice != null and playerInputDeveice.? == .gamepad) {
+            paintVulkanZig.verticesForComplexSpriteVulkan(.{
+                .x = icon.pos.x - icon.width / 2,
+                .y = icon.pos.y + icon.height / 2,
+            }, imageZig.IMAGE_CIRCLE, fontSize * 1.5, fontSize * 1.5, 1, 0, false, false, state);
+            _ = fontVulkanZig.paintText("Y", .{
+                .x = icon.pos.x - icon.width + onePixelXInVulkan * 9 * uiSizeFactor,
+                .y = icon.pos.y + onePixelXInVulkan * 11 * uiSizeFactor,
+            }, fontSize, .{ 1, 1, 1, 1 }, state);
+        }
     }
     paintVulkanZig.verticesForComplexSpriteVulkan(.{
         .x = icon.pos.x + icon.width / 2,
@@ -606,7 +732,6 @@ pub fn setupVertices(state: *main.GameState) !void {
     if (settingsMenuUx.menuOpen) {
         const vulkanSpacingX = SPACING_PIXELS * onePixelXInVulkan * uiSizeFactor;
         const vulkanSpacingY = SPACING_PIXELS * onePixelYInVulkan * uiSizeFactor;
-        const fontSize: f32 = settingsMenuUx.baseFontSize * uiSizeFactor;
         const menuRec = settingsMenuUx.uiTabs[settingsMenuUx.activeTabIndex].contentRec;
         paintVulkanZig.verticesForRectangle(menuRec.pos.x, menuRec.pos.y, menuRec.width, menuRec.height, color, null, &verticeData.triangles);
         const timestamp = std.time.milliTimestamp();
@@ -653,7 +778,7 @@ pub fn setupVertices(state: *main.GameState) !void {
             const elementTextColor: [4]f32 = .{ 1, 1, 1, alpha };
             switch (element.typeData) {
                 .holdButton => |*data| {
-                    var restartFillColor = if (data.hovering and element.active) hoverColor else buttonFillColor;
+                    var restartFillColor = if (element.hovering and element.active) hoverColor else buttonFillColor;
                     restartFillColor[3] = alpha;
                     paintVulkanZig.verticesForRectangle(data.rec.pos.x, data.rec.pos.y, data.rec.width, data.rec.height, restartFillColor, &verticeData.lines, &verticeData.triangles);
                     if (data.holdStartTime) |time| {
@@ -668,7 +793,7 @@ pub fn setupVertices(state: *main.GameState) !void {
                     }, tabFontSize, elementTextColor, state);
                 },
                 .checkbox => |*data| {
-                    const checkboxFillColor = if (data.hovering and element.active) hoverColor else buttonFillColor;
+                    const checkboxFillColor = if (element.hovering and element.active) hoverColor else buttonFillColor;
                     paintVulkanZig.verticesForRectangle(data.rec.pos.x, data.rec.pos.y, data.rec.width, data.rec.height, checkboxFillColor, &verticeData.lines, &verticeData.triangles);
                     _ = fontVulkanZig.paintText(data.label, .{
                         .x = data.rec.pos.x + data.rec.width * 1.05,
@@ -683,7 +808,7 @@ pub fn setupVertices(state: *main.GameState) !void {
                 },
                 .slider => |*data| {
                     paintVulkanZig.verticesForRectangle(data.recDragArea.pos.x, data.recDragArea.pos.y, data.recDragArea.width, data.recDragArea.height, .{ 1, 1, 1, alpha }, &verticeData.lines, &verticeData.triangles);
-                    var sliderFillColor = if (data.hovering and element.active) hoverColor else buttonFillColor;
+                    var sliderFillColor = if (element.hovering and element.active) hoverColor else buttonFillColor;
                     sliderFillColor[3] = alpha;
                     const recSlider: main.Rectangle = .{ .pos = .{
                         .x = data.recDragArea.pos.x + data.valuePerCent * data.recDragArea.width - data.sliderWidth / 2,

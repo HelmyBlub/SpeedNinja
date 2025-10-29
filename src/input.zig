@@ -7,6 +7,7 @@ const shopZig = @import("shop.zig");
 const playerZig = @import("player.zig");
 const modeSelectZig = @import("modeSelect.zig");
 const autoTestZig = @import("autoTest.zig");
+const settingsMenuVulkanZig = @import("vulkan/settingsMenuVulkan.zig");
 
 pub const PlayerInputData = struct {
     inputDevice: ?InputDeviceData = null,
@@ -282,6 +283,8 @@ fn handlePlayerKeyboardInput(event: sdl.SDL_Event, player: *playerZig.Player, ke
 
 fn handlePlayerGamepadInput(event: sdl.SDL_Event, player: *playerZig.Player, gamepadId: ?u32, state: *main.GameState) !void {
     if (gamepadId != null and event.gdevice.which != gamepadId) return;
+    try settingsMenuVulkanZig.handleGamepadSettingsMenuInput(event, player, state);
+
     const deadzoneLimit = 15000;
     switch (event.type) {
         sdl.SDL_EVENT_GAMEPAD_AXIS_MOTION => {
@@ -334,6 +337,10 @@ fn handlePlayerGamepadInput(event: sdl.SDL_Event, player: *playerZig.Player, gam
                 try handlePlayerAction(.pieceSelect3, player, state);
             } else if (event.gbutton.button == 6) {
                 try handlePlayerAction(.pauseGame, player, state);
+                if ((!state.paused or !state.gameOver) and state.uxData.settingsMenuUx.menuOpen) {
+                    state.uxData.settingsMenuUx.gamePadSelectIndex = null;
+                    state.uxData.settingsMenuUx.menuOpen = false;
+                }
             } else {
                 std.debug.print("gamepadeButtonPress: {}\n", .{event.gbutton.button});
             }
