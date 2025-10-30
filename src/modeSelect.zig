@@ -12,6 +12,7 @@ const sdl = windowSdlZig.sdl;
 const shopZig = @import("shop.zig");
 const equipmentZig = @import("equipment.zig");
 const enemyObjectFallDownZig = @import("enemy/enemyObjectFallDown.zig");
+const statsZig = @import("stats.zig");
 
 pub const ModeSelectData = struct {
     modeStartRectangles: std.ArrayList(ModeStartRectangle) = undefined,
@@ -174,6 +175,7 @@ pub fn onPlayerMoveActionFinished(state: *main.GameState) !void {
 }
 
 pub fn startModeSelect(state: *main.GameState) !void {
+    if (!state.autoTest.zigTest and (state.gameOver or state.gamePhase == .finished)) try statsZig.statsSaveOnRestart(state);
     state.uxData.achievementGained.clearRetainingCapacity();
     state.paused = false;
     state.pauseInputTime = null;

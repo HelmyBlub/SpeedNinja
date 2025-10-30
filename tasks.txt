@@ -1,7 +1,8 @@
 testruns:
 - delete all data and start fresh
 - gain all achievements in game
-    - speed
+    - speed be to slow
+    - perfrection
 
 - gain achievements on steam
     - newGame+2
@@ -9,15 +10,12 @@ testruns:
 
 Tasks:
 - bug: speedrun stats missing
-- controller support
-    - need to be able to controll menu
-    - steam disables controller if not flagged as supported
-    - deploy to steam
 - check display level on new game
 - script to prepare steam upload folder
 
 Test Performance:
     test duration: 56180, gameTime: 2759470 ~ 59,7 (new test run)
+    test duration: 51900, gameTime: 2759470
 
 Next ideas:    
 - modifiers
