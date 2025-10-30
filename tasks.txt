@@ -3,13 +3,13 @@ testruns:
 - gain all achievements in game
     - speed be to slow
     - perfrection
+    - verify: speedrun stats not missing
 
 - gain achievements on steam
     - newGame+2
     - remember to connect to steam
 
 Tasks:
-- bug: speedrun stats missing
 - check display level on new game
 - script to prepare steam upload folder
 
