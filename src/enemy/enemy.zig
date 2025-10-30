@@ -161,7 +161,7 @@ pub fn onPlayerMoveEachTile(player: *playerZig.Player, state: *main.GameState) !
     }
 }
 
-fn createSpawnEnemyEntryEnemy(enemyType: EnemyType, state: *main.GameState) Enemy {
+pub fn createSpawnEnemyEntryEnemy(enemyType: EnemyType, state: *main.GameState) Enemy {
     return ENEMY_FUNCTIONS.get(enemyType).createSpawnEnemyEntryEnemy(state);
 }
 
@@ -311,7 +311,7 @@ pub fn setupEnemies(state: *main.GameState) !void {
     }
 }
 
-fn calcAndSetEnemySpawnProbabilities(enemySpawnData: *EnemySpawnData) void {
+pub fn calcAndSetEnemySpawnProbabilities(enemySpawnData: *EnemySpawnData) void {
     var totalProbability: f32 = 0;
     for (enemySpawnData.enemyEntries.items) |entry| {
         totalProbability += entry.probability;

@@ -1,32 +1,30 @@
 testruns:
-- delete all data and start fresh
-- gain all achievements in game
-    - speed be to slow
-    - perfrection
-    - verify: speedrun stats not missing
-
+- speedrun with straight pieces only
 - gain achievements on steam
     - newGame+2
     - remember to connect to steam
 
 Tasks:
-- check display level on new game
-- script to prepare steam upload folder
+- maze mode: only waller enemy -> get max round
+    - only waller enemies
+    - no exit, get highest round
+    - timer always resets to 60
+    - save highest reached round
+    - add one move pieces each 2 rounds
 
 Test Performance:
     test duration: 56180, gameTime: 2759470 ~ 59,7 (new test run)
     test duration: 51900, gameTime: 2759470
+    test duration: 59638, gameTime: 2759470 (with times for best run)
 
 Next ideas:    
 - modifiers
     - before game start set modifiers to make game easier or harder
         - gain more/less money
         - more time/less
-
-        - newGamePlus
         - more start pieces
         - round requirment for continue to next level
         - max start enemies
-        - maze mode: only waller enemy -> get max round
 - steam leaderboard?
 - can i make game start without steamapi dll?
+- script to prepare steam upload folder

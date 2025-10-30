@@ -13,6 +13,7 @@ const shopZig = @import("shop.zig");
 const equipmentZig = @import("equipment.zig");
 const enemyObjectFallDownZig = @import("enemy/enemyObjectFallDown.zig");
 const statsZig = @import("stats.zig");
+const enemyZig = @import("enemy/enemy.zig");
 
 pub const ModeSelectData = struct {
     modeStartRectangles: std.ArrayList(ModeStartRectangle) = undefined,
@@ -25,6 +26,7 @@ const ModeEnum = enum {
     practice,
     pvp,
     achievements,
+    maze,
 };
 
 const ModeData = union(ModeEnum) {
@@ -33,6 +35,7 @@ const ModeData = union(ModeEnum) {
     practice,
     pvp: ?usize, // last player index who won
     achievements: struct { rec: main.TileRectangle, playerCount: u32 = 0 }, // back to modeSelect rectangle
+    maze: struct { highestReachedRound: u32 = 0 },
 };
 
 pub const ModePlayerData = union(ModeEnum) {
@@ -41,6 +44,7 @@ pub const ModePlayerData = union(ModeEnum) {
     practice,
     pvp: ModePlayerDataPvp,
     achievements,
+    maze,
 };
 
 const ModePlayerDataPvp = struct {
@@ -82,6 +86,11 @@ pub fn initModeSelectData(state: *main.GameState) !void {
             .width = 2,
         },
     });
+    try state.modeSelect.modeStartRectangles.append(.{ .displayName = "Maze", .modeData = .{ .maze = .{} }, .rectangle = .{
+        .pos = .{ .x = -4, .y = 5 },
+        .height = 2,
+        .width = 2,
+    } });
     if (state.highestNewGameDifficultyBeaten > -1) {
         for (0..@intCast(state.highestNewGameDifficultyBeaten + 1)) |_| {
             try addNextNewGamePlusMode(state);
@@ -178,6 +187,7 @@ pub fn startModeSelect(state: *main.GameState) !void {
     if (!state.autoTest.zigTest and (state.gameOver or state.gamePhase == .finished)) try statsZig.statsSaveOnRestart(state);
     state.uxData.achievementGained.clearRetainingCapacity();
     state.paused = false;
+    state.suddenDeath = 0;
     state.pauseInputTime = null;
     state.gamePhase = .modeSelect;
     state.modeSelect.selectedMode = .none;
@@ -194,8 +204,7 @@ pub fn startModeSelect(state: *main.GameState) !void {
         equipmentZig.equipStarterEquipment(player);
         try movePieceZig.setupMovePieces(player, state);
     }
-    state.mapData.tileRadiusHeight = 4;
-    state.mapData.tileRadiusWidth = 4;
+    try mapTileZig.setMapRadius(4, 4, state);
     state.camera.position = .{ .x = 0, .y = 0 };
     mapTileZig.setMapType(.default, state);
     state.level = 0;
@@ -216,7 +225,26 @@ fn onStartMode(modeData: ModeData, state: *main.GameState) !void {
             try mapTileZig.setMapRadius(9, 5, state);
             main.adjustZoom(state);
         },
+        .maze => {
+            try startMazeMode(state);
+        },
     }
+}
+
+fn startMazeMode(state: *main.GameState) !void {
+    state.gamePhase = .combat;
+    state.gameTime = 0;
+    state.gameOver = false;
+    state.level = 1;
+    state.newGamePlus = 0;
+    try main.resetLevelData(state);
+    const enemySpawnData = &state.enemyData.enemySpawnData;
+    enemySpawnData.enemyEntries.clearRetainingCapacity();
+    try enemySpawnData.enemyEntries.append(.{ .probability = 1, .enemy = enemyZig.createSpawnEnemyEntryEnemy(.waller, state) });
+    enemyZig.calcAndSetEnemySpawnProbabilities(enemySpawnData);
+    state.config.roundToReachForNextLevel = std.math.maxInt(usize);
+    try main.startNextRound(state);
+    playerZig.movePlayerToLevelSpawnPosition(state);
 }
 
 fn onStartModePvp(state: *main.GameState) !void {
@@ -227,33 +255,48 @@ fn onStartModePvp(state: *main.GameState) !void {
 }
 
 pub fn tick(state: *main.GameState) !void {
-    if (state.modeSelect.selectedMode == .pvp) {
-        if (state.players.items.len <= 1) return;
-        for (state.players.items) |*player| {
-            if (player.modeData != .pvp) {
-                player.modeData = .{ .pvp = .{ .wins = 0 } };
-                try startModePvp(state);
-                return;
-            }
-            if (player.modeData.pvp.lastMoveTime + 5_000 < state.gameTime) {
-                player.modeData.pvp.lastMoveTime += 5_000;
-                try enemyObjectFallDownZig.spawnFallDown(player.position, 5000, true, state);
-            }
-        }
-        var aliveCount: u32 = 0;
-        for (state.players.items) |player| {
-            if (!player.isDead) aliveCount += 1;
-        }
-        if (aliveCount <= 1) {
-            state.modeSelect.selectedMode.pvp = null;
-            for (state.players.items, 0..) |*player, playerIndex| {
-                if (!player.isDead) {
-                    state.modeSelect.selectedMode.pvp = playerIndex;
-                    player.modeData.pvp.wins += 1;
+    switch (state.modeSelect.selectedMode) {
+        .pvp => {
+            if (state.players.items.len <= 1) return;
+            for (state.players.items) |*player| {
+                if (player.modeData != .pvp) {
+                    player.modeData = .{ .pvp = .{ .wins = 0 } };
+                    try startModePvp(state);
+                    return;
+                }
+                if (player.modeData.pvp.lastMoveTime + 5_000 < state.gameTime) {
+                    player.modeData.pvp.lastMoveTime += 5_000;
+                    try enemyObjectFallDownZig.spawnFallDown(player.position, 5000, true, state);
                 }
             }
-            try startModePvp(state);
-        }
+            var aliveCount: u32 = 0;
+            for (state.players.items) |player| {
+                if (!player.isDead) aliveCount += 1;
+            }
+            if (aliveCount <= 1) {
+                state.modeSelect.selectedMode.pvp = null;
+                for (state.players.items, 0..) |*player, playerIndex| {
+                    if (!player.isDead) {
+                        state.modeSelect.selectedMode.pvp = playerIndex;
+                        player.modeData.pvp.wins += 1;
+                    }
+                }
+                try startModePvp(state);
+            }
+        },
+        .maze => {
+            try main.tickSuddenDeath(state);
+            if (state.enemyData.enemies.items.len == 0) {
+                if (@mod(state.round, 2) == 0) {
+                    for (state.players.items) |*player| {
+                        const movePiece = try movePieceZig.createRandomMovePiece(state.allocator, state);
+                        try movePieceZig.addMovePiece(player, movePiece);
+                    }
+                }
+                try main.startNextRound(state);
+            }
+        },
+        else => {},
     }
 }
 
@@ -262,24 +305,7 @@ fn startModePvp(state: *main.GameState) !void {
     state.gameTime = 0;
     state.gameOver = false;
     for (state.players.items) |*player| {
-        player.isDead = false;
-        player.animateData = .{};
-        player.paintData = .{};
-        player.executeMovePiece = null;
-        player.immunUntilTime = 0;
-        player.choosenMoveOptionIndex = null;
-        player.lastMoveDirection = null;
-        player.afterImages.clearRetainingCapacity();
-        equipmentZig.equipStarterEquipment(player);
-        try movePieceZig.setupMovePieces(player, state);
-        player.uxData.visualizeHpChangeUntil = null;
-        player.uxData.visualizeMoneyUntil = null;
-        player.uxData.visualizeMovePieceChangeFromShop = null;
-        player.uxData.piecesRefreshedVisualization = null;
-        player.uxData.visualizeHpChange = null;
-        player.uxData.visualizeMoney = null;
-        player.inputData.lastInputTime = 0;
-        player.modeData.pvp.lastMoveTime = 0;
+        try playerZig.resetPlayer(player, state);
     }
     state.mapObjects.clearAndFree();
     state.enemyData.enemyObjects.clearRetainingCapacity();

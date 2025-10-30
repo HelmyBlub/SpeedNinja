@@ -62,13 +62,9 @@ pub const GameState = struct {
     round: u32 = 1,
     level: u32 = 0,
     newGamePlus: u32 = 0,
-    roundToReachForNextLevel: usize = 5,
-    bonusTimePerRoundFinished: i32 = 5000,
-    minimalTimePerRequiredRounds: i32 = 60_000,
     mapData: mapTileZig.MapData,
     suddenDeathTimeMs: i64 = 0,
     roundStartedTime: i64 = 0,
-    playerImmunityFrames: i64 = 1000,
     bosses: std.ArrayList(bossZig.Boss) = undefined,
     enemyData: enemyZig.EnemyData = .{},
     spriteCutAnimations: std.ArrayList(CutSpriteAnimation) = undefined,
@@ -107,6 +103,14 @@ pub const GameState = struct {
     autoTest: autoTestZig.AutoTestData,
     windowData: windowSdlZig.WindowData = .{},
     onStartError: onStartErrorDisplayZig.OnStartErrorDisplay,
+    config: GameConfig = .{},
+};
+
+pub const GameConfig = struct {
+    roundToReachForNextLevel: usize = 5,
+    bonusTimePerRoundFinished: i32 = 5000,
+    minimalTimePerRequiredRounds: i32 = 60_000,
+    playerImmunityFrames: i64 = 1000,
 };
 
 pub const GameUxData = struct {
@@ -288,7 +292,7 @@ pub fn mainLoop(state: *GameState) !void {
             } else if (state.enemyData.enemies.items.len == 0 and state.gamePhase == .combat) {
                 try startNextRound(state);
             }
-            try suddenDeath(state);
+            try tickSuddenDeath(state);
         } else {
             try modeSelectZig.tick(state);
         }
@@ -424,7 +428,7 @@ fn tickGameOver(state: *GameState) !void {
     }
 }
 
-fn suddenDeath(state: *GameState) !void {
+pub fn tickSuddenDeath(state: *GameState) !void {
     if (state.gameOver) return;
     if (state.gamePhase == .shopping or state.gamePhase == .finished) return;
     if (state.gamePhase == .boss and state.newGamePlus < 2) return;
@@ -483,7 +487,7 @@ fn suddenDeath(state: *GameState) !void {
 }
 
 pub fn preventSuddenDeathStartCondition(state: *GameState) bool {
-    return state.level == 1 and state.gamePhase == .combat and state.newGamePlus == 0 and state.round >= state.roundToReachForNextLevel;
+    return state.level == 1 and state.gamePhase == .combat and state.newGamePlus == 0 and state.round >= state.config.roundToReachForNextLevel;
 }
 
 fn tickMapObjects(state: *GameState, passedTime: i64) void {
@@ -533,30 +537,30 @@ pub fn startNextRound(state: *GameState) !void {
     if (preventSuddenDeathStartCondition(state) and state.suddenDeathTimeMs < state.gameTime) return; // instead of sudden death => no more enemy spawns
     state.enemyData.enemies.clearRetainingCapacity();
     const timeShoesBonusTime = equipmentZig.getTimeShoesBonusRoundTime(state);
-    const maxTime = state.gameTime + state.minimalTimePerRequiredRounds + timeShoesBonusTime;
-    if (state.round < state.roundToReachForNextLevel) {
+    const maxTime = state.gameTime + state.config.minimalTimePerRequiredRounds + timeShoesBonusTime;
+    if (state.round < state.config.roundToReachForNextLevel) {
         state.suddenDeathTimeMs = maxTime;
         state.uxData.timeChangeVisualization = state.gameTime + 2_000;
         state.uxData.timeChange = .{ .refresh = true };
     } else {
         if (state.suddenDeathTimeMs < state.gameTime) state.suddenDeathTimeMs = state.gameTime;
-        state.suddenDeathTimeMs += state.bonusTimePerRoundFinished;
+        state.suddenDeathTimeMs += state.config.bonusTimePerRoundFinished;
         if (state.suddenDeathTimeMs > maxTime) {
             state.suddenDeathTimeMs = maxTime;
         }
         state.uxData.timeChangeVisualization = state.gameTime + 3_000;
-        state.uxData.timeChange = .{ .timeAdded = state.bonusTimePerRoundFinished };
+        state.uxData.timeChange = .{ .timeAdded = state.config.bonusTimePerRoundFinished };
     }
     state.suddenDeath = 0;
     state.soundData.suddenDeathPlayed = false;
     state.soundData.tickSoundPlayedCounter = 0;
     state.soundData.warningSoundPlayed = false;
     state.roundStartedTime = state.gameTime;
-    if (state.level == 1 and state.round == 1) {
+    if (state.level == 1 and state.round == 1 and state.modeSelect.selectedMode == .newGamePlus) {
         try achievementZig.awardAchievement(.beatFirstEnemy, state);
     }
     state.round += 1;
-    if (state.round >= state.roundToReachForNextLevel and state.gateOpenTime == null) state.gateOpenTime = state.gameTime;
+    if (state.round >= state.config.roundToReachForNextLevel and state.gateOpenTime == null) state.gateOpenTime = state.gameTime;
 
     if (state.round > 1) {
         try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_ROUND_CLEARED, 0, 1);
@@ -574,6 +578,25 @@ pub fn startNextLevel(state: *GameState) !void {
         try runStart(state, state.newGamePlus + 1);
         return;
     }
+    try resetLevelData(state);
+    state.level += 1;
+    try enemyZig.setupSpawnEnemiesOnLevelChange(state);
+    if (bossZig.isBossLevel(state.level)) {
+        if (state.newGamePlus >= 2) {
+            const timeShoesBonusTime = equipmentZig.getTimeShoesBonusRoundTime(state);
+            const maxTime = state.gameTime + state.config.minimalTimePerRequiredRounds * 3 + timeShoesBonusTime;
+            state.suddenDeathTimeMs = maxTime;
+        }
+
+        try bossZig.startBossLevel(state);
+    } else {
+        try startNextRound(state);
+    }
+    playerZig.movePlayerToLevelSpawnPosition(state);
+    checkForEnemyAndPlayerOnSamePosition(state);
+}
+
+pub fn resetLevelData(state: *GameState) !void {
     mapTileZig.setMapType(.default, state);
     state.gateOpenTime = null;
     state.playerTookDamageOnLevel = false;
@@ -588,7 +611,6 @@ pub fn startNextLevel(state: *GameState) !void {
     state.lastAfkShootTime = null;
     mapTileZig.resetMapTiles(state.mapData.tiles);
     state.gamePhase = .combat;
-    state.level += 1;
     state.round = 0;
     state.statistics.uxData.displayBestPossibleTimeValue = null;
     bossZig.clearBosses(state);
@@ -601,20 +623,6 @@ pub fn startNextLevel(state: *GameState) !void {
             player.uxData.visualizeMovementKeys = false;
         }
     }
-    try enemyZig.setupSpawnEnemiesOnLevelChange(state);
-    if (bossZig.isBossLevel(state.level)) {
-        if (state.newGamePlus >= 2) {
-            const timeShoesBonusTime = equipmentZig.getTimeShoesBonusRoundTime(state);
-            const maxTime = state.gameTime + state.minimalTimePerRequiredRounds * 3 + timeShoesBonusTime;
-            state.suddenDeathTimeMs = maxTime;
-        }
-
-        try bossZig.startBossLevel(state);
-    } else {
-        try startNextRound(state);
-    }
-    playerZig.movePlayerToLevelSpawnPosition(state);
-    checkForEnemyAndPlayerOnSamePosition(state);
 }
 
 fn checkForEnemyAndPlayerOnSamePosition(state: *GameState) void {
@@ -736,6 +744,7 @@ pub fn runStart(state: *GameState, newGamePlus: u32) anyerror!void {
     autoTestZig.startRecordingRun(state);
     try statsZig.statsSaveOnRestart(state);
     mapTileZig.setMapType(.default, state);
+    state.config = .{};
     state.paused = false;
     state.pauseInputTime = null;
     state.timeFreezed = null;
@@ -758,31 +767,7 @@ pub fn runStart(state: *GameState, newGamePlus: u32) anyerror!void {
     }
     mapTileZig.resetMapTiles(state.mapData.tiles);
     for (state.players.items) |*player| {
-        player.money = 0;
-        player.moneyOnShopLeftForSave = 0;
-        player.phase = .combat;
-        player.isDead = false;
-        player.position.x = 0;
-        player.position.y = 0;
-        player.afterImages.clearRetainingCapacity();
-        player.animateData = .{};
-        player.paintData = .{};
-        player.executeMovePiece = null;
-        player.shop.gridDisplayPiece = null;
-        player.shop.selectedOption = .none;
-        player.immunUntilTime = 0;
-        player.choosenMoveOptionIndex = null;
-        player.lastMoveDirection = null;
-        equipmentZig.equipStarterEquipment(player);
-        try movePieceZig.setupMovePieces(player, state);
-        player.uxData.visualizeHpChangeUntil = null;
-        player.uxData.visualizeMoneyUntil = null;
-        player.uxData.visualizeMovePieceChangeFromShop = null;
-        player.uxData.piecesRefreshedVisualization = null;
-        player.uxData.visualizeHpChange = null;
-        player.uxData.visualizeMoney = null;
-        player.inputData.lastInputTime = 0;
-        player.slashedLastMoveTile = false;
+        try playerZig.resetPlayer(player, state);
     }
     for (0..state.shop.equipOptionsLastLevelInShop.len) |i| {
         state.shop.equipOptionsLastLevelInShop[i] = 0;

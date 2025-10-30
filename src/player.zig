@@ -221,9 +221,37 @@ pub fn playerHit(player: *Player, state: *main.GameState) !void {
     }
     player.uxData.visualizeHpChangeUntil = state.gameTime + player.uxData.visualizationDuration;
 
-    player.immunUntilTime = state.gameTime + state.playerImmunityFrames;
+    player.immunUntilTime = state.gameTime + state.config.playerImmunityFrames;
     state.playerTookDamageOnLevel = true;
     try soundMixerZig.playSound(&state.soundMixer, soundMixerZig.SOUND_PLAYER_HIT, 0, 1);
+}
+
+pub fn resetPlayer(player: *Player, state: *main.GameState) !void {
+    player.money = 0;
+    player.moneyOnShopLeftForSave = 0;
+    player.phase = .combat;
+    player.isDead = false;
+    player.position.x = 0;
+    player.position.y = 0;
+    player.afterImages.clearRetainingCapacity();
+    player.animateData = .{};
+    player.paintData = .{};
+    player.executeMovePiece = null;
+    player.shop.gridDisplayPiece = null;
+    player.shop.selectedOption = .none;
+    player.immunUntilTime = 0;
+    player.choosenMoveOptionIndex = null;
+    player.lastMoveDirection = null;
+    equipmentZig.equipStarterEquipment(player);
+    try movePieceZig.setupMovePieces(player, state);
+    player.uxData.visualizeHpChangeUntil = null;
+    player.uxData.visualizeMoneyUntil = null;
+    player.uxData.visualizeMovePieceChangeFromShop = null;
+    player.uxData.piecesRefreshedVisualization = null;
+    player.uxData.visualizeHpChange = null;
+    player.uxData.visualizeMoney = null;
+    player.inputData.lastInputTime = 0;
+    player.slashedLastMoveTile = false;
 }
 
 pub fn getRandomAlivePlayerIndex(state: *main.GameState) ?usize {

@@ -192,7 +192,7 @@ pub fn tickPlayerMovePiece(player: *playerZig.Player, state: *main.GameState) !v
                 try bossZig.onPlayerMoved(player, state);
                 const attackDelayOnSpawn = 100;
                 if (state.gameTime - state.roundStartedTime > attackDelayOnSpawn) try enemyZig.onPlayerMoved(player, state);
-                if (state.round >= state.roundToReachForNextLevel and shopZig.isPlayerInShopTrigger(player, state)) {
+                if (state.round >= state.config.roundToReachForNextLevel and shopZig.isPlayerInShopTrigger(player, state)) {
                     player.phase = .shopping;
                 }
             }

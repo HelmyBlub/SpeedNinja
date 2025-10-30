@@ -124,7 +124,7 @@ fn verticesForEnterShop(state: *main.GameState) !void {
         false,
         state,
     );
-    if (state.round < state.roundToReachForNextLevel) {
+    if (state.round < state.config.roundToReachForNextLevel) {
         paintVulkanZig.verticesForComplexSprite(
             .{ .x = gridEnterShopTopLeft.x + main.TILESIZE / 2, .y = gridEnterShopTopLeft.y + main.TILESIZE / 2 },
             imageZig.IMAGE_GATE,
@@ -137,7 +137,7 @@ fn verticesForEnterShop(state: *main.GameState) !void {
             state,
         );
         const textColor: [4]f32 = .{ 0.7, 0, 0, 1 };
-        _ = try fontVulkanZig.paintNumberGameMap(state.roundToReachForNextLevel - state.round, .{
+        _ = try fontVulkanZig.paintNumberGameMap(state.config.roundToReachForNextLevel - state.round, .{
             .x = gridEnterShopTopLeft.x,
             .y = gridEnterShopTopLeft.y,
         }, fontSize, textColor, state);
