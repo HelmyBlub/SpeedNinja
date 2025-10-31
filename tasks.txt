@@ -6,10 +6,7 @@ testruns:
 
 Tasks:
 - mode: customized run
-    - have buttons to customize run configurations
-    - stairs to start run with these configs
     - gain more/less money
-    - more time/less
     - more start pieces
     - round requirment for continue to next level
     - max start enemies

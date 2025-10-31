@@ -5,6 +5,7 @@ const paintVulkanZig = @import("vulkan/paintVulkan.zig");
 const fontVulkanZig = @import("vulkan/fontVulkan.zig");
 const playerZig = @import("player.zig");
 const achievementZig = @import("achievement.zig");
+const soundMixerZig = @import("soundMixer.zig");
 
 pub const ModeCustomData = struct {
     newGamePlus: u32 = 0,
@@ -20,15 +21,18 @@ const CustomizeOption = struct {
 };
 
 const CUSTOMIZE_OPTIONS = [_]CustomizeOption{
-    .{ .name = "NG+", .tilePos = .{ .x = -2, .y = 0 }, .onChange = onChangeNewGamePlus, .setupVerticesForValue = setupVerticesNewGamePlus },
-    .{ .name = "Round Required", .tilePos = .{ .x = -2, .y = 2 }, .onChange = onChangeRoundRequired, .setupVerticesForValue = setupVerticesRoundRequired },
-    .{ .name = "Max Time Per Round", .tilePos = .{ .x = -2, .y = 4 }, .onChange = onChangeTimeForRequiredRound, .setupVerticesForValue = setupVerticesTimeForRequiredRound },
-    .{ .name = "Bonus Time For Additional Rounds", .tilePos = .{ .x = -2, .y = 6 }, .onChange = onChangeTimeForAdditionalRound, .setupVerticesForValue = setupVerticesTimeForAdditionalRound },
+    .{ .name = "NG+", .tilePos = .{ .x = -4, .y = -5 }, .onChange = onChangeNewGamePlus, .setupVerticesForValue = setupVerticesNewGamePlus },
+    .{ .name = "Rounds Required", .tilePos = .{ .x = -4, .y = -3 }, .onChange = onChangeRoundRequired, .setupVerticesForValue = setupVerticesRoundRequired },
+    .{ .name = "Max Time Per Round", .tilePos = .{ .x = -4, .y = -1 }, .onChange = onChangeTimeForRequiredRound, .setupVerticesForValue = setupVerticesTimeForRequiredRound },
+    .{ .name = "Time Additional Rounds", .tilePos = .{ .x = -4, .y = 1 }, .onChange = onChangeTimeForAdditionalRound, .setupVerticesForValue = setupVerticesTimeForAdditionalRound },
 };
 
 pub fn startModeCustom(state: *main.GameState) !void {
-    try mapTileZig.setMapRadius(6, 6, state);
+    try mapTileZig.setMapRadius(5, 5, state);
     main.adjustZoom(state);
+    for (state.players.items) |*player| {
+        player.position = .{ .x = 0, .y = 0 };
+    }
 }
 
 pub fn setupVerticesCustom(state: *main.GameState) !void {
@@ -66,35 +70,55 @@ pub fn onPlayerMoveActionFinished(player: *playerZig.Player, state: *main.GameSt
     for (CUSTOMIZE_OPTIONS) |option| {
         if (playerTile.x == option.tilePos.x - 1 and playerTile.y == option.tilePos.y) {
             option.onChange(true, state);
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION[0..], 0, 0.5);
         } else if (playerTile.x == option.tilePos.x + 1 and playerTile.y == option.tilePos.y) {
             option.onChange(false, state);
+            try soundMixerZig.playRandomSound(&state.soundMixer, soundMixerZig.SOUND_SHOP_ACTION[0..], 0, 0.5);
         }
     }
 }
 
 fn setupVerticesCustomOptionDefault(option: CustomizeOption, state: *main.GameState) !void {
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
-    const fontSize = 7;
+    const fontSize = 12;
     const leftButtonPos: main.Position = .{
-        .x = @floatFromInt((option.tilePos.x - 1) * main.TILESIZE),
-        .y = @floatFromInt(option.tilePos.y * main.TILESIZE),
+        .x = @floatFromInt((option.tilePos.x - 1) * main.TILESIZE - main.TILESIZE / 2),
+        .y = @floatFromInt(option.tilePos.y * main.TILESIZE - main.TILESIZE / 2),
     };
     const rightButtonPos: main.Position = .{
-        .x = @floatFromInt((option.tilePos.x + 1) * main.TILESIZE),
-        .y = @floatFromInt(option.tilePos.y * main.TILESIZE),
+        .x = @floatFromInt((option.tilePos.x + 1) * main.TILESIZE - main.TILESIZE / 2),
+        .y = @floatFromInt(option.tilePos.y * main.TILESIZE - main.TILESIZE / 2),
     };
+
+    paintVulkanZig.verticesForGameRectangle(.{ .pos = .{
+        .x = rightButtonPos.x + main.TILESIZE / 2,
+        .y = rightButtonPos.y + main.TILESIZE / 2,
+    }, .width = main.TILESIZE, .height = main.TILESIZE }, .{ 1, 1, 1, 1 }, state);
     _ = fontVulkanZig.paintTextGameMap("+", .{
         .x = rightButtonPos.x,
         .y = rightButtonPos.y,
-    }, fontSize, textColor, state);
+    }, main.TILESIZE * 0.9, textColor, state);
+
+    paintVulkanZig.verticesForGameRectangle(.{ .pos = .{
+        .x = leftButtonPos.x + main.TILESIZE / 2,
+        .y = leftButtonPos.y + main.TILESIZE / 2,
+    }, .width = main.TILESIZE, .height = main.TILESIZE }, .{ 1, 1, 1, 1 }, state);
     _ = fontVulkanZig.paintTextGameMap("-", .{
         .x = leftButtonPos.x,
         .y = leftButtonPos.y,
-    }, fontSize, textColor, state);
+    }, main.TILESIZE * 0.9, textColor, state);
+
+    const nameGameWidth = fontVulkanZig.getTextVulkanWidth(option.name, fontSize, state) / state.windowData.onePixelXInVulkan;
+    var customFontSize: f32 = fontSize;
+    var offsetX = -nameGameWidth / 2;
+    if (nameGameWidth > main.TILESIZE * 5) {
+        customFontSize = customFontSize / nameGameWidth * main.TILESIZE * 5;
+        offsetX = -main.TILESIZE * 5 / 2;
+    }
     _ = fontVulkanZig.paintTextGameMap(option.name, .{
-        .x = leftButtonPos.x,
-        .y = leftButtonPos.y - fontSize,
-    }, fontSize, textColor, state);
+        .x = leftButtonPos.x + main.TILESIZE + main.TILESIZE / 2 + offsetX,
+        .y = leftButtonPos.y - customFontSize,
+    }, customFontSize, textColor, state);
 }
 
 fn onChangeNewGamePlus(leftInput: bool, state: *main.GameState) void {
@@ -152,13 +176,27 @@ fn setupVerticesTimeForAdditionalRound(option: CustomizeOption, state: *main.Gam
 
 fn displayNumberAtOption(option: CustomizeOption, number: anytype, state: *main.GameState) !void {
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
-    const fontSize = 7;
+    var fontSize: f32 = main.TILESIZE;
     const startTopLeft: main.Position = .{
         .x = @floatFromInt(option.tilePos.x * main.TILESIZE),
         .y = @floatFromInt(option.tilePos.y * main.TILESIZE),
     };
+
+    const widthPerDigit: f32 = fontSize * 0.7;
+    var totalWidth: f32 = 0;
+    if (@TypeOf(number) == f32) {
+        totalWidth = widthPerDigit * @floor(1 + @log10(@max(1, @abs(number))));
+    } else {
+        const asFloat: f32 = @floatFromInt(number);
+        totalWidth = widthPerDigit * @floor(1 + @log10(@max(1, @abs(asFloat))));
+    }
+    if (totalWidth > main.TILESIZE) {
+        fontSize = fontSize / totalWidth * main.TILESIZE;
+        totalWidth = main.TILESIZE;
+    }
+
     _ = try fontVulkanZig.paintNumberGameMap(number, .{
-        .x = startTopLeft.x,
-        .y = startTopLeft.y,
+        .x = startTopLeft.x - totalWidth / 2,
+        .y = startTopLeft.y - fontSize / 2,
     }, fontSize, textColor, state);
 }
