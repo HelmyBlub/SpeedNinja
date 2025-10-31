@@ -25,6 +25,8 @@ const CUSTOMIZE_OPTIONS = [_]CustomizeOption{
     .{ .name = "Rounds Required", .tilePos = .{ .x = -4, .y = -3 }, .onChange = onChangeRoundRequired, .setupVerticesForValue = setupVerticesRoundRequired },
     .{ .name = "Max Time Per Round", .tilePos = .{ .x = -4, .y = -1 }, .onChange = onChangeTimeForRequiredRound, .setupVerticesForValue = setupVerticesTimeForRequiredRound },
     .{ .name = "Time Additional Rounds", .tilePos = .{ .x = -4, .y = 1 }, .onChange = onChangeTimeForAdditionalRound, .setupVerticesForValue = setupVerticesTimeForAdditionalRound },
+    .{ .name = "Min Enemy Start Level", .tilePos = .{ .x = -4, .y = 3 }, .onChange = onChangeMinEnemy, .setupVerticesForValue = setupVerticesMinEnemy },
+    .{ .name = "Max Enemy Start Level", .tilePos = .{ .x = -4, .y = 5 }, .onChange = onChangeMaxEnemy, .setupVerticesForValue = setupVerticesMaxEnemy },
 };
 
 pub fn startModeCustom(state: *main.GameState) !void {
@@ -60,7 +62,6 @@ pub fn onPlayerMoveActionFinished(player: *playerZig.Player, state: *main.GameSt
     }
     if (modeCustomData.stairs.playerCount == state.players.items.len) {
         try main.runStart(state, modeCustomData.newGamePlus);
-        state.config = modeCustomData.config;
         achievementZig.stopTrackingAchievmentForThisRun(state);
         state.statistics.active = false;
         return;
@@ -172,6 +173,38 @@ fn onChangeTimeForAdditionalRound(leftInput: bool, state: *main.GameState) void 
 fn setupVerticesTimeForAdditionalRound(option: CustomizeOption, state: *main.GameState) anyerror!void {
     const displayValue = @divFloor(state.modeSelect.modeCustomData.config.bonusTimePerRoundFinished, 1000);
     try displayNumberAtOption(option, displayValue, state);
+}
+
+fn onChangeMinEnemy(leftInput: bool, state: *main.GameState) void {
+    const config = &state.modeSelect.modeCustomData.config;
+    if (leftInput) {
+        config.minEnemyLevelStartCount = @max(config.minEnemyLevelStartCount - 1, 1);
+    } else {
+        config.minEnemyLevelStartCount = @min(100, config.minEnemyLevelStartCount + 1);
+        if (config.maxEnemyLevelStartCount < config.minEnemyLevelStartCount) {
+            config.maxEnemyLevelStartCount = config.minEnemyLevelStartCount;
+        }
+    }
+}
+
+fn setupVerticesMinEnemy(option: CustomizeOption, state: *main.GameState) anyerror!void {
+    try displayNumberAtOption(option, state.modeSelect.modeCustomData.config.minEnemyLevelStartCount, state);
+}
+
+fn onChangeMaxEnemy(leftInput: bool, state: *main.GameState) void {
+    const config = &state.modeSelect.modeCustomData.config;
+    if (leftInput) {
+        config.maxEnemyLevelStartCount = @max(config.maxEnemyLevelStartCount - 1, 1);
+        if (config.maxEnemyLevelStartCount < config.minEnemyLevelStartCount) {
+            config.minEnemyLevelStartCount = config.maxEnemyLevelStartCount;
+        }
+    } else {
+        config.maxEnemyLevelStartCount = @min(100, config.maxEnemyLevelStartCount + 1);
+    }
+}
+
+fn setupVerticesMaxEnemy(option: CustomizeOption, state: *main.GameState) anyerror!void {
+    try displayNumberAtOption(option, state.modeSelect.modeCustomData.config.maxEnemyLevelStartCount, state);
 }
 
 fn displayNumberAtOption(option: CustomizeOption, number: anytype, state: *main.GameState) !void {

@@ -8,8 +8,8 @@ Tasks:
 - mode: customized run
     - gain more/less money
     - more start pieces
-    - round requirment for continue to next level
     - max start enemies
+    - speedrun stats, but display it will not be saved
 
 Test Performance:
     test duration: 56180, gameTime: 2759470 ~ 59,7 (new test run)

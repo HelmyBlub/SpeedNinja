@@ -111,6 +111,8 @@ pub const GameConfig = struct {
     bonusTimePerRoundFinished: i32 = 5000,
     minimalTimePerRequiredRounds: i32 = 60_000,
     playerImmunityFrames: i64 = 1000,
+    maxEnemyLevelStartCount: u32 = 5,
+    minEnemyLevelStartCount: u32 = 1,
 };
 
 pub const GameUxData = struct {
@@ -745,6 +747,7 @@ pub fn runStart(state: *GameState, newGamePlus: u32) anyerror!void {
     try statsZig.statsSaveOnRestart(state);
     mapTileZig.setMapType(.default, state);
     state.config = .{};
+    if (state.modeSelect.selectedMode == .custom) state.config = state.modeSelect.modeCustomData.config;
     state.paused = false;
     state.pauseInputTime = null;
     state.timeFreezed = null;
