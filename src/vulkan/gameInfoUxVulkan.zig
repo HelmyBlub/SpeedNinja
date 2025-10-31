@@ -375,7 +375,7 @@ fn verticesForPvP(state: *main.GameState) !void {
 }
 
 fn verticesForLevelRoundNewGamePlus(state: *main.GameState) !void {
-    if (state.modeSelect.selectedMode != .newGamePlus and state.modeSelect.selectedMode != .practice) return;
+    if (state.modeSelect.selectedMode != .newGamePlus and state.modeSelect.selectedMode != .practice and state.modeSelect.selectedMode != .custom) return;
     if (state.gamePhase == .modeSelect) return;
     const textColor: [4]f32 = .{ 1, 1, 1, 1 };
     const white: [4]f32 = .{ 1, 1, 1, 1 };

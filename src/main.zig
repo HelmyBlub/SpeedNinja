@@ -263,7 +263,7 @@ pub fn mainLoop(state: *GameState) !void {
     const maxFrameSkips = 4;
     while (!state.gameQuit) {
         const passedTime: i64 = if (state.timeFreezed == null and !state.paused) tickIntervalMs else 0;
-        if (state.gamePhase != .modeSelect and (state.modeSelect.selectedMode == .newGamePlus or state.modeSelect.selectedMode == .practice)) {
+        if (state.gamePhase != .modeSelect and (state.modeSelect.selectedMode == .newGamePlus or state.modeSelect.selectedMode == .practice or state.modeSelect.selectedMode == .custom)) {
             if (shouldEndLevel(state)) {
                 if (state.gamePhase == .boss) {
                     state.lastBossDefeatedTime = state.gameTime;

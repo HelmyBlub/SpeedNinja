@@ -14,11 +14,13 @@ const equipmentZig = @import("equipment.zig");
 const enemyObjectFallDownZig = @import("enemy/enemyObjectFallDown.zig");
 const statsZig = @import("stats.zig");
 const enemyZig = @import("enemy/enemy.zig");
+const modeSelectCustomZig = @import("modeSelectCustom.zig");
 
 pub const ModeSelectData = struct {
     modeStartRectangles: std.ArrayList(ModeStartRectangle) = undefined,
     selectedMode: ModeData = .none,
     highscoreMazeMode: u32 = 0,
+    modeCustomData: modeSelectCustomZig.ModeCustomData = .{},
 };
 
 const ModeEnum = enum {
@@ -28,6 +30,7 @@ const ModeEnum = enum {
     pvp,
     achievements,
     maze,
+    custom,
 };
 
 const ModeData = union(ModeEnum) {
@@ -37,6 +40,7 @@ const ModeData = union(ModeEnum) {
     pvp: ?usize, // last player index who won
     achievements: struct { rec: main.TileRectangle, playerCount: u32 = 0 }, // back to modeSelect rectangle
     maze,
+    custom,
 };
 
 pub const ModePlayerData = union(ModeEnum) {
@@ -46,6 +50,7 @@ pub const ModePlayerData = union(ModeEnum) {
     pvp: ModePlayerDataPvp,
     achievements,
     maze,
+    custom,
 };
 
 const ModePlayerDataPvp = struct {
@@ -74,7 +79,7 @@ pub fn initModeSelectData(state: *main.GameState) !void {
         .width = 2,
     } });
     try state.modeSelect.modeStartRectangles.append(.{ .displayName = "PvP", .modeData = .{ .pvp = null }, .rectangle = .{
-        .pos = .{ .x = -4, .y = -1 },
+        .pos = .{ .x = -7, .y = -4 },
         .height = 2,
         .width = 2,
     } });
@@ -82,13 +87,18 @@ pub fn initModeSelectData(state: *main.GameState) !void {
         .displayName = "Achievements",
         .modeData = .{ .achievements = .{ .rec = .{ .pos = .{ .x = 3, .y = -5 }, .width = 2, .height = 2 } } },
         .rectangle = .{
-            .pos = .{ .x = -4, .y = 2 },
+            .pos = .{ .x = -7, .y = -1 },
             .height = 2,
             .width = 2,
         },
     });
+    try state.modeSelect.modeStartRectangles.append(.{ .displayName = "Custom", .modeData = .custom, .rectangle = .{
+        .pos = .{ .x = -4, .y = 2 },
+        .height = 2,
+        .width = 2,
+    } });
     try state.modeSelect.modeStartRectangles.append(.{ .displayName = "Maze", .modeData = .maze, .rectangle = .{
-        .pos = .{ .x = -4, .y = 5 },
+        .pos = .{ .x = -7, .y = 2 },
         .height = 2,
         .width = 2,
     } });
@@ -131,6 +141,7 @@ pub fn setupVertices(state: *main.GameState) !void {
                 }
             },
             .achievements => try verticesForAchievementMode(state),
+            .custom => try modeSelectCustomZig.setupVerticesCustom(state),
             else => {},
         }
     } else {
@@ -150,14 +161,14 @@ pub fn destroyModeSelectData(state: *main.GameState) void {
     modeSelect.modeStartRectangles.deinit();
 }
 
-pub fn onPlayerMoveActionFinished(state: *main.GameState) !void {
+pub fn onPlayerMoveActionFinished(player: *playerZig.Player, state: *main.GameState) !void {
     if (state.gamePhase != .modeSelect) return;
     switch (state.modeSelect.selectedMode) {
         .none => {
             for (state.modeSelect.modeStartRectangles.items) |*mode| {
                 mode.playerOnRectangleCounter = 0;
-                for (state.players.items) |*player| {
-                    const playerTile = main.gamePositionToTilePosition(player.position);
+                for (state.players.items) |*otherPlayer| {
+                    const playerTile = main.gamePositionToTilePosition(otherPlayer.position);
                     if (main.isTilePositionInTileRectangle(playerTile, mode.rectangle)) {
                         mode.playerOnRectangleCounter += 1;
                     }
@@ -170,8 +181,8 @@ pub fn onPlayerMoveActionFinished(state: *main.GameState) !void {
         },
         .achievements => {
             state.modeSelect.selectedMode.achievements.playerCount = 0;
-            for (state.players.items) |*player| {
-                const playerTile = main.gamePositionToTilePosition(player.position);
+            for (state.players.items) |*otherPlayer| {
+                const playerTile = main.gamePositionToTilePosition(otherPlayer.position);
                 if (main.isTilePositionInTileRectangle(playerTile, state.modeSelect.selectedMode.achievements.rec)) {
                     state.modeSelect.selectedMode.achievements.playerCount += 1;
                 }
@@ -181,6 +192,7 @@ pub fn onPlayerMoveActionFinished(state: *main.GameState) !void {
                 return;
             }
         },
+        .custom => try modeSelectCustomZig.onPlayerMoveActionFinished(player, state),
         else => {},
     }
 }
@@ -206,7 +218,7 @@ pub fn startModeSelect(state: *main.GameState) !void {
         equipmentZig.equipStarterEquipment(player);
         try movePieceZig.setupMovePieces(player, state);
     }
-    try mapTileZig.setMapRadius(4, 4, state);
+    try mapTileZig.setMapRadius(7, 4, state);
     state.camera.position = .{ .x = 0, .y = 0 };
     mapTileZig.setMapType(.default, state);
     state.level = 0;
@@ -229,6 +241,9 @@ fn onStartMode(modeData: ModeData, state: *main.GameState) !void {
         },
         .maze => {
             try startMazeMode(state);
+        },
+        .custom => {
+            try modeSelectCustomZig.startModeCustom(state);
         },
     }
 }

@@ -168,7 +168,7 @@ pub fn onPlayerMoveActionFinished(player: *playerZig.Player, state: *main.GameSt
     if (state.gamePhase == .shopping) {
         try shopZig.executeShopActionForPlayer(player, state);
     } else if (state.gamePhase == .modeSelect) {
-        try modeSelectZig.onPlayerMoveActionFinished(state);
+        try modeSelectZig.onPlayerMoveActionFinished(player, state);
     }
 }
 
