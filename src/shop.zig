@@ -296,7 +296,7 @@ pub fn startShoppingPhase(state: *main.GameState, wentBackwardsToShop: bool) !vo
     } else {
         state.shop.backwardsShopEnterTime = null;
         try statsZig.statsOnLevelFinished(state);
-        if (state.modeSelect.selectedMode != .practice and state.newGamePlus == state.highestNewGameDifficultyBeaten + 1 and state.level > state.highestLevelBeaten) {
+        if (state.statistics.active and state.modeSelect.selectedMode == .newGamePlus and state.newGamePlus == state.highestNewGameDifficultyBeaten + 1 and state.level > state.highestLevelBeaten) {
             state.highestLevelBeaten = state.level;
         }
     }

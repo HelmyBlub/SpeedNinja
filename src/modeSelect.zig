@@ -18,6 +18,7 @@ const enemyZig = @import("enemy/enemy.zig");
 pub const ModeSelectData = struct {
     modeStartRectangles: std.ArrayList(ModeStartRectangle) = undefined,
     selectedMode: ModeData = .none,
+    highscoreMazeMode: u32 = 0,
 };
 
 const ModeEnum = enum {
@@ -35,7 +36,7 @@ const ModeData = union(ModeEnum) {
     practice,
     pvp: ?usize, // last player index who won
     achievements: struct { rec: main.TileRectangle, playerCount: u32 = 0 }, // back to modeSelect rectangle
-    maze: struct { highestReachedRound: u32 = 0 },
+    maze,
 };
 
 pub const ModePlayerData = union(ModeEnum) {
@@ -86,7 +87,7 @@ pub fn initModeSelectData(state: *main.GameState) !void {
             .width = 2,
         },
     });
-    try state.modeSelect.modeStartRectangles.append(.{ .displayName = "Maze", .modeData = .{ .maze = .{} }, .rectangle = .{
+    try state.modeSelect.modeStartRectangles.append(.{ .displayName = "Maze", .modeData = .maze, .rectangle = .{
         .pos = .{ .x = -4, .y = 5 },
         .height = 2,
         .width = 2,
@@ -135,6 +136,7 @@ pub fn setupVertices(state: *main.GameState) !void {
     } else {
         switch (state.modeSelect.selectedMode) {
             .practice => verticesForPracticeMode(state),
+            .maze => try verticesForMazeMode(state),
             else => {},
         }
     }
@@ -237,6 +239,9 @@ fn startMazeMode(state: *main.GameState) !void {
     state.gameOver = false;
     state.level = 1;
     state.newGamePlus = 0;
+    for (state.players.items) |*player| {
+        try playerZig.resetPlayer(player, state);
+    }
     try main.resetLevelData(state);
     const enemySpawnData = &state.enemyData.enemySpawnData;
     enemySpawnData.enemyEntries.clearRetainingCapacity();
@@ -294,6 +299,9 @@ pub fn tick(state: *main.GameState) !void {
                     }
                 }
                 try main.startNextRound(state);
+            }
+            if (state.gameOver and state.modeSelect.highscoreMazeMode < state.round) {
+                state.modeSelect.highscoreMazeMode = state.round;
             }
         },
         else => {},
@@ -384,6 +392,42 @@ fn verticesForAchievementMode(state: *main.GameState) !void {
             if (!achieved) break;
         }
     }
+}
+
+fn verticesForMazeMode(state: *main.GameState) !void {
+    const textColor: [4]f32 = .{ 1, 1, 1, 1 };
+    const white: [4]f32 = .{ 1, 1, 1, 1 };
+    const fontSize = 30 * state.uxData.settingsMenuUx.uiSizeDelayed;
+    const verticeData = &state.vkState.verticeData;
+    const onePixelXInVulkan = state.windowData.onePixelXInVulkan;
+    const onePixelYInVulkan = state.windowData.onePixelYInVulkan;
+    var textWidth: f32 = 0;
+    const levelPos: main.Position = .{
+        .x = -0.99,
+        .y = -0.99,
+    };
+    const paddingX = 2 * onePixelXInVulkan;
+    const paddingY = 2 * onePixelYInVulkan;
+    const roundStartX = textWidth;
+    textWidth += fontVulkanZig.paintText("Round ", .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, state);
+    textWidth += try fontVulkanZig.paintNumber(state.round, .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, state);
+    const roundRec: main.Rectangle = .{
+        .pos = .{ .x = levelPos.x + roundStartX - paddingX, .y = levelPos.y - paddingY },
+        .width = textWidth - roundStartX + paddingX * 3,
+        .height = fontSize * onePixelYInVulkan + paddingY * 2,
+    };
+    paintVulkanZig.verticesForRectangle(roundRec.pos.x, roundRec.pos.y, roundRec.width, roundRec.height, white, &verticeData.lines, &verticeData.triangles);
+    textWidth += paddingX * 6;
+
+    const highscoreStartX = textWidth;
+    textWidth += fontVulkanZig.paintText("Highscore: ", .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, state);
+    textWidth += try fontVulkanZig.paintNumber(state.modeSelect.highscoreMazeMode, .{ .x = levelPos.x + textWidth, .y = levelPos.y }, fontSize, textColor, state);
+    const highscoreRec: main.Rectangle = .{
+        .pos = .{ .x = levelPos.x + highscoreStartX - paddingX, .y = levelPos.y - paddingY },
+        .width = textWidth - highscoreStartX + paddingX * 3,
+        .height = fontSize * onePixelYInVulkan + paddingY * 2,
+    };
+    paintVulkanZig.verticesForRectangle(highscoreRec.pos.x, highscoreRec.pos.y, highscoreRec.width, highscoreRec.height, white, &verticeData.lines, &verticeData.triangles);
 }
 
 fn verticesForPracticeMode(state: *main.GameState) void {

@@ -80,6 +80,7 @@ pub fn loadSettingsFromFile(state: *main.GameState) !void {
             state.achievements.values[achievementIndex].achieved = if (checked != 0) true else false;
         }
     }
+    state.modeSelect.highscoreMazeMode = try reader.readInt(u32, .little);
 }
 
 pub fn saveSettingsToFile(state: *main.GameState) !void {
@@ -111,6 +112,7 @@ pub fn saveSettingsToFile(state: *main.GameState) !void {
             try writer.writeInt(u8, if (value.achieved) 1 else 0, .little);
         }
     }
+    try writer.writeInt(u32, @bitCast(state.modeSelect.highscoreMazeMode), .little);
 }
 
 pub fn loadCurrentRunFromFile(state: *main.GameState) !void {

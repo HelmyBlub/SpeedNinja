@@ -1,16 +1,14 @@
 testruns:
-- speedrun with straight pieces only
 - gain achievements on steam
     - newGame+2
+        - practice harder bosses
     - remember to connect to steam
 
 Tasks:
 - maze mode: only waller enemy -> get max round
-    - only waller enemies
-    - no exit, get highest round
-    - timer always resets to 60
+    - display round and highscore
     - save highest reached round
-    - add one move pieces each 2 rounds
+    - save to settings
 
 Test Performance:
     test duration: 56180, gameTime: 2759470 ~ 59,7 (new test run)

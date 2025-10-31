@@ -194,6 +194,7 @@ pub fn destroyAndSave(state: *main.GameState) !void {
 }
 
 pub fn setupVertices(state: *main.GameState) !void {
+    if (state.modeSelect.selectedMode != .newGamePlus) return;
     if (!state.statistics.uxData.display) return;
     if (state.level == 0) return;
     state.statistics.uxData.currentTimestamp = std.time.milliTimestamp();
